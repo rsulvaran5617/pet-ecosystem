@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@pet/types": ["packages/types/src/index.ts"],
+      "@pet/ui": ["packages/ui/src/index.ts"],
+      "@pet/api-client": ["packages/api-client/src/index.ts"],
+      "@pet/config": ["packages/config/src/index.ts"]
+    }
+  }
+}

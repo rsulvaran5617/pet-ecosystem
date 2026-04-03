@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Pet Ecosystem",
+    "slug": "pet-ecosystem",
+    "version": "0.0.0",
+    "scheme": "petecosystem",
+    "orientation": "portrait",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.petecosystem.mobile"
+    },
+    "android": {
+      "package": "com.petecosystem.mobile"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e5396697-a4cc-4fd4-b827-4329585b8166"
+      }
+    }
+  }
+}
