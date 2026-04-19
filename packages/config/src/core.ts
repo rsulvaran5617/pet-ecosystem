@@ -1,10 +1,11 @@
 import type { CoreRole, OnboardingTaskId, PaymentMethodType } from "@pet/types";
 
-export const coreRoles = ["pet_owner", "provider"] as const satisfies readonly CoreRole[];
+export const coreRoles = ["pet_owner", "provider", "admin"] as const satisfies readonly CoreRole[];
 
 export const coreRoleLabels: Record<CoreRole, string> = {
   pet_owner: "Pet owner",
-  provider: "Provider"
+  provider: "Provider",
+  admin: "Admin"
 };
 
 export const coreOnboardingTaskOrder = [

@@ -1,58 +1,57 @@
-# pets.md
+# marketplace.md
 
-## Objetivo del módulo
-Gestionar la entidad principal del sistema: la mascota.
+## Objetivo del modulo
+Permitir discovery publico de proveedores pet aprobados y dejar lista la seleccion de servicio para el flujo transaccional de booking.
 
 ## Alcance MVP
-- lista de mascotas
-- crear mascota
-- editar mascota
-- perfil resumen
-- documentos básicos
+- home marketplace
+- busqueda
+- filtros basicos
+- perfil publico del proveedor
+- seleccion de servicio
+- handoff real hacia booking preview cuando el usuario ya tiene sesion
 
-## Alcance V2
-- timeline
-- compartir documentos
-- relación con proveedor veterinario principal
+## Alcance diferido
+- favoritos
+- ranking avanzado
+- cotizaciones
+- recurrencia
 
 ## Entidades
-- pets
-- pet_profiles
-- pet_documents
-- pet_document_shares
-- pet_timeline_events
+- `provider_organizations`
+- `provider_public_profiles`
+- `provider_services`
+- `provider_availability`
 
 ## Pantallas
-- lista de mascotas
-- crear mascota
-- editar mascota
-- perfil mascota
-- documentos
+- home marketplace
+- resultados de busqueda
+- perfil proveedor
+- seleccion de servicio
 
 ## Reglas
-- una mascota pertenece a un hogar
-- una mascota puede tener múltiples documentos
-- solo miembros autorizados del hogar pueden verla
-- la documentación sensible debe respetar permisos
+- solo proveedores aprobados pueden ser visibles en marketplace
+- marketplace consume perfiles publicos, servicios y disponibilidad publicados por `providers`
+- el discovery publico lista organizaciones con `approval_status = approved` e `is_public = true`
+- los proveedores sin perfil publico o sin al menos un servicio publico no aparecen en discovery
+- la seleccion de servicio no crea por si sola el booking
+- la seleccion deja preparado el contexto para `Bookings`
+- en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida
 
 ## Dependencias
+- providers
 - households
-- profiles
-- storage
-- reminders
-- health
+- pets
+- bookings para el paso transaccional posterior
 
 ## APIs relacionadas
-- GET /pets
-- POST /pets
-- GET /pets/{id}
-- PATCH /pets/{id}
-- GET /pets/{id}/documents
-- POST /pets/{id}/documents
+- `GET /marketplace/home`
+- `GET /marketplace/providers`
+- `GET /marketplace/providers/{id}`
 
-## Criterio de done del módulo MVP
-- un usuario puede crear una mascota;
-- verla en listado;
-- editarla;
-- subir un documento;
-- acceder a su ficha resumen.
+## Criterio de done del modulo MVP
+- el usuario descubre proveedores aprobados
+- puede buscar y filtrar
+- puede abrir el perfil publico del proveedor
+- puede seleccionar un servicio
+- si ya esta autenticado, puede pasar al preview de booking sin perder contexto

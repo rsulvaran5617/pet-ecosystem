@@ -1,28 +1,68 @@
-# EPICS_AND_STORIES.md
+# RELEASE_PLAN.md
 
-## Objetivo
-Contener el detalle ejecutable por épica.
+## Release objetivo actual
 
-## Ejemplo de estructura por épica
+Cerrar un baseline serio de MVP, alineado entre codigo, migraciones, contratos y documentacion.
 
-### EP-01 Identidad, acceso y seguridad
-- US-001 Registro por email/teléfono/social
-- US-002 Login y recuperación
-- US-003 Perfil de usuario
-- US-004 Métodos de pago
-- US-005 Cambio de rol
-- US-006 2FA
+## Gate 1: Baseline MVP
 
-### EP-02 Hogar, roles y permisos
-- US-007 Crear hogar
-- US-008 Invitar miembros
-- US-009 Gestionar permisos
-- US-010 Remover y administrar miembros
+Debe quedar resuelto:
 
-### EP-03 Mascotas, documentos y expediente base
-- US-011 Registrar mascota
-- US-012 Perfil resumen de mascota
-- US-013 Editar mascota
-- US-014 Documentos de mascota
-- US-015 Compartir documentos
-- US-016 Timeline
+- core, households, pets, health y reminders
+- marketplace publico
+- bookings `instant` y `approval_required`
+- messaging, reviews y support
+- providers base
+- admin base
+- trazabilidad minima de mutaciones criticas
+- repo sin artefactos no canonicos
+
+## Gate 2: QA/UAT
+
+Debe quedar validado:
+
+- `corepack pnpm lint`
+- `corepack pnpm typecheck`
+- build de `apps/web`
+- build de `apps/admin`
+- export de `apps/mobile` cuando el entorno lo permita
+- smoke MVP canonica
+- checklist QA/UAT manual documentado
+
+## Gate 3: Piloto controlado
+
+Solo se recomienda cuando ademas exista:
+
+- baseline committeable y reproducible
+- actores QA estables
+- seeds o precondiciones operativas claras
+- validacion manual final de flujos criticos
+- decision explicita sobre pendientes no bloqueantes
+
+## Freeze propuesto para el baseline actual
+
+- commit sugerido: `chore(release): freeze sanitized MVP baseline for QA/UAT`
+- tag sugerido: `v0.1.0-mvp-baseline.1`
+
+## Convencion minima recomendada
+
+- baseline tecnico congelado: `v0.1.0-mvp-baseline.N`
+- cierre de QA/UAT manual: `v0.1.0-qa-uat.N`
+- candidato a piloto controlado: `v0.1.0-pilot-rc.N`
+
+Esta convencion busca distinguir con claridad:
+
+- baseline tecnico saneado
+- cierre manual de QA/UAT
+- decision de piloto
+
+## Fuera del release actual
+
+- captura real de pagos
+- conciliacion
+- clinic
+- commerce
+- pharmacy
+- finance
+- benefits
+- telecare

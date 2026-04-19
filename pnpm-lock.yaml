@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^9.0.0
         version: 9.39.4
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.17
       eslint:
         specifier: ^9.0.0
         version: 9.39.4
@@ -32,6 +35,21 @@ importers:
 
   apps/admin:
     dependencies:
+      '@pet/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@pet/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@pet/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@pet/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@supabase/supabase-js':
+        specifier: ^2.57.2
+        version: 2.101.1
       next:
         specifier: ^14.0.0
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -78,6 +96,9 @@ importers:
       expo:
         specifier: ^51.0.0
         version: 51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)
+      expo-document-picker:
+        specifier: ~12.0.2
+        version: 12.0.2(expo@51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1))
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -1404,6 +1425,9 @@ packages:
   '@types/node@20.19.37':
     resolution: {integrity: sha512-8kzdPJ3FsNsVIurqBs7oodNnCEVbni9yUEkaHbgptDACOPW04jimGagZ51E6+lXUwJjgnBw+hyko/lkFWCldqw==}
 
+  '@types/node@22.19.17':
+    resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
+
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -2251,6 +2275,11 @@ packages:
 
   expo-constants@16.0.2:
     resolution: {integrity: sha512-9tNY3OVO0jfiMzl7ngb6IOyR5VFzNoN5OOazUWoeGfmMqVB5kltTemRvKraK9JRbBKIw+SOYLEmF0sEqgFZ6OQ==}
+    peerDependencies:
+      expo: '*'
+
+  expo-document-picker@12.0.2:
+    resolution: {integrity: sha512-tmwuRWoCPv6SmNDSMEWcttMBJ95k8/g5sMWnHdmvOx0UKp0pFXP8FI+55HKtQpo6k2+118MkdDDhQSwKqASVAw==}
     peerDependencies:
       expo: '*'
 
@@ -6475,6 +6504,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@22.19.17':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/prop-types@15.7.15': {}
 
   '@types/react-dom@18.3.7(@types/react@18.3.28)':
@@ -7456,6 +7489,10 @@ snapshots:
       expo: 51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - supports-color
+
+  expo-document-picker@12.0.2(expo@51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)):
+    dependencies:
+      expo: 51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)
 
   expo-file-system@17.0.1(expo@51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(react-native@0.74.7(@babel/core@7.29.0)(@babel/preset-env@7.29.2(@babel/core@7.29.0))(@types/react@18.3.28)(react@18.3.1))(react@18.3.1)):
     dependencies:

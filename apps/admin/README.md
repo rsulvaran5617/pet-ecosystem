@@ -1,17 +1,19 @@
 # apps/admin
 
-Backoffice base para operación interna del MVP.
+Backoffice Next.js del MVP.
 
 ## Responsabilidad
-- aprobación de proveedores
-- soporte básico
-- auditoría mínima
-- operación administrativa inicial
+
+- autenticacion de usuario con rol `admin`
+- aprobacion y rechazo de proveedores
+- triage basico de soporte
 
 ## Estado actual
-Este workspace queda listo como shell técnico inicial con Next.js + TypeScript.
+
+Ya no es shell tecnico. Este workspace opera sobre Supabase real y cubre el alcance administrativo minimo prometido por el MVP.
 
 ## Reglas
-- el admin no debe duplicar reglas de negocio del backend
-- toda mutación crítica debe quedar auditada
-- toda acción debe respetar permisos por rol administrativo
+
+- no duplicar reglas de negocio del backend
+- toda mutacion critica debe quedar trazada
+- toda accion debe respetar el rol global `admin`

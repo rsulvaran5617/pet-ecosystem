@@ -1,60 +1,45 @@
-# SCREEN_SPECIFICATIONS.md
+# pets.md
 
-## Objetivo
-Contener la especificación funcional por pantalla.
+## Objetivo del modulo
+Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y gestionar documentos basicos ligados a esa mascota.
 
-## Pantallas MVP mínimas
-### Core
-- onboarding
-- registro
-- verificación
-- login
-- perfil
-- hogares
-- miembros
-
-### Pets
-- lista de mascotas
+## Alcance MVP
+- listar mascotas del hogar
 - crear mascota
 - editar mascota
-- perfil mascota
-- documentos
+- ver perfil resumen de mascota
+- listar documentos basicos de mascota
+- cargar documentos basicos de mascota
+- clasificar documentos por tipo
 
-### Health
-- dashboard salud
-- vacunas
-- alergias
-- condiciones
+## Fuera de este slice MVP
+- timeline
+- compartir documentos con proveedores
+- permisos por mascota
+- expediente clinico avanzado
+- archivado o restore de documentos si no queda explicitamente pedido por release posterior
 
-### Agenda
-- calendario
-- crear recordatorio
+## Entidades
+- `pets`
+- `pet_profiles`
+- `pet_documents`
 
-### Marketplace
-- home marketplace
-- búsqueda
-- filtros
-- perfil proveedor
-- selección servicio
-- checkout booking
-- historial reservas
+## Reglas
+- toda mascota pertenece a un `household`
+- un miembro con permiso de hogar `view` puede consultar mascotas y documentos
+- un miembro con permiso de hogar `edit` o `admin` puede crear y editar mascotas
+- un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
+- los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
+- no se implementa `pet_timeline` ni `pet_document_shares` en este slice
 
-### Messaging
-- inbox
-- chat
+## Dependencias minimas
+- core
+- households
 
-### Reviews / Support
-- dejar review
-- crear caso
-
-### Provider
-- onboarding proveedor
-- perfil negocio
-- servicios
-- disponibilidad
-- dashboard proveedor
-- solicitudes entrantes
-
-### Admin
-- dashboard admin
-- aprobación proveedores
+## APIs
+- `GET /pets?householdId={householdId}`
+- `POST /pets`
+- `GET /pets/{id}`
+- `PATCH /pets/{id}`
+- `GET /pets/{id}/documents`
+- `POST /pets/{id}/documents`

@@ -1,6 +1,6 @@
 import type { IsoDateString, TimestampedEntity, Uuid } from "./base";
 
-export type CoreRole = "pet_owner" | "provider";
+export type CoreRole = "pet_owner" | "provider" | "admin";
 export type VerificationChannel = "email";
 export type VerificationStatus = "pending" | "verified";
 export type AddressLabel = "home" | "work" | "other";

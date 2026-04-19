@@ -1,45 +1,49 @@
 # messaging.md
 
-## Objetivo
-Permitir comunicación trazable entre actores del ecosistema.
-
-## MVP
-- inbox
-- chat ligado a booking
-- mensajes de texto
-- notificación básica
-
-## V2
-- adjuntos
-- chat ligado a citas o pedidos
-
-## Entidades
-- chat_threads
-- chat_participants
-- chat_messages
-
-## Reglas
-- el chat debe tener contexto transaccional en MVP
-- solo participantes autorizados pueden verlo
-- el historial debe ser consultable para soporte
-
-## APIs
-- `/chats`
-- `/chats/{threadId}/messages`
-- `/chats/{threadId}/attachments`
-# messaging.md
-
-## Objetivo del módulo
-Habilitar comunicación básica entre cliente y proveedor vinculada a reservas.
+## Objetivo del modulo
+Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una reserva existente.
 
 ## Alcance MVP
-- inbox
-- chat básico vinculado a booking
+- inbox de threads
+- detalle de chat vinculado a booking
+- envio basico de mensajes de texto
+- navegacion minima desde booking hacia el chat asociado
+
+## Fuera de alcance en este slice
+- adjuntos
+- chat libre desacoplado del booking
+- reviews
+- soporte
+- automatizaciones avanzadas
+- unread counters o notificaciones persistidas no canonicas
 
 ## Dependencias
 - bookings
-- providers
-- households
+- marketplace solo como origen previo de la reserva
+- core auth
+- providers solo por el owner de la organizacion involucrada en la reserva
 
-## Regla
-No habilitar conversaciones fuera del scope autorizado de la reserva.
+## Entidades
+- `chat_threads`
+- `chat_messages`
+
+## Reglas
+- cada thread nace automaticamente al crearse un booking
+- el thread pertenece a un solo booking
+- solo pueden ver y escribir en el thread:
+  - el usuario que realizo la reserva
+  - el owner de la organizacion proveedora del booking
+- no se habilitan conversaciones fuera del scope autorizado de la reserva
+- el inbox y el detalle deben poder resolverse sin exponer datos privados fuera de ese scope
+
+## APIs relacionadas
+- `GET /chats`
+- `GET /chats/{threadId}/messages`
+- `POST /chats/{threadId}/messages`
+
+## Criterio de done del modulo MVP
+- existe inbox funcional de threads vinculados a bookings
+- se puede abrir el detalle del thread desde booking
+- se pueden enviar mensajes de texto basicos
+- la visibilidad queda restringida por participantes autorizados
+- adjuntos, reviews y soporte siguen fuera de alcance

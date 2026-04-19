@@ -3,9 +3,11 @@ import { colorTokens } from "@pet/ui";
 import type {
   AddPaymentMethodInput,
   CoreRole,
+  MarketplaceServiceSelection,
   UpdatePreferencesInput,
   UpdateProfileInput,
-  UpsertAddressInput
+  UpsertAddressInput,
+  Uuid
 } from "@pet/types";
 import { useEffect, useState } from "react";
 import {
@@ -24,6 +26,16 @@ import { CoreSectionCard } from "../components/CoreSectionCard";
 import { StatusChip } from "../components/StatusChip";
 import { useCoreWorkspace } from "../hooks/useCoreWorkspace";
 import { getMobileCoreApiClient, getMobileRecoveryRedirectUrl } from "../services/supabase-mobile";
+import { HouseholdsWorkspace } from "../../households/components/HouseholdsWorkspace";
+import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
+import { HealthWorkspace } from "../../health/components/HealthWorkspace";
+import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
+import { MarketplaceWorkspace } from "../../marketplace/components/MarketplaceWorkspace";
+import { ProvidersWorkspace } from "../../providers/components/ProvidersWorkspace";
+import { BookingsWorkspace } from "../../bookings/components/BookingsWorkspace";
+import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
+import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
+import { SupportWorkspace } from "../../support/components/SupportWorkspace";
 
 type RegisterFormState = {
   email: string;
@@ -282,6 +294,13 @@ export function CoreHomeScreen() {
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
+  const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
+  const [focusedBookingId, setFocusedBookingId] = useState<Uuid | null>(null);
+  const [chatFocusVersion, setChatFocusVersion] = useState(0);
+  const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
+  const [reviewFocusVersion, setReviewFocusVersion] = useState(0);
+  const [focusedSupportBookingId, setFocusedSupportBookingId] = useState<Uuid | null>(null);
+  const [supportFocusVersion, setSupportFocusVersion] = useState(0);
 
   useEffect(() => {
     if (!snapshot) {
@@ -303,6 +322,9 @@ export function CoreHomeScreen() {
     setRecoverForm({ email: snapshot.profile.email });
     setVerifyForm((currentForm) => ({ ...currentForm, email: currentForm.email || snapshot.profile.email }));
   }, [snapshot]);
+
+  const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
+  const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
 
   if (isLoading) {
     return (
@@ -942,6 +964,37 @@ export function CoreHomeScreen() {
                 ))}
               </View>
             </CoreSectionCard>
+
+            <HouseholdsWorkspace enabled />
+            <PetsWorkspace enabled />
+            <HealthWorkspace enabled />
+            <RemindersWorkspace enabled />
+            <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive={activeRole === "provider"} />
+            <MarketplaceWorkspace
+              enabled
+              onSelectBookingService={(selection) => {
+                setMarketplaceSelection(selection);
+              }}
+            />
+            <BookingsWorkspace
+              enabled
+              marketplaceSelection={marketplaceSelection}
+              onOpenChatForBooking={(bookingId) => {
+                setFocusedBookingId(bookingId);
+                setChatFocusVersion(Date.now());
+              }}
+              onOpenReviewForBooking={(bookingId) => {
+                setFocusedReviewBookingId(bookingId);
+                setReviewFocusVersion(Date.now());
+              }}
+              onOpenSupportForBooking={(bookingId) => {
+                setFocusedSupportBookingId(bookingId);
+                setSupportFocusVersion(Date.now());
+              }}
+            />
+            <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
+            <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
+            <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
           </>
         ) : null}
       </ScrollView>

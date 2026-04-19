@@ -17,6 +17,12 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('No tests configured for @pet/api-client yet.')\""
+    "test": "node -e \"console.log('No tests configured for @pet/api-client yet.')\"",
+    "smoke:mvp": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts full",
+    "smoke:mvp:critical": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts critical",
+    "smoke:mvp:admin": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts admin",
+    "smoke:mvp:providers": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts providers",
+    "smoke:mvp:health": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts health",
+    "smoke:mvp:reminders": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts reminders"
   }
 }

@@ -1,18 +1,28 @@
 # health.md
 
-## Objetivo
-Centralizar la información sanitaria de la mascota.
+## Objetivo del modulo
+Gestionar la salud base de la mascota dentro del alcance MVP.
 
-## MVP
-- dashboard simple
-- vacunas
-- alergias
-- condiciones
+## Alcance MVP
+- dashboard de salud simple por mascota
+- vacunas:
+  - listar
+  - registrar
+  - editar
+- alergias:
+  - listar
+  - registrar
+  - editar
+- condiciones:
+  - listar
+  - registrar
+  - editar
+- visualizacion de salud basica dentro del perfil resumen de mascota
 
-## V2
-- medicación
+## Fuera de MVP
+- medicacion
 - laboratorios
-- imágenes
+- imagenes clinicas
 - incidentes
 - compartir expediente
 
@@ -20,35 +30,28 @@ Centralizar la información sanitaria de la mascota.
 - pet_vaccines
 - pet_allergies
 - pet_conditions
-- pet_medications
-- pet_labs
-- pet_incidents
+
+## Dependencias
+- core
+- households
+- pets
 
 ## Reglas
 - la salud pertenece a la mascota
-- el acceso debe respetar permisos del hogar
-- condiciones críticas deben resaltarse
+- el acceso respeta permisos derivados del hogar y de la mascota
+- listar requiere acceso de lectura a la mascota
+- registrar o editar requiere permisos derivados de `edit` o `admin` en el hogar
+- las condiciones criticas deben resaltarse en el dashboard simple
+- en MVP no existe share activo hacia proveedores o clinica
 
-## APIs
-- `/pets/{id}/vaccines`
-- `/pets/{id}/allergies`
-- `/pets/{id}/conditions`
-- `/pets/{id}/medications`
-# health.md
-
-## Objetivo del módulo
-Gestionar la salud base de la mascota para el MVP.
-
-## Alcance MVP
-- vacunas
-- alergias
-- condiciones
-- dashboard de salud simple
-
-## Dependencias
-- pets
-- documents
-- reminders
-
-## Regla
-Los registros sensibles deben respetar ownership y household access.
+## API conceptual
+- GET `/pets/{id}/health`
+- GET `/pets/{id}/vaccines`
+- POST `/pets/{id}/vaccines`
+- PATCH `/pets/{id}/vaccines/{vaccineId}`
+- GET `/pets/{id}/allergies`
+- POST `/pets/{id}/allergies`
+- PATCH `/pets/{id}/allergies/{allergyId}`
+- GET `/pets/{id}/conditions`
+- POST `/pets/{id}/conditions`
+- PATCH `/pets/{id}/conditions/{conditionId}`

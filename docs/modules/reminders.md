@@ -1,51 +1,41 @@
 # reminders.md
 
-## Objetivo
-Gestionar seguimiento activo de tareas, eventos y cuidados.
-
-## MVP
-- calendario
-- recordatorios manuales
-- recurrencia simple
-- completar o posponer
-- recordatorios por vacunas
-- integración con bookings
-
-## V2
-- bandeja de pendientes
-- medicación
-- automatizaciones adicionales
-
-## Entidades
-- reminders
-- reminder_occurrences
-- calendar_events
-
-## Reglas
-- un recordatorio puede pertenecer a una mascota o al hogar
-- bookings confirmados deben verse en agenda
-- las vacunas con próxima fecha deben generar recordatorio
-
-## APIs
-- `/calendar`
-- `/reminders`
-- `/reminders/{id}/complete`
-- `/reminders/{id}/snooze`
-# reminders.md
-
-## Objetivo del módulo
-Gestionar agenda y recordatorios relacionados con salud y reservas.
+## Objetivo del modulo
+Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplicar la logica transaccional de bookings.
 
 ## Alcance MVP
 - calendario
 - recordatorios manuales
-- recordatorios automáticos por vacunas
-- integración con bookings
+- completar o posponer
+- recordatorios automaticos por vacunas
+
+## Integracion con bookings
+- `Bookings` ya existe en el baseline MVP
+- la agenda de `Reminders` no incorpora todavia eventos derivados de reservas
+- esa integracion sigue diferida para un hardening posterior y no bloquea el cierre actual del modulo
+
+## Alcance diferido
+- bandeja de pendientes
+- medicacion
+- automatizaciones adicionales
+- eventos de agenda derivados de bookings
+
+## Entidades
+- `reminders`
+- `calendar_events`
+
+## Reglas
+- un recordatorio puede pertenecer a una mascota o al hogar
+- las vacunas con proxima fecha deben generar recordatorios
+- los eventos derivados de booking no deben adelantarse ni duplicar el dominio `bookings`
 
 ## Dependencias
 - pets
 - health
-- bookings
+- bookings solo para integracion futura de agenda
 
-## Regla
-Los recordatorios deben reutilizar datos existentes y no duplicar entidades clínicas avanzadas.
+## APIs relacionadas
+- `GET /calendar`
+- `POST /reminders`
+- `POST /reminders/{id}/complete`
+- `POST /reminders/{id}/snooze`

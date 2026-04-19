@@ -1,16 +1,20 @@
 # apps/web
 
-Base web del MVP.
+Workspace Next.js del MVP web.
 
 ## Responsabilidad
-- discovery web
-- experiencia provider-facing inicial
-- páginas públicas o flows complementarios del release vigente
+
+- discovery publico del marketplace
+- auth/core del usuario web
+- households, pets, health, reminders, bookings, messaging, reviews y support
+- provider workspace base
 
 ## Estado actual
-Este workspace funciona como shell técnico inicial con Next.js + TypeScript.
+
+Ya no es shell tecnico. Este workspace consume Supabase real via `packages/api-client` y expone el baseline funcional del MVP en una sola superficie integrada.
 
 ## Reglas
-- no duplicar lógica del admin
-- no duplicar lógica móvil si puede compartirse
-- usar `packages/types`, `packages/api-client`, `packages/ui` y `packages/config`
+
+- no duplicar logica de `admin`
+- no mover reglas de negocio pesadas a componentes visuales
+- reutilizar `packages/types`, `packages/api-client`, `packages/config` y `packages/ui`

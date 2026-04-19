@@ -36,6 +36,7 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - un usuario puede tener multiples roles
 - solo puede existir un rol activo por usuario
 - el rol activo define el contexto visible
+- `pet_owner` y `provider` siguen siendo roles autogestionables; `admin` solo se provisiona de forma administrativa
 - las preferencias forman parte del perfil base del usuario
 - las direcciones pertenecen al usuario, no al hogar
 - los metodos de pago guardados pertenecen al usuario

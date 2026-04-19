@@ -1,43 +1,55 @@
 # APP_FLOWS.md
 
-## Flujos críticos MVP
+## Flujos criticos MVP
 
 ### Flujo 1: alta de usuario y mascota
 1. onboarding
 2. registro
-3. verificación
+3. verificacion
 4. crear hogar
 5. crear mascota
-6. completar perfil mascota
+6. completar perfil base o salud inicial
 
-### Flujo 2: salud básica
-1. entrar a mascota
-2. abrir salud
-3. registrar vacuna
-4. generar recordatorio
+### Flujo 2: salud y reminders
+1. abrir mascota
+2. registrar vacuna, alergia o condicion
+3. generar o visualizar reminder
+4. completar o posponer reminder
 
-### Flujo 3: reserva de servicio
+### Flujo 3: discovery y booking owner-side
 1. abrir marketplace
 2. buscar proveedor
-3. abrir perfil proveedor
-4. seleccionar servicio
-5. elegir mascota
-6. checkout
-7. pagar
-8. reserva creada
-9. chat
+3. aplicar filtros
+4. abrir perfil publico
+5. seleccionar servicio
+6. abrir booking preview
+7. crear booking
+8. si el servicio es `instant`, nace `confirmed`
+9. si el servicio es `approval_required`, nace `pending_approval`
 
-### Flujo 4: proveedor base
-1. registrarse
-2. crear organización
-3. configurar servicios
-4. definir disponibilidad
-5. subir documentos
-6. esperar aprobación
-7. recibir solicitudes
-8. aceptar/rechazar
+### Flujo 4: operacion provider-side
+1. registrarse como provider
+2. crear organizacion
+3. configurar perfil, servicios y disponibilidad
+4. subir documentos
+5. esperar aprobacion admin
+6. recibir booking en la cola de la organizacion
+7. aprobar o rechazar si el booking esta en `pending_approval`
+8. completar el booking cuando ya este `confirmed`
 
-### Flujo 5: cierre de servicio
-1. servicio completado
-2. review
+### Flujo 5: cierre del servicio
+1. booking en `completed`
+2. review del cliente
 3. soporte si aplica
+
+### Flujo 6: operacion admin
+1. abrir proveedores pendientes
+2. revisar detalle y documentos
+3. aprobar o rechazar
+4. abrir soporte
+5. actualizar estado o resolucion
+6. dejar trazabilidad minima en `audit_logs`
+
+## Nota de UX web publica
+El discovery web puede operar sin autenticacion.
+La creacion del booking sigue requiriendo sesion valida.

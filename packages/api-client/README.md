@@ -1,14 +1,14 @@
 # @pet/api-client
 
-Contratos y bootstrap de acceso a datos compartido.
+Cliente tipado de acceso a datos compartido para el baseline MVP.
 
 ## Debe contener
 - cliente base
-- acceso tipado a Supabase o APIs
+- acceso tipado a Supabase
 - servicios por dominio
-- helpers reutilizables de lectura y mutación
+- helpers reutilizables de lectura y mutacion
 
 ## No debe contener
 - componentes visuales
-- navegación
-- lógica de UI
+- navegacion
+- logica de UI

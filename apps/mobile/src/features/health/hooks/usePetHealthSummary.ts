@@ -1,0 +1,66 @@
+import type { PetHealthDashboard, Uuid } from "@pet/types";
+import { useEffect, useRef, useState } from "react";
+
+import { getMobileHealthApiClient } from "../../core/services/supabase-mobile";
+
+interface UsePetHealthSummaryResult {
+  summary: PetHealthDashboard | null;
+  isLoading: boolean;
+  errorMessage: string | null;
+}
+
+export function usePetHealthSummary(petId: Uuid | null, enabled: boolean): UsePetHealthSummaryResult {
+  const mountedRef = useRef(true);
+  const [summary, setSummary] = useState<PetHealthDashboard | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    if (!enabled || !petId) {
+      setSummary(null);
+      setIsLoading(false);
+      setErrorMessage(null);
+
+      return () => {
+        mountedRef.current = false;
+      };
+    }
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    void getMobileHealthApiClient()
+      .getPetHealthDetail(petId)
+      .then((detail) => {
+        if (!mountedRef.current) {
+          return;
+        }
+
+        setSummary(detail.dashboard);
+      })
+      .catch((error) => {
+        if (!mountedRef.current) {
+          return;
+        }
+
+        setErrorMessage(error instanceof Error ? error.message : "Unable to load the pet health summary.");
+      })
+      .finally(() => {
+        if (mountedRef.current) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [enabled, petId]);
+
+  return {
+    summary,
+    isLoading,
+    errorMessage
+  };
+}

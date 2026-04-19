@@ -1,39 +1,45 @@
 # MODULE_STATUS.md
 
-## Objetivo
-Tener una visión rápida del estado documental y de implementación de cada módulo.
+## Escala usada
 
-## Estados
+- `closed`
+- `closed_with_notes`
+- `partial`
+- `not_started`
 
-### Documentación
-- missing
-- draft
-- ready
+## Estado actual por modulo
 
-### Implementación
-- not_started
-- in_progress
-- implemented
-- stabilized
+- `core` -> `closed_with_notes`
+- `households` -> `closed_with_notes`
+- `pets` -> `closed_with_notes`
+- `health` -> `closed_with_notes`
+- `reminders` -> `closed_with_notes`
+- `marketplace` -> `closed_with_notes`
+- `bookings` -> `closed_with_notes`
+- `messaging` -> `closed_with_notes`
+- `reviews` -> `closed_with_notes`
+- `support` -> `closed_with_notes`
+- `providers` -> `closed_with_notes`
+- `admin` -> `closed_with_notes`
+- `payments` -> `partial`
+- `qa_smoke` -> `partial`
+- `clinic` -> `not_started`
+- `commerce` -> `not_started`
+- `pharmacy` -> `not_started`
+- `finance` -> `not_started`
+- `benefits` -> `not_started`
+- `telecare` -> `not_started`
 
-## Módulos
+## Salvedades activas del baseline
 
-- core → MVP → ready → not_started
-- households → MVP → ready → not_started
-- pets → MVP → ready → not_started
-- health → MVP/V2 → ready → not_started
-- reminders → MVP → ready → not_started
-- marketplace → MVP → ready → not_started
-- bookings → MVP → ready → not_started
-- messaging → MVP → ready → not_started
-- providers → MVP/V2 → ready → not_started
-- admin → MVP/V2 → ready → not_started
-- clinic → V2 → ready → not_started
-- commerce → V2 → ready → not_started
-- pharmacy → V2/V3 → ready → not_started
-- finance → V2/V3 → ready → not_started
-- benefits → V2/V3 → ready → not_started
-- telecare → V3 → ready → not_started
+- pagos solo en modo `payment-ready`
+- la smoke canonica `full` ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre Supabase real
+- la smoke automatizada sigue siendo parcial respecto del MVP completo porque aun faltan escenarios manuales de UI y canales mobile/admin end-to-end
+- siguen pendientes validaciones manuales finales de QA/UAT
+- el baseline esta alineado para QA/UAT, no para produccion
 
-## Regla principal
-No se debe iniciar implementación de un módulo cuya documentación no esté en estado `ready`.
+## Estado global del release
+
+- estado recomendado hoy: `listo para QA/UAT`
+- baseline tecnico serio y listo para `freeze` en commit/tag
+- no recomendar aun `piloto controlado` sin la ejecucion manual de la matriz critica y un baseline versionado

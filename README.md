@@ -1,42 +1,45 @@
 # Pet Ecosystem
 
-Monorepo base del ecosistema digital pet.
+Monorepo PNPM del MVP pet con tres superficies coordinadas:
 
-El proyecto esta organizado alrededor de tres superficies coordinadas:
+1. `apps/mobile`: super app del duenio de mascota.
+2. `apps/web`: experiencia web del MVP, incluyendo discovery publico y workspace funcional del usuario autenticado.
+3. `apps/admin`: backoffice MVP para aprobacion de proveedores y triage de soporte.
 
-1. `apps/mobile`: super app del dueno de mascota.
-2. `apps/web`: experiencia web publica y base provider-facing del MVP.
-3. `apps/admin`: backoffice de plataforma.
+## Estado actual de la version
 
-## Objetivo del repositorio
+La version actual ya no es bootstrap. El working tree implementa el baseline funcional del MVP para:
 
-Preparar una base tecnica y documental consistente para construir el MVP sin mezclar todavia verticales V2 o V3.
-
-El MVP prioriza:
-
-- core auth/profile
+- core auth/profile/preferences/addresses/payment methods
 - households
 - pets
-- salud basica
+- health
 - reminders
-- marketplace basico
-- booking basico
-- pagos basicos
-- chat
-- reviews basicas
-- soporte basico
-- proveedor basico
-- aprobacion de proveedores
+- marketplace
+- bookings
+- messaging
+- reviews
+- support
+- providers base
+- admin base
 
-## Estructura principal
+Decisiones activas del release:
+
+- pagos en modo `payment-ready`; no hay captura real ni conciliacion todavia
+- `approval_required` ya incluye recepcion provider-side y acciones `approve/reject`
+- existe trazabilidad minima en `audit_logs` para mutaciones criticas del MVP
+- la smoke canonica ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real
+- el baseline tecnico actual debe considerarse `listo para QA/UAT final`
+- no debe declararse `piloto controlado` hasta congelar este baseline en git y cerrar la matriz manual critica
+- clinic, commerce, pharmacy, finance, benefits y telecare siguen fuera del baseline
+
+## Estructura
 
 ```text
-pnpm-lock.yaml
-
 apps/
+  admin/
   mobile/
   web/
-  admin/
 
 packages/
   api-client/
@@ -45,64 +48,51 @@ packages/
   ui/
 
 supabase/
-  README.md
   config.toml
+  functions/
   migrations/
   seed/
-  functions/
-  data/
 
 docs/
-  HANDOFF.md
-  vision/
   architecture/
-  product/
-  data/
   api/
-  ux/
-  modules/
+  data/
   delivery/
+  modules/
+  product/
+  ux/
+  vision/
+  HANDOFF.md
 ```
 
-## Documentacion clave
+## Scripts principales
+
+- `corepack pnpm dev`
+- `corepack pnpm lint`
+- `corepack pnpm typecheck`
+- `corepack pnpm build`
+- `corepack pnpm smoke:mvp`
+- `corepack pnpm smoke:mvp:critical`
+- `corepack pnpm smoke:mvp:admin`
+- `corepack pnpm smoke:mvp:providers`
+- `corepack pnpm smoke:mvp:health`
+- `corepack pnpm smoke:mvp:reminders`
+
+## Canon del proyecto
+
+Leer siempre, como minimo:
 
 - `AGENTS.md`
-- `docs/vision/PRODUCT_VISION.md`
-- `docs/vision/BLUEPRINT_GENERAL.md`
 - `docs/architecture/ARCHITECTURE.md`
-- `docs/architecture/REPO_STRUCTURE.md`
-- `docs/architecture/DEVELOPMENT_SETUP.md`
-- `docs/architecture/MONOREPO_CONVENTIONS.md`
 - `docs/architecture/ENVIRONMENT_VARIABLES.md`
-- `docs/architecture/DOMAIN_MAP.md`
-- `docs/architecture/TECH_STACK.md`
 - `docs/api/API_CONTRACT.md`
 - `docs/data/SUPABASE_SCHEMA.md`
 - `docs/data/DATA_MODEL.md`
 - `docs/data/RLS_RULES.md`
 - `docs/delivery/MVP_SCOPE.md`
+- `docs/product/MODULE_STATUS.md`
+- `docs/HANDOFF.md`
 
-## Bootstrap tecnico
+## Regla operativa
 
-1. Instalar dependencias:
-   `corepack pnpm install`
-2. Levantar las apps en modo desarrollo:
-   `corepack pnpm dev`
-3. Ejecutar verificaciones basicas:
-   `corepack pnpm lint`
-   `corepack pnpm typecheck`
-
-Si `pnpm` ya esta disponible en el PATH del sistema, puedes usar el atajo `pnpm ...`.
-
-## Reglas operativas
-
-- MVP primero; V2 y V3 despues.
-- No duplicar logica de negocio entre apps.
-- Tipos compartidos en `packages/types`.
-- Acceso a datos compartido en `packages/api-client`.
-- Componentes y tokens compartidos en `packages/ui`.
-- Configuracion compartida en `packages/config`.
-
-## Estado actual
-
-Este bootstrap prepara la estructura tecnica minima para empezar el desarrollo del MVP, pero no implementa todavia logica funcional del negocio.
+No abrir V2 o V3 mientras el alcance documentado del MVP no este alineado, estable y validado.

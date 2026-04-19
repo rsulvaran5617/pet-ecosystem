@@ -15,11 +15,18 @@
     "lint": "corepack pnpm -r lint",
     "typecheck": "corepack pnpm -r typecheck",
     "test": "corepack pnpm -r test",
+    "smoke:mvp": "corepack pnpm --filter @pet/api-client smoke:mvp",
+    "smoke:mvp:critical": "corepack pnpm --filter @pet/api-client smoke:mvp:critical",
+    "smoke:mvp:admin": "corepack pnpm --filter @pet/api-client smoke:mvp:admin",
+    "smoke:mvp:providers": "corepack pnpm --filter @pet/api-client smoke:mvp:providers",
+    "smoke:mvp:health": "corepack pnpm --filter @pet/api-client smoke:mvp:health",
+    "smoke:mvp:reminders": "corepack pnpm --filter @pet/api-client smoke:mvp:reminders",
     "format": "prettier --check .",
     "format:write": "prettier --write ."
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@types/node": "^22.15.3",
     "eslint": "^9.0.0",
     "globals": "^15.0.0",
     "prettier": "^3.0.0",

@@ -1,5 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createCoreApiClient } from "@pet/api-client";
+import {
+  createBookingsApiClient,
+  createCoreApiClient,
+  createHealthApiClient,
+  createHouseholdsApiClient,
+  createMarketplaceApiClient,
+  createMessagingApiClient,
+  createPetsApiClient,
+  createProvidersApiClient,
+  createReviewsApiClient,
+  createRemindersApiClient,
+  createSupportApiClient
+} from "@pet/api-client";
 import type { Database } from "@pet/types";
 import { createClient } from "@supabase/supabase-js";
 import "react-native-url-polyfill/auto";
@@ -7,6 +19,16 @@ import { AppState } from "react-native";
 
 let mobileSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 let mobileCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
+let mobileBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null = null;
+let mobileHouseholdsApiClient: ReturnType<typeof createHouseholdsApiClient> | null = null;
+let mobilePetsApiClient: ReturnType<typeof createPetsApiClient> | null = null;
+let mobileHealthApiClient: ReturnType<typeof createHealthApiClient> | null = null;
+let mobileRemindersApiClient: ReturnType<typeof createRemindersApiClient> | null = null;
+let mobileMarketplaceApiClient: ReturnType<typeof createMarketplaceApiClient> | null = null;
+let mobileMessagingApiClient: ReturnType<typeof createMessagingApiClient> | null = null;
+let mobileReviewsApiClient: ReturnType<typeof createReviewsApiClient> | null = null;
+let mobileSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
+let mobileProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
 let authRefreshBound = false;
 const mobileAppScheme = "petecosystem";
 const mobileRecoveryRedirectUrl = `${mobileAppScheme}://auth/recovery`;
@@ -124,4 +146,84 @@ export function getMobileCoreApiClient() {
   }
 
   return mobileCoreApiClient;
+}
+
+export function getMobileBookingsApiClient() {
+  if (!mobileBookingsApiClient) {
+    mobileBookingsApiClient = createBookingsApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileBookingsApiClient;
+}
+
+export function getMobileHouseholdsApiClient() {
+  if (!mobileHouseholdsApiClient) {
+    mobileHouseholdsApiClient = createHouseholdsApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileHouseholdsApiClient;
+}
+
+export function getMobilePetsApiClient() {
+  if (!mobilePetsApiClient) {
+    mobilePetsApiClient = createPetsApiClient(getMobileSupabaseClient());
+  }
+
+  return mobilePetsApiClient;
+}
+
+export function getMobileHealthApiClient() {
+  if (!mobileHealthApiClient) {
+    mobileHealthApiClient = createHealthApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileHealthApiClient;
+}
+
+export function getMobileRemindersApiClient() {
+  if (!mobileRemindersApiClient) {
+    mobileRemindersApiClient = createRemindersApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileRemindersApiClient;
+}
+
+export function getMobileMarketplaceApiClient() {
+  if (!mobileMarketplaceApiClient) {
+    mobileMarketplaceApiClient = createMarketplaceApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileMarketplaceApiClient;
+}
+
+export function getMobileMessagingApiClient() {
+  if (!mobileMessagingApiClient) {
+    mobileMessagingApiClient = createMessagingApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileMessagingApiClient;
+}
+
+export function getMobileReviewsApiClient() {
+  if (!mobileReviewsApiClient) {
+    mobileReviewsApiClient = createReviewsApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileReviewsApiClient;
+}
+
+export function getMobileSupportApiClient() {
+  if (!mobileSupportApiClient) {
+    mobileSupportApiClient = createSupportApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileSupportApiClient;
+}
+
+export function getMobileProvidersApiClient() {
+  if (!mobileProvidersApiClient) {
+    mobileProvidersApiClient = createProvidersApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileProvidersApiClient;
 }

@@ -70,7 +70,7 @@ function maskEmail(email: string) {
   return `${visibleLocal || "**"}***@${domainPart}`;
 }
 
-function isCoreRole(value: unknown): value is CoreRole {
+function isSelfServiceCoreRole(value: unknown): value is Exclude<CoreRole, "admin"> {
   return value === "pet_owner" || value === "provider";
 }
 
@@ -81,7 +81,7 @@ function getRequestedRolesFromMetadata(metadata: User["user_metadata"] | null | 
     return ["pet_owner"];
   }
 
-  const roles = requestedRoles.filter(isCoreRole);
+  const roles = requestedRoles.filter(isSelfServiceCoreRole);
 
   return roles.length > 0 ? roles : ["pet_owner"];
 }

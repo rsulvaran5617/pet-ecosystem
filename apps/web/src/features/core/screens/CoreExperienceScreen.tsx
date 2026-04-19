@@ -6,10 +6,12 @@ import type {
   AddPaymentMethodInput,
   AddressLabel,
   CoreRole,
+  MarketplaceServiceSelection,
   PaymentMethodBrand,
   UpdatePreferencesInput,
   UpdateProfileInput,
-  UpsertAddressInput
+  UpsertAddressInput,
+  Uuid
 } from "@pet/types";
 import { useEffect, useState } from "react";
 
@@ -17,6 +19,16 @@ import { CoreSection } from "../components/CoreSection";
 import { StatusPill } from "../components/StatusPill";
 import { useCoreWorkspace } from "../hooks/useCoreWorkspace";
 import { getBrowserCoreApiClient, getBrowserRecoveryRedirectUrl } from "../services/supabase-browser";
+import { HouseholdsWorkspace } from "../../households/components/HouseholdsWorkspace";
+import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
+import { HealthWorkspace } from "../../health/components/HealthWorkspace";
+import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
+import { MarketplaceWorkspace } from "../../marketplace/components/MarketplaceWorkspace";
+import { ProvidersWorkspace } from "../../providers/components/ProvidersWorkspace";
+import { BookingsWorkspace } from "../../bookings/components/BookingsWorkspace";
+import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
+import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
+import { SupportWorkspace } from "../../support/components/SupportWorkspace";
 
 type RegisterFormState = {
   email: string;
@@ -283,6 +295,13 @@ export function CoreExperienceScreen() {
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
+  const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
+  const [focusedBookingId, setFocusedBookingId] = useState<Uuid | null>(null);
+  const [chatFocusVersion, setChatFocusVersion] = useState(0);
+  const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
+  const [reviewFocusVersion, setReviewFocusVersion] = useState(0);
+  const [focusedSupportBookingId, setFocusedSupportBookingId] = useState<Uuid | null>(null);
+  const [supportFocusVersion, setSupportFocusVersion] = useState(0);
 
   useEffect(() => {
     if (!snapshot) {
@@ -307,6 +326,7 @@ export function CoreExperienceScreen() {
 
   const completedTasks = snapshot?.onboardingTasks.filter((task) => task.status === "completed").length ?? 0;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
+  const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
 
   return (
     <main
@@ -1156,6 +1176,53 @@ export function CoreExperienceScreen() {
               </div>
             </CoreSection>
           </div>
+        ) : null}
+
+        {!isLoading && authState.isAuthenticated ? <HouseholdsWorkspace enabled /> : null}
+        {!isLoading && authState.isAuthenticated ? <PetsWorkspace enabled /> : null}
+        {!isLoading && authState.isAuthenticated ? <HealthWorkspace enabled /> : null}
+        {!isLoading && authState.isAuthenticated ? <RemindersWorkspace enabled /> : null}
+        {!isLoading && authState.isAuthenticated ? (
+          <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive={activeRole === "provider"} />
+        ) : null}
+        {!isLoading ? (
+          <MarketplaceWorkspace
+            enabled
+            onSelectBookingService={
+              authState.isAuthenticated
+                ? (selection) => {
+                    setMarketplaceSelection(selection);
+                  }
+                : undefined
+            }
+          />
+        ) : null}
+        {!isLoading && authState.isAuthenticated ? (
+          <BookingsWorkspace
+            enabled
+            marketplaceSelection={marketplaceSelection}
+            onOpenChatForBooking={(bookingId) => {
+              setFocusedBookingId(bookingId);
+              setChatFocusVersion(Date.now());
+            }}
+            onOpenReviewForBooking={(bookingId) => {
+              setFocusedReviewBookingId(bookingId);
+              setReviewFocusVersion(Date.now());
+            }}
+            onOpenSupportForBooking={(bookingId) => {
+              setFocusedSupportBookingId(bookingId);
+              setSupportFocusVersion(Date.now());
+            }}
+          />
+        ) : null}
+        {!isLoading && authState.isAuthenticated ? (
+          <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
+        ) : null}
+        {!isLoading && authState.isAuthenticated ? (
+          <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
+        ) : null}
+        {!isLoading && authState.isAuthenticated ? (
+          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
         ) : null}
       </section>
     </main>

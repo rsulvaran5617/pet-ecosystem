@@ -11,6 +11,10 @@ coverage/
 .expo/
 .expo-shared/
 web-build/
+.codex-tmp/
+apps/mobile/.codex-tmp/
+packages/api-client/.codex-tmp/
+supabase/.temp/
 
 .env
 .env.local
@@ -22,6 +26,8 @@ web-build/
 *.log
 *.tmp
 *.tsbuildinfo
+*.zip
 
 .DS_Store
 Thumbs.db
+.idea/

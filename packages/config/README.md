@@ -1,14 +1,14 @@
 # @pet/config
 
-Configuración compartida del bootstrap técnico.
+Configuracion compartida del baseline MVP.
 
 ## Debe contener
 - constantes globales
 - nombres de variables de entorno
-- configuración compartida de apps
-- helpers de inicialización no funcionales
+- etiquetas y copy compartido de dominio cuando aplique
+- configuracion compartida de apps
 
 ## No debe contener
-- lógica de dominio
+- logica de dominio con side effects
 - componentes visuales
-- tipos que deban vivir en `packages/types`
+- tipos que deben vivir en `packages/types`

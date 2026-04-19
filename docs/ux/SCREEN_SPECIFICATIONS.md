@@ -1,24 +1,23 @@
 # SCREEN_SPECIFICATIONS.md
 
-## Objetivo
-Contener la especificacion funcional por pantalla.
-
 ## Pantallas MVP minimas
+
 ### Core
 - onboarding
 - registro
-- verificacion por OTP manual de email
+- verificacion OTP manual
 - login
-- recuperacion de acceso
+- recovery
 - perfil
 - preferencias
 - direcciones
 - metodos de pago
-- cambio de rol basico
+- cambio de rol
 
 ### Households
-- hogares
+- snapshot de hogares
 - miembros
+- invitaciones
 
 ### Pets
 - lista de mascotas
@@ -28,40 +27,63 @@ Contener la especificacion funcional por pantalla.
 - documentos
 
 ### Health
-- dashboard salud
+- dashboard de salud
 - vacunas
 - alergias
 - condiciones
 
-### Agenda
+### Reminders
 - calendario
-- crear recordatorio
+- crear reminder
+- completar o posponer
 
 ### Marketplace
-- home marketplace
-- busqueda
-- filtros
+- home marketplace publico
+- resultados
 - perfil proveedor
-- seleccion servicio
-- checkout booking
-- historial reservas
+- seleccion de servicio
+
+### Bookings
+- preview
+- historial
+- detalle
+- cancelacion
 
 ### Messaging
 - inbox
-- chat
+- detalle de chat
 
-### Reviews / Support
+### Reviews
 - dejar review
-- crear caso
 
-### Provider
-- onboarding proveedor
-- perfil negocio
+### Support
+- crear caso
+- listar mis casos
+- detalle de caso
+
+### Providers
+- organizaciones
+- perfil de negocio
+- perfil publico
 - servicios
 - disponibilidad
-- dashboard proveedor
-- solicitudes entrantes
+- documentos de aprobacion
+- estado de aprobacion
+- incoming bookings
+- detalle operativo del booking con acciones `approve`, `reject` y `complete`
 
 ### Admin
-- dashboard admin
-- aprobacion proveedores
+- login admin
+- proveedores pendientes
+- detalle de proveedor
+- soporte basico
+
+## Pantallas explicitamente fuera de este baseline
+- dashboard admin avanzado
+- dashboard provider avanzado
+- checkout con cobro real
+- payouts
+- clinic
+- commerce
+- pharmacy
+- telecare
