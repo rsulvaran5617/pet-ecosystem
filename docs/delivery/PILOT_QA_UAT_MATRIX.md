@@ -8,6 +8,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - no debe declararse `piloto controlado` por documentacion; solo despues de ejecutar esta matriz
 - la captura real de pagos no forma parte de este cierre; el release queda `payment-ready`
 - la smoke automatizada ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico
+- la UI principal fue localizada al espanol; QA/UAT debe confirmar que los flujos principales no muestran copy de producto en ingles
 - la validacion fisica iOS sigue fuera por entorno Apple
 
 ## Clasificacion de severidad
@@ -102,6 +103,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - al menos un provider pendiente separado para probar `ADM-02` y `ADM-03` sin contaminar el mismo caso
 - Android emulator o dispositivo listo para `AND-*`
 - carpeta de artefactos o evidencia definida para capturas y videos cortos
+- idioma esperado de la experiencia: espanol como idioma principal; registrar cualquier texto visible en ingles que aparezca en flujos MVP
 
 ## Formalizacion minima de smoke
 - `pnpm smoke:mvp`

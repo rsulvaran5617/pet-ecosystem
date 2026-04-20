@@ -45,7 +45,7 @@ export function usePetHealthSummary(petId: Uuid | null, enabled: boolean): UsePe
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load the pet health summary.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el resumen de salud de la mascota.");
       })
       .finally(() => {
         if (mountedRef.current) {

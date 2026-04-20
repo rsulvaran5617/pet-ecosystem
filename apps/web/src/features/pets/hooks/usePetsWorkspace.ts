@@ -121,7 +121,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the pets workspace.");
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de mascotas.");
     } finally {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -146,7 +146,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
 
       return result;
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "Pets action failed.";
+      const nextMessage = error instanceof Error ? error.message : "La accion de mascotas fallo.";
 
       if (mountedRef.current) {
         setErrorMessage(nextMessage);
@@ -194,7 +194,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
         await loadPets(householdId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load household pets.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar las mascotas del hogar.");
         }
       } finally {
         if (mountedRef.current) {
@@ -211,7 +211,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
         await loadPetDetail(petId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the pet detail.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el detalle de la mascota.");
         }
       } finally {
         if (mountedRef.current) {
@@ -223,3 +223,4 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
     runAction
   };
 }
+

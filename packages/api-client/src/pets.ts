@@ -124,7 +124,7 @@ async function listHouseholdPetRows(supabase: PetsSupabaseClient, householdId: s
     .order("created_at", { ascending: true });
 
   if (error) {
-    fail(error, "Unable to load household pets.");
+    fail(error, "No fue posible cargar las mascotas del hogar.");
   }
 
   return data ?? [];

@@ -40,7 +40,7 @@ function getEnvValue(name: "EXPO_PUBLIC_SUPABASE_URL" | "EXPO_PUBLIC_SUPABASE_AN
     name === "EXPO_PUBLIC_SUPABASE_URL" ? processEnv?.EXPO_PUBLIC_SUPABASE_URL : processEnv?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(`Falta la variable de entorno requerida: ${name}`);
   }
 
   return value;
@@ -122,7 +122,7 @@ export async function consumeMobileAuthRedirectUrl(nextUrl: string) {
   }
 
   if (!accessToken || !refreshToken) {
-    throw new Error("Recovery link is missing auth tokens.");
+    throw new Error("Al enlace de recuperacion le faltan tokens de autenticacion.");
   }
 
   const { data, error } = await getMobileSupabaseClient().auth.setSession({

@@ -81,7 +81,7 @@ export function useAdminProvidersWorkspace(enabled: boolean): UseAdminProvidersW
       await loadOrganizationDetail(targetOrganizationId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load pending provider organizations.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar las organizaciones de proveedores pendientes.");
       }
     } finally {
       if (mountedRef.current) {
@@ -104,7 +104,7 @@ export function useAdminProvidersWorkspace(enabled: boolean): UseAdminProvidersW
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Admin provider action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion administrativa del proveedor fallo.");
       }
 
       throw error;
@@ -144,7 +144,7 @@ export function useAdminProvidersWorkspace(enabled: boolean): UseAdminProvidersW
         await loadOrganizationDetail(organizationId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the provider organization.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar la organizacion del proveedor.");
         }
       } finally {
         if (mountedRef.current) {
@@ -157,12 +157,12 @@ export function useAdminProvidersWorkspace(enabled: boolean): UseAdminProvidersW
       const organizationId = selectedOrganizationIdRef.current;
 
       if (!organizationId) {
-        throw new Error("Select a provider organization first.");
+        throw new Error("Selecciona primero una organizacion de proveedor.");
       }
 
       await runAction(
         () => getAdminProvidersApiClient().approveProviderOrganization(organizationId),
-        "Provider organization approved."
+        "Organizacion de proveedor aprobada."
       );
       await refresh();
     },
@@ -170,14 +170,16 @@ export function useAdminProvidersWorkspace(enabled: boolean): UseAdminProvidersW
       const organizationId = selectedOrganizationIdRef.current;
 
       if (!organizationId) {
-        throw new Error("Select a provider organization first.");
+        throw new Error("Selecciona primero una organizacion de proveedor.");
       }
 
       await runAction(
         () => getAdminProvidersApiClient().rejectProviderOrganization(organizationId),
-        "Provider organization rejected."
+        "Organizacion de proveedor rechazada."
       );
       await refresh();
     }
   };
 }
+
+

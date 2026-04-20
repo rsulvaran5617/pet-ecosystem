@@ -1,4 +1,4 @@
-import { bookingStatusLabels } from "@pet/config";
+﻿import { bookingStatusLabels } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { ReviewRating, Uuid } from "@pet/types";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -19,7 +19,7 @@ const inputStyle = {
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -78,7 +78,7 @@ function RatingButton({
         paddingVertical: 10
       }}
     >
-      <Text style={{ color: isSelected ? "#0f766e" : "#1c1917", fontWeight: "700" }}>{`${rating} star${rating === 1 ? "" : "s"}`}</Text>
+      <Text style={{ color: isSelected ? "#0f766e" : "#1c1917", fontWeight: "700" }}>{`${rating} estrella${rating === 1 ? "" : "s"}`}</Text>
     </Pressable>
   );
 }
@@ -116,49 +116,49 @@ export function ReviewsWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-07 / Reviews"
-        title="Basic booking reviews"
-        description="Reviews stay linked to completed bookings and remain limited to one customer review per booking in this MVP slice."
+        eyebrow="EP-07 / Reseñas"
+        title="Reseñas basicas de reservas"
+        description="Las reseñas permanecen ligadas a reservas completadas y se limitan a una reseña por cliente para cada reserva dentro del MVP."
       >
         <View style={{ gap: 12 }}>
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Review target</Text>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Reserva a reseñar</Text>
               {reviewState ? (
                 <StatusChip label={bookingStatusLabels[reviewState.bookingStatus]} tone={getStatusTone(reviewState.bookingStatus)} />
               ) : (
-                <StatusChip label="no booking selected" tone="neutral" />
+                <StatusChip label="sin reserva seleccionada" tone="neutral" />
               )}
             </View>
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <Button disabled={isSubmitting} label="Refresh" onPress={() => void refresh()} tone="secondary" />
-              <Button disabled={isSubmitting} label="Clear notices" onPress={clearMessages} tone="secondary" />
+              <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
+              <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
             </View>
 
             {isLoading && !reviewState ? (
-              <Text style={{ color: colorTokens.muted }}>Loading booking review state from Supabase...</Text>
+              <Text style={{ color: colorTokens.muted }}>Cargando estado de reseña desde Supabase...</Text>
             ) : reviewState ? (
               <>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Provider</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{reviewState.providerName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Service</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Servicio</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{reviewState.serviceName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Pet</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{reviewState.petName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Scheduled end</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Fin programado</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTime(reviewState.scheduledEndAt)}</Text>
                 </View>
 
                 {reviewState.review ? (
                   <View style={[inputStyle, { gap: 10 }]}>
-                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>{`Submitted rating: ${reviewState.review.rating}/5`}</Text>
+                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>{`Calificacion enviada: ${reviewState.review.rating}/5`}</Text>
                     <Text style={{ color: "#44403c", lineHeight: 20 }}>{reviewState.review.commentText}</Text>
                     <Text style={{ color: "#78716c" }}>{formatDateTime(reviewState.review.createdAt)}</Text>
                   </View>
@@ -177,24 +177,24 @@ export function ReviewsWorkspace({
                     <TextInput
                       multiline
                       onChangeText={setCommentDraft}
-                      placeholder="Leave a short review about the completed service..."
+                      placeholder="Escribe una reseña breve sobre el servicio completado..."
                       style={[inputStyle, { minHeight: 120, textAlignVertical: "top", color: "#1c1917" }]}
                       value={commentDraft}
                     />
                     <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                      <Button disabled={isSubmitting} label="Submit review" onPress={() => void submitReview()} />
-                      <Button disabled={isSubmitting} label="Clear draft" onPress={() => setCommentDraft("")} tone="secondary" />
+                      <Button disabled={isSubmitting} label="Enviar reseña" onPress={() => void submitReview()} />
+                      <Button disabled={isSubmitting} label="Limpiar borrador" onPress={() => setCommentDraft("")} tone="secondary" />
                     </View>
                   </View>
                 ) : (
                   <Text style={{ color: colorTokens.muted }}>
-                    {reviewState.eligibilityReason ?? "This booking is not eligible for review yet."}
+                    {reviewState.eligibilityReason ?? "Esta reserva todavia no es elegible para recibir una reseña."}
                   </Text>
                 )}
               </>
             ) : (
               <Text style={{ color: colorTokens.muted }}>
-                Open a booking detail above and choose review. This slice does not create free-form reviews outside a booking.
+                Abre el detalle de una reserva y elige reseña. Este flujo no crea reseñas libres fuera de una reserva.
               </Text>
             )}
           </View>
@@ -203,3 +203,4 @@ export function ReviewsWorkspace({
     </View>
   );
 }
+

@@ -3,9 +3,9 @@ import type { ProviderApprovalDocumentType, ProviderApprovalStatus } from "@pet/
 export const providerApprovalStatusOrder = ["pending", "approved", "rejected"] as const satisfies readonly ProviderApprovalStatus[];
 
 export const providerApprovalStatusLabels: Record<ProviderApprovalStatus, string> = {
-  pending: "Pending review",
-  approved: "Approved",
-  rejected: "Rejected"
+  pending: "Pendiente de revision",
+  approved: "Aprobado",
+  rejected: "Rechazado"
 };
 
 export const providerApprovalDocumentTypeOrder = [
@@ -17,9 +17,9 @@ export const providerApprovalDocumentTypeOrder = [
 ] as const satisfies readonly ProviderApprovalDocumentType[];
 
 export const providerApprovalDocumentTypeLabels: Record<ProviderApprovalDocumentType, string> = {
-  identity: "Identity",
-  license: "License",
-  insurance: "Insurance",
-  permit: "Permit",
-  other: "Other"
+  identity: "Identidad",
+  license: "Licencia",
+  insurance: "Seguro",
+  permit: "Permiso",
+  other: "Otro"
 };

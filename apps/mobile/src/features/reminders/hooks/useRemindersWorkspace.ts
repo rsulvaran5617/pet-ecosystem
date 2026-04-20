@@ -136,7 +136,7 @@ export function useRemindersWorkspace(enabled: boolean): UseRemindersWorkspaceRe
       await loadPets(nextSelectedHouseholdId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the reminders workspace.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de recordatorios.");
       }
     } finally {
       if (mountedRef.current) {
@@ -163,7 +163,7 @@ export function useRemindersWorkspace(enabled: boolean): UseRemindersWorkspaceRe
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Reminder action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de recordatorios fallo.");
       }
 
       throw error;
@@ -208,7 +208,7 @@ export function useRemindersWorkspace(enabled: boolean): UseRemindersWorkspaceRe
         await loadPets(householdId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load household reminders.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar los recordatorios del hogar.");
         }
       } finally {
         if (mountedRef.current) {
@@ -225,7 +225,7 @@ export function useRemindersWorkspace(enabled: boolean): UseRemindersWorkspaceRe
         await loadReminderData(selectedHouseholdIdRef.current, petId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load filtered reminders.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar los recordatorios filtrados.");
         }
       } finally {
         if (mountedRef.current) {

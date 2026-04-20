@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { providerApprovalDocumentTypeLabels, providerApprovalStatusLabels, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
 
@@ -22,7 +22,7 @@ const inputStyle = {
 } as const;
 
 function formatMoney(priceCents: number, currencyCode: string) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-PA", {
     style: "currency",
     currency: currencyCode
   }).format(priceCents / 100);
@@ -90,15 +90,15 @@ export function AdminProvidersWorkspace() {
         <aside style={{ display: "grid", gap: "20px", alignContent: "start" }}>
           <article style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-              <h2 style={{ margin: 0, fontSize: "24px" }}>Pending providers</h2>
-              <span style={{ color: "#52525b" }}>{pendingOrganizations.length} pending</span>
+              <h2 style={{ margin: 0, fontSize: "24px" }}>Proveedores pendientes</h2>
+              <span style={{ color: "#52525b" }}>{pendingOrganizations.length} pendientes</span>
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
-                Refresh
+                Actualizar
               </Button>
               <Button disabled={isSubmitting} onClick={clearMessages} tone="secondary">
-                Clear notices
+                Limpiar avisos
               </Button>
             </div>
             {pendingOrganizations.length ? (
@@ -118,50 +118,50 @@ export function AdminProvidersWorkspace() {
                 </button>
               ))
             ) : (
-              <p style={{ margin: 0, color: "#52525b" }}>No providers are waiting for review right now.</p>
+              <p style={{ margin: 0, color: "#52525b" }}>No hay proveedores esperando revision en este momento.</p>
             )}
           </article>
         </aside>
 
         <article style={cardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-            <h2 style={{ margin: 0, fontSize: "24px" }}>Provider review</h2>
+            <h2 style={{ margin: 0, fontSize: "24px" }}>Revision del proveedor</h2>
             {selectedOrganization ? (
               <span style={{ color: "#52525b" }}>{selectedOrganization.organization.id}</span>
             ) : (
-              <span style={{ color: "#71717a" }}>No provider selected</span>
+              <span style={{ color: "#71717a" }}>Sin proveedor seleccionado</span>
             )}
           </div>
           {isLoading && !selectedOrganization ? (
-            <p style={{ margin: 0, color: "#52525b" }}>Loading pending provider detail...</p>
+            <p style={{ margin: 0, color: "#52525b" }}>Cargando detalle del proveedor pendiente...</p>
           ) : selectedOrganization ? (
             <>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                 <div style={inputStyle}>
-                  <strong>Business</strong>
+                  <strong>Negocio</strong>
                   <div style={{ color: "#52525b", marginTop: "6px" }}>{selectedOrganization.organization.name}</div>
                   <div style={{ color: "#71717a", marginTop: "6px" }}>{selectedOrganization.organization.slug}</div>
                 </div>
                 <div style={inputStyle}>
-                  <strong>Approval status</strong>
+                  <strong>Estado de aprobacion</strong>
                   <div style={{ color: "#52525b", marginTop: "6px" }}>
                     {providerApprovalStatusLabels[selectedOrganization.organization.approvalStatus]}
                   </div>
                 </div>
                 <div style={inputStyle}>
-                  <strong>Public setting</strong>
+                  <strong>Configuracion publica</strong>
                   <div style={{ color: "#52525b", marginTop: "6px" }}>
-                    {selectedOrganization.organization.isPublic ? "Public when approved" : "Private"}
+                    {selectedOrganization.organization.isPublic ? "Publico al aprobarse" : "Privado"}
                   </div>
                 </div>
               </div>
 
               <div style={inputStyle}>
-                <strong>Public profile</strong>
+                <strong>Perfil publico</strong>
                 <div style={{ color: "#52525b", marginTop: "6px" }}>
                   {selectedOrganization.publicProfile
-                    ? `${selectedOrganization.publicProfile.headline} (${selectedOrganization.publicProfile.isPublic ? "public" : "hidden"})`
-                    : "No public profile yet."}
+                    ? `${selectedOrganization.publicProfile.headline} (${selectedOrganization.publicProfile.isPublic ? "publico" : "oculto"})`
+                    : "Aun no hay perfil publico."}
                 </div>
                 {selectedOrganization.publicProfile ? (
                   <div style={{ color: "#71717a", marginTop: "6px", lineHeight: 1.7 }}>{selectedOrganization.publicProfile.bio}</div>
@@ -169,7 +169,7 @@ export function AdminProvidersWorkspace() {
               </div>
 
               <div style={inputStyle}>
-                <strong>Services</strong>
+                <strong>Servicios</strong>
                 {selectedOrganization.services.length ? (
                   <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
                     {selectedOrganization.services.map((service) => (
@@ -179,33 +179,33 @@ export function AdminProvidersWorkspace() {
                           {providerServiceCategoryLabels[service.category]} · {formatMoney(service.basePriceCents, service.currencyCode)}
                         </span>
                         <span style={{ color: "#71717a" }}>
-                          {service.isPublic ? "Public" : "Hidden"} · {service.isActive ? "Active" : "Inactive"} · {service.bookingMode === "instant" ? "Instant" : "Approval required"}
+                          {service.isPublic ? "Publico" : "Oculto"} · {service.isActive ? "Activo" : "Inactivo"} · {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>No services yet.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay servicios.</div>
                 )}
               </div>
 
               <div style={inputStyle}>
-                <strong>Availability</strong>
+                <strong>Disponibilidad</strong>
                 {selectedOrganization.availability.length ? (
                   <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
                     {selectedOrganization.availability.map((slot) => (
                       <span key={slot.id} style={{ color: "#52525b" }}>
-                        {providerDayOfWeekLabels[slot.dayOfWeek]} · {slot.startsAt.slice(0, 5)} - {slot.endsAt.slice(0, 5)} · {slot.isActive ? "Active" : "Inactive"}
+                        {providerDayOfWeekLabels[slot.dayOfWeek]} · {slot.startsAt.slice(0, 5)} - {slot.endsAt.slice(0, 5)} · {slot.isActive ? "Activo" : "Inactivo"}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>No availability yet.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay disponibilidad.</div>
                 )}
               </div>
 
               <div style={inputStyle}>
-                <strong>Approval documents</strong>
+                <strong>Documentos de aprobacion</strong>
                 {selectedOrganization.approvalDocuments.length ? (
                   <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
                     {selectedOrganization.approvalDocuments.map((document) => (
@@ -213,35 +213,35 @@ export function AdminProvidersWorkspace() {
                         <strong>{document.title}</strong>
                         <span style={{ color: "#52525b" }}>{providerApprovalDocumentTypeLabels[document.documentType]}</span>
                         <span style={{ color: "#71717a" }}>
-                          {document.fileName} · {document.mimeType ?? "Unknown type"} · {Math.max(1, Math.round(document.fileSizeBytes / 1024))} KB
+                          {document.fileName} · {document.mimeType ?? "Tipo desconocido"} · {Math.max(1, Math.round(document.fileSizeBytes / 1024))} KB
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>No approval documents uploaded yet.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay documentos de aprobacion cargados.</div>
                 )}
               </div>
 
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 <Button disabled={isSubmitting} onClick={() => void approveOrganization()}>
-                  Approve provider
+                  Aprobar proveedor
                 </Button>
                 <Button disabled={isSubmitting} onClick={() => void rejectOrganization()} tone="danger">
-                  Reject provider
+                  Rechazar proveedor
                 </Button>
                 <Button
                   disabled={isSubmitting}
                   onClick={() => void refresh(selectedOrganization.organization.id)}
                   tone="secondary"
                 >
-                  Reload detail
+                  Recargar detalle
                 </Button>
               </div>
             </>
           ) : (
             <p style={{ margin: 0, color: "#52525b", lineHeight: 1.7 }}>
-              Select a pending provider from the left to review its business profile, services, availability and approval documents.
+              Selecciona un proveedor pendiente a la izquierda para revisar su perfil de negocio, servicios, disponibilidad y documentos de aprobacion.
             </p>
           )}
         </article>
@@ -249,3 +249,5 @@ export function AdminProvidersWorkspace() {
     </section>
   );
 }
+
+

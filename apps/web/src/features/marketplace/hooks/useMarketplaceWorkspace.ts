@@ -130,7 +130,7 @@ export function useMarketplaceWorkspace(enabled: boolean): UseMarketplaceWorkspa
       await loadPets(nextSelectedHouseholdId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the marketplace workspace.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de servicios.");
       }
     } finally {
       if (mountedRef.current) {
@@ -173,7 +173,7 @@ export function useMarketplaceWorkspace(enabled: boolean): UseMarketplaceWorkspa
         await loadPets(householdId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load household pets for marketplace.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar las mascotas del hogar para servicios.");
         }
       } finally {
         if (mountedRef.current) {
@@ -200,7 +200,7 @@ export function useMarketplaceWorkspace(enabled: boolean): UseMarketplaceWorkspa
         return nextProviders;
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to search marketplace providers.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible buscar proveedores en el marketplace.");
         }
 
         throw error;
@@ -225,7 +225,7 @@ export function useMarketplaceWorkspace(enabled: boolean): UseMarketplaceWorkspa
         return providerDetail;
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the provider profile.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el perfil del proveedor.");
         }
 
         throw error;

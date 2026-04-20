@@ -36,7 +36,7 @@ function getEnvValue(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_AN
       : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+    throw new Error(`Falta la variable de entorno requerida: ${name}`);
   }
 
   return value;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { bookingStatusLabels } from "@pet/config";
 import type { ReviewRating, Uuid } from "@pet/types";
@@ -11,7 +11,7 @@ const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", 
 const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -84,7 +84,7 @@ function RatingButton({
         cursor: "pointer"
       }}
     >
-      {`${rating} star${rating === 1 ? "" : "s"}`}
+      {`${rating} estrella${rating === 1 ? "" : "s"}`}
     </button>
   );
 }
@@ -122,55 +122,55 @@ export function ReviewsWorkspace({
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
-        eyebrow="EP-07 / Reviews"
-        title="Basic booking reviews"
-        description="Reviews stay linked to completed bookings and remain limited to one customer review per booking in this MVP slice."
+        eyebrow="EP-07 / Reseñas"
+        title="Reseñas basicas de reservas"
+        description="Las reseñas permanecen ligadas a reservas completadas y se limitan a una reseña por cliente para cada reserva dentro del MVP."
       >
         <div style={{ display: "grid", gap: "18px" }}>
           <article style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-              <h3 style={{ margin: 0 }}>Review target</h3>
+              <h3 style={{ margin: 0 }}>Reserva a reseñar</h3>
               {reviewState ? (
                 <StatusPill label={bookingStatusLabels[reviewState.bookingStatus]} tone={getStatusTone(reviewState.bookingStatus)} />
               ) : (
-                <StatusPill label="no booking selected" tone="neutral" />
+                <StatusPill label="sin reserva seleccionada" tone="neutral" />
               )}
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
-                Refresh
+                Actualizar
               </Button>
               <Button disabled={isSubmitting} onClick={clearMessages} tone="secondary">
-                Clear notices
+                Limpiar avisos
               </Button>
             </div>
 
             {isLoading && !reviewState ? (
-              <p style={{ margin: 0, color: "#57534e" }}>Loading booking review state from Supabase...</p>
+              <p style={{ margin: 0, color: "#57534e" }}>Cargando estado de reseña desde Supabase...</p>
             ) : reviewState ? (
               <>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                   <div style={inputStyle}>
-                    <strong>Provider</strong>
+                    <strong>Proveedor</strong>
                     <div style={{ color: "#57534e", marginTop: "6px" }}>{reviewState.providerName}</div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Service</strong>
+                    <strong>Servicio</strong>
                     <div style={{ color: "#57534e", marginTop: "6px" }}>{reviewState.serviceName}</div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Pet</strong>
+                    <strong>Mascota</strong>
                     <div style={{ color: "#57534e", marginTop: "6px" }}>{reviewState.petName}</div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Scheduled end</strong>
+                    <strong>Fin programado</strong>
                     <div style={{ color: "#57534e", marginTop: "6px" }}>{formatDateTime(reviewState.scheduledEndAt)}</div>
                   </div>
                 </div>
 
                 {reviewState.review ? (
                   <article style={{ ...inputStyle, display: "grid", gap: "10px" }}>
-                    <strong>{`Submitted rating: ${reviewState.review.rating}/5`}</strong>
+                    <strong>{`Calificacion enviada: ${reviewState.review.rating}/5`}</strong>
                     <div style={{ color: "#44403c", lineHeight: 1.7 }}>{reviewState.review.commentText}</div>
                     <div style={{ color: "#78716c" }}>{formatDateTime(reviewState.review.createdAt)}</div>
                   </article>
@@ -188,7 +188,7 @@ export function ReviewsWorkspace({
                     </div>
                     <textarea
                       onChange={(event) => setCommentDraft(event.target.value)}
-                      placeholder="Leave a short review about the completed service..."
+                      placeholder="Escribe una reseña breve sobre el servicio completado..."
                       rows={5}
                       style={{
                         ...inputStyle,
@@ -200,22 +200,22 @@ export function ReviewsWorkspace({
                     />
                     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                       <Button disabled={isSubmitting} onClick={() => void submitReview()}>
-                        Submit review
+                        Enviar reseña
                       </Button>
                       <Button disabled={isSubmitting} onClick={() => setCommentDraft("")} tone="secondary">
-                        Clear draft
+                        Limpiar borrador
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div style={{ color: "#57534e", lineHeight: 1.7 }}>
-                    {reviewState.eligibilityReason ?? "This booking is not eligible for review yet."}
+                    {reviewState.eligibilityReason ?? "Esta reserva todavia no es elegible para recibir una reseña."}
                   </div>
                 )}
               </>
             ) : (
               <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
-                Open a booking detail above and choose review. This slice does not create free-form reviews outside a booking.
+                Abre el detalle de una reserva y elige reseña. Este flujo no crea reseñas libres fuera de una reserva.
               </p>
             )}
           </article>
@@ -224,3 +224,4 @@ export function ReviewsWorkspace({
     </div>
   );
 }
+

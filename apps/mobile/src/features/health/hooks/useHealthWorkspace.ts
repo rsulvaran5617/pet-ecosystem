@@ -119,7 +119,7 @@ export function useHealthWorkspace(enabled: boolean): UseHealthWorkspaceResult {
       await loadPets(nextSelectedHouseholdId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the health workspace.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de salud.");
       }
     } finally {
       if (mountedRef.current) {
@@ -146,7 +146,7 @@ export function useHealthWorkspace(enabled: boolean): UseHealthWorkspaceResult {
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Health action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de salud fallo.");
       }
 
       throw error;
@@ -190,7 +190,7 @@ export function useHealthWorkspace(enabled: boolean): UseHealthWorkspaceResult {
         await loadPets(householdId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load household health.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar la salud del hogar.");
         }
       } finally {
         if (mountedRef.current) {
@@ -207,7 +207,7 @@ export function useHealthWorkspace(enabled: boolean): UseHealthWorkspaceResult {
         await loadHealthDetail(petId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the pet health detail.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el detalle de salud de la mascota.");
         }
       } finally {
         if (mountedRef.current) {

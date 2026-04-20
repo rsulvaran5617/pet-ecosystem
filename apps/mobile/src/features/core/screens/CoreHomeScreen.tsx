@@ -1,4 +1,4 @@
-import { coreMvpBoundaries, coreRoleLabels, coreSupportedPaymentMethodTypes } from "@pet/config";
+﻿import { coreMvpBoundaries, coreRoleLabels, coreSupportedPaymentMethodTypes } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type {
   AddPaymentMethodInput,
@@ -332,7 +332,7 @@ export function CoreHomeScreen() {
         <StatusBar barStyle="dark-content" />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
           <ActivityIndicator color="#0f766e" />
-          <Text style={{ color: "#57534e" }}>Loading live Supabase core workspace...</Text>
+          <Text style={{ color: "#57534e" }}>Cargando el espacio core desde Supabase...</Text>
         </View>
       </SafeAreaView>
     );
@@ -347,18 +347,18 @@ export function CoreHomeScreen() {
             EP-01 / Core
           </Text>
           <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
-            Mobile nucleus with real Supabase auth
+            Nucleo mobile con autenticacion real en Supabase
           </Text>
           <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
-            This screen stays inside core only: onboarding, auth, profile, preferences, addresses, role switching and
-            saved cards.
+            Esta pantalla permanece dentro de Core: onboarding, autenticacion, perfil, preferencias, direcciones, cambio
+            de rol y metodos de pago guardados.
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
             <StatusChip
-              label={snapshot ? `${snapshot.onboardingTasks.filter((task) => task.status === "completed").length}/${snapshot.onboardingTasks.length} steps` : "auth pending"}
+              label={snapshot ? `${snapshot.onboardingTasks.filter((task) => task.status === "completed").length}/${snapshot.onboardingTasks.length} pasos` : "auth pendiente"}
               tone={snapshot ? "active" : "pending"}
             />
-            <StatusChip label={coreMvpBoundaries.paymentCaptureInCore ? "capture" : "saved methods only"} tone="neutral" />
+            <StatusChip label={coreMvpBoundaries.paymentCaptureInCore ? "cobro" : "solo metodos guardados"} tone="neutral" />
             {snapshot ? <StatusChip label={coreRoleLabels[snapshot.roles.find((role) => role.isActive)?.role ?? "pet_owner"]} tone="neutral" /> : null}
           </View>
         </View>
@@ -368,26 +368,26 @@ export function CoreHomeScreen() {
         {!configError && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
         {isRecoverySession ? (
           <Notice
-            message="Password recovery session detected. Set a new password below to finish the access recovery flow."
+            message="Se detecto una sesion de recuperacion. Define una nueva contrasena abajo para completar el acceso."
             tone="info"
           />
         ) : null}
 
         {!configError && isRecoverySession ? (
           <CoreSectionCard
-            eyebrow="Recovery Session"
-            title="Set a new password"
-            description="Supabase already validated the recovery session. Save the new password here to complete core access recovery."
+            eyebrow="Sesion de recuperacion"
+            title="Define una nueva contrasena"
+            description="Supabase ya valido la sesion de recuperacion. Guarda aqui la nueva contrasena para completar el acceso."
           >
             <View style={{ gap: 12 }}>
               <Field
-                label="New password"
+                label="Nueva contrasena"
                 onChange={(value) => setRecoveryPasswordForm((currentForm) => ({ ...currentForm, password: value }))}
                 secureTextEntry
                 value={recoveryPasswordForm.password}
               />
               <Field
-                label="Confirm new password"
+                label="Confirmar nueva contrasena"
                 onChange={(value) =>
                   setRecoveryPasswordForm((currentForm) => ({ ...currentForm, confirmPassword: value }))
                 }
@@ -396,18 +396,18 @@ export function CoreHomeScreen() {
               />
                 <Button
                   disabled={isSubmitting}
-                  label="Update password"
+                  label="Actualizar contrasena"
                   onPress={() => {
                     clearMessages();
                     const recoveryEmail = authState.email ?? recoverForm.email;
                     void runAction(
                       async () => {
                         if (!recoveryPasswordForm.password) {
-                          throw new Error("A new password is required.");
+                          throw new Error("Se requiere una nueva contrasena.");
                         }
 
                       if (recoveryPasswordForm.password !== recoveryPasswordForm.confirmPassword) {
-                        throw new Error("The recovery passwords must match.");
+                        throw new Error("Las contrasenas de recuperacion deben coincidir.");
                       }
 
                         await getMobileCoreApiClient().completeRecovery({
@@ -416,7 +416,7 @@ export function CoreHomeScreen() {
 
                         await getMobileCoreApiClient().logout();
                       },
-                      "Password updated. Sign in with your new password.",
+                      "Contrasena actualizada. Inicia sesion con la nueva contrasena.",
                       false
                     ).then(() => {
                       clearRecoverySession();
@@ -433,9 +433,9 @@ export function CoreHomeScreen() {
         {!authState.isAuthenticated ? (
           <>
             <CoreSectionCard
-              eyebrow="Register"
-              title="Create base identity"
-              description="Supabase Auth creates the account and seeds profile metadata for core persistence."
+              eyebrow="Registro"
+              title="Crear identidad base"
+              description="Supabase Auth crea la cuenta y prepara la metadata inicial del perfil."
             >
               <View style={{ gap: 12 }}>
                 <Field
@@ -445,18 +445,18 @@ export function CoreHomeScreen() {
                   value={registerForm.email}
                 />
                 <Field
-                  label="Password"
+                  label="Contrasena"
                   onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
                   secureTextEntry
                   value={registerForm.password}
                 />
                 <Field
-                  label="First name"
+                  label="Nombre"
                   onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
                   value={registerForm.firstName}
                 />
                 <Field
-                  label="Last name"
+                  label="Apellido"
                   onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
                   value={registerForm.lastName}
                 />
@@ -470,7 +470,7 @@ export function CoreHomeScreen() {
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Register"
+                  label="Crear cuenta"
                   onPress={() => {
                     clearMessages();
                     setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
@@ -484,7 +484,7 @@ export function CoreHomeScreen() {
                           lastName: registerForm.lastName,
                           requestedRoles: [registerForm.role]
                         }),
-                      "Registration submitted. Complete email verification if your Supabase project requires it."
+                      "Registro enviado. Completa la verificacion por correo si tu proyecto de Supabase lo requiere."
                     );
                   }}
                 />
@@ -492,26 +492,26 @@ export function CoreHomeScreen() {
             </CoreSectionCard>
 
             <CoreSectionCard
-              eyebrow="Access"
-              title="Login, verification and recovery"
-              description="All access flows use Supabase Auth directly, including manual email OTP when Confirm email is enabled."
+              eyebrow="Acceso"
+              title="Inicio de sesion, verificacion y recuperacion"
+              description="Todos los flujos de acceso usan Supabase Auth directamente, incluido el OTP manual por correo cuando la verificacion esta activa."
             >
               <View style={{ gap: 12 }}>
                 <Field
                   keyboardType="email-address"
-                  label="Login email"
+                  label="Correo de acceso"
                   onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
                   value={loginForm.email}
                 />
                 <Field
-                  label="Login password"
+                  label="Contrasena de acceso"
                   onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
                   secureTextEntry
                   value={loginForm.password}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Login"
+                  label="Iniciar sesion"
                   onPress={() => {
                     clearMessages();
                     setVerifyForm((currentForm) => ({ ...currentForm, email: loginForm.email }));
@@ -522,24 +522,24 @@ export function CoreHomeScreen() {
                           email: loginForm.email,
                           password: loginForm.password
                         }),
-                      "Session authenticated."
+                      "Sesion autenticada."
                     );
                   }}
                 />
                 <Field
                   keyboardType="email-address"
-                  label="Verification email"
+                  label="Correo de verificacion"
                   onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
                   value={verifyForm.email}
                 />
                 <Field
-                  label="6-digit OTP code"
+                  label="Codigo OTP de 6 digitos"
                   onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
                   value={verifyForm.token}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Verify OTP"
+                  label="Verificar OTP"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -548,20 +548,20 @@ export function CoreHomeScreen() {
                           email: verifyForm.email,
                           token: verifyForm.token
                         }),
-                      "Email verification completed."
+                      "Verificacion de correo completada."
                     );
                   }}
                   tone="secondary"
                 />
                 <Field
                   keyboardType="email-address"
-                  label="Recovery email"
+                  label="Correo de recuperacion"
                   onChange={(value) => setRecoverForm({ email: value })}
                   value={recoverForm.email}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Send recovery email"
+                  label="Enviar correo de recuperacion"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -570,7 +570,7 @@ export function CoreHomeScreen() {
                           email: recoverForm.email,
                           redirectTo: getMobileRecoveryRedirectUrl()
                         }),
-                      "Recovery email requested.",
+                      "Correo de recuperacion requested.",
                       false
                     );
                   }}
@@ -584,7 +584,7 @@ export function CoreHomeScreen() {
         {authState.isAuthenticated && snapshot ? (
           <>
             <CoreSectionCard
-              eyebrow="Access"
+              eyebrow="Acceso"
               title="Session and verification"
               description="The current status is derived from the live Supabase session."
             >
@@ -595,15 +595,15 @@ export function CoreHomeScreen() {
                   <StatusChip label={snapshot.profile.email} tone="neutral" />
                 </View>
                 <Text style={{ color: colorTokens.muted, lineHeight: 22 }}>
-                  Recovery enabled for {snapshot.recovery.maskedDestination}
+                  Recuperacion habilitada para {snapshot.recovery.maskedDestination}
                 </Text>
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                  <Button disabled={isSubmitting} label="Refresh" onPress={() => void refresh()} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
                   <Button
                     disabled={isSubmitting}
-                    label="Logout"
+                    label="Cerrar sesion"
                     onPress={() => {
-                      void runAction(() => getMobileCoreApiClient().logout(), "Session closed.");
+                      void runAction(() => getMobileCoreApiClient().logout(), "Sesion cerrada.");
                     }}
                     tone="secondary"
                   />
@@ -613,8 +613,8 @@ export function CoreHomeScreen() {
 
             <CoreSectionCard
               eyebrow="Onboarding"
-              title="Current activation path"
-              description="These steps are computed from real auth, profile, address and payment records."
+              title="Ruta actual de activacion"
+              description="Estos pasos se calculan con registros reales de auth, perfil, direcciones y pagos guardados."
             >
               <View style={{ gap: 10 }}>
                 {snapshot.onboardingTasks.map((task) => (
@@ -630,39 +630,39 @@ export function CoreHomeScreen() {
             </CoreSectionCard>
 
             <CoreSectionCard
-              eyebrow="Profile"
-              title="Persisted profile and preferences"
-              description="These fields live in `public.profiles` and remain outside households or pets."
+              eyebrow="Perfil"
+              title="Perfil persistido y preferencias"
+              description="Estos campos viven en `public.profiles` y permanecen fuera de hogares o mascotas."
             >
               <View style={{ gap: 12 }}>
                 <Field
-                  label="First name"
+                  label="Nombre"
                   onChange={(value) => setProfileForm((currentForm) => ({ ...currentForm, firstName: value }))}
                   value={profileForm.firstName ?? ""}
                 />
                 <Field
-                  label="Last name"
+                  label="Apellido"
                   onChange={(value) => setProfileForm((currentForm) => ({ ...currentForm, lastName: value }))}
                   value={profileForm.lastName ?? ""}
                 />
                 <Field
-                  label="Phone"
+                  label="Telefono"
                   onChange={(value) => setProfileForm((currentForm) => ({ ...currentForm, phone: value }))}
                   value={profileForm.phone ?? ""}
                 />
                 <Field
-                  label="Avatar URL"
+                  label="URL del avatar"
                   onChange={(value) => setProfileForm((currentForm) => ({ ...currentForm, avatarUrl: value }))}
                   value={profileForm.avatarUrl ?? ""}
                 />
                 <Field
-                  label="Locale"
+                  label="Configuracion regional"
                   onChange={(value) => setProfileForm((currentForm) => ({ ...currentForm, locale: value }))}
                   value={profileForm.locale ?? "es"}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Save profile"
+                  label="Guardar perfil"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -674,28 +674,28 @@ export function CoreHomeScreen() {
                           avatarUrl: profileForm.avatarUrl?.trim() || null,
                           locale: profileForm.locale?.trim()
                         }),
-                      "Profile updated."
+                      "Perfil updated."
                     );
                   }}
                 />
                 <SwitchRow
-                  label="Marketing opt-in"
+                  label="Acepta marketing"
                   onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, marketingOptIn: value }))}
                   value={preferenceForm.marketingOptIn}
                 />
                 <SwitchRow
-                  label="Email reminders"
+                  label="Recordatorios por correo"
                   onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderEmailOptIn: value }))}
                   value={preferenceForm.reminderEmailOptIn}
                 />
                 <SwitchRow
-                  label="Push reminders"
+                  label="Recordatorios push"
                   onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderPushOptIn: value }))}
                   value={preferenceForm.reminderPushOptIn}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Save preferences"
+                  label="Guardar preferencias"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -705,7 +705,7 @@ export function CoreHomeScreen() {
                           reminderEmailOptIn: preferenceForm.reminderEmailOptIn,
                           reminderPushOptIn: preferenceForm.reminderPushOptIn
                         }),
-                      "Preferences updated."
+                      "Preferencias actualizadas."
                     );
                   }}
                   tone="secondary"
@@ -715,8 +715,8 @@ export function CoreHomeScreen() {
 
             <CoreSectionCard
               eyebrow="Roles"
-              title="Basic role switching"
-              description="Only owner and provider context are available here."
+              title="Cambio basico de rol"
+              description="Aqui solo estan disponibles los contextos de propietario y proveedor."
             >
               <View style={{ gap: 10 }}>
                 {snapshot.roles.map((role) => (
@@ -736,12 +736,12 @@ export function CoreHomeScreen() {
                     {!role.isActive ? (
                       <Button
                         disabled={isSubmitting}
-                        label={`Activate ${coreRoleLabels[role.role]}`}
+                        label={`Activar ${coreRoleLabels[role.role]}`}
                         onPress={() => {
                           clearMessages();
                           void runAction(
                             () => getMobileCoreApiClient().switchRole({ role: role.role }),
-                            `Active role changed to ${coreRoleLabels[role.role]}.`
+                            `Rol activo cambiado a ${coreRoleLabels[role.role]}.`
                           );
                         }}
                         tone="secondary"
@@ -753,64 +753,64 @@ export function CoreHomeScreen() {
             </CoreSectionCard>
 
             <CoreSectionCard
-              eyebrow="Addresses"
-              title="User-owned locations"
-              description="Addresses remain attached to the user and never become household records."
+              eyebrow="Direcciones"
+              title="Ubicaciones del usuario"
+              description="Direcciones remain attached to the user and never become household records."
             >
               <View style={{ gap: 12 }}>
                 <ChoiceBar
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, label: value }))}
                   options={[
-                    { label: "Home", value: "home" },
-                    { label: "Work", value: "work" },
-                    { label: "Other", value: "other" }
+                    { label: "Casa", value: "home" },
+                    { label: "Trabajo", value: "work" },
+                    { label: "Otro", value: "other" }
                   ]}
                   value={addressForm.label}
                 />
                 <Field
-                  label="Recipient"
+                  label="Destinatario"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, recipientName: value }))}
                   value={addressForm.recipientName}
                 />
                 <Field
-                  label="Line 1"
+                  label="Linea 1"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, line1: value }))}
                   value={addressForm.line1}
                 />
                 <Field
-                  label="Line 2"
+                  label="Linea 2"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, line2: value }))}
                   value={addressForm.line2 ?? ""}
                 />
                 <Field
-                  label="City"
+                  label="Ciudad"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, city: value }))}
                   value={addressForm.city}
                 />
                 <Field
-                  label="State / region"
+                  label="Provincia / region"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, stateRegion: value }))}
                   value={addressForm.stateRegion}
                 />
                 <Field
-                  label="Postal code"
+                  label="Codigo postal"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, postalCode: value }))}
                   value={addressForm.postalCode}
                 />
                 <Field
-                  label="Country code"
+                  label="Codigo de pais"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, countryCode: value }))}
                   value={addressForm.countryCode}
                 />
                 <SwitchRow
-                  label="Set as default address"
+                  label="Marcar como direccion predeterminada"
                   onChange={(value) => setAddressForm((currentForm) => ({ ...currentForm, isDefault: value }))}
                   value={Boolean(addressForm.isDefault)}
                 />
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   <Button
                     disabled={isSubmitting}
-                    label={addressForm.id ? "Update address" : "Save address"}
+                    label={addressForm.id ? "Actualizar direccion" : "Guardar direccion"}
                     onPress={() => {
                       clearMessages();
                       void runAction(
@@ -825,14 +825,14 @@ export function CoreHomeScreen() {
                             postalCode: addressForm.postalCode.trim(),
                             countryCode: addressForm.countryCode.trim()
                           }),
-                        addressForm.id ? "Address updated." : "Address saved."
+                        addressForm.id ? "Direccion actualizada." : "Direccion guardada."
                       ).then(() => {
                         setAddressForm(emptyAddressForm);
                       });
                     }}
                   />
                   {addressForm.id ? (
-                    <Button disabled={isSubmitting} label="Cancel edit" onPress={() => setAddressForm(emptyAddressForm)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Cancelar edicion" onPress={() => setAddressForm(emptyAddressForm)} tone="secondary" />
                   ) : null}
                 </View>
                 {snapshot.addresses.map((address) => (
@@ -847,7 +847,7 @@ export function CoreHomeScreen() {
                     </Text>
                     <Button
                       disabled={isSubmitting}
-                      label="Edit"
+                      label="Editar"
                       onPress={() =>
                         setAddressForm({
                           id: address.id,
@@ -870,8 +870,8 @@ export function CoreHomeScreen() {
             </CoreSectionCard>
 
             <CoreSectionCard
-              eyebrow="Payment Methods"
-              title="Saved cards only"
+              eyebrow="Metodos de pago"
+              title="Solo tarjetas guardadas"
               description={`Supported in MVP core: ${coreSupportedPaymentMethodTypes.join(", ")}.`}
             >
               <View style={{ gap: 12 }}>
@@ -885,35 +885,35 @@ export function CoreHomeScreen() {
                   value={paymentForm.brand}
                 />
                 <Field
-                  label="Last 4"
+                  label="Ultimos 4"
                   onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, last4: value }))}
                   value={paymentForm.last4}
                 />
                 <Field
                   keyboardType="numeric"
-                  label="Exp month"
+                  label="Mes de vencimiento"
                   onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expMonth: value }))}
                   value={paymentForm.expMonth}
                 />
                 <Field
                   keyboardType="numeric"
-                  label="Exp year"
+                  label="Ano de vencimiento"
                   onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expYear: value }))}
                   value={paymentForm.expYear}
                 />
                 <Field
-                  label="Cardholder"
+                  label="Titular"
                   onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, cardholderName: value }))}
                   value={paymentForm.cardholderName}
                 />
                 <SwitchRow
-                  label="Set as default payment method"
+                  label="Marcar como metodo de pago predeterminado"
                   onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, isDefault: value }))}
                   value={Boolean(paymentForm.isDefault)}
                 />
                 <Button
                   disabled={isSubmitting}
-                  label="Save card"
+                  label="Guardar tarjeta"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -926,7 +926,7 @@ export function CoreHomeScreen() {
                           cardholderName: paymentForm.cardholderName.trim(),
                           isDefault: paymentForm.isDefault
                         }),
-                      "Payment method saved."
+                      "Metodo de pago guardado."
                     ).then(() => {
                       setPaymentForm(emptyPaymentForm);
                     });
@@ -936,7 +936,7 @@ export function CoreHomeScreen() {
                   <View key={paymentMethod.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                       <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>
-                        {paymentMethod.brand.toUpperCase()} ending in {paymentMethod.last4}
+                        {paymentMethod.brand.toUpperCase()} terminada en {paymentMethod.last4}
                       </Text>
                       <StatusChip
                         label={paymentMethod.isDefault ? "default" : paymentMethod.status}
@@ -944,17 +944,17 @@ export function CoreHomeScreen() {
                       />
                     </View>
                     <Text style={{ color: colorTokens.muted }}>
-                      {paymentMethod.cardholderName} - exp {paymentMethod.expMonth}/{paymentMethod.expYear}
+                      {paymentMethod.cardholderName} - vence {paymentMethod.expMonth}/{paymentMethod.expYear}
                     </Text>
                     {!paymentMethod.isDefault ? (
                       <Button
                         disabled={isSubmitting}
-                        label="Make default"
+                        label="Marcar como predeterminada"
                         onPress={() => {
                           clearMessages();
                           void runAction(
                             () => getMobileCoreApiClient().setDefaultPaymentMethod(paymentMethod.id),
-                            `Default payment method updated to ${paymentMethod.brand.toUpperCase()} ${paymentMethod.last4}.`
+                            `Metodo de pago predeterminado actualizado a ${paymentMethod.brand.toUpperCase()} ${paymentMethod.last4}.`
                           );
                         }}
                         tone="secondary"
@@ -1001,3 +1001,7 @@ export function CoreHomeScreen() {
     </SafeAreaView>
   );
 }
+
+
+
+

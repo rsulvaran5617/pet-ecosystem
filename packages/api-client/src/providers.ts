@@ -184,7 +184,7 @@ async function getProviderOrganizationDetailById(
   const { data: organizationRow, error: organizationError } = await organizationQuery.single();
 
   if (organizationError) {
-    fail(organizationError, "Unable to load the provider organization.");
+    fail(organizationError, "No fue posible cargar la organizacion del proveedor.");
   }
 
   const [{ data: publicProfileRow, error: publicProfileError }, { data: serviceRows, error: servicesError }, { data: availabilityRows, error: availabilityError }, { data: documentRows, error: documentsError }] =

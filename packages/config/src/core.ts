@@ -3,10 +3,16 @@ import type { CoreRole, OnboardingTaskId, PaymentMethodType } from "@pet/types";
 export const coreRoles = ["pet_owner", "provider", "admin"] as const satisfies readonly CoreRole[];
 
 export const coreRoleLabels: Record<CoreRole, string> = {
-  pet_owner: "Pet owner",
-  provider: "Provider",
-  admin: "Admin"
+  pet_owner: "Propietario de mascota",
+  provider: "Proveedor",
+  admin: "Administrador"
 };
+
+export const addressLabelLabels = {
+  home: "Casa",
+  work: "Trabajo",
+  other: "Otro"
+} as const;
 
 export const coreOnboardingTaskOrder = [
   "create_account",
@@ -20,32 +26,32 @@ export const coreOnboardingTaskOrder = [
 
 export const coreOnboardingTaskMeta: Record<OnboardingTaskId, { title: string; description: string }> = {
   create_account: {
-    title: "Create account",
-    description: "The user already has the minimum identity record to access the system."
+    title: "Crear cuenta",
+    description: "La persona usuaria ya tiene la identidad minima para entrar al sistema."
   },
   verify_contact: {
-    title: "Verify contact",
-    description: "The primary email must be verified before the account is considered trusted."
+    title: "Verificar contacto",
+    description: "El correo principal debe verificarse antes de considerar la cuenta confiable."
   },
   complete_profile: {
-    title: "Complete profile",
-    description: "Basic profile fields stay inside core and do not depend on households or pets."
+    title: "Completar perfil",
+    description: "Los datos basicos del perfil viven en core y no dependen de hogares ni mascotas."
   },
   select_role: {
-    title: "Choose active role",
-    description: "The current role defines the visible context without activating provider operations yet."
+    title: "Elegir rol activo",
+    description: "El rol actual define el contexto visible sin activar todavia la operacion de proveedor."
   },
   set_preferences: {
-    title: "Set preferences",
-    description: "Reminder and communication preferences live in the base profile."
+    title: "Configurar preferencias",
+    description: "Las preferencias de recordatorios y comunicacion viven en el perfil base."
   },
   add_address: {
-    title: "Add address",
-    description: "Saved addresses belong to the user and can be reused later by checkout flows."
+    title: "Agregar direccion",
+    description: "Las direcciones guardadas pertenecen a la persona usuaria y pueden reutilizarse despues."
   },
   add_payment_method: {
-    title: "Add payment method",
-    description: "Core stores saved cards only; payment capture belongs to bookings and payments."
+    title: "Agregar metodo de pago",
+    description: "Core solo guarda tarjetas; el cobro pertenece a reservas y pagos."
   }
 };
 

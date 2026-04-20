@@ -1,9 +1,9 @@
 import type { PetDocumentType, PetSex } from "@pet/types";
 
 export const petSexLabels: Record<PetSex, string> = {
-  female: "Female",
-  male: "Male",
-  unknown: "Unknown"
+  female: "Hembra",
+  male: "Macho",
+  unknown: "Sin definir"
 };
 
 export const petDocumentTypeOrder = [
@@ -15,9 +15,9 @@ export const petDocumentTypeOrder = [
 ] as const satisfies readonly PetDocumentType[];
 
 export const petDocumentTypeLabels: Record<PetDocumentType, string> = {
-  vaccination_record: "Vaccination record",
-  medical_record: "Medical record",
-  identity: "Identity",
-  insurance: "Insurance",
-  other: "Other"
+  vaccination_record: "Carnet de vacunacion",
+  medical_record: "Expediente medico",
+  identity: "Identidad",
+  insurance: "Seguro",
+  other: "Otro"
 };

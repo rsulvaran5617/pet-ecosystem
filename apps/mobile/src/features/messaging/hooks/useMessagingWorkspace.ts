@@ -86,7 +86,7 @@ export function useMessagingWorkspace(
         setSelectedThreadDetail(null);
         setSelectedThreadId(null);
         selectedThreadIdRef.current = null;
-        setErrorMessage("Unable to locate the chat thread for the selected booking.");
+        setErrorMessage("No fue posible ubicar el hilo de chat de la reserva seleccionada.");
         return;
       }
 
@@ -100,7 +100,7 @@ export function useMessagingWorkspace(
       await loadThreadDetail(nextSelectedThreadId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the messaging workspace.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de mensajes.");
       }
     } finally {
       if (mountedRef.current) {
@@ -127,7 +127,7 @@ export function useMessagingWorkspace(
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Messaging action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de mensajes fallo.");
       }
 
       throw error;
@@ -154,7 +154,7 @@ export function useMessagingWorkspace(
 
     focusedBookingIdRef.current = focusedBookingId;
     setErrorMessage(null);
-    setInfoMessage("Booking chat requested. Loading the linked thread.");
+    setInfoMessage("Se solicito el chat de la reserva. Cargando el hilo vinculado.");
     void refresh(focusedBookingId);
   }, [enabled, focusedBookingId, focusVersion]);
 
@@ -180,11 +180,11 @@ export function useMessagingWorkspace(
         focusedBookingIdRef.current = detail.thread.bookingId;
 
         if (mountedRef.current) {
-          setInfoMessage(`Thread loaded for ${detail.thread.serviceName}.`);
+          setInfoMessage(`Hilo cargado para ${detail.thread.serviceName}.`);
         }
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to open the chat thread.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir el hilo de chat.");
         }
       } finally {
         if (mountedRef.current) {
@@ -197,13 +197,13 @@ export function useMessagingWorkspace(
       const threadId = selectedThreadIdRef.current;
 
       if (!threadId) {
-        throw new Error("Select a thread before sending a message.");
+        throw new Error("Selecciona un hilo antes de enviar un mensaje.");
       }
 
       const normalizedDraft = messageDraft.trim();
 
       if (!normalizedDraft) {
-        throw new Error("Write a message before sending it.");
+        throw new Error("Escribe un mensaje antes de enviarlo.");
       }
 
       await runAction(
@@ -219,9 +219,10 @@ export function useMessagingWorkspace(
 
           return message;
         },
-        "Message sent."
+        "Mensaje enviado."
       );
     },
     setMessageDraft
   };
 }
+

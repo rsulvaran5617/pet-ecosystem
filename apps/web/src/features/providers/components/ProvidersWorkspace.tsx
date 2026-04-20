@@ -127,14 +127,14 @@ function normalizeSpeciesServed(value: string) {
 }
 
 function formatMoney(priceCents: number, currencyCode: string) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-PA", {
     style: "currency",
     currency: currencyCode
   }).format(priceCents / 100);
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -370,10 +370,10 @@ export function ProvidersWorkspace({
     hasPublishedService;
   const reviewReadiness = useMemo(
     () => [
-      { label: "Business profile saved", done: Boolean(selectedPublicProfile) },
-      { label: "At least one service configured", done: selectedServices.length > 0 },
-      { label: "Availability configured", done: selectedAvailability.length > 0 },
-      { label: "Approval docs uploaded", done: selectedDocuments.length > 0 }
+      { label: "Perfil del negocio guardado", done: Boolean(selectedPublicProfile) },
+      { label: "Al menos un servicio configurado", done: selectedServices.length > 0 },
+      { label: "Disponibilidad configurada", done: selectedAvailability.length > 0 },
+      { label: "Documentos de aprobacion cargados", done: selectedDocuments.length > 0 }
     ],
     [selectedAvailability.length, selectedDocuments.length, selectedPublicProfile, selectedServices.length]
   );
@@ -389,15 +389,15 @@ export function ProvidersWorkspace({
 
       <CoreSection
         eyebrow="Providers / MVP"
-        title="Provider onboarding, public profile and approval readiness"
-        description="This MVP slice covers provider setup plus the minimum booking operation needed for approval-based services: organization, public profile, services, availability, approval documents, approval status and incoming booking review."
+        title="Onboarding de proveedor, perfil publico y readiness de aprobacion"
+        description="Este alcance del MVP cubre la configuracion del proveedor y la operacion minima de reservas para servicios con aprobacion: organizacion, perfil publico, servicios, disponibilidad, documentos, estado de aprobacion y revision de reservas entrantes."
       >
         {!hasProviderRole ? (
           <p style={{ margin: 0, color: "#57534e" }}>
-            This workspace stays locked until the user has the provider role provisioned in core.
+            Este espacio permanece bloqueado hasta que el usuario tenga el rol de proveedor provisionado en core.
           </p>
         ) : isLoading && !organizations.length && !selectedOrganizationDetail ? (
-          <p style={{ margin: 0, color: "#57534e" }}>Loading provider organizations from Supabase...</p>
+          <p style={{ margin: 0, color: "#57534e" }}>Cargando organizaciones de proveedores desde Supabase...</p>
         ) : (
           <div
             style={{
@@ -417,12 +417,12 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Organizations</h3>
-                  <StatusPill label={`${organizations.length} total`} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Organizaciones</h3>
+                  <StatusPill label={`${organizations.length} en total`} tone="neutral" />
                 </div>
                 {!providerRoleActive ? (
                   <p style={{ margin: 0, color: "#57534e" }}>
-                    The provider workspace works with any provisioned provider role, but switching the active role to <strong>provider</strong> keeps the session aligned with this context.
+                    Este espacio funciona con cualquier rol de proveedor provisionado, pero cambiar el rol activo a <strong>provider</strong> mantiene la sesion alineada con este contexto.
                   </p>
                 ) : null}
                 {organizations.length ? (
@@ -466,7 +466,7 @@ export function ProvidersWorkspace({
                     </button>
                   ))
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>No provider organizations yet. Create the first one below.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay organizaciones de proveedores. Crea la primera abajo.</p>
                 )}
                 <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                   <Button
@@ -478,10 +478,10 @@ export function ProvidersWorkspace({
                     }}
                     tone="secondary"
                   >
-                    New organization
+                    Nueva organizacion
                   </Button>
                   <Button disabled={isSubmitting} onClick={() => void refresh(selectedOrganizationId)} tone="secondary">
-                    Refresh
+                    Actualizar
                   </Button>
                 </div>
               </article>
@@ -496,8 +496,8 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>{organizationMode === "create" ? "Create business" : "Edit business"}</h3>
-                  <StatusPill label={organizationMode === "create" ? "create" : "edit"} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>{organizationMode === "create" ? "Crear negocio" : "Editar negocio"}</h3>
+                  <StatusPill label={organizationMode === "create" ? "crear" : "editar"} tone="neutral" />
                 </div>
                 <form
                   onSubmit={(event) => {
@@ -514,7 +514,7 @@ export function ProvidersWorkspace({
                     if (organizationMode === "edit" && selectedOrganization) {
                       void runAction(
                         () => getBrowserProvidersApiClient().updateProviderOrganization(selectedOrganization.id, payload),
-                        "Provider organization updated."
+                        "Organizacion de proveedor actualizada."
                       ).then(async () => {
                         await refresh(selectedOrganization.id);
                       });
@@ -523,21 +523,21 @@ export function ProvidersWorkspace({
 
                     void runAction(
                       () => getBrowserProvidersApiClient().createProviderOrganization(payload),
-                      "Provider organization created."
+                      "Organizacion de proveedor creada."
                     ).then(async (organization) => {
                       await refresh(organization.id);
                     });
                   }}
                   style={{ display: "grid", gap: "12px" }}
                 >
-                  <Field label="Business name" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
+                  <Field label="Nombre del negocio" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
                   <Field label="Slug" onChange={(value) => setOrganizationForm((current) => ({ ...current, slug: value }))} value={organizationForm.slug} />
-                  <Field label="City" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
-                  <Field label="Country code" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
-                  <CheckField checked={organizationForm.isPublic} label="Allow public publication when approved" onChange={(value) => setOrganizationForm((current) => ({ ...current, isPublic: value }))} />
+                  <Field label="Ciudad" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
+                  <Field label="Codigo de pais" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
+                  <CheckField checked={organizationForm.isPublic} label="Permitir publicacion publica al aprobarse" onChange={(value) => setOrganizationForm((current) => ({ ...current, isPublic: value }))} />
                   <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                     <Button disabled={isSubmitting} type="submit">
-                      {organizationMode === "create" ? "Create organization" : "Save organization"}
+                      {organizationMode === "create" ? "Crear organizacion" : "Guardar organizacion"}
                     </Button>
                     {organizationMode === "edit" ? (
                       <Button
@@ -548,7 +548,7 @@ export function ProvidersWorkspace({
                         }}
                         tone="secondary"
                       >
-                        Create another
+                        Crear otra
                       </Button>
                     ) : null}
                   </div>
@@ -567,16 +567,16 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Approval and publication</h3>
+                  <h3 style={{ margin: 0 }}>Aprobacion y publicacion</h3>
                   {selectedOrganization ? (
                     <StatusPill
                       label={providerApprovalStatusLabels[selectedOrganization.approvalStatus]}
                       tone={
                         selectedOrganization.approvalStatus === "approved"
-                          ? "active"
-                          : selectedOrganization.approvalStatus === "rejected"
-                            ? "neutral"
-                            : "pending"
+                            ? "active"
+                            : selectedOrganization.approvalStatus === "rejected"
+                              ? "neutral"
+                              : "pending"
                       }
                     />
                   ) : null}
@@ -585,28 +585,28 @@ export function ProvidersWorkspace({
                   <>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "12px" }}>
                       <div style={{ ...controlStyle, display: "grid", gap: "6px" }}>
-                        <strong>Business visibility</strong>
-                        <span style={{ color: "#57534e" }}>{selectedOrganization.isPublic ? "Public when approved" : "Private even if approved"}</span>
+                        <strong>Visibilidad del negocio</strong>
+                        <span style={{ color: "#57534e" }}>{selectedOrganization.isPublic ? "Publico al aprobarse" : "Privado incluso si se aprueba"}</span>
                       </div>
                       <div style={{ ...controlStyle, display: "grid", gap: "6px" }}>
-                        <strong>Marketplace status</strong>
-                        <span style={{ color: "#57534e" }}>{isMarketplaceVisible ? "Visible in discovery" : "Hidden from discovery"}</span>
+                        <strong>Estado en el marketplace</strong>
+                        <span style={{ color: "#57534e" }}>{isMarketplaceVisible ? "Visible en el marketplace" : "Oculto en el marketplace"}</span>
                       </div>
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       {reviewReadiness.map((item) => (
                         <div key={item.label} style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                           <span style={{ color: "#44403c" }}>{item.label}</span>
-                          <StatusPill label={item.done ? "ready" : "missing"} tone={item.done ? "active" : "pending"} />
+                          <StatusPill label={item.done ? "listo" : "pendiente"} tone={item.done ? "active" : "pending"} />
                         </div>
                       ))}
                     </div>
                     <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
-                      Public discovery remains locked until the organization is <strong>approved</strong>, the business is marked public, the public profile is public and at least one service is public plus active.
+                      La visibilidad publica permanece bloqueada hasta que la organizacion se apruebe, el negocio sea publico, el perfil publico este visible y al menos un servicio sea publico y activo.
                     </p>
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Create or select an organization to inspect its approval status.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Crea o selecciona una organizacion para revisar su estado de aprobacion.</p>
                 )}
               </article>
 
@@ -620,15 +620,15 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Incoming bookings</h3>
-                  <StatusPill label={`${providerBookings.length} booking(s)`} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Reservas entrantes</h3>
+                  <StatusPill label={`${providerBookings.length} en total`} tone="neutral" />
                 </div>
                 {selectedOrganization ? (
                   <>
                     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                      <StatusPill label={`${pendingProviderBookings.length} pending`} tone={pendingProviderBookings.length ? "pending" : "neutral"} />
-                      <StatusPill label={`${confirmedProviderBookings.length} confirmed`} tone={confirmedProviderBookings.length ? "active" : "neutral"} />
-                      <StatusPill label={`${completedProviderBookings.length} completed`} tone={completedProviderBookings.length ? "active" : "neutral"} />
+                      <StatusPill label={`${pendingProviderBookings.length} pendientes`} tone={pendingProviderBookings.length ? "pending" : "neutral"} />
+                      <StatusPill label={`${confirmedProviderBookings.length} confirmadas`} tone={confirmedProviderBookings.length ? "active" : "neutral"} />
+                      <StatusPill label={`${completedProviderBookings.length} completadas`} tone={completedProviderBookings.length ? "active" : "neutral"} />
                     </div>
                     {providerBookings.length ? (
                       <div style={{ display: "grid", gap: "12px" }}>
@@ -651,36 +651,32 @@ export function ProvidersWorkspace({
                               />
                             </div>
                             <span style={{ color: "#57534e" }}>
-                              {booking.householdName} · {booking.customerDisplayName}
+                              {booking.householdName}  -  {booking.customerDisplayName}
                             </span>
                             <span style={{ color: "#57534e" }}>
-                              {booking.petName} · {formatDateTime(booking.scheduledStartAt)}
+                              {booking.petName}  -  {formatDateTime(booking.scheduledStartAt)}
                             </span>
                             <span style={{ color: "#57534e" }}>
-                              {formatMoney(booking.totalPriceCents, booking.currencyCode)} · {booking.bookingMode === "instant" ? "Instant booking" : "Approval required"}
+                              {formatMoney(booking.totalPriceCents, booking.currencyCode)}  -  {booking.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                             </span>
                             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                               <Button disabled={isSubmitting} onClick={() => void openProviderBookingDetail(booking.id)} tone="secondary">
-                                View detail
+                                Ver detalle
                               </Button>
                               {booking.status === "pending_approval" ? (
                                 <>
-                                  <Button disabled={isSubmitting} onClick={() => void approveProviderBooking(booking.id)}>
-                                    Approve
-                                  </Button>
+                                  <Button disabled={isSubmitting} onClick={() => void approveProviderBooking(booking.id)}>Aprobar</Button>
                                   <Button
                                     disabled={isSubmitting}
-                                    onClick={() => void rejectProviderBooking(booking.id, "Booking request declined by provider")}
+                                    onClick={() => void rejectProviderBooking(booking.id, "Solicitud de reserva rechazada por el proveedor")}
                                     tone="secondary"
                                   >
-                                    Reject
+                                    Rechazar
                                   </Button>
                                 </>
                               ) : null}
                               {booking.status === "confirmed" ? (
-                                <Button disabled={isSubmitting} onClick={() => void completeProviderBooking(booking.id)}>
-                                  Mark completed
-                                </Button>
+                                <Button disabled={isSubmitting} onClick={() => void completeProviderBooking(booking.id)}>Marcar como completada</Button>
                               ) : null}
                             </div>
                           </article>
@@ -688,7 +684,7 @@ export function ProvidersWorkspace({
                       </div>
                     ) : (
                       <p style={{ margin: 0, color: "#57534e" }}>
-                        No bookings exist yet for this provider organization. Once an approved public service is booked, requests and confirmed reservations will appear here.
+                        Todavia no existen reservas para esta organizacion. Cuando se reserve un servicio publico aprobado, aqui apareceran solicitudes y reservas confirmadas.
                       </p>
                     )}
 
@@ -703,7 +699,7 @@ export function ProvidersWorkspace({
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                          <strong>Booking detail</strong>
+                          <strong>Detalle de la reserva</strong>
                           <StatusPill
                             label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
                             tone={
@@ -716,23 +712,23 @@ export function ProvidersWorkspace({
                           />
                         </div>
                         <span style={{ color: "#57534e" }}>
-                          {selectedProviderBookingDetail.booking.householdName} · {selectedProviderBookingDetail.booking.customerDisplayName}
+                          {selectedProviderBookingDetail.booking.householdName}  -  {selectedProviderBookingDetail.booking.customerDisplayName}
                         </span>
                         <span style={{ color: "#57534e" }}>
-                          {selectedProviderBookingDetail.booking.petName} · {formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}
+                          {selectedProviderBookingDetail.booking.petName}  -  {formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}
                         </span>
                         <span style={{ color: "#57534e" }}>
-                          Payment method:{" "}
+                          Metodo de pago:{" "}
                           {selectedProviderBookingDetail.paymentMethodSummary
                             ? `${selectedProviderBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedProviderBookingDetail.paymentMethodSummary.last4}`
-                            : "No saved payment method linked"}
+                            : "Sin metodo de pago guardado vinculado"}
                         </span>
                         <div style={{ display: "grid", gap: "8px" }}>
                           {selectedProviderBookingDetail.statusHistory.map((change) => (
                             <div key={change.id} style={{ ...controlStyle, display: "grid", gap: "6px" }}>
                               <strong>{bookingStatusLabels[change.toStatus]}</strong>
                               <span style={{ color: "#57534e" }}>{formatDateTime(change.createdAt)}</span>
-                              <span style={{ color: "#57534e" }}>{change.changeReason ?? "No extra reason captured."}</span>
+                              <span style={{ color: "#57534e" }}>{change.changeReason ?? "Sin razon adicional registrada."}</span>
                             </div>
                           ))}
                         </div>
@@ -740,7 +736,7 @@ export function ProvidersWorkspace({
                     ) : null}
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Select an organization first.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
 
@@ -754,8 +750,8 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Public profile</h3>
-                  {selectedPublicProfile ? <StatusPill label={selectedPublicProfile.isPublic ? "public" : "hidden"} tone={selectedPublicProfile.isPublic ? "active" : "neutral"} /> : null}
+                  <h3 style={{ margin: 0 }}>Perfil publico</h3>
+                  {selectedPublicProfile ? <StatusPill label={selectedPublicProfile.isPublic ? "publico" : "oculto"} tone={selectedPublicProfile.isPublic ? "active" : "neutral"} /> : null}
                 </div>
                 {selectedOrganization ? (
                   <form
@@ -770,23 +766,23 @@ export function ProvidersWorkspace({
                             avatarUrl: publicProfileForm.avatarUrl.trim() || null,
                             isPublic: publicProfileForm.isPublic
                           }),
-                        "Public profile saved."
+                        "Perfil publico guardado."
                       ).then(async () => {
                         await refresh(selectedOrganization.id);
                       });
                     }}
                     style={{ display: "grid", gap: "12px" }}
                   >
-                    <Field label="Headline" onChange={(value) => setPublicProfileForm((current) => ({ ...current, headline: value }))} value={publicProfileForm.headline} />
-                    <TextArea label="Business bio" onChange={(value) => setPublicProfileForm((current) => ({ ...current, bio: value }))} value={publicProfileForm.bio} />
-                    <Field label="Avatar URL" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
-                    <CheckField checked={publicProfileForm.isPublic} label="Publish this profile when the organization is eligible" onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value }))} />
+                    <Field label="Titular" onChange={(value) => setPublicProfileForm((current) => ({ ...current, headline: value }))} value={publicProfileForm.headline} />
+                    <TextArea label="Bio del negocio" onChange={(value) => setPublicProfileForm((current) => ({ ...current, bio: value }))} value={publicProfileForm.bio} />
+                    <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
+                    <CheckField checked={publicProfileForm.isPublic} label="Publicar este perfil cuando la organizacion sea elegible" onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value }))} />
                     <Button disabled={isSubmitting} type="submit">
-                      Save public profile
+                      Guardar perfil publico
                     </Button>
                   </form>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Select an organization first.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
             </div>
@@ -802,8 +798,8 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Services</h3>
-                  <StatusPill label={`${selectedServices.length} total`} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Servicios</h3>
+                  <StatusPill label={`${selectedServices.length} en total`} tone="neutral" />
                 </div>
                 {selectedOrganization ? (
                   <>
@@ -828,7 +824,7 @@ export function ProvidersWorkspace({
                         if (serviceForm.id) {
                           void runAction(
                             () => getBrowserProvidersApiClient().updateProviderService(serviceForm.id!, payload),
-                            "Provider service updated."
+                            "Servicio del proveedor actualizado."
                           ).then(async () => {
                             setServiceForm(emptyServiceForm);
                             await refresh(selectedOrganization.id);
@@ -842,7 +838,7 @@ export function ProvidersWorkspace({
                               organizationId: selectedOrganization.id,
                               ...payload
                             }),
-                          "Provider service created."
+                          "Servicio del proveedor creado."
                         ).then(async () => {
                           setServiceForm(emptyServiceForm);
                           await refresh(selectedOrganization.id);
@@ -850,40 +846,40 @@ export function ProvidersWorkspace({
                       }}
                       style={{ display: "grid", gap: "12px" }}
                     >
-                      <Field label="Service name" onChange={(value) => setServiceForm((current) => ({ ...current, name: value }))} value={serviceForm.name} />
+                      <Field label="Nombre del servicio" onChange={(value) => setServiceForm((current) => ({ ...current, name: value }))} value={serviceForm.name} />
                       <SelectField<ProviderServiceCategory>
-                        label="Category"
+                        label="Categoria"
                         onChange={(value) => setServiceForm((current) => ({ ...current, category: value }))}
                         options={providerServiceCategoryOrder.map((category) => ({ label: providerServiceCategoryLabels[category], value: category }))}
                         value={serviceForm.category}
                       />
-                      <TextArea label="Short description" onChange={(value) => setServiceForm((current) => ({ ...current, shortDescription: value }))} value={serviceForm.shortDescription} />
-                      <Field label="Species served (comma separated)" onChange={(value) => setServiceForm((current) => ({ ...current, speciesServedText: value }))} value={serviceForm.speciesServedText} />
+                      <TextArea label="Descripcion corta" onChange={(value) => setServiceForm((current) => ({ ...current, shortDescription: value }))} value={serviceForm.shortDescription} />
+                      <Field label="Especies atendidas (separadas por comas)" onChange={(value) => setServiceForm((current) => ({ ...current, speciesServedText: value }))} value={serviceForm.speciesServedText} />
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: "12px" }}>
-                        <Field label="Duration (min)" onChange={(value) => setServiceForm((current) => ({ ...current, durationMinutes: value }))} type="number" value={serviceForm.durationMinutes} />
-                        <Field label="Base price (USD)" onChange={(value) => setServiceForm((current) => ({ ...current, basePrice: value }))} type="number" value={serviceForm.basePrice} />
-                        <Field label="Cancel window (hrs)" onChange={(value) => setServiceForm((current) => ({ ...current, cancellationWindowHours: value }))} type="number" value={serviceForm.cancellationWindowHours} />
+                        <Field label="Duracion (min)" onChange={(value) => setServiceForm((current) => ({ ...current, durationMinutes: value }))} type="number" value={serviceForm.durationMinutes} />
+                        <Field label="Precio base (USD)" onChange={(value) => setServiceForm((current) => ({ ...current, basePrice: value }))} type="number" value={serviceForm.basePrice} />
+                        <Field label="Ventana de cancelacion (hrs)" onChange={(value) => setServiceForm((current) => ({ ...current, cancellationWindowHours: value }))} type="number" value={serviceForm.cancellationWindowHours} />
                       </div>
                       <SelectField<BookingMode>
-                        label="Booking mode"
+                        label="Modo de reserva"
                         onChange={(value) => setServiceForm((current) => ({ ...current, bookingMode: value }))}
                         options={[
-                          { label: "Instant booking", value: "instant" },
-                          { label: "Needs approval", value: "approval_required" }
+                          { label: "Reserva inmediata", value: "instant" },
+                          { label: "Requiere aprobacion", value: "approval_required" }
                         ]}
                         value={serviceForm.bookingMode}
                       />
                       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                        <CheckField checked={serviceForm.isPublic} label="Public service" onChange={(value) => setServiceForm((current) => ({ ...current, isPublic: value }))} />
-                        <CheckField checked={serviceForm.isActive} label="Active service" onChange={(value) => setServiceForm((current) => ({ ...current, isActive: value }))} />
+                        <CheckField checked={serviceForm.isPublic} label="Servicio publico" onChange={(value) => setServiceForm((current) => ({ ...current, isPublic: value }))} />
+                        <CheckField checked={serviceForm.isActive} label="Servicio activo" onChange={(value) => setServiceForm((current) => ({ ...current, isActive: value }))} />
                       </div>
                       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
-                          {serviceForm.id ? "Save service" : "Create service"}
+                          {serviceForm.id ? "Guardar servicio" : "Crear servicio"}
                         </Button>
                         {serviceForm.id ? (
                           <Button disabled={isSubmitting} onClick={() => setServiceForm(emptyServiceForm)} tone="secondary">
-                            Cancel edit
+                            Cancelar edicion
                           </Button>
                         ) : null}
                       </div>
@@ -904,15 +900,15 @@ export function ProvidersWorkspace({
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                               <strong>{service.name}</strong>
-                              <StatusPill label={service.isPublic ? "public" : "hidden"} tone={service.isPublic ? "active" : "neutral"} />
+                              <StatusPill label={service.isPublic ? "publico" : "oculto"} tone={service.isPublic ? "active" : "neutral"} />
                             </div>
                             <span style={{ color: "#57534e" }}>
-                              {providerServiceCategoryLabels[service.category]} · {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
+                              {providerServiceCategoryLabels[service.category]}  -  {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
                             </span>
                             <span style={{ color: "#57534e" }}>
-                              {formatMoney(service.basePriceCents, service.currencyCode)} · {service.bookingMode === "instant" ? "Instant booking" : "Approval required"}
+                              {formatMoney(service.basePriceCents, service.currencyCode)}  -  {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                             </span>
-                            <span style={{ color: "#57534e" }}>{service.shortDescription ?? "No description yet."}</span>
+                            <span style={{ color: "#57534e" }}>{service.shortDescription ?? "Todavia no hay descripcion."}</span>
                             <div style={{ display: "flex", justifyContent: "flex-end" }}>
                               <Button
                                 disabled={isSubmitting}
@@ -934,18 +930,18 @@ export function ProvidersWorkspace({
                                 }
                                 tone="secondary"
                               >
-                                Edit
+                                Editar
                               </Button>
                             </div>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>No services configured yet.</p>
+                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay servicios configurados.</p>
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Select an organization first.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
 
@@ -959,8 +955,8 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Availability</h3>
-                  <StatusPill label={`${selectedAvailability.length} slot(s)`} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Disponibilidad</h3>
+                  <StatusPill label={`${selectedAvailability.length} bloques`} tone="neutral" />
                 </div>
                 {selectedOrganization ? (
                   <>
@@ -978,7 +974,7 @@ export function ProvidersWorkspace({
                                 endsAt: availabilityForm.endsAt,
                                 isActive: availabilityForm.isActive
                               }),
-                            "Availability slot updated."
+                            "Bloque de disponibilidad actualizado."
                           ).then(async () => {
                             setAvailabilityForm(emptyAvailabilityForm);
                             await refresh(selectedOrganization.id);
@@ -995,32 +991,32 @@ export function ProvidersWorkspace({
                               endsAt: availabilityForm.endsAt,
                               isActive: availabilityForm.isActive
                             }),
-                          "Availability slot created."
+                          "Bloque de disponibilidad creado."
                         ).then(async () => {
-                          setAvailabilityForm(emptyAvailabilityForm);
+                            setAvailabilityForm(emptyAvailabilityForm);
                           await refresh(selectedOrganization.id);
                         });
                       }}
                       style={{ display: "grid", gap: "12px" }}
                     >
                       <SelectField<AvailabilityFormState["dayOfWeek"]>
-                        label="Day"
+                        label="Dia"
                         onChange={(value) => setAvailabilityForm((current) => ({ ...current, dayOfWeek: value }))}
                         options={providerDayOfWeekOrder.map((dayOfWeek) => ({ label: providerDayOfWeekLabels[dayOfWeek], value: dayOfWeek }))}
                         value={availabilityForm.dayOfWeek}
                       />
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <Field label="Starts at" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
-                        <Field label="Ends at" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
+                        <Field label="Empieza a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
+                        <Field label="Termina a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
                       </div>
-                      <CheckField checked={availabilityForm.isActive} label="Active slot" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
+                      <CheckField checked={availabilityForm.isActive} label="Bloque activo" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
                       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
-                          {availabilityForm.id ? "Save slot" : "Create slot"}
+                          {availabilityForm.id ? "Guardar bloque" : "Crear bloque"}
                         </Button>
                         {availabilityForm.id ? (
                           <Button disabled={isSubmitting} onClick={() => setAvailabilityForm(emptyAvailabilityForm)} tone="secondary">
-                            Cancel edit
+                            Cancelar edicion
                           </Button>
                         ) : null}
                       </div>
@@ -1041,7 +1037,7 @@ export function ProvidersWorkspace({
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                               <strong>{providerDayOfWeekLabels[slot.dayOfWeek]}</strong>
-                              <StatusPill label={slot.isActive ? "active" : "inactive"} tone={slot.isActive ? "active" : "neutral"} />
+                              <StatusPill label={slot.isActive ? "activo" : "inactivo"} tone={slot.isActive ? "active" : "neutral"} />
                             </div>
                             <span style={{ color: "#57534e" }}>
                               {slot.startsAt.slice(0, 5)} - {slot.endsAt.slice(0, 5)}
@@ -1060,18 +1056,18 @@ export function ProvidersWorkspace({
                                 }
                                 tone="secondary"
                               >
-                                Edit
+                                Editar
                               </Button>
                             </div>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>No availability configured yet.</p>
+                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay disponibilidad configurada.</p>
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Select an organization first.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
 
@@ -1085,8 +1081,8 @@ export function ProvidersWorkspace({
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Approval documents</h3>
-                  <StatusPill label={`${selectedDocuments.length} uploaded`} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Documentos de aprobacion</h3>
+                  <StatusPill label={`${selectedDocuments.length} cargados`} tone="neutral" />
                 </div>
                 {selectedOrganization ? (
                   <>
@@ -1096,23 +1092,23 @@ export function ProvidersWorkspace({
                         clearMessages();
                         void runAction(
                           async () => {
-                            const selectedFile = documentForm.file;
+                            const selectedArchivo = documentForm.file;
 
-                            if (!selectedFile) {
-                              throw new Error("Choose a file before uploading.");
+                            if (!selectedArchivo) {
+                              throw new Error("Elige un archivo antes de cargarlo.");
                             }
 
-                            const fileBytes = await selectedFile.arrayBuffer();
+                            const fileBytes = await selectedArchivo.arrayBuffer();
 
                             return getBrowserProvidersApiClient().uploadProviderApprovalDocument(selectedOrganization.id, {
-                              title: documentForm.title.trim() || selectedFile.name,
+                              title: documentForm.title.trim() || selectedArchivo.name,
                               documentType: documentForm.documentType,
-                              fileName: selectedFile.name,
-                              mimeType: selectedFile.type || null,
+                              fileName: selectedArchivo.name,
+                              mimeType: selectedArchivo.type || null,
                               fileBytes
                             });
                           },
-                          "Approval document uploaded."
+                          "Documento de aprobacion cargado."
                         ).then(async () => {
                           setDocumentForm(emptyDocumentForm);
                           await refresh(selectedOrganization.id);
@@ -1120,9 +1116,9 @@ export function ProvidersWorkspace({
                       }}
                       style={{ display: "grid", gap: "12px" }}
                     >
-                      <Field label="Document title" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
+                      <Field label="Titulo del documento" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
                       <SelectField<ProviderApprovalDocumentType>
-                        label="Document type"
+                        label="Tipo de documento"
                         onChange={(value) => setDocumentForm((current) => ({ ...current, documentType: value }))}
                         options={providerApprovalDocumentTypeOrder.map((documentType) => ({
                           label: providerApprovalDocumentTypeLabels[documentType],
@@ -1131,7 +1127,7 @@ export function ProvidersWorkspace({
                         value={documentForm.documentType}
                       />
                       <label style={{ display: "grid", gap: "6px" }}>
-                        <span style={fieldLabelStyle}>File</span>
+                        <span style={fieldLabelStyle}>Archivo</span>
                         <input
                           onChange={(event) =>
                             setDocumentForm((current) => ({
@@ -1144,7 +1140,7 @@ export function ProvidersWorkspace({
                         />
                       </label>
                       <Button disabled={isSubmitting} type="submit">
-                        Upload approval document
+                        Cargar documento de aprobacion
                       </Button>
                     </form>
 
@@ -1167,17 +1163,17 @@ export function ProvidersWorkspace({
                             </div>
                             <span style={{ color: "#57534e" }}>{document.fileName}</span>
                             <span style={{ color: "#57534e" }}>
-                              {document.mimeType ?? "Unknown file type"} · {formatFileSize(document.fileSizeBytes)}
+                              {document.mimeType ?? "Tipo de archivo desconocido"}  -  {formatFileSize(document.fileSizeBytes)}
                             </span>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>No approval documents uploaded yet.</p>
+                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay documentos de aprobacion cargados.</p>
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Select an organization first.</p>
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
             </div>
@@ -1187,3 +1183,7 @@ export function ProvidersWorkspace({
     </div>
   );
 }
+
+
+
+

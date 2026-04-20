@@ -2,15 +2,15 @@ import type { CalendarEventStatus, ReminderStatus, ReminderType } from "@pet/typ
 
 export const reminderTypeLabels: Record<ReminderType, string> = {
   manual: "Manual",
-  vaccine: "Vaccine"
+  vaccine: "Vacuna"
 };
 
 export const reminderStatusLabels: Record<ReminderStatus, string> = {
-  pending: "Pending",
-  completed: "Completed"
+  pending: "Pendiente",
+  completed: "Completado"
 };
 
 export const calendarEventStatusLabels: Record<CalendarEventStatus, string> = {
-  scheduled: "Scheduled",
-  completed: "Completed"
+  scheduled: "Programado",
+  completed: "Completado"
 };

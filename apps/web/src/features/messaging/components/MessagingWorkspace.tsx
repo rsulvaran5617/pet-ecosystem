@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { bookingStatusLabels } from "@pet/config";
 import type { Uuid } from "@pet/types";
@@ -11,7 +11,7 @@ const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", 
 const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -95,27 +95,27 @@ export function MessagingWorkspace({
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
-        eyebrow="EP-07 / Messaging"
-        title="Booking-linked inbox"
-        description="Threads are created automatically from bookings. Only the booked customer and the provider owner can read or send text messages in this MVP slice."
+        eyebrow="EP-07 / Mensajes"
+        title="Bandeja ligada a reservas"
+        description="Los hilos se crean automaticamente desde las reservas. En este MVP, solo el cliente que reservo y el propietario del proveedor pueden leer o enviar mensajes."
       >
         <div style={{ display: "grid", gridTemplateColumns: "minmax(280px,360px) minmax(0,1fr)", gap: "18px" }}>
           <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
             <article style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Inbox</h3>
-                <StatusPill label={`${threads.length} thread(s)`} tone="neutral" />
+                <h3 style={{ margin: 0 }}>Bandeja</h3>
+                <StatusPill label={`${threads.length} hilo(s)`} tone="neutral" />
               </div>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
-                  Refresh
+                  Actualizar
                 </Button>
                 <Button disabled={isSubmitting} onClick={clearMessages} tone="secondary">
-                  Clear notices
+                  Limpiar avisos
                 </Button>
               </div>
               {isLoading && !threads.length ? (
-                <p style={{ margin: 0, color: "#57534e" }}>Loading booking-linked threads from Supabase...</p>
+                <p style={{ margin: 0, color: "#57534e" }}>Cargando hilos ligados a reservas desde Supabase...</p>
               ) : threads.length ? (
                 threads.map((thread) => (
                   <button
@@ -138,15 +138,15 @@ export function MessagingWorkspace({
                     <div style={{ color: "#57534e" }}>
                       {thread.customerDisplayName} · {thread.providerDisplayName}
                     </div>
-                    <div style={{ color: "#57534e" }}>Pet: {thread.petName}</div>
+                    <div style={{ color: "#57534e" }}>Mascota: {thread.petName}</div>
                     <div style={{ color: "#57534e" }}>
-                      {thread.lastMessagePreview ?? "No messages yet. Open the thread to start the booking conversation."}
+                      {thread.lastMessagePreview ?? "Todavia no hay mensajes. Abre el hilo para iniciar la conversacion de la reserva."}
                     </div>
                   </button>
                 ))
               ) : (
                 <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
-                  No booking-linked chats are visible yet. Create or open a booking above to seed the first thread automatically.
+                  Todavia no hay conversaciones visibles ligadas a reservas. Crea o abre una reserva para generar el primer hilo automaticamente.
                 </p>
               )}
             </article>
@@ -155,33 +155,33 @@ export function MessagingWorkspace({
           <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
             <article style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Thread detail</h3>
+                <h3 style={{ margin: 0 }}>Detalle del hilo</h3>
                 {selectedThreadDetail ? (
                   <StatusPill
                     label={bookingStatusLabels[selectedThreadDetail.thread.bookingStatus]}
                     tone={getStatusTone(selectedThreadDetail.thread.bookingStatus)}
                   />
                 ) : (
-                  <StatusPill label="no thread selected" tone="neutral" />
+                  <StatusPill label="sin hilo seleccionado" tone="neutral" />
                 )}
               </div>
               {selectedThreadDetail ? (
                 <>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                     <div style={inputStyle}>
-                      <strong>Service</strong>
+                      <strong>Servicio</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedThreadDetail.thread.serviceName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Pet</strong>
+                      <strong>Mascota</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedThreadDetail.thread.petName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Customer</strong>
+                      <strong>Cliente</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedThreadDetail.thread.customerDisplayName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Provider</strong>
+                      <strong>Proveedor</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedThreadDetail.thread.providerDisplayName}</div>
                     </div>
                   </div>
@@ -215,7 +215,7 @@ export function MessagingWorkspace({
                       })
                     ) : (
                       <p style={{ margin: 0, color: "#57534e" }}>
-                        No messages have been sent yet for this booking. Use the composer below to start the conversation.
+                        Todavia no se han enviado mensajes para esta reserva. Usa el compositor para iniciar la conversacion.
                       </p>
                     )}
                   </div>
@@ -223,7 +223,7 @@ export function MessagingWorkspace({
                   <div style={{ display: "grid", gap: "10px" }}>
                     <textarea
                       onChange={(event) => setMessageDraft(event.target.value)}
-                      placeholder="Type a booking-related message..."
+                      placeholder="Escribe un mensaje relacionado con la reserva..."
                       value={messageDraft}
                       rows={4}
                       style={{
@@ -235,17 +235,17 @@ export function MessagingWorkspace({
                     />
                     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                       <Button disabled={isSubmitting} onClick={() => void sendMessage()}>
-                        Send message
+                        Enviar mensaje
                       </Button>
                       <Button disabled={isSubmitting} onClick={() => setMessageDraft("")} tone="secondary">
-                        Clear draft
+                        Limpiar borrador
                       </Button>
                     </div>
                   </div>
                 </>
               ) : (
                 <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
-                  Select a thread from the inbox or open chat from a booking detail. Threads are never free-form in this MVP; every conversation stays linked to one booking.
+                  Selecciona un hilo desde la bandeja o abre mensajes desde el detalle de una reserva. En este MVP, cada conversacion queda ligada a una reserva.
                 </p>
               )}
             </article>
@@ -255,3 +255,4 @@ export function MessagingWorkspace({
     </div>
   );
 }
+

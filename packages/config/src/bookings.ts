@@ -1,15 +1,15 @@
 import type { BookingMode, BookingStatus } from "@pet/types";
 
 export const bookingModeLabels: Record<BookingMode, string> = {
-  instant: "Instant booking",
-  approval_required: "Needs approval"
+  instant: "Reserva inmediata",
+  approval_required: "Requiere aprobacion"
 };
 
 export const bookingStatusLabels: Record<BookingStatus, string> = {
-  pending_approval: "Pending approval",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled"
+  pending_approval: "Pendiente de aprobacion",
+  confirmed: "Confirmada",
+  completed: "Completada",
+  cancelled: "Cancelada"
 };
 
 export const bookingMvpBoundaries = {

@@ -166,7 +166,7 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
 
 function formatFileSize(fileSizeBytes: number | null) {
   if (!fileSizeBytes) {
-    return "Unknown size";
+    return "Tamano desconocido";
   }
 
   if (fileSizeBytes < 1024) {
@@ -229,12 +229,12 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
       <CoreSectionCard
-        eyebrow="EP-03 / Pets"
-        title="Household pets and basic documents"
-        description="Pets inherit household access and stay inside the MVP scope of list, create, edit, summary and basic documents."
+        eyebrow="EP-03 / Mascotas"
+        title="Mascotas del hogar y documentos basicos"
+        description="Las mascotas heredan el acceso del hogar y se mantienen dentro del alcance MVP de listado, creacion, edicion, resumen y documentos basicos."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Loading households, pets and documents from Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando hogares, mascotas y documentos desde Supabase...</Text> : null}
 
           {householdSnapshot?.households.length ? (
             householdSnapshot.households.map((household) => (
@@ -255,23 +255,23 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                   <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{household.name}</Text>
                   <StatusChip
-                    label={household.myPermissions.includes("edit") ? "edit" : "view"}
+                    label={household.myPermissions.includes("edit") ? "editable" : "solo lectura"}
                     tone={household.myPermissions.includes("edit") ? "active" : "neutral"}
                   />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>{household.memberCount} member(s)</Text>
+                <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s)</Text>
               </Pressable>
             ))
           ) : (
-            <Text style={{ color: colorTokens.muted }}>Create a household first to start registering pets.</Text>
+            <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
           )}
 
           <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 12 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{editingPetId ? "Edit pet" : "Create pet"}</Text>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{editingPetId ? "Editar mascota" : "Crear mascota"}</Text>
               {selectedHousehold ? (
                 <StatusChip
-                  label={canEditSelectedHousehold ? "editable household" : "read-only household"}
+                  label={canEditSelectedHousehold ? "hogar editable" : "hogar solo lectura"}
                   tone={canEditSelectedHousehold ? "active" : "neutral"}
                 />
               ) : null}
@@ -279,9 +279,9 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
             {selectedHouseholdId ? (
               canEditSelectedHousehold ? (
                 <>
-                  <Field label="Pet name" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, name: value }))} value={petForm.name ?? ""} />
-                  <Field label="Species" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, species: value }))} value={petForm.species ?? ""} />
-                  <Field label="Breed" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, breed: value }))} value={petForm.breed ?? ""} />
+                  <Field label="Nombre de la mascota" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, name: value }))} value={petForm.name ?? ""} />
+                  <Field label="Especie" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, species: value }))} value={petForm.species ?? ""} />
+                  <Field label="Raza" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, breed: value }))} value={petForm.breed ?? ""} />
                   <ChoiceBar
                     onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, sex: value }))}
                     options={[
@@ -292,15 +292,15 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     value={petForm.sex ?? "unknown"}
                   />
                   <Field
-                    label="Birth date"
+                    label="Fecha de nacimiento"
                     onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, birthDate: value }))}
                     value={petForm.birthDate ?? ""}
                   />
-                  <MultilineField label="Notes" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
+                  <MultilineField label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
                   <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                     <Button
                       disabled={isSubmitting}
-                      label={editingPetId ? "Save pet" : "Create pet"}
+                      label={editingPetId ? "Guardar mascota" : "Crear mascota"}
                       onPress={() => {
                         clearMessages();
 
@@ -316,7 +316,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         if (editingPetId) {
                           void runAction(
                             () => getMobilePetsApiClient().updatePet(editingPetId, payload),
-                            "Pet updated.",
+                            "Mascota actualizada.",
                             false
                           ).then(async (pet) => {
                             setEditingPetId(null);
@@ -333,7 +333,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                               householdId: selectedHouseholdId,
                               ...payload
                             }),
-                          "Pet created.",
+                          "Mascota creada.",
                           false
                         ).then(async (pet) => {
                           setPetForm(emptyPetForm);
@@ -345,7 +345,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     {editingPetId ? (
                       <Button
                         disabled={isSubmitting}
-                        label="Cancel edit"
+                        label="Cancelar edicion"
                         onPress={() => {
                           setEditingPetId(null);
                           setPetForm(emptyPetForm);
@@ -357,18 +357,18 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                 </>
               ) : (
                 <Text style={{ color: colorTokens.muted }}>
-                  You can inspect pets in this household, but only members with `edit` or `admin` can change them.
+                  Puedes revisar las mascotas de este hogar, pero solo integrantes con `edit` o `admin` pueden modificarlas.
                 </Text>
               )
             ) : (
-              <Text style={{ color: colorTokens.muted }}>Select a household to create or edit pets.</Text>
+              <Text style={{ color: colorTokens.muted }}>Selecciona un hogar para crear o editar mascotas.</Text>
             )}
           </View>
 
           <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Pets</Text>
-              {selectedHousehold ? <StatusChip label={`${pets.length} pet(s)`} tone="neutral" /> : null}
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascotas</Text>
+              {selectedHousehold ? <StatusChip label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
             </View>
             {selectedHousehold ? (
               pets.length ? (
@@ -387,17 +387,17 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     <Pressable onPress={() => void selectPet(pet.id)} style={{ gap: 8 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                         <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{pet.name}</Text>
-                        <StatusChip label={`${pet.documentCount} doc(s)`} tone="neutral" />
+                        <StatusChip label={`${pet.documentCount} documento(s)`} tone="neutral" />
                       </View>
                       <Text style={{ color: colorTokens.muted }}>
                         {pet.species}
-                        {pet.breed ? ` · ${pet.breed}` : ""}
+                        {pet.breed ? `  -  ${pet.breed}` : ""}
                       </Text>
                     </Pressable>
                     {canEditSelectedHousehold ? (
                       <Button
                         disabled={isSubmitting}
-                        label="Edit"
+                        label="Editar"
                         onPress={() => {
                           setEditingPetId(pet.id);
                           setPetForm({
@@ -415,10 +415,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                   </View>
                 ))
               ) : (
-                <Text style={{ color: colorTokens.muted }}>No pets in this household yet.</Text>
+                <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text>
               )
             ) : (
-              <Text style={{ color: colorTokens.muted }}>Select a household to list its pets.</Text>
+              <Text style={{ color: colorTokens.muted }}>Selecciona un hogar para listar sus mascotas.</Text>
             )}
           </View>
 
@@ -429,39 +429,39 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                   <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>{selectedPetDetail.pet.name}</Text>
                   <StatusChip label={selectedPetDetail.pet.species} tone="active" />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>Breed: {selectedPetDetail.pet.breed ?? "Not provided"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Sex: {petSexLabels[selectedPetDetail.pet.sex]}</Text>
-                <Text style={{ color: colorTokens.muted }}>Birth date: {selectedPetDetail.pet.birthDate ?? "Not provided"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Raza: {selectedPetDetail.pet.breed ?? "No registrada"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Sexo: {petSexLabels[selectedPetDetail.pet.sex]}</Text>
+                <Text style={{ color: colorTokens.muted }}>Fecha de nacimiento: {selectedPetDetail.pet.birthDate ?? "No registrada"}</Text>
                 <Text style={{ color: colorTokens.muted }}>
-                  Notes: {selectedPetDetail.pet.notes ?? "No notes for this pet yet."}
+                  Notas: {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
                 </Text>
                 {isHealthSummaryLoading ? (
-                  <Text style={{ color: colorTokens.muted }}>Loading health summary...</Text>
+                  <Text style={{ color: colorTokens.muted }}>Cargando resumen de salud...</Text>
                 ) : selectedPetHealthSummary ? (
                   <>
                     <Text style={{ color: colorTokens.muted }}>
-                      Health snapshot: {selectedPetHealthSummary.vaccineCount} vaccine(s), {selectedPetHealthSummary.allergyCount} allergy(ies), {selectedPetHealthSummary.conditionCount} condition(s)
+                      Resumen de salud: {selectedPetHealthSummary.vaccineCount} vacuna(s), {selectedPetHealthSummary.allergyCount} alergia(s), {selectedPetHealthSummary.conditionCount} condicion(es)
                     </Text>
                     <Text style={{ color: colorTokens.muted }}>
-                      Latest vaccine: {selectedPetHealthSummary.latestVaccineDate ?? "Not recorded"} - Next due: {selectedPetHealthSummary.nextVaccineDueDate ?? "Not recorded"}
+                      Ultima vacuna: {selectedPetHealthSummary.latestVaccineDate ?? "No registrada"} - Proxima fecha: {selectedPetHealthSummary.nextVaccineDueDate ?? "No registrada"}
                     </Text>
                     <Text style={{ color: colorTokens.muted }}>
-                      Alerts: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "No critical conditions"}
+                      Alertas: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "Sin condiciones criticas"}
                     </Text>
                   </>
                 ) : (
-                  <Text style={{ color: colorTokens.muted }}>No health summary available yet.</Text>
+                  <Text style={{ color: colorTokens.muted }}>Todavia no hay un resumen de salud.</Text>
                 )}
               </View>
 
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Documents</Text>
+                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Documentos</Text>
                   <StatusChip label={`${selectedPetDetail.documents.length} total`} tone="neutral" />
                 </View>
                 {canEditSelectedHousehold ? (
                   <>
-                    <Field label="Document title" onChange={(value) => setDocumentForm((currentForm) => ({ ...currentForm, title: value }))} value={documentForm.title} />
+                    <Field label="Titulo del documento" onChange={(value) => setDocumentForm((currentForm) => ({ ...currentForm, title: value }))} value={documentForm.title} />
                     <ChoiceBar
                       onChange={(value) => setDocumentForm((currentForm) => ({ ...currentForm, documentType: value }))}
                       options={petDocumentTypeOrder.map((documentType) => ({
@@ -472,7 +472,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     />
                     <Button
                       disabled={isSubmitting}
-                      label={documentForm.selectedDocument ? `Selected: ${documentForm.selectedDocument.fileName}` : "Choose document"}
+                      label={documentForm.selectedDocument ? `Selected: ${documentForm.selectedDocument.fileName}` : "Elegir documento"}
                       onPress={() => {
                         void DocumentPicker.getDocumentAsync({
                           multiple: false,
@@ -503,7 +503,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     />
                     <Button
                       disabled={isSubmitting}
-                      label="Upload document"
+                      label="Cargar documento"
                       onPress={() => {
                         clearMessages();
                         const selectedDocument = documentForm.selectedDocument;
@@ -511,7 +511,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         void runAction(
                           async () => {
                             if (!selectedDocument) {
-                              throw new Error("Choose a document before uploading.");
+                              throw new Error("Elige un documento antes de cargarlo.");
                             }
 
                             const response = await fetch(selectedDocument.uri);
@@ -525,7 +525,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                               fileBytes
                             });
                           },
-                          "Document uploaded.",
+                          "Documento cargado.",
                           false
                         ).then(async () => {
                           setDocumentForm(emptyDocumentForm);
@@ -537,7 +537,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                   </>
                 ) : (
                   <Text style={{ color: colorTokens.muted }}>
-                    Document upload follows the same household permission gate as pet editing.
+                    La carga de documentos usa la misma validacion de permisos del hogar que la edicion de mascotas.
                   </Text>
                 )}
 
@@ -548,7 +548,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>
                           {petDocumentTypeLabels[group.documentType]}
                         </Text>
-                        <StatusChip label={`${group.documents.length} doc(s)`} tone="neutral" />
+                        <StatusChip label={`${group.documents.length} documento(s)`} tone="neutral" />
                       </View>
                       {group.documents.map((document) => (
                         <View key={document.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 6 }}>
@@ -557,19 +557,19 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                             <StatusChip label={formatFileSize(document.fileSizeBytes)} tone="neutral" />
                           </View>
                           <Text style={{ color: colorTokens.muted }}>{document.fileName}</Text>
-                          <Text style={{ color: colorTokens.muted }}>{document.mimeType ?? "Unknown file type"}</Text>
+                          <Text style={{ color: colorTokens.muted }}>{document.mimeType ?? "Tipo de archivo desconocido"}</Text>
                         </View>
                       ))}
                     </View>
                   ))
                 ) : (
-                  <Text style={{ color: colorTokens.muted }}>No documents uploaded for this pet yet.</Text>
+                  <Text style={{ color: colorTokens.muted }}>Todavia no hay documentos cargados para esta mascota.</Text>
                 )}
               </View>
             </>
           ) : (
             <Text style={{ color: colorTokens.muted }}>
-              Select a pet to inspect the summary profile and its basic documents.
+              Selecciona una mascota para revisar su ficha resumida y sus documentos basicos.
             </Text>
           )}
         </View>
@@ -577,3 +577,6 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     </View>
   );
 }
+
+
+

@@ -93,7 +93,7 @@ export default function AdminPage() {
       const nextSnapshot = await getAdminCoreApiClient().getCoreSnapshot();
       setSnapshot(nextSnapshot);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Unable to resolve the admin session.");
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible resolver la sesion de administracion.");
       setSnapshot(null);
     } finally {
       setAuthChecked(true);
@@ -117,11 +117,11 @@ export default function AdminPage() {
         }}
       >
         <p style={{ margin: 0, fontSize: "12px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#93c5fd" }}>
-          Admin / Platform Ops MVP
+          Administracion / Operacion de plataforma MVP
         </p>
-        <h1 style={{ margin: 0, fontSize: "42px", lineHeight: 1.05 }}>Provider approvals and support triage</h1>
+        <h1 style={{ margin: 0, fontSize: "42px", lineHeight: 1.05 }}>Aprobaciones de proveedores y triaje de soporte</h1>
         <p style={{ margin: 0, maxWidth: "760px", lineHeight: 1.7, color: "rgba(248,250,252,0.82)" }}>
-          This admin surface stays limited to the MVP slices already canonized: provider approval review plus support case triage. It does not open disputes, macros or advanced admin ops.
+          Esta superficie administrativa se limita a los alcances canonicos del MVP: revision de aprobaciones de proveedores y triaje de casos de soporte. No abre disputas, macros ni operaciones avanzadas.
         </p>
         {snapshot ? (
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -136,7 +136,7 @@ export default function AdminPage() {
                   fontWeight: 700
                 }}
               >
-                {`${coreRoleLabels[role.role]}${role.isActive ? " active" : ""}`}
+                {`${coreRoleLabels[role.role]}${role.isActive ? " activo" : ""}`}
               </span>
             ))}
           </div>
@@ -148,16 +148,16 @@ export default function AdminPage() {
 
       {!authChecked ? (
         <section style={cardStyle}>
-          <h2 style={{ margin: 0 }}>Loading admin session</h2>
-          <p style={{ margin: 0, color: "#52525b" }}>Resolving the current Supabase session and admin role.</p>
+          <h2 style={{ margin: 0 }}>Cargando sesion administrativa</h2>
+          <p style={{ margin: 0, color: "#52525b" }}>Resolviendo la sesion actual de Supabase y el rol administrativo.</p>
         </section>
       ) : null}
 
       {authChecked && !snapshot ? (
         <section style={{ ...cardStyle, maxWidth: "560px" }}>
-          <h2 style={{ margin: 0 }}>Admin login</h2>
+          <h2 style={{ margin: 0 }}>Inicio de sesion administrativo</h2>
           <p style={{ margin: 0, color: "#52525b", lineHeight: 1.7 }}>
-            Sign in with a platform user that already has the global <strong>admin</strong> role provisioned.
+            Inicia sesion con un usuario de plataforma que ya tenga provisionado el rol global de <strong>admin</strong>.
           </p>
           <form
             onSubmit={(event) => {
@@ -169,11 +169,11 @@ export default function AdminPage() {
                 .login({ email, password })
                 .then(async () => {
                   await refreshSession();
-                  setInfoMessage("Admin session authenticated.");
+                  setInfoMessage("Sesion administrativa autenticada.");
                   setPassword("");
                 })
                 .catch((error) => {
-                  setErrorMessage(error instanceof Error ? error.message : "Unable to authenticate the admin user.");
+                  setErrorMessage(error instanceof Error ? error.message : "No fue posible autenticar al usuario administrador.");
                 })
                 .finally(() => {
                   setIsSubmitting(false);
@@ -191,7 +191,7 @@ export default function AdminPage() {
               />
             </label>
             <label style={{ display: "grid", gap: "6px" }}>
-              <span style={{ fontSize: "12px", textTransform: "uppercase", color: "#71717a" }}>Password</span>
+              <span style={{ fontSize: "12px", textTransform: "uppercase", color: "#71717a" }}>Contrasena</span>
               <input
                 onChange={(event) => setPassword(event.target.value)}
                 style={inputStyle}
@@ -200,7 +200,7 @@ export default function AdminPage() {
               />
             </label>
             <Button disabled={isSubmitting} type="submit">
-              Login
+              Iniciar sesion
             </Button>
           </form>
         </section>
@@ -208,9 +208,9 @@ export default function AdminPage() {
 
       {authChecked && snapshot && !isAdmin ? (
         <section style={cardStyle}>
-          <h2 style={{ margin: 0 }}>Admin role required</h2>
+          <h2 style={{ margin: 0 }}>Se requiere rol administrativo</h2>
           <p style={{ margin: 0, color: "#52525b", lineHeight: 1.7 }}>
-            This user is authenticated but does not have the platform <strong>admin</strong> role, so support case management stays locked in the MVP.
+            Este usuario esta autenticado, pero no tiene el rol de plataforma <strong>admin</strong>, asi que la gestion administrativa del MVP permanece bloqueada.
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <Button
@@ -223,10 +223,10 @@ export default function AdminPage() {
                   .logout()
                   .then(() => {
                     setSnapshot(null);
-                    setInfoMessage("Admin session closed.");
+                    setInfoMessage("Sesion administrativa cerrada.");
                   })
                   .catch((error) => {
-                    setErrorMessage(error instanceof Error ? error.message : "Unable to close the admin session.");
+                    setErrorMessage(error instanceof Error ? error.message : "No fue posible cerrar la sesion administrativa.");
                   })
                   .finally(() => {
                     setIsSubmitting(false);
@@ -234,7 +234,7 @@ export default function AdminPage() {
               }}
               tone="secondary"
             >
-              Logout
+              Cerrar sesion
             </Button>
           </div>
         </section>
@@ -256,12 +256,12 @@ export default function AdminPage() {
                   onClick={() => {
                     setInfoMessage(null);
                     void refreshSession().then(() => {
-                      setInfoMessage("Admin session refreshed.");
+                      setInfoMessage("Sesion administrativa actualizada.");
                     });
                   }}
                   tone="secondary"
                 >
-                  Refresh session
+                  Actualizar sesion
                 </Button>
                 <Button
                   disabled={isSubmitting}
@@ -273,10 +273,10 @@ export default function AdminPage() {
                       .logout()
                       .then(() => {
                         setSnapshot(null);
-                        setInfoMessage("Admin session closed.");
+                        setInfoMessage("Sesion administrativa cerrada.");
                       })
                       .catch((error) => {
-                        setErrorMessage(error instanceof Error ? error.message : "Unable to close the admin session.");
+                        setErrorMessage(error instanceof Error ? error.message : "No fue posible cerrar la sesion administrativa.");
                       })
                       .finally(() => {
                         setIsSubmitting(false);
@@ -284,7 +284,7 @@ export default function AdminPage() {
                   }}
                   tone="secondary"
                 >
-                  Logout
+                  Cerrar sesion
                 </Button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { bookingModeLabels, bookingStatusLabels } from "@pet/config";
+import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { Pressable, Text, View } from "react-native";
@@ -17,20 +17,6 @@ const inputStyle = {
 } as const;
 
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
-
-function formatMoney(priceCents: number, currencyCode: string) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode
-  }).format(priceCents / 100);
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
-}
 
 function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
   if (status === "confirmed" || status === "completed") {
@@ -112,33 +98,33 @@ export function BookingsWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-06 / Bookings"
-        title="Transactional booking flow"
-        description="Preview, pet selection, instant or approval-based creation, booking history, detail and basic cancellation. Saved payment methods are referenced only; payment capture remains deferred."
+        eyebrow="EP-06 / Reservas"
+        title="Flujo transaccional de reservas"
+        description="Preview, seleccion de mascota, creacion inmediata o con aprobacion, historial, detalle y cancelacion basica. Los metodos de pago guardados solo se referencian; el cobro sigue diferido."
       >
         <View style={{ gap: 12 }}>
-          {isLoading && !householdSnapshot ? <Text style={{ color: colorTokens.muted }}>Loading booking context from Supabase...</Text> : null}
+          {isLoading && !householdSnapshot ? <Text style={{ color: colorTokens.muted }}>Cargando contexto de reservas desde Supabase...</Text> : null}
 
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Marketplace handoff</Text>
-              <StatusChip label={activeSelection ? "selection ready" : "history only"} tone={activeSelection ? "active" : "neutral"} />
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Entrada desde Servicios</Text>
+              <StatusChip label={activeSelection ? "seleccion lista" : "solo historial"} tone={activeSelection ? "active" : "neutral"} />
             </View>
             <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
               {activeSelection
-                ? `Service selection imported from Marketplace.\nProvider: ${activeSelection.providerId}\nService: ${activeSelection.serviceId}`
-                : "Select a public service in Marketplace to start the booking preview, or review previous bookings below."}
+                ? `Seleccion de servicio importada desde Servicios.\nProveedor: ${activeSelection.providerId}\nServicio: ${activeSelection.serviceId}`
+                : "Selecciona un servicio publico en Servicios para iniciar el preview de reserva, o revisa tus reservas anteriores abajo."}
             </Text>
             {activeSelection ? (
               <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                <Button disabled={isSubmitting} label="Build preview" onPress={() => void buildPreview()} />
-                <Button disabled={isSubmitting} label="Clear selection" onPress={clearSelection} tone="secondary" />
+                <Button disabled={isSubmitting} label="Generar preview" onPress={() => void buildPreview()} />
+                <Button disabled={isSubmitting} label="Limpiar seleccion" onPress={clearSelection} tone="secondary" />
               </View>
             ) : null}
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Household</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Hogar</Text>
             {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
               <Pressable
                 key={household.id}
@@ -146,28 +132,28 @@ export function BookingsWorkspace({
                 style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}
               >
                 <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
-                <Text style={{ color: colorTokens.muted }}>{household.memberCount} member(s) - {household.myPermissions.join(", ")}</Text>
+                <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
               </Pressable>
-            )) : <Text style={{ color: colorTokens.muted }}>Create a household first to book a provider service.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Crea primero un hogar para reservar un servicio.</Text>}
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Pet</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascota</Text>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              <Button disabled={!selectedHouseholdId} label="All pets" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+              <Button disabled={!selectedHouseholdId} label="Todas las mascotas" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
               {pets.map((pet) => (
                 <Button key={pet.id} disabled={!selectedHouseholdId} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
               ))}
             </View>
             <Text style={{ color: colorTokens.muted }}>
-              {activeSelection ? "Bookings require one concrete pet. Pick one before creating the reservation." : "The same selector filters booking history by pet when needed."}
+              {activeSelection ? "Las reservas requieren una mascota concreta. Elige una antes de crear la reserva." : "Este selector tambien filtra el historial por mascota cuando haga falta."}
             </Text>
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Saved payment method</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Metodos de pago guardados</Text>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              <Button label="No card" onPress={() => selectPaymentMethod(null)} tone={selectedPaymentMethodId === null ? "primary" : "secondary"} />
+              <Button label="Sin tarjeta" onPress={() => selectPaymentMethod(null)} tone={selectedPaymentMethodId === null ? "primary" : "secondary"} />
               {paymentMethods.map((paymentMethod) => (
                 <Button
                   key={paymentMethod.id}
@@ -178,63 +164,63 @@ export function BookingsWorkspace({
               ))}
             </View>
             <Text style={{ color: colorTokens.muted }}>
-              Linking a saved payment method is optional in this MVP slice. No charge is captured yet.
+              Vincular un metodo de pago guardado es opcional en este MVP. Todavia no se realiza ningun cobro.
             </Text>
           </View>
 
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Booking preview</Text>
-              <StatusChip label={preview ? bookingStatusLabels[preview.statusOnCreate] : "not built"} tone={preview ? getStatusTone(preview.statusOnCreate) : "neutral"} />
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Preview de reserva</Text>
+              <StatusChip label={preview ? bookingStatusLabels[preview.statusOnCreate] : "sin generar"} tone={preview ? getStatusTone(preview.statusOnCreate) : "neutral"} />
             </View>
             {preview ? (
               <>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Provider</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{preview.providerName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Service</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Servicio</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{preview.serviceName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Pet</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{preview.petName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mode</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Modo</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{bookingModeLabels[preview.bookingMode]}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Starts</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTime(preview.scheduledStartAt)}</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Inicio</Text>
+                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(preview.scheduledStartAt)}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Price</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatMoney(preview.totalPriceCents, preview.currencyCode)}</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Precio</Text>
+                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatCurrencyAmount(preview.totalPriceCents, preview.currencyCode)}</Text>
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
-                  Cancellation policy: this booking can be cancelled until {formatDateTime(preview.cancellationDeadlineAt)} under the base provider window of {preview.cancellationWindowHours} hour(s).
+                  Politica de cancelacion: esta reserva puede cancelarse hasta {formatDateTimeLabel(preview.cancellationDeadlineAt)} dentro de la ventana base del proveedor de {preview.cancellationWindowHours} hora(s).
                 </Text>
                 <Text style={{ color: colorTokens.muted }}>
-                  Payment method: {preview.paymentMethodSummary ? `${preview.paymentMethodSummary.brand.toUpperCase()} ${preview.paymentMethodSummary.last4}` : "No saved payment method linked"}
+                  Metodo de pago: {preview.paymentMethodSummary ? `${preview.paymentMethodSummary.brand.toUpperCase()} ${preview.paymentMethodSummary.last4}` : "Sin metodo de pago guardado vinculado"}
                 </Text>
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                  <Button disabled={isSubmitting} label="Create booking" onPress={() => void createBooking()} />
-                  <Button disabled={isSubmitting} label="Refresh preview" onPress={() => void buildPreview()} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Crear reserva" onPress={() => void createBooking()} />
+                  <Button disabled={isSubmitting} label="Actualizar preview" onPress={() => void buildPreview()} tone="secondary" />
                 </View>
               </>
             ) : (
               <Text style={{ color: colorTokens.muted }}>
-                Build the preview after selecting household, pet and optional payment method. The preview resolves the next published provider slot, shows pricing and tells you whether the booking is instant or pending approval.
+                Genera el preview despues de seleccionar hogar, mascota y metodo de pago opcional. El preview resuelve el siguiente cupo publicado del proveedor, muestra el precio y te indica si la reserva es inmediata o queda pendiente de aprobacion.
               </Text>
             )}
           </View>
 
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Booking history</Text>
-              <StatusChip label={`${bookings.length} booking(s)`} tone="neutral" />
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Historial de reservas</Text>
+              <StatusChip label={`${bookings.length} reserva(s)`} tone="neutral" />
             </View>
             {bookings.length ? bookings.map((booking) => (
               <Pressable key={booking.id} onPress={() => void openBookingDetail(booking.id)} style={inputStyle}>
@@ -242,72 +228,72 @@ export function BookingsWorkspace({
                   <Text style={{ fontWeight: "600", color: "#1c1917", flex: 1 }}>{booking.serviceName}</Text>
                   <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
                 </View>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{booking.providerName} - {booking.petName}</Text>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTime(booking.scheduledStartAt)}</Text>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatMoney(booking.totalPriceCents, booking.currencyCode)}</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{booking.providerName} · {booking.petName}</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(booking.scheduledStartAt)}</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}</Text>
               </Pressable>
-            )) : <Text style={{ color: colorTokens.muted }}>No bookings exist yet for the current household and pet filter.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay reservas para el hogar y filtro de mascota actuales.</Text>}
           </View>
 
           {selectedBookingDetail ? (
             <View style={cardStyle}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Booking detail</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Detalle de la reserva</Text>
                 <StatusChip label={bookingStatusLabels[selectedBookingDetail.booking.status]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
               </View>
               <View style={inputStyle}>
-                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Provider</Text>
+                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
                 <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedBookingDetail.booking.providerName}</Text>
               </View>
               <View style={inputStyle}>
-                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Pet</Text>
+                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
                 <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedBookingDetail.booking.petName}</Text>
               </View>
               <View style={inputStyle}>
-                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Starts</Text>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTime(selectedBookingDetail.booking.scheduledStartAt)}</Text>
+                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Inicio</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(selectedBookingDetail.booking.scheduledStartAt)}</Text>
               </View>
               <View style={inputStyle}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>Total</Text>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatMoney(selectedBookingDetail.pricing.totalPriceCents, selectedBookingDetail.pricing.currencyCode)}</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatCurrencyAmount(selectedBookingDetail.pricing.totalPriceCents, selectedBookingDetail.pricing.currencyCode)}</Text>
               </View>
               <Text style={{ color: colorTokens.muted }}>
-                Payment method: {selectedBookingDetail.paymentMethodSummary ? `${selectedBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedBookingDetail.paymentMethodSummary.last4}` : "No saved payment method linked"}
+                Metodo de pago: {selectedBookingDetail.paymentMethodSummary ? `${selectedBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedBookingDetail.paymentMethodSummary.last4}` : "Sin metodo de pago guardado vinculado"}
               </Text>
               <Text style={{ color: colorTokens.muted }}>
-                Cancellation deadline: {formatDateTime(selectedBookingDetail.booking.cancellationDeadlineAt)}
+                Fecha limite de cancelacion: {formatDateTimeLabel(selectedBookingDetail.booking.cancellationDeadlineAt)}
               </Text>
               {selectedBookingDetail.statusHistory.map((change) => (
                 <View key={change.id} style={inputStyle}>
                   <Text style={{ fontWeight: "600", color: "#1c1917" }}>{bookingStatusLabels[change.toStatus]}</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTime(change.createdAt)}</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{change.changeReason ?? "No extra reason captured."}</Text>
+                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(change.createdAt)}</Text>
+                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
                 </View>
               ))}
               {selectedBookingDetail.booking.status !== "cancelled" ? (
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                  <Button disabled={isSubmitting} label="Cancel booking" onPress={() => void cancelBooking(selectedBookingDetail.booking.id)} />
+                  <Button disabled={isSubmitting} label="Cancelar reserva" onPress={() => void cancelBooking(selectedBookingDetail.booking.id)} />
                   {onOpenChatForBooking ? (
-                    <Button disabled={isSubmitting} label="Open chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir mensajes" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenReviewForBooking ? (
-                    <Button disabled={isSubmitting} label="Open review" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir resena" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenSupportForBooking ? (
-                    <Button disabled={isSubmitting} label="Open support" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
-                  <Button disabled={isSubmitting} label="Keep detail open" onPress={clearMessages} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Mantener detalle abierto" onPress={clearMessages} tone="secondary" />
                 </View>
               ) : onOpenChatForBooking || onOpenReviewForBooking || onOpenSupportForBooking ? (
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   {onOpenChatForBooking ? (
-                    <Button disabled={isSubmitting} label="Open chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir mensajes" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenReviewForBooking ? (
-                    <Button disabled={isSubmitting} label="Open review" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir resena" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenSupportForBooking ? (
-                    <Button disabled={isSubmitting} label="Open support" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                 </View>
               ) : null}

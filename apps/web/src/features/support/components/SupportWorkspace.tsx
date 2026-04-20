@@ -11,7 +11,7 @@ const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", 
 const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -96,52 +96,52 @@ export function SupportWorkspace({
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
-        eyebrow="EP-07 / Support"
-        title="Basic booking support cases"
-        description="Support remains platform-facing and anchored to a booking. This MVP slice stays out of disputes, chat and attachments."
+        eyebrow="EP-07 / Soporte"
+        title="Casos de soporte basicos para reservas"
+        description="El soporte sigue anclado a una reserva y orientado a la plataforma. Este MVP no incluye disputas, chat de soporte ni adjuntos."
       >
         <div style={{ display: "grid", gridTemplateColumns: "minmax(280px,360px) minmax(0,1fr)", gap: "18px" }}>
           <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
             <article style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Create support case</h3>
-                <StatusPill label={focusedBookingId ? "booking selected" : "awaiting booking"} tone={focusedBookingId ? "active" : "neutral"} />
+                <h3 style={{ margin: 0 }}>Crear caso de soporte</h3>
+                <StatusPill label={focusedBookingId ? "reserva seleccionada" : "esperando reserva"} tone={focusedBookingId ? "active" : "neutral"} />
               </div>
               <div style={{ color: "#57534e", lineHeight: 1.7 }}>
                 {focusedBookingId
-                  ? `Booking focus ready: ${focusedBookingId}. Only household-side participants can open a case.`
-                  : "Open a booking detail above and choose support. Support stays tied to an existing booking in this MVP."}
+                  ? `Reserva lista para soporte: ${focusedBookingId}. Solo los participantes del hogar pueden abrir un caso.`
+                  : "Abre el detalle de una reserva y elige soporte. En este MVP, cada caso queda ligado a una reserva existente."}
               </div>
               <input
                 onChange={(event) => setSubjectDraft(event.target.value)}
-                placeholder="Issue summary"
+                placeholder="Resumen del problema"
                 style={inputStyle}
                 value={subjectDraft}
               />
               <textarea
                 onChange={(event) => setDescriptionDraft(event.target.value)}
-                placeholder="Describe what happened, what you need and any relevant booking context."
+                placeholder="Describe lo ocurrido, lo que necesitas y cualquier contexto relevante de la reserva."
                 rows={6}
                 style={{ ...inputStyle, resize: "vertical", minHeight: "140px", fontFamily: "inherit" }}
                 value={descriptionDraft}
               />
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 <Button disabled={!focusedBookingId || isSubmitting} onClick={() => void submitCase()}>
-                  Create case
+                  Crear caso
                 </Button>
                 <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
-                  Refresh
+                  Actualizar
                 </Button>
                 <Button disabled={isSubmitting} onClick={clearMessages} tone="secondary">
-                  Clear notices
+                  Limpiar avisos
                 </Button>
               </div>
             </article>
 
             <article style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>My support cases</h3>
-                <StatusPill label={`${supportCases.length} case(s)`} tone="neutral" />
+                <h3 style={{ margin: 0 }}>Mis casos de soporte</h3>
+                <StatusPill label={`${supportCases.length} caso(s)`} tone="neutral" />
               </div>
               {supportCases.length ? (
                 supportCases.map((supportCase) => (
@@ -156,14 +156,14 @@ export function SupportWorkspace({
                       <StatusPill label={supportCaseStatusLabels[supportCase.status]} tone={getStatusTone(supportCase.status)} />
                     </div>
                     <div style={{ color: "#57534e" }}>
-                      {supportCase.providerName} - {supportCase.serviceName}
+                      {supportCase.providerName} · {supportCase.serviceName}
                     </div>
                     <div style={{ color: "#57534e" }}>{supportCase.petName}</div>
                     <div style={{ color: "#57534e" }}>{formatDateTime(supportCase.createdAt)}</div>
                   </button>
                 ))
               ) : (
-                <p style={{ margin: 0, color: "#57534e" }}>No support cases created yet.</p>
+                <p style={{ margin: 0, color: "#57534e" }}>Todavia no has creado casos de soporte.</p>
               )}
             </article>
           </div>
@@ -171,55 +171,55 @@ export function SupportWorkspace({
           <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
             <article style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                <h3 style={{ margin: 0 }}>Case detail</h3>
+                <h3 style={{ margin: 0 }}>Detalle del caso</h3>
                 <StatusPill
-                  label={selectedCase ? supportCaseStatusLabels[selectedCase.status] : "no case selected"}
+                  label={selectedCase ? supportCaseStatusLabels[selectedCase.status] : "sin caso seleccionado"}
                   tone={selectedCase ? getStatusTone(selectedCase.status) : "neutral"}
                 />
               </div>
               {isLoading && !selectedCase ? (
-                <p style={{ margin: 0, color: "#57534e" }}>Loading support data from Supabase...</p>
+                <p style={{ margin: 0, color: "#57534e" }}>Cargando datos de soporte desde Supabase...</p>
               ) : selectedCase ? (
                 <>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                     <div style={inputStyle}>
-                      <strong>Provider</strong>
+                      <strong>Proveedor</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedCase.providerName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Service</strong>
+                      <strong>Servicio</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedCase.serviceName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Pet</strong>
+                      <strong>Mascota</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedCase.petName}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Scheduled start</strong>
+                      <strong>Inicio programado</strong>
                       <div style={{ color: "#57534e", marginTop: "6px" }}>{formatDateTime(selectedCase.scheduledStartAt)}</div>
                     </div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Subject</strong>
+                    <strong>Asunto</strong>
                     <div style={{ color: "#44403c", marginTop: "6px", lineHeight: 1.7 }}>{selectedCase.subject}</div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Description</strong>
+                    <strong>Descripcion</strong>
                     <div style={{ color: "#44403c", marginTop: "6px", lineHeight: 1.7 }}>{selectedCase.descriptionText}</div>
                   </div>
                   <div style={inputStyle}>
-                    <strong>Status</strong>
+                    <strong>Estado</strong>
                     <div style={{ color: "#57534e", marginTop: "6px" }}>{supportCaseStatusLabels[selectedCase.status]}</div>
                   </div>
                   {selectedCase.adminNote ? (
                     <div style={inputStyle}>
-                      <strong>Admin note</strong>
+                      <strong>Nota administrativa</strong>
                       <div style={{ color: "#44403c", marginTop: "6px", lineHeight: 1.7 }}>{selectedCase.adminNote}</div>
                     </div>
                   ) : null}
                   {selectedCase.resolutionText ? (
                     <div style={inputStyle}>
-                      <strong>Resolution</strong>
+                      <strong>Resolucion</strong>
                       <div style={{ color: "#44403c", marginTop: "6px", lineHeight: 1.7 }}>{selectedCase.resolutionText}</div>
                       {selectedCase.resolvedAt ? <div style={{ color: "#78716c", marginTop: "6px" }}>{formatDateTime(selectedCase.resolvedAt)}</div> : null}
                     </div>
@@ -227,7 +227,7 @@ export function SupportWorkspace({
                 </>
               ) : (
                 <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
-                  Pick one of your existing cases or open support from a booking detail to start the flow.
+                  Elige uno de tus casos existentes o abre soporte desde el detalle de una reserva para iniciar el flujo.
                 </p>
               )}
             </article>

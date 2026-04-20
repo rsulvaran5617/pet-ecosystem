@@ -35,6 +35,7 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 - Android emulator o dispositivo disponible para `AND-*`
 - provider pendiente con documentos o capacidad de generarlo
 - capacidad de provision temporal de rol `admin` si el usuario QA admin no lo tiene persistido
+- copy esperado en flujos MVP: espanol como idioma principal; registrar cualquier texto visible en ingles como hallazgo de localizacion
 
 ## Comando canonico para smoke automatizable
 - `corepack pnpm smoke:mvp:critical`

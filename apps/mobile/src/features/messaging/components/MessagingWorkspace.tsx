@@ -1,4 +1,4 @@
-import { bookingStatusLabels } from "@pet/config";
+﻿import { bookingStatusLabels } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { Uuid } from "@pet/types";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -19,7 +19,7 @@ const inputStyle = {
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -91,21 +91,21 @@ export function MessagingWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-07 / Messaging"
-        title="Booking-linked inbox"
-        description="Threads are created automatically from bookings. Only the booked customer and the provider owner can read or send text messages in this MVP slice."
+        eyebrow="EP-07 / Mensajes"
+        title="Bandeja ligada a reservas"
+        description="Los hilos se crean automaticamente desde las reservas. En este MVP, solo el cliente que reservo y el propietario del proveedor pueden leer o enviar mensajes."
       >
         <View style={{ gap: 12 }}>
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Inbox</Text>
-              <StatusChip label={`${threads.length} thread(s)`} tone="neutral" />
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Bandeja</Text>
+              <StatusChip label={`${threads.length} hilo(s)`} tone="neutral" />
             </View>
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <Button disabled={isSubmitting} label="Refresh" onPress={() => void refresh()} tone="secondary" />
-              <Button disabled={isSubmitting} label="Clear notices" onPress={clearMessages} tone="secondary" />
+              <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
+              <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
             </View>
-            {isLoading && !threads.length ? <Text style={{ color: colorTokens.muted }}>Loading booking-linked threads from Supabase...</Text> : null}
+            {isLoading && !threads.length ? <Text style={{ color: colorTokens.muted }}>Cargando hilos ligados a reservas desde Supabase...</Text> : null}
             {threads.length ? threads.map((thread) => (
               <Pressable
                 key={thread.id}
@@ -117,47 +117,47 @@ export function MessagingWorkspace({
                   <StatusChip label={bookingStatusLabels[thread.bookingStatus]} tone={getStatusTone(thread.bookingStatus)} />
                 </View>
                 <Text style={{ color: colorTokens.muted }}>{thread.customerDisplayName} · {thread.providerDisplayName}</Text>
-                <Text style={{ color: colorTokens.muted }}>Pet: {thread.petName}</Text>
+                <Text style={{ color: colorTokens.muted }}>Mascota: {thread.petName}</Text>
                 <Text style={{ color: colorTokens.muted }}>
-                  {thread.lastMessagePreview ?? "No messages yet. Open the thread to start the booking conversation."}
+                  {thread.lastMessagePreview ?? "Todavia no hay mensajes. Abre el hilo para iniciar la conversacion de la reserva."}
                 </Text>
               </Pressable>
             )) : (
               <Text style={{ color: colorTokens.muted }}>
-                No booking-linked chats are visible yet. Create or open a booking above to seed the first thread automatically.
+                Todavia no hay conversaciones visibles ligadas a reservas. Crea o abre una reserva para generar el primer hilo automaticamente.
               </Text>
             )}
           </View>
 
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Thread detail</Text>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Detalle del hilo</Text>
               {selectedThreadDetail ? (
                 <StatusChip
                   label={bookingStatusLabels[selectedThreadDetail.thread.bookingStatus]}
                   tone={getStatusTone(selectedThreadDetail.thread.bookingStatus)}
                 />
               ) : (
-                <StatusChip label="no thread selected" tone="neutral" />
+                <StatusChip label="sin hilo seleccionado" tone="neutral" />
               )}
             </View>
 
             {selectedThreadDetail ? (
               <>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Service</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Servicio</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.serviceName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Pet</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.petName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Customer</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Cliente</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.customerDisplayName}</Text>
                 </View>
                 <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Provider</Text>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.providerDisplayName}</Text>
                 </View>
 
@@ -188,7 +188,7 @@ export function MessagingWorkspace({
                     );
                   }) : (
                     <Text style={{ color: colorTokens.muted }}>
-                      No messages have been sent yet for this booking. Use the composer below to start the conversation.
+                      Todavia no se han enviado mensajes para esta reserva. Usa el compositor para iniciar la conversacion.
                     </Text>
                   )}
                 </View>
@@ -196,18 +196,18 @@ export function MessagingWorkspace({
                 <TextInput
                   multiline
                   onChangeText={setMessageDraft}
-                  placeholder="Type a booking-related message..."
+                  placeholder="Escribe un mensaje relacionado con la reserva..."
                   style={[inputStyle, { minHeight: 110, textAlignVertical: "top", color: "#1c1917" }]}
                   value={messageDraft}
                 />
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                  <Button disabled={isSubmitting} label="Send message" onPress={() => void sendMessage()} />
-                  <Button disabled={isSubmitting} label="Clear draft" onPress={() => setMessageDraft("")} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Enviar mensaje" onPress={() => void sendMessage()} />
+                  <Button disabled={isSubmitting} label="Limpiar borrador" onPress={() => setMessageDraft("")} tone="secondary" />
                 </View>
               </>
             ) : (
               <Text style={{ color: colorTokens.muted }}>
-                Select a thread from the inbox or open chat from a booking detail. Threads are never free-form in this MVP; every conversation stays linked to one booking.
+                Selecciona un hilo desde la bandeja o abre mensajes desde el detalle de una reserva. En este MVP, cada conversacion queda ligada a una reserva.
               </Text>
             )}
           </View>
@@ -216,3 +216,4 @@ export function MessagingWorkspace({
     </View>
   );
 }
+

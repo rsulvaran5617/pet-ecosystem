@@ -89,7 +89,7 @@ export function useSupportWorkspace(
       await loadCaseDetail(targetCaseId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load support cases.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar los casos de soporte.");
       }
     } finally {
       if (mountedRef.current) {
@@ -112,7 +112,7 @@ export function useSupportWorkspace(
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Support action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de soporte fallo.");
       }
 
       throw error;
@@ -139,7 +139,7 @@ export function useSupportWorkspace(
 
     focusedBookingIdRef.current = focusedBookingId;
     setErrorMessage(null);
-    setInfoMessage("Booking support requested. Loading any existing case for this booking.");
+    setInfoMessage("Se solicito soporte para la reserva. Cargando cualquier caso existente.");
     void refresh();
   }, [enabled, focusedBookingId, focusVersion]);
 
@@ -165,7 +165,7 @@ export function useSupportWorkspace(
         await loadCaseDetail(caseId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the support case.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el caso de soporte.");
         }
       } finally {
         if (mountedRef.current) {
@@ -180,15 +180,15 @@ export function useSupportWorkspace(
       const normalizedDescription = descriptionDraft.trim();
 
       if (!bookingId) {
-        throw new Error("Open a booking detail before creating a support case.");
+        throw new Error("Abre primero el detalle de una reserva antes de crear un caso de soporte.");
       }
 
       if (!normalizedSubject) {
-        throw new Error("A support subject is required.");
+        throw new Error("Se requiere un asunto para el caso de soporte.");
       }
 
       if (!normalizedDescription) {
-        throw new Error("A support description is required.");
+        throw new Error("Se requiere una descripcion para el caso de soporte.");
       }
 
       const createdCase = await runAction(
@@ -198,7 +198,7 @@ export function useSupportWorkspace(
             subject: normalizedSubject,
             descriptionText: normalizedDescription
           }),
-        "Support case created."
+        "Caso de soporte creado."
       );
 
       if (mountedRef.current) {
@@ -211,3 +211,4 @@ export function useSupportWorkspace(
     setSubjectDraft
   };
 }
+

@@ -95,7 +95,7 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
       await loadCaseDetail(targetCaseId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load admin support cases.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar los casos de soporte administrativos.");
       }
     } finally {
       if (mountedRef.current) {
@@ -118,7 +118,7 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Admin support action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion administrativa de soporte fallo.");
       }
 
       throw error;
@@ -170,7 +170,7 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
         await loadCaseDetail(caseId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the support case.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el caso de soporte.");
         }
       } finally {
         if (mountedRef.current) {
@@ -183,7 +183,7 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
       const caseId = selectedCaseIdRef.current;
 
       if (!caseId) {
-        throw new Error("Select a support case first.");
+        throw new Error("Selecciona primero un caso de soporte.");
       }
 
       const updatedCase = await runAction(
@@ -194,7 +194,7 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
             adminNote: adminNoteDraft.trim() || null,
             resolutionText: resolutionDraft.trim() || null
           }),
-        "Support case updated."
+        "Caso de soporte actualizado."
       );
 
       await refresh(updatedCase.id);
@@ -205,3 +205,4 @@ export function useAdminSupportWorkspace(enabled: boolean): UseAdminSupportWorks
     setStatusFilter
   };
 }
+

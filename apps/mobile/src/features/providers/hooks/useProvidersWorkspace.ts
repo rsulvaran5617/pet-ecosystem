@@ -120,7 +120,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       await loadOrganizationDetail(targetOrganizationId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to load provider organizations.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar las organizaciones de proveedores.");
       }
     } finally {
       if (mountedRef.current) {
@@ -143,7 +143,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Provider action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion del proveedor fallo.");
       }
 
       throw error;
@@ -188,7 +188,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         await loadOrganizationDetail(organizationId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the provider organization.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar la organizacion del proveedor.");
         }
       } finally {
         if (mountedRef.current) {
@@ -205,11 +205,11 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         const detail = await loadProviderBookingDetail(bookingId);
 
         if (mountedRef.current) {
-          setInfoMessage(`Booking detail loaded for ${detail.booking.serviceName}.`);
+          setInfoMessage(`Detalle de la reserva cargado para ${detail.booking.serviceName}.`);
         }
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the provider booking detail.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el detalle de la reserva del proveedor.");
         }
       } finally {
         if (mountedRef.current) {
@@ -228,7 +228,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
 
         await refresh(selectedOrganizationIdRef.current);
         return detail;
-      }, "Booking approved.");
+      }, "Reserva aprobada.");
     },
     async rejectProviderBooking(bookingId, reason) {
       await runAction(async () => {
@@ -241,7 +241,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
 
         await refresh(selectedOrganizationIdRef.current);
         return detail;
-      }, "Booking rejected.");
+      }, "Reserva rechazada.");
     },
     async completeProviderBooking(bookingId) {
       await runAction(async () => {
@@ -254,9 +254,10 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
 
         await refresh(selectedOrganizationIdRef.current);
         return detail;
-      }, "Booking completed.");
+      }, "Reserva completada.");
     },
     refresh,
     runAction
   };
 }
+

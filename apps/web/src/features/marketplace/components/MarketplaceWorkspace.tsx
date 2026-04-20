@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { formatHouseholdPermissions, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
 import type { MarketplaceSearchFilters, MarketplaceServiceSelection, ProviderServiceCategory } from "@pet/types";
 import { useMemo, useState } from "react";
 
@@ -56,7 +56,7 @@ function Button({
 }
 
 function formatMoney(priceCents: number, currencyCode: string) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-PA", {
     style: "currency",
     currency: currencyCode
   }).format(priceCents / 100);
@@ -162,7 +162,7 @@ export function MarketplaceWorkspace({
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
           <strong>{provider.name}</strong>
-          <StatusPill label={`${provider.serviceCount} service(s)`} tone="neutral" />
+          <StatusPill label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
         </div>
         <div style={{ color: "#57534e" }}>{provider.city}</div>
         <div style={{ color: "#57534e" }}>{provider.headline}</div>
@@ -171,7 +171,7 @@ export function MarketplaceWorkspace({
         </div>
         {"speciesServed" in provider ? (
           <div style={{ color: "#57534e" }}>
-            Species: {provider.speciesServed?.map((species) => formatSpeciesLabel(species)).join(", ") || "Not specified"}
+            Especies: {provider.speciesServed?.map((species) => formatSpeciesLabel(species)).join(", ") || "No especificadas"}
           </div>
         ) : null}
       </button>
@@ -184,18 +184,18 @@ export function MarketplaceWorkspace({
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
         eyebrow="EP-05 / Marketplace"
-        title="Public discovery and booking handoff"
-        description="Public marketplace home, search, filters, provider profile and service selection. Booking handoff is active; checkout and payment capture remain deferred."
+        title="Descubrimiento publico y preseleccion para reservas"
+        description="Portada publica de servicios, busqueda, filtros, perfil del proveedor y seleccion de servicio. La preseleccion hacia Reservas esta activa; checkout y cobro siguen diferidos."
       >
         {isLoading && !homeSnapshot ? (
-          <p style={{ margin: 0, color: "#57534e" }}>Loading public marketplace catalog from Supabase...</p>
+          <p style={{ margin: 0, color: "#57534e" }}>Cargando catalogo publico de servicios desde Supabase...</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "minmax(240px,300px) minmax(0,1fr)", gap: "18px" }}>
             <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
               <article style={cardStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Discovery context</h3>
-                  <StatusPill label={selectedPet ? "pet selected" : "household context"} tone="neutral" />
+                  <h3 style={{ margin: 0 }}>Contexto de busqueda</h3>
+                  <StatusPill label={selectedPet ? "mascota seleccionada" : "contexto del hogar"} tone="neutral" />
                 </div>
                 {householdSnapshot?.households.length ? (
                   <>
@@ -213,12 +213,12 @@ export function MarketplaceWorkspace({
                       >
                         <strong>{household.name}</strong>
                         <div style={{ color: "#57534e", marginTop: "6px" }}>
-                          {household.memberCount} member(s) - {household.myPermissions.join(", ")}
+                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
                         </div>
                       </button>
                     ))}
                     <Button onClick={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"}>
-                      All household pets
+                      Todas las mascotas del hogar
                     </Button>
                     {pets.map((pet) => (
                       <Button key={pet.id} onClick={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"}>
@@ -228,16 +228,16 @@ export function MarketplaceWorkspace({
                   </>
                 ) : (
                   <p style={{ margin: 0, color: "#57534e" }}>
-                    Household and pet context is optional here. Discovery still works before that setup exists.
+                    El contexto de hogar y mascota es opcional aqui. La exploracion sigue funcionando antes de completar esa configuracion.
                   </p>
                 )}
               </article>
 
               <article style={cardStyle}>
-                <h3 style={{ margin: 0 }}>Search and filters</h3>
+                <h3 style={{ margin: 0 }}>Busqueda y filtros</h3>
                 <input
                   style={inputStyle}
-                  placeholder="Search provider, city or service"
+                  placeholder="Buscar proveedor, ciudad o servicio"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
@@ -246,7 +246,7 @@ export function MarketplaceWorkspace({
                   value={selectedCategory}
                   onChange={(event) => setSelectedCategory(event.target.value as ProviderServiceCategory | "")}
                 >
-                  <option value="">All categories</option>
+                  <option value="">Todas las categorias</option>
                   {homeSnapshot?.categoryHighlights.map((highlight) => (
                     <option key={highlight.category} value={highlight.category}>
                       {providerServiceCategoryLabels[highlight.category]}
@@ -254,7 +254,7 @@ export function MarketplaceWorkspace({
                   ))}
                 </select>
                 <select style={inputStyle} value={selectedCity} onChange={(event) => setSelectedCity(event.target.value)}>
-                  <option value="">All cities</option>
+                  <option value="">Todas las ciudades</option>
                   {homeSnapshot?.cityHighlights.map((city) => (
                     <option key={city} value={city}>
                       {city}
@@ -262,7 +262,7 @@ export function MarketplaceWorkspace({
                   ))}
                 </select>
                 <select style={inputStyle} value={selectedSpecies} onChange={(event) => setSelectedSpecies(event.target.value)}>
-                  <option value="">All species</option>
+                  <option value="">Todas las especies</option>
                   {homeSnapshot?.speciesHighlights.map((species) => (
                     <option key={species} value={species}>
                       {formatSpeciesLabel(species)}
@@ -271,7 +271,7 @@ export function MarketplaceWorkspace({
                 </select>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                   <Button disabled={isLoading} onClick={() => void runSearch()}>
-                    Search providers
+                    Buscar proveedores
                   </Button>
                   <Button
                     disabled={isLoading}
@@ -283,25 +283,25 @@ export function MarketplaceWorkspace({
                     }}
                     tone="secondary"
                   >
-                    Home
+                    Inicio
                   </Button>
                 </div>
               </article>
 
               <article style={cardStyle}>
-                <h3 style={{ margin: 0 }}>Navigation</h3>
+                <h3 style={{ margin: 0 }}>Navegacion</h3>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                   <Button disabled={currentView === "home"} onClick={() => setCurrentView("home")} tone="secondary">
-                    Home
+                    Inicio
                   </Button>
                   <Button disabled={!providers.length || currentView === "results"} onClick={() => setCurrentView("results")} tone="secondary">
-                    Results
+                    Resultados
                   </Button>
                   <Button disabled={!selectedProviderDetail || currentView === "provider"} onClick={() => setCurrentView("provider")} tone="secondary">
-                    Provider
+                    Proveedor
                   </Button>
                   <Button disabled={!selectedService || currentView === "selection"} onClick={() => setCurrentView("selection")} tone="secondary">
-                    Selection
+                    Seleccion
                   </Button>
                 </div>
               </article>
@@ -312,11 +312,11 @@ export function MarketplaceWorkspace({
                 <>
                   <article style={cardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0 }}>Marketplace home</h3>
-                      <StatusPill label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} featured` : "catalog empty"} tone="active" />
+                      <h3 style={{ margin: 0 }}>Inicio del marketplace</h3>
+                      <StatusPill label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} destacados` : "catalogo vacio"} tone="active" />
                     </div>
                     <p style={{ margin: 0, color: "#57534e" }}>
-                      Public discovery stays open here. Selecting a service prepares provider, service and optional pet context for the Bookings workspace.
+                      La exploracion publica sigue abierta aqui. Al seleccionar un servicio se prepara el proveedor, el servicio y la mascota opcional para el espacio de Reservas.
                     </p>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                       {homeSnapshot?.categoryHighlights.map((highlight) => (
@@ -328,7 +328,7 @@ export function MarketplaceWorkspace({
                         >
                           <strong>{providerServiceCategoryLabels[highlight.category]}</strong>
                           <div style={{ color: "#57534e", marginTop: "6px" }}>
-                            {highlight.providerCount} provider(s) - {highlight.serviceCount} service(s)
+                            {highlight.providerCount} proveedor(es) - {highlight.serviceCount} servicio(s)
                           </div>
                         </button>
                       ))}
@@ -336,8 +336,8 @@ export function MarketplaceWorkspace({
                   </article>
 
                   <article style={cardStyle}>
-                    <h3 style={{ margin: 0 }}>Featured providers</h3>
-                    {homeSnapshot?.featuredProviders.length ? homeSnapshot.featuredProviders.map(renderProviderCard) : <p style={{ margin: 0, color: "#57534e" }}>No public providers have been published yet.</p>}
+                    <h3 style={{ margin: 0 }}>Proveedores destacados</h3>
+                    {homeSnapshot?.featuredProviders.length ? homeSnapshot.featuredProviders.map(renderProviderCard) : <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay proveedores publicos publicados.</p>}
                   </article>
                 </>
               ) : null}
@@ -345,10 +345,10 @@ export function MarketplaceWorkspace({
               {currentView === "results" ? (
                 <article style={cardStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                    <h3 style={{ margin: 0 }}>Search results</h3>
-                    <StatusPill label={`${providers.length} result(s)`} tone="neutral" />
+                    <h3 style={{ margin: 0 }}>Resultados</h3>
+                    <StatusPill label={`${providers.length} resultado(s)`} tone="neutral" />
                   </div>
-                  {providers.length ? providers.map(renderProviderCard) : <p style={{ margin: 0, color: "#57534e" }}>No public provider matched the current query and filters.</p>}
+                  {providers.length ? providers.map(renderProviderCard) : <p style={{ margin: 0, color: "#57534e" }}>Ningun proveedor publico coincide con la busqueda y los filtros actuales.</p>}
                 </article>
               ) : null}
 
@@ -360,29 +360,29 @@ export function MarketplaceWorkspace({
                         <h3 style={{ margin: 0 }}>{selectedProviderDetail.name}</h3>
                         <div style={{ color: "#57534e" }}>{selectedProviderDetail.city}</div>
                       </div>
-                      <StatusPill label={selectedProviderSource ? "from results" : "featured"} tone="active" />
+                      <StatusPill label={selectedProviderSource ? "desde resultados" : "destacados"} tone="active" />
                     </div>
                     <div style={{ color: "#57534e" }}>{selectedProviderDetail.headline}</div>
                     <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>{selectedProviderDetail.bio}</p>
                   </article>
 
                   <article style={cardStyle}>
-                    <h3 style={{ margin: 0 }}>Services</h3>
+                    <h3 style={{ margin: 0 }}>Servicios</h3>
                     {selectedProviderDetail.services.map((service) => (
                       <div key={service.id} style={inputStyle}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                           <strong>{service.name}</strong>
                           <StatusPill label={providerServiceCategoryLabels[service.category]} tone="neutral" />
                         </div>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{service.shortDescription ?? "No public description yet."}</div>
+                        <div style={{ color: "#57534e", marginTop: "6px" }}>{service.shortDescription ?? "Todavia no hay una descripcion publica."}</div>
                         <div style={{ color: "#57534e", marginTop: "6px" }}>
-                          Species: {service.speciesServed.map((species) => formatSpeciesLabel(species)).join(", ") || "Not specified"}
+                          Especies: {service.speciesServed.map((species) => formatSpeciesLabel(species)).join(", ") || "No especificadas"}
                         </div>
                         <div style={{ color: "#57534e", marginTop: "6px" }}>
-                          Duration: {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
+                          Duracion: {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
                         </div>
                         <div style={{ color: "#57534e", marginTop: "6px" }}>
-                          Price: {formatMoney(service.basePriceCents, service.currencyCode)} - {service.bookingMode === "instant" ? "Instant booking" : "Needs approval"}
+                          Precio: {formatMoney(service.basePriceCents, service.currencyCode)} - {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                         </div>
                         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
                           <Button
@@ -392,7 +392,7 @@ export function MarketplaceWorkspace({
                             }}
                             tone="secondary"
                           >
-                            Select service
+                            Seleccionar servicio
                           </Button>
                         </div>
                       </div>
@@ -400,7 +400,7 @@ export function MarketplaceWorkspace({
                   </article>
 
                   <article style={cardStyle}>
-                    <h3 style={{ margin: 0 }}>Availability</h3>
+                    <h3 style={{ margin: 0 }}>Disponibilidad</h3>
                     {selectedProviderDetail.availability.length ? (
                       selectedProviderDetail.availability.map((slot) => (
                         <div key={slot.id} style={inputStyle}>
@@ -409,7 +409,7 @@ export function MarketplaceWorkspace({
                         </div>
                       ))
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>No public availability slots published yet.</p>
+                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay bloques publicos de disponibilidad.</p>
                     )}
                   </article>
                 </>
@@ -418,8 +418,8 @@ export function MarketplaceWorkspace({
               {currentView === "selection" && selectedProviderDetail && selectedService ? (
                 <article style={cardStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                    <h3 style={{ margin: 0 }}>Service selection</h3>
-                    <StatusPill label={canOpenBookingPreview ? "ready for booking preview" : "sign in to continue"} tone="active" />
+                    <h3 style={{ margin: 0 }}>Seleccion de servicio</h3>
+                    <StatusPill label={canOpenBookingPreview ? "lista para reserva" : "inicia sesion para continuar"} tone="active" />
                   </div>
                   <strong>{selectedProviderDetail.name}</strong>
                   <div style={{ color: "#57534e" }}>{selectedService.name}</div>
@@ -428,22 +428,22 @@ export function MarketplaceWorkspace({
                     {selectedService.durationMinutes ? ` - ${selectedService.durationMinutes} min` : ""}
                   </div>
                   <div style={{ color: "#57534e" }}>
-                    {formatMoney(selectedService.basePriceCents, selectedService.currencyCode)} - {selectedService.bookingMode === "instant" ? "Instant booking" : "Needs approval"}
+                    {formatMoney(selectedService.basePriceCents, selectedService.currencyCode)} - {selectedService.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                     <div style={inputStyle}>
-                      <strong>Household</strong>
-                      <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedHousehold?.name ?? "No household context selected"}</div>
+                      <strong>Hogar</strong>
+                      <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedHousehold?.name ?? "Sin contexto de hogar seleccionado"}</div>
                     </div>
                     <div style={inputStyle}>
-                      <strong>Pet</strong>
-                      <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedPet?.name ?? "All household pets / later decision"}</div>
+                      <strong>Mascota</strong>
+                      <div style={{ color: "#57534e", marginTop: "6px" }}>{selectedPet?.name ?? "Todas las mascotas del hogar"}</div>
                     </div>
                   </div>
                   <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
                     {canOpenBookingPreview
-                      ? "This selection hands off provider, service and optional pet context directly into the Bookings workspace."
-                      : "This public selection is visible without signing in. Sign in to continue into the Bookings workspace."}
+                      ? "Esta seleccion transfiere el proveedor, el servicio y la mascota opcional directamente al espacio de Reservas."
+                      : "Esta seleccion publica puede verse sin iniciar sesion. Inicia sesion para continuar en Reservas."}
                   </p>
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <Button
@@ -458,10 +458,10 @@ export function MarketplaceWorkspace({
                         });
                       }}
                     >
-                      {canOpenBookingPreview ? "Open booking preview" : "Sign in to book"}
+                      {canOpenBookingPreview ? "Abrir vista previa de la reserva" : "Iniciar sesion para reservar"}
                     </Button>
                     <Button onClick={() => setCurrentView("provider")} tone="secondary">
-                      Back to provider
+                      Volver al proveedor
                     </Button>
                     <Button
                       onClick={() => {
@@ -470,7 +470,7 @@ export function MarketplaceWorkspace({
                       }}
                       tone="secondary"
                     >
-                      Search again
+                      Buscar de nuevo
                     </Button>
                   </div>
                 </article>
@@ -482,3 +482,9 @@ export function MarketplaceWorkspace({
     </div>
   );
 }
+
+
+
+
+
+

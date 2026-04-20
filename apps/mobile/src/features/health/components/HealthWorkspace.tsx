@@ -1,4 +1,4 @@
-import { petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
+import { formatHouseholdPermissions, petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { PetConditionStatus, UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
 import { useState } from "react";
@@ -63,25 +63,25 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
     <View style={{ gap: 20 }}>
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
-      <CoreSectionCard eyebrow="EP-04 / Health" title="Simple pet health dashboard" description="Vaccines, allergies and conditions only, inheriting household and pet permissions.">
+      <CoreSectionCard eyebrow="EP-04 / Salud" title="Panel simple de salud por mascota" description="Solo vacunas, alergias y condiciones, heredando los permisos del hogar y de la mascota.">
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Loading health records from Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando registros de salud desde Supabase...</Text> : null}
 
           {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
             <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
-              <Text style={{ color: colorTokens.muted }}>{household.memberCount} member(s) - {household.myPermissions.join(", ")}</Text>
+              <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
-          )) : <Text style={{ color: colorTokens.muted }}>Create a household first.</Text>}
+          )) : <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text>}
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Pets</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascotas</Text>
             {selectedHousehold ? pets.length ? pets.map((pet) => (
               <Pressable key={pet.id} onPress={() => void selectPet(pet.id)} style={[inputStyle, { backgroundColor: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8", gap: 6 }]}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>{pet.name}</Text>
                 <Text style={{ color: colorTokens.muted }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</Text>
               </Pressable>
-            )) : <Text style={{ color: colorTokens.muted }}>No pets in this household yet.</Text> : <Text style={{ color: colorTokens.muted }}>Select a household first.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text> : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}
           </View>
 
           {selectedPet && selectedPetHealthDetail ? (
@@ -89,73 +89,73 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
               <View style={cardStyle}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{selectedPet.name}</Text>
                 <Text style={{ color: colorTokens.muted }}>{selectedPet.species}{selectedPet.breed ? ` - ${selectedPet.breed}` : ""}</Text>
-                <Text style={{ color: colorTokens.muted }}>Mode: {canEdit ? "editable" : "read-only"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Vaccines: {selectedPetHealthDetail.dashboard.vaccineCount}</Text>
-                <Text style={{ color: colorTokens.muted }}>Allergies: {selectedPetHealthDetail.dashboard.allergyCount}</Text>
-                <Text style={{ color: colorTokens.muted }}>Conditions: {selectedPetHealthDetail.dashboard.conditionCount}</Text>
-                <Text style={{ color: colorTokens.muted }}>Critical: {selectedPetHealthDetail.dashboard.criticalConditionCount}</Text>
-                <Text style={{ color: colorTokens.muted }}>Latest vaccine: {selectedPetHealthDetail.dashboard.latestVaccineDate ?? "Not recorded"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Next due: {selectedPetHealthDetail.dashboard.nextVaccineDueDate ?? "Not recorded"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Allergies: {selectedPetHealthDetail.dashboard.allergyNames.join(", ") || "None"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Critical conditions: {selectedPetHealthDetail.dashboard.criticalConditionNames.join(", ") || "None"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Modo: {canEdit ? "editable" : "solo lectura"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Vacunas: {selectedPetHealthDetail.dashboard.vaccineCount}</Text>
+                <Text style={{ color: colorTokens.muted }}>Alergias: {selectedPetHealthDetail.dashboard.allergyCount}</Text>
+                <Text style={{ color: colorTokens.muted }}>Condiciones: {selectedPetHealthDetail.dashboard.conditionCount}</Text>
+                <Text style={{ color: colorTokens.muted }}>Criticas: {selectedPetHealthDetail.dashboard.criticalConditionCount}</Text>
+                <Text style={{ color: colorTokens.muted }}>Ultima vacuna: {selectedPetHealthDetail.dashboard.latestVaccineDate ?? "Sin registro"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Proxima dosis: {selectedPetHealthDetail.dashboard.nextVaccineDueDate ?? "Sin registro"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Alergias: {selectedPetHealthDetail.dashboard.allergyNames.join(", ") || "Ninguna"}</Text>
+                <Text style={{ color: colorTokens.muted }}>Condiciones criticas: {selectedPetHealthDetail.dashboard.criticalConditionNames.join(", ") || "Ninguna"}</Text>
               </View>
 
               <View style={cardStyle}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Vaccines ({selectedPetHealthDetail.vaccines.length})</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Vacunas ({selectedPetHealthDetail.vaccines.length})</Text>
                 {canEdit ? (
                   <>
-                    <Field label="Vaccine name" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} value={vaccineForm.name} />
-                    <Field label="Administered on" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} value={vaccineForm.administeredOn} />
-                    <Field label="Next due on" onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))} value={vaccineForm.nextDueOn ?? ""} />
-                    <Field label="Notes" multiline onChange={(value) => setVaccineForm((current) => ({ ...current, notes: value }))} value={vaccineForm.notes ?? ""} />
-                    <Button disabled={isSubmitting} label={editingVaccineId ? "Save vaccine" : "Register vaccine"} onPress={() => {
+                    <Field label="Nombre de la vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} value={vaccineForm.name} />
+                    <Field label="Aplicada el" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} value={vaccineForm.administeredOn} />
+                    <Field label="Proxima dosis" onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))} value={vaccineForm.nextDueOn ?? ""} />
+                    <Field label="Notas" multiline onChange={(value) => setVaccineForm((current) => ({ ...current, notes: value }))} value={vaccineForm.notes ?? ""} />
+                    <Button disabled={isSubmitting} label={editingVaccineId ? "Guardar vacuna" : "Registrar vacuna"} onPress={() => {
                       clearMessages();
                       const payload: UpdatePetVaccineInput = { name: vaccineForm.name.trim(), administeredOn: vaccineForm.administeredOn, nextDueOn: vaccineForm.nextDueOn || null, notes: vaccineForm.notes?.trim() || null };
                       const action = editingVaccineId ? () => getMobileHealthApiClient().updatePetVaccine(editingVaccineId, payload) : () => getMobileHealthApiClient().createPetVaccine(selectedPet.id, payload);
-                      void runAction(action, editingVaccineId ? "Vaccine updated." : "Vaccine registered.").then(() => { setEditingVaccineId(null); setVaccineForm(emptyVaccineForm); });
+                      void runAction(action, editingVaccineId ? "Vacuna actualizada." : "Vacuna registrada.").then(() => { setEditingVaccineId(null); setVaccineForm(emptyVaccineForm); });
                     }} />
                   </>
-                ) : <Text style={{ color: colorTokens.muted }}>Read-only household.</Text>}
+                ) : <Text style={{ color: colorTokens.muted }}>Hogar en modo solo lectura.</Text>}
                 {selectedPetHealthDetail.vaccines.map((vaccine) => (
                   <View key={vaccine.id} style={inputStyle}>
                     <Text style={{ fontWeight: "600", color: "#1c1917" }}>{vaccine.name}</Text>
-                    <Text style={{ color: colorTokens.muted }}>Applied: {vaccine.administeredOn} - Next due: {vaccine.nextDueOn ?? "Not recorded"}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{vaccine.notes ?? "No notes yet."}</Text>
-                    {canEdit ? <Button label="Edit" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); }} /> : null}
+                    <Text style={{ color: colorTokens.muted }}>Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}</Text>
+                    <Text style={{ color: colorTokens.muted }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
+                    {canEdit ? <Button label="Editar" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); }} /> : null}
                   </View>
                 ))}
               </View>
 
               <View style={cardStyle}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Allergies ({selectedPetHealthDetail.allergies.length})</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Alergias ({selectedPetHealthDetail.allergies.length})</Text>
                 {canEdit ? (
                   <>
-                    <Field label="Allergen" onChange={(value) => setAllergyForm((current) => ({ ...current, allergen: value }))} value={allergyForm.allergen} />
-                    <Field label="Reaction" onChange={(value) => setAllergyForm((current) => ({ ...current, reaction: value }))} value={allergyForm.reaction ?? ""} />
-                    <Field label="Notes" multiline onChange={(value) => setAllergyForm((current) => ({ ...current, notes: value }))} value={allergyForm.notes ?? ""} />
-                    <Button disabled={isSubmitting} label={editingAllergyId ? "Save allergy" : "Register allergy"} onPress={() => {
+                    <Field label="Alergeno" onChange={(value) => setAllergyForm((current) => ({ ...current, allergen: value }))} value={allergyForm.allergen} />
+                    <Field label="Reaccion" onChange={(value) => setAllergyForm((current) => ({ ...current, reaction: value }))} value={allergyForm.reaction ?? ""} />
+                    <Field label="Notas" multiline onChange={(value) => setAllergyForm((current) => ({ ...current, notes: value }))} value={allergyForm.notes ?? ""} />
+                    <Button disabled={isSubmitting} label={editingAllergyId ? "Guardar alergia" : "Registrar alergia"} onPress={() => {
                       clearMessages();
                       const payload: UpdatePetAllergyInput = { allergen: allergyForm.allergen.trim(), reaction: allergyForm.reaction?.trim() || null, notes: allergyForm.notes?.trim() || null };
                       const action = editingAllergyId ? () => getMobileHealthApiClient().updatePetAllergy(editingAllergyId, payload) : () => getMobileHealthApiClient().createPetAllergy(selectedPet.id, payload);
-                      void runAction(action, editingAllergyId ? "Allergy updated." : "Allergy registered.").then(() => { setEditingAllergyId(null); setAllergyForm(emptyAllergyForm); });
+                      void runAction(action, editingAllergyId ? "Alergia actualizada." : "Alergia registrada.").then(() => { setEditingAllergyId(null); setAllergyForm(emptyAllergyForm); });
                     }} />
                   </>
                 ) : null}
                 {selectedPetHealthDetail.allergies.map((allergy) => (
                   <View key={allergy.id} style={inputStyle}>
                     <Text style={{ fontWeight: "600", color: "#1c1917" }}>{allergy.allergen}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{allergy.reaction ?? "No reaction recorded"}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{allergy.notes ?? "No notes yet."}</Text>
-                    {canEdit ? <Button label="Edit" onPress={() => { setEditingAllergyId(allergy.id); setAllergyForm({ allergen: allergy.allergen, reaction: allergy.reaction ?? "", notes: allergy.notes ?? "" }); }} /> : null}
+                    <Text style={{ color: colorTokens.muted }}>{allergy.reaction ?? "Sin reaccion registrada"}</Text>
+                    <Text style={{ color: colorTokens.muted }}>{allergy.notes ?? "Sin notas todavia."}</Text>
+                    {canEdit ? <Button label="Editar" onPress={() => { setEditingAllergyId(allergy.id); setAllergyForm({ allergen: allergy.allergen, reaction: allergy.reaction ?? "", notes: allergy.notes ?? "" }); }} /> : null}
                   </View>
                 ))}
               </View>
 
               <View style={cardStyle}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Conditions ({selectedPetHealthDetail.conditions.length})</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Condiciones ({selectedPetHealthDetail.conditions.length})</Text>
                 {canEdit ? (
                   <>
-                    <Field label="Condition name" onChange={(value) => setConditionForm((current) => ({ ...current, name: value }))} value={conditionForm.name} />
+                    <Field label="Nombre de la condicion" onChange={(value) => setConditionForm((current) => ({ ...current, name: value }))} value={conditionForm.name} />
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                       {petConditionStatusOrder.map((status) => (
                         <Pressable key={status} onPress={() => setConditionForm((current) => ({ ...current, status }))} style={{ borderRadius: 999, borderWidth: 1, borderColor: conditionForm.status === status ? "rgba(15,118,110,0.3)" : "rgba(28,25,23,0.14)", backgroundColor: conditionForm.status === status ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.86)", paddingHorizontal: 12, paddingVertical: 8 }}>
@@ -163,33 +163,33 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                         </Pressable>
                       ))}
                     </View>
-                    <Field label="Diagnosed on" onChange={(value) => setConditionForm((current) => ({ ...current, diagnosedOn: value }))} value={conditionForm.diagnosedOn ?? ""} />
+                    <Field label="Diagnosticada el" onChange={(value) => setConditionForm((current) => ({ ...current, diagnosedOn: value }))} value={conditionForm.diagnosedOn ?? ""} />
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                      <Text style={{ color: colorTokens.muted, flex: 1 }}>Mark as critical</Text>
+                      <Text style={{ color: colorTokens.muted, flex: 1 }}>Marcar como critica</Text>
                       <Switch onValueChange={(value) => setConditionForm((current) => ({ ...current, isCritical: value }))} value={Boolean(conditionForm.isCritical)} />
                     </View>
-                    <Field label="Notes" multiline onChange={(value) => setConditionForm((current) => ({ ...current, notes: value }))} value={conditionForm.notes ?? ""} />
-                    <Button disabled={isSubmitting} label={editingConditionId ? "Save condition" : "Register condition"} onPress={() => {
+                    <Field label="Notas" multiline onChange={(value) => setConditionForm((current) => ({ ...current, notes: value }))} value={conditionForm.notes ?? ""} />
+                    <Button disabled={isSubmitting} label={editingConditionId ? "Guardar condicion" : "Registrar condicion"} onPress={() => {
                       clearMessages();
                       const payload: UpdatePetConditionInput = { name: conditionForm.name.trim(), status: conditionForm.status ?? "active", diagnosedOn: conditionForm.diagnosedOn || null, isCritical: Boolean(conditionForm.isCritical), notes: conditionForm.notes?.trim() || null };
                       const action = editingConditionId ? () => getMobileHealthApiClient().updatePetCondition(editingConditionId, payload) : () => getMobileHealthApiClient().createPetCondition(selectedPet.id, payload);
-                      void runAction(action, editingConditionId ? "Condition updated." : "Condition registered.").then(() => { setEditingConditionId(null); setConditionForm(emptyConditionForm); });
+                      void runAction(action, editingConditionId ? "Condicion actualizada." : "Condicion registrada.").then(() => { setEditingConditionId(null); setConditionForm(emptyConditionForm); });
                     }} />
                   </>
                 ) : null}
                 {selectedPetHealthDetail.conditions.map((condition) => (
                   <View key={condition.id} style={inputStyle}>
                     <Text style={{ fontWeight: "600", color: "#1c1917" }}>{condition.name}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{petConditionStatusLabels[condition.status]}{condition.isCritical ? " - Critical" : ""}</Text>
-                    <Text style={{ color: colorTokens.muted }}>Diagnosed on: {condition.diagnosedOn ?? "Not recorded"}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{condition.notes ?? "No notes yet."}</Text>
-                    {canEdit ? <Button label="Edit" onPress={() => { setEditingConditionId(condition.id); setConditionForm({ name: condition.name, status: condition.status as PetConditionStatus, diagnosedOn: condition.diagnosedOn ?? "", isCritical: condition.isCritical, notes: condition.notes ?? "" }); }} /> : null}
+                    <Text style={{ color: colorTokens.muted }}>{petConditionStatusLabels[condition.status]}{condition.isCritical ? " - Critica" : ""}</Text>
+                    <Text style={{ color: colorTokens.muted }}>Diagnosticada el: {condition.diagnosedOn ?? "Sin registro"}</Text>
+                    <Text style={{ color: colorTokens.muted }}>{condition.notes ?? "Sin notas todavia."}</Text>
+                    {canEdit ? <Button label="Editar" onPress={() => { setEditingConditionId(condition.id); setConditionForm({ name: condition.name, status: condition.status as PetConditionStatus, diagnosedOn: condition.diagnosedOn ?? "", isCritical: condition.isCritical, notes: condition.notes ?? "" }); }} /> : null}
                   </View>
                 ))}
               </View>
             </>
           ) : (
-            <Text style={{ color: colorTokens.muted }}>Select a pet to inspect health details.</Text>
+            <Text style={{ color: colorTokens.muted }}>Selecciona una mascota para revisar su salud.</Text>
           )}
         </View>
       </CoreSectionCard>

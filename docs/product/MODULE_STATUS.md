@@ -23,6 +23,7 @@
 - `admin` -> `closed_with_notes`
 - `payments` -> `partial`
 - `qa_smoke` -> `partial`
+- `localization_es` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
 - `pharmacy` -> `not_started`
@@ -34,6 +35,7 @@
 
 - pagos solo en modo `payment-ready`
 - la smoke canonica `full` ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre Supabase real
+- la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol y validada con lint/typecheck/build/export/smoke, pero esos cambios aun no estan congelados en commit/tag propio
 - la smoke automatizada sigue siendo parcial respecto del MVP completo porque aun faltan escenarios manuales de UI y canales mobile/admin end-to-end
 - siguen pendientes validaciones manuales finales de QA/UAT
 - el baseline esta alineado para QA/UAT, no para produccion
@@ -41,5 +43,6 @@
 ## Estado global del release
 
 - estado recomendado hoy: `listo para QA/UAT`
-- baseline tecnico serio y listo para `freeze` en commit/tag
-- no recomendar aun `piloto controlado` sin la ejecucion manual de la matriz critica y un baseline versionado
+- baseline tecnico congelado en `v0.1.0-mvp-baseline.1`
+- capa de localizacion al espanol validada tecnicamente pero pendiente de commit/tag
+- no recomendar aun `piloto controlado` sin la ejecucion manual de la matriz critica y triage formal

@@ -85,7 +85,7 @@ export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspace
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the households workspace.");
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de hogares.");
     } finally {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -110,7 +110,7 @@ export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspace
 
       return result;
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "Households action failed.";
+      const nextMessage = error instanceof Error ? error.message : "La accion de hogares fallo.";
 
       if (mountedRef.current) {
         setErrorMessage(nextMessage);
@@ -155,7 +155,7 @@ export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspace
         await loadDetail(householdId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the household detail.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el detalle del hogar.");
         }
       } finally {
         if (mountedRef.current) {

@@ -68,7 +68,7 @@ export function createSupportApiClient(supabase: SupportSupabaseClient): Support
       const { data, error } = await supabase.from("support_cases").select("*").order("created_at", { ascending: false });
 
       if (error) {
-        fail(error, "Unable to load support cases.");
+        fail(error, "No fue posible cargar los casos de soporte.");
       }
 
       return (data ?? []).map(mapSupportCaseSummary);
@@ -77,7 +77,7 @@ export function createSupportApiClient(supabase: SupportSupabaseClient): Support
       const { data, error } = await supabase.from("support_cases").select("*").eq("id", caseId).single();
 
       if (error) {
-        fail(error, "Unable to load the support case.");
+        fail(error, "No fue posible cargar el caso de soporte.");
       }
 
       return mapSupportCaseDetail(data);
@@ -105,7 +105,7 @@ export function createSupportApiClient(supabase: SupportSupabaseClient): Support
       const { data, error } = await query;
 
       if (error) {
-        fail(error, "Unable to load admin support cases.");
+        fail(error, "No fue posible cargar los casos de soporte administrativos.");
       }
 
       return (data ?? []).map(mapSupportCaseSummary);

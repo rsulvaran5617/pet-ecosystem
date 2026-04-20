@@ -68,7 +68,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the core workspace.");
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio core.");
     }
   }
 
@@ -89,7 +89,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
 
       return result;
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "Core action failed.";
+      const nextMessage = error instanceof Error ? error.message : "La accion de core fallo.";
 
       if (mountedRef.current) {
         setErrorMessage(nextMessage);
@@ -133,7 +133,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         };
       } catch (error) {
         if (mountedRef.current) {
-          setConfigError(error instanceof Error ? error.message : "Unable to initialize Supabase on web.");
+          setConfigError(error instanceof Error ? error.message : "No fue posible inicializar Supabase en web.");
         }
       } finally {
         if (mountedRef.current) {

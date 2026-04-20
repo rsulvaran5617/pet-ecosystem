@@ -181,7 +181,7 @@ export function useBookingsWorkspace(
       await loadPets(nextSelectedHouseholdId, effectiveSelection?.petId ?? selectedPetIdRef.current);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Unable to refresh the bookings workspace.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de reservas.");
       }
     } finally {
       if (mountedRef.current) {
@@ -208,7 +208,7 @@ export function useBookingsWorkspace(
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "Booking action failed.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de reservas fallo.");
       }
 
       throw error;
@@ -280,7 +280,7 @@ export function useBookingsWorkspace(
         await loadPets(householdId, null);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load bookings for the selected household.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar las reservas del hogar seleccionado.");
         }
       } finally {
         if (mountedRef.current) {
@@ -298,7 +298,7 @@ export function useBookingsWorkspace(
         await loadBookings(selectedHouseholdIdRef.current, petId);
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to filter bookings by pet.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible filtrar las reservas por mascota.");
         }
       } finally {
         if (mountedRef.current) {
@@ -313,15 +313,15 @@ export function useBookingsWorkspace(
     },
     async buildPreview() {
       if (!activeSelectionRef.current) {
-        throw new Error("Select a marketplace service before building a booking preview.");
+        throw new Error("Selecciona un servicio del marketplace antes de generar la vista previa de la reserva.");
       }
 
       if (!selectedHouseholdIdRef.current) {
-        throw new Error("Choose a household before continuing with the booking preview.");
+        throw new Error("Elige un hogar antes de continuar con la vista previa de la reserva.");
       }
 
       if (!selectedPetIdRef.current) {
-        throw new Error("Choose a pet before continuing with the booking preview.");
+        throw new Error("Elige una mascota antes de continuar con la vista previa de la reserva.");
       }
 
       return runAction(
@@ -341,17 +341,17 @@ export function useBookingsWorkspace(
 
           return nextPreview;
         },
-        "Booking preview ready.",
+        "Vista previa de la reserva lista.",
         false
       );
     },
     async createBooking() {
       if (!activeSelectionRef.current) {
-        throw new Error("Select a marketplace service before creating a booking.");
+        throw new Error("Selecciona un servicio del marketplace antes de crear una reserva.");
       }
 
       if (!selectedHouseholdIdRef.current || !selectedPetIdRef.current) {
-        throw new Error("Household and pet are required to create a booking.");
+        throw new Error("Se requieren hogar y mascota para crear una reserva.");
       }
 
       return runAction(async () => {
@@ -383,11 +383,11 @@ export function useBookingsWorkspace(
 
         if (mountedRef.current) {
           setSelectedBookingDetail(detail);
-          setInfoMessage(`Booking detail loaded for ${detail.booking.serviceName}.`);
+          setInfoMessage(`Detalle de la reserva cargado para ${detail.booking.serviceName}.`);
         }
       } catch (error) {
         if (mountedRef.current) {
-          setErrorMessage(error instanceof Error ? error.message : "Unable to load the booking detail.");
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el detalle de la reserva.");
         }
       } finally {
         if (mountedRef.current) {
@@ -409,3 +409,5 @@ export function useBookingsWorkspace(
     refresh
   };
 }
+
+

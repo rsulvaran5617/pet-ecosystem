@@ -1,4 +1,4 @@
-import { calendarEventStatusLabels, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
+import { calendarEventStatusLabels, formatHouseholdPermissions, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { Reminder, Uuid } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
@@ -28,14 +28,14 @@ function toIsoDate(dateValue: string) {
   const [year, month, day] = dateValue.split("-").map(Number);
 
   if (!year || !month || !day) {
-    throw new Error("A valid due date is required.");
+    throw new Error("Se requiere una fecha valida.");
   }
 
   return new Date(Date.UTC(year, month - 1, day, 9, 0, 0)).toISOString();
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(value).toLocaleDateString("es-PA", {
     year: "numeric",
     month: "short",
     day: "numeric"
@@ -128,59 +128,59 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-04 / Reminders"
-        title="Calendar and reminder basics"
-        description="Manual reminders and vaccine-derived reminders only. Booking events remain explicitly deferred to EP-06."
+        eyebrow="EP-04 / Recordatorios"
+        title="Calendario y recordatorios basicos"
+        description="Solo recordatorios manuales y derivados de vacunas. Los eventos de reservas siguen diferidos hasta EP-06."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Loading reminders from Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando recordatorios desde Supabase...</Text> : null}
 
           {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
             <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
-              <Text style={{ color: colorTokens.muted }}>{household.memberCount} member(s) - {household.myPermissions.join(", ")}</Text>
+              <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
-          )) : <Text style={{ color: colorTokens.muted }}>Create a household first.</Text>}
+          )) : <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text>}
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Pet filter</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Filtro por mascota</Text>
             {selectedHousehold ? (
               <>
-                <Button label="All household reminders" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+                <Button label="Todos los recordatorios del hogar" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
                 {pets.length ? pets.map((pet) => (
                   <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={pet.id === selectedPetId ? "primary" : "secondary"} />
-                )) : <Text style={{ color: colorTokens.muted }}>No pets in this household yet.</Text>}
+                )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text>}
               </>
-            ) : <Text style={{ color: colorTokens.muted }}>Select a household first.</Text>}
+            ) : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Calendar snapshot</Text>
-            <Text style={{ color: colorTokens.muted }}>{selectedPetId ? petNameById.get(selectedPetId) ?? "Selected pet" : selectedHousehold?.name ?? "Household"}</Text>
-            <Text style={{ color: colorTokens.muted }}>Mode: {canEdit ? "editable" : "read-only"}</Text>
-            <Text style={{ color: colorTokens.muted }}>Pending: {pendingReminderCount}</Text>
-            <Text style={{ color: colorTokens.muted }}>Completed: {completedReminderCount}</Text>
-            <Text style={{ color: colorTokens.muted }}>From vaccines: {vaccineReminderCount}</Text>
-            <Text style={{ color: colorTokens.muted }}>Calendar events: {calendarEvents.length}</Text>
-            <Text style={{ color: colorTokens.muted }}>Booking-derived agenda events stay deferred until EP-06.</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Resumen del calendario</Text>
+            <Text style={{ color: colorTokens.muted }}>{selectedPetId ? petNameById.get(selectedPetId) ?? "Mascota seleccionada" : selectedHousehold?.name ?? "Hogar"}</Text>
+            <Text style={{ color: colorTokens.muted }}>Modo: {canEdit ? "editable" : "solo lectura"}</Text>
+            <Text style={{ color: colorTokens.muted }}>Pendientes: {pendingReminderCount}</Text>
+            <Text style={{ color: colorTokens.muted }}>Completados: {completedReminderCount}</Text>
+            <Text style={{ color: colorTokens.muted }}>Desde vacunas: {vaccineReminderCount}</Text>
+            <Text style={{ color: colorTokens.muted }}>Eventos del calendario: {calendarEvents.length}</Text>
+            <Text style={{ color: colorTokens.muted }}>Los eventos de agenda derivados de reservas siguen diferidos hasta EP-06.</Text>
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Create manual reminder</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Crear recordatorio manual</Text>
             {selectedHousehold ? canEdit ? (
               <>
-                <Field label="Reminder title" onChange={setTitle} value={title} />
+                <Field label="Titulo del recordatorio" onChange={setTitle} value={title} />
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  <Button label="Household-wide" onPress={() => setTargetPetId("")} tone={targetPetId === "" ? "primary" : "secondary"} />
+                  <Button label="Recordatorio para todo el hogar" onPress={() => setTargetPetId("")} tone={targetPetId === "" ? "primary" : "secondary"} />
                   {pets.map((pet) => (
                     <Button key={pet.id} label={pet.name} onPress={() => setTargetPetId(pet.id)} tone={targetPetId === pet.id ? "primary" : "secondary"} />
                   ))}
                 </View>
-                <Field label="Due date (YYYY-MM-DD)" onChange={setDueDate} value={dueDate} />
-                <Field label="Notes" multiline onChange={setNotes} value={notes} />
+                <Field label="Fecha de vencimiento (AAAA-MM-DD)" onChange={setDueDate} value={dueDate} />
+                <Field label="Notas" multiline onChange={setNotes} value={notes} />
                 <Button
                   disabled={isSubmitting}
-                  label="Save reminder"
+                  label="Guardar recordatorio"
                   onPress={() => {
                     clearMessages();
                     void runAction(
@@ -191,7 +191,7 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
                         dueAt: toIsoDate(dueDate),
                         notes: notes.trim() || null
                       }),
-                      "Reminder created."
+                      "Recordatorio creado."
                     ).then(() => {
                       setTitle("");
                       setDueDate("");
@@ -201,50 +201,50 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
                   }}
                 />
               </>
-            ) : <Text style={{ color: colorTokens.muted }}>Read-only household. You can inspect the calendar but not mutate reminders.</Text> : <Text style={{ color: colorTokens.muted }}>Select a household first.</Text>}
+            ) : <Text style={{ color: colorTokens.muted }}>Hogar en modo solo lectura. Puedes revisar el calendario, pero no modificar recordatorios.</Text> : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Reminders</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Recordatorios</Text>
             {reminders.length ? reminders.map((reminder) => (
               <View key={reminder.id} style={inputStyle}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>{reminder.title}</Text>
                 <Text style={{ color: colorTokens.muted }}>{reminderTypeLabels[reminder.reminderType]} - {reminderStatusLabels[reminder.status]}</Text>
                 <Text style={{ color: colorTokens.muted }}>
-                  Due: {formatDate(reminder.dueAt)}
-                  {reminder.petId ? ` - ${petNameById.get(reminder.petId) ?? "Pet reminder"}` : " - Household reminder"}
+                  Vence: {formatDate(reminder.dueAt)}
+                  {reminder.petId ? ` - ${petNameById.get(reminder.petId) ?? "Recordatorio de mascota"}` : " - Recordatorio del hogar"}
                 </Text>
-                <Text style={{ color: colorTokens.muted }}>{reminder.notes ?? "No notes yet."}</Text>
+                <Text style={{ color: colorTokens.muted }}>{reminder.notes ?? "Sin notas todavia."}</Text>
                 {canEdit ? (
                   <View style={{ gap: 8 }}>
                     {reminder.status !== "completed" ? (
                       <Button
                         disabled={isSubmitting}
-                        label="Complete"
+                        label="Completar"
                         onPress={() => {
                           clearMessages();
                           void runAction(
                             () => getMobileRemindersApiClient().completeReminder(reminder.id),
-                            "Reminder completed."
+                            "Recordatorio completado."
                           );
                         }}
                       />
                     ) : null}
                     <Field
-                      label="Snooze to (YYYY-MM-DD)"
+                      label="Posponer hasta (AAAA-MM-DD)"
                       onChange={(value) => setSnoozeDates((currentDates) => ({ ...currentDates, [reminder.id]: value }))}
                       value={snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder)}
                     />
                     <Button
                       disabled={isSubmitting}
-                      label="Snooze"
+                      label="Posponer"
                       onPress={() => {
                         clearMessages();
                         void runAction(
                           () => getMobileRemindersApiClient().snoozeReminder(reminder.id, {
                             dueAt: toIsoDate(snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder))
                           }),
-                          "Reminder snoozed."
+                          "Recordatorio pospuesto."
                         );
                       }}
                       tone="secondary"
@@ -252,18 +252,18 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
                   </View>
                 ) : null}
               </View>
-            )) : <Text style={{ color: colorTokens.muted }}>No reminders for this filter yet.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay recordatorios para este filtro.</Text>}
           </View>
 
           <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Calendar</Text>
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Calendario</Text>
             {calendarEvents.length ? calendarEvents.map((event) => (
               <View key={event.id} style={inputStyle}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>{event.title}</Text>
                 <Text style={{ color: colorTokens.muted }}>{formatDate(event.startsAt)}</Text>
                 <Text style={{ color: colorTokens.muted }}>{calendarEventStatusLabels[event.status]}</Text>
               </View>
-            )) : <Text style={{ color: colorTokens.muted }}>No calendar events for this filter yet.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay eventos de calendario para este filtro.</Text>}
           </View>
         </View>
       </CoreSectionCard>

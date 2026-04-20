@@ -9,11 +9,11 @@ import { getMobileHouseholdsApiClient } from "../../core/services/supabase-mobil
 import { useHouseholdsWorkspace } from "../hooks/useHouseholdsWorkspace";
 
 const householdPermissionOptions: Array<{ label: string; value: HouseholdPermission }> = [
-  { label: "View", value: "view" },
-  { label: "Edit", value: "edit" },
-  { label: "Book", value: "book" },
-  { label: "Pay", value: "pay" },
-  { label: "Admin", value: "admin" }
+  { label: "Ver", value: "view" },
+  { label: "Editar", value: "edit" },
+  { label: "Reservar", value: "book" },
+  { label: "Pagar", value: "pay" },
+  { label: "Administrar", value: "admin" }
 ];
 
 const inputStyle = {
@@ -161,14 +161,14 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
 
       <CoreSectionCard
         eyebrow="EP-02 / Households"
-        title="Create a household"
-        description="This MVP slice adds households, members, invitations and permissions without moving into pets yet."
+        title="Crear un hogar"
+        description="Este alcance del MVP agrega hogares, integrantes, invitaciones y permisos sin pasar todavia a mascotas."
       >
         <View style={{ gap: 12 }}>
-          <Field label="Household name" onChange={setCreateHouseholdName} value={createHouseholdName} />
+          <Field label="Nombre del hogar" onChange={setCreateHouseholdName} value={createHouseholdName} />
           <Button
             disabled={isSubmitting || isLoading}
-            label="Create household"
+            label="Crear hogar"
             onPress={() => {
               clearMessages();
               void runAction(
@@ -176,7 +176,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                   getMobileHouseholdsApiClient().createHousehold({
                     name: createHouseholdName.trim()
                   }),
-                "Household created."
+                "Hogar creado."
               ).then(() => {
                 setCreateHouseholdName("");
               });
@@ -187,8 +187,8 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
 
       <CoreSectionCard
         eyebrow="Incoming"
-        title="Pending invitations"
-        description="Invitations are actionable inside the app for existing users already present in core."
+        title="Invitaciones pendientes"
+        description="Las invitaciones se resuelven dentro de la app para usuarios existentes en core."
       >
         <View style={{ gap: 12 }}>
           {snapshot?.pendingInvitations.length ? (
@@ -198,27 +198,27 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                   <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{invitation.invitedEmail}</Text>
                   <StatusChip label={invitation.status} tone="pending" />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>Permissions: {invitation.permissions.join(", ")}</Text>
+                <Text style={{ color: colorTokens.muted }}>Permisos: {invitation.permissions.join(", ")}</Text>
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   <Button
                     disabled={isSubmitting}
-                    label="Accept"
+                    label="Aceptar"
                     onPress={() => {
                       clearMessages();
                       void runAction(
                         () => getMobileHouseholdsApiClient().acceptInvitation(invitation.id),
-                        "Invitation accepted."
+                        "Invitacion aceptada."
                       );
                     }}
                   />
                   <Button
                     disabled={isSubmitting}
-                    label="Reject"
+                    label="Rechazar"
                     onPress={() => {
                       clearMessages();
                       void runAction(
                         () => getMobileHouseholdsApiClient().rejectInvitation(invitation.id),
-                        "Invitation rejected."
+                        "Invitacion rechazada."
                       );
                     }}
                     tone="secondary"
@@ -227,7 +227,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
               </View>
             ))
           ) : (
-            <Text style={{ color: colorTokens.muted }}>No pending invitations for the current account.</Text>
+            <Text style={{ color: colorTokens.muted }}>No hay invitaciones pendientes para esta cuenta.</Text>
           )}
         </View>
       </CoreSectionCard>
@@ -238,7 +238,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
         description="This covers create, list, detail, members, invitations and per-member permissions."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Loading live household data from Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando datos del hogar desde Supabase...</Text> : null}
 
           {snapshot?.households.length ? (
             snapshot.households.map((household) => (
@@ -263,12 +263,12 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     tone={household.myPermissions.includes("admin") ? "active" : "neutral"}
                   />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>{household.memberCount} member(s)</Text>
-                <Text style={{ color: colorTokens.muted }}>{household.pendingInvitationCount} pending invitation(s)</Text>
+                <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s)</Text>
+                <Text style={{ color: colorTokens.muted }}>{household.pendingInvitationCount} invitacion(es) pendiente(s)</Text>
               </Pressable>
             ))
           ) : (
-            <Text style={{ color: colorTokens.muted }}>No households yet. Create the first one to begin.</Text>
+            <Text style={{ color: colorTokens.muted }}>Todavia no hay hogares. Crea el primero para empezar.</Text>
           )}
 
           {selectedHouseholdDetail ? (
@@ -281,12 +281,12 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                   <StatusChip label={canManageSelectedHousehold ? "admin access" : "member access"} tone={canManageSelectedHousehold ? "active" : "neutral"} />
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
-                  Your permissions: {selectedHouseholdDetail.household.myPermissions.join(", ")}
+                  Tus permisos: {selectedHouseholdDetail.household.myPermissions.join(", ")}
                 </Text>
               </View>
 
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Invite members</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Invitar integrantes</Text>
                 {canManageSelectedHousehold ? (
                   <>
                     <Field keyboardType="email-address" label="Member email" onChange={setInviteEmail} value={inviteEmail} />
@@ -313,7 +313,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                               email: inviteEmail.trim(),
                               permissions: invitePermissions
                             }),
-                          "Invitation saved."
+                          "Invitacion guardada."
                         ).then(() => {
                           setInviteEmail("");
                           setInvitePermissions(["view"]);
@@ -333,13 +333,13 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                       <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{invitation.invitedEmail}</Text>
                       <StatusChip label={invitation.status} tone="pending" />
                     </View>
-                    <Text style={{ color: colorTokens.muted }}>Permissions: {invitation.permissions.join(", ")}</Text>
+                    <Text style={{ color: colorTokens.muted }}>Permisos: {invitation.permissions.join(", ")}</Text>
                   </View>
                 ))}
               </View>
 
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Members</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Integrantes</Text>
                 {selectedHouseholdDetail.members.map((member) => {
                   const draftPermissions = memberPermissionDrafts[member.id] ?? member.permissions;
 
@@ -354,7 +354,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                         </View>
                         <StatusChip label={member.permissions.includes("admin") ? "admin" : "member"} tone={member.permissions.includes("admin") ? "active" : "neutral"} />
                       </View>
-                      <Text style={{ color: colorTokens.muted }}>Current: {member.permissions.join(", ")}</Text>
+                      <Text style={{ color: colorTokens.muted }}>Actuales: {member.permissions.join(", ")}</Text>
                       {householdPermissionOptions.map((permission) => (
                         <PermissionRow
                           key={`${member.id}-${permission.value}`}
@@ -371,7 +371,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                       {canManageSelectedHousehold ? (
                         <Button
                           disabled={isSubmitting}
-                          label="Save permissions"
+                          label="Guardar permisos"
                           onPress={() => {
                             clearMessages();
                             void runAction(
@@ -383,7 +383,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                                     permissions: memberPermissionDrafts[member.id] ?? member.permissions
                                   }
                                 ),
-                              `Permissions updated for ${member.profile?.email ?? "member"}.`
+                              `Permisos actualizados para ${member.profile?.email ?? "member"}.`
                             );
                           }}
                           tone="secondary"
@@ -400,3 +400,5 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
     </View>
   );
 }
+
+

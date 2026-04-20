@@ -418,7 +418,7 @@ export function createBookingsApiClient(supabase: BookingsSupabaseClient): Booki
       const { data, error } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
 
       if (error) {
-        fail(error, "Unable to load the booking detail.");
+        fail(error, "No fue posible cargar el detalle de la reserva.");
       }
 
       return buildBookingDetail(supabase, data);
