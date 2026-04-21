@@ -8,13 +8,23 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - no debe declararse `piloto controlado` por documentacion; solo despues de ejecutar esta matriz
 - la captura real de pagos no forma parte de este cierre; el release queda `payment-ready`
 - la smoke automatizada ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico
-- la UI principal fue localizada al espanol; QA/UAT debe confirmar que los flujos principales no muestran copy de producto en ingles
+- la UI principal fue localizada al espanol y esta incorporada en el baseline actual `8c5b7d3`
 - la validacion fisica iOS sigue fuera por entorno Apple
+
+## Estado operativo actual registrado
+
+| Area | Estado | Alcance | Nota |
+| --- | --- | --- | --- |
+| Git / baseline | `PASS` | `master` en `8c5b7d3`, limpio y sincronizado con `origin/master` | `v0.1.0-mvp-baseline.1` queda como tag previo en `ea573cd`; se recomienda tag nuevo para `8c5b7d3` |
+| `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline actual; no queda pendiente de commit |
+| QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
+| Android/mobile | `BLOCK` | `AND-01`, `AND-02`, `AND-03` | bloqueo de entorno tecnico local; no es `FAIL` funcional |
 
 ## Clasificacion de severidad
 - `critica_salida`: debe pasar antes de recomendar piloto controlado
 - `importante_no_bloqueante`: debe correrse y quedar con triage
 - `externa_entorno`: depende de dispositivo, mail delivery, Apple Developer Team u otros factores externos
+- `BLOCK` por entorno no equivale a `FAIL` funcional, pero impide aprobar piloto controlado mientras afecte casos `critica_salida`
 
 ## Criterios de salida
 - todas las pruebas `critica_salida` de `web`, `provider`, `admin` y `Android` deben quedar en `PASS`
@@ -140,6 +150,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 ## Decision operativa
 - `listo para QA/UAT` si la matriz ya puede ejecutarse sobre el baseline
 - `listo para piloto controlado` solo si toda la severidad `critica_salida` queda en `PASS`
+- estado actual: web manual `PASS`; Android/mobile `BLOCK` por entorno; piloto controlado `no aprobado`
 
 ## Criterio exacto de cierre
 - `QA/UAT final completado`:

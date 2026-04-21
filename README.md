@@ -29,8 +29,11 @@ Decisiones activas del release:
 - `approval_required` ya incluye recepcion provider-side y acciones `approve/reject`
 - existe trazabilidad minima en `audit_logs` para mutaciones criticas del MVP
 - la smoke canonica ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real
-- el baseline tecnico actual debe considerarse `listo para QA/UAT final`
-- no debe declararse `piloto controlado` hasta congelar este baseline en git y cerrar la matriz manual critica
+- la localizacion al espanol esta incorporada en el baseline operativo actual `8c5b7d3`
+- la QA/UAT manual web esta registrada como `PASS`
+- Android/mobile esta en `BLOCK` por entorno tecnico local, no por `FAIL` funcional
+- el baseline tecnico actual debe considerarse `listo para cierre de QA/UAT final`
+- no debe declararse `piloto controlado` hasta congelar `8c5b7d3` con tag propio, cerrar el bloqueo Android/mobile, y cerrar la matriz manual critica
 - clinic, commerce, pharmacy, finance, benefits y telecare siguen fuera del baseline
 
 ## Estructura

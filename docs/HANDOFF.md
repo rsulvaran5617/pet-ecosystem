@@ -1,44 +1,42 @@
 # HANDOFF.md
 
-## Fecha de pausa
-2026-04-19 20:10 -05:00
+## Fecha de alineacion
+2026-04-20 20:09 -05:00
 
 ## Objetivo de este handoff
-Dejar una referencia corta y operativa para retomar el MVP despues de apagar la maquina, sin depender del historial conversacional.
+Dejar una referencia corta y operativa para retomar el MVP sin depender del historial conversacional.
 
 ## Estado actual real
 - rama actual: `master`
-- `HEAD`: `ea573cd`
-- tag en `HEAD`: `v0.1.0-mvp-baseline.1`
+- `HEAD` actual: `8c5b7d3 docs(handoff): update project continuity before pause`
+- tag base anterior: `v0.1.0-mvp-baseline.1` apunta a `ea573cd`
+- descripcion actual: `v0.1.0-mvp-baseline.1-1-g8c5b7d3`
 - remoto configurado: `origin` -> `https://github.com/rsulvaran5617/pet-ecosystem.git`
 - relacion con `origin/master`: `0 ahead / 0 behind`
-- estado git: existen cambios no committeados de localizacion al espanol sobre el baseline congelado
-- servicio web local: `@pet/web` quedo levantado en `http://localhost:3000` con PID `13124`
-- al apagar la maquina, el servicio web se detendra y debera levantarse de nuevo
+- estado git: arbol limpio y sincronizado con `origin/master`
+- localizacion al espanol: incorporada en el estado actual de `master`
+- servicios locales: no asumir procesos vivos; levantar web/admin/mobile solo cuando se vaya a validar manualmente
 
 ## Estado actual del MVP
-- el MVP tecnico base sigue congelado en `v0.1.0-mvp-baseline.1`
-- Supabase remoto estaba sano y sin drift despues de aplicar la migracion pendiente
+- el baseline funcional del MVP sigue alineado con el alcance documentado
+- la localizacion al espanol ya forma parte del baseline operativo actual en `8c5b7d3`
+- la localizacion no cambio schema, migraciones, endpoints ni flujos funcionales
+- Supabase remoto estaba sano y sin drift despues de aplicar la migracion pendiente documentada
 - `approval_required` esta operativo contra backend real
 - `Core`, `Health` y `Reminders` quedaron en `PASS` dentro de la smoke canonica
-- la UI principal de `apps/web`, `apps/mobile` y `apps/admin` quedo localizada al espanol como idioma principal de mercado inicial
-- la localizacion no cambio schema, migraciones, endpoints ni flujos funcionales
-- el release sigue en estado `listo para QA/UAT final`
-- no declarar todavia `piloto controlado` hasta cerrar matriz manual critica
+- la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
+- Android/mobile queda en `BLOCK` por entorno tecnico local, no como `FAIL` funcional
+- el release sigue en estado `listo para QA/UAT final / cierre de evidencias`
+- no declarar todavia `piloto controlado` hasta resolver el `BLOCK` Android/mobile y congelar el baseline localizado con tag
 
-## Cambios pendientes de commit
-Los cambios no committeados corresponden a la pasada de localizacion:
-- `apps/web/src/features/*`
-- `apps/mobile/src/features/*`
-- `apps/admin/src/*`
-- `packages/config/src/*`
-- algunos mensajes visibles en `packages/api-client/src/*`
-- nuevos helpers: `packages/config/src/households.ts` y `packages/config/src/localization.ts`
-
-No hacer refactors ni features nuevas antes de decidir si estos cambios se congelan en un commit/tag propio.
+## Baseline y versionado
+- baseline tecnico congelado previo: `v0.1.0-mvp-baseline.1` en `ea573cd`
+- baseline localizado candidato actual: `8c5b7d3`
+- recomendacion: crear un tag nuevo para congelar `8c5b7d3` como baseline MVP localizado antes de cerrar QA/UAT final
+- nombre recomendado del tag: `v0.1.0-mvp-baseline-es.1`
 
 ## Pruebas ya ejecutadas en PASS
-Ultima corrida completa despues de la localizacion:
+Ultima corrida completa documentada despues de la localizacion:
 - `corepack pnpm typecheck` -> `PASS`
 - `npm run lint` -> `PASS`
 - `corepack pnpm --filter @pet/web build` -> `PASS`
@@ -49,34 +47,36 @@ Ultima corrida completa despues de la localizacion:
 - `npm run smoke:mvp:admin` -> `PASS`
 - `npm run smoke:mvp:providers` -> `PASS`
 - `npm run smoke:mvp:critical` -> `PASS`
+- QA/UAT manual web ejecutada por el usuario -> `PASS`
 
 Notas:
 - `web build` fallo una vez dentro del sandbox con `spawn EPERM`; al ejecutarlo fuera del sandbox paso correctamente.
 - despues de los exports se limpiaron artefactos: `.codex-tmp`, `supabase/.temp`, `apps/mobile/dist`, `apps/web/.next`, `apps/admin/.next`.
 
-## Pruebas pendientes
-- QA/UAT manual critica en `web`, `admin` y `Android`
-- verificacion visual de la localizacion en flujos principales
-- validacion Android real o emulador para `AND-01`, `AND-02`, `AND-03`
-- validacion externa de picker/documentos y recovery deep link si se decide cubrirla en esta ronda
-- decision de commit/tag para la capa de localizacion al espanol
+## Pendientes reales
+- resolver o cambiar de entorno para Android/mobile y ejecutar `AND-01`, `AND-02` y `AND-03`
+- registrar evidencia final de QA/UAT manual web ya pasada, si se requiere adjuntar capturas o videos al expediente
+- registrar o completar cualquier evidencia manual admin requerida por la matriz antes de declarar piloto controlado
+- triagear casos `importante_no_bloqueante` y `externa_entorno` si se incluyen en esta ronda
+- crear tag para congelar el baseline localizado `8c5b7d3`
 
 ## Items BLOCK por entorno
-- el servidor `@pet/web` no sobrevive al apagado de la maquina; debe levantarse de nuevo
-- `next dev` y `next build` pueden fallar en sandbox con `spawn EPERM`; si ocurre, ejecutar fuera del sandbox
-- `AND-*` requiere Android emulator o dispositivo real
+- `AND-*` requiere Android emulator o dispositivo real funcional; el bloqueo actual es tecnico/local, no funcional
 - `EXT-01` iOS fisico depende de entorno Apple
 - recovery deep link real depende de mail delivery, deep link y rate limits
+- `next dev` y `next build` pueden fallar en sandbox con `spawn EPERM`; si ocurre, ejecutar fuera del sandbox
 
 ## Decision actual de release readiness
-- baseline tecnico del MVP: `congelado` en `v0.1.0-mvp-baseline.1`
-- capa actual de localizacion al espanol: `validada tecnicamente`, pero `no committeada`
-- estado para QA/UAT final: `listo`
+- baseline tecnico anterior: `congelado` en `v0.1.0-mvp-baseline.1`
+- baseline localizado actual: `incorporado` en `8c5b7d3`, pendiente de tag propio
+- estado web manual: `PASS`
+- estado Android/mobile: `BLOCK por entorno`
+- estado para QA/UAT final: `listo para cierre de evidencias y validacion Android cuando el entorno este disponible`
 - estado para piloto controlado: `no aprobado todavia`
 - produccion comercial: `fuera de alcance actual`
 
 ## Siguiente paso recomendado exacto
-Al retomar, primero verificar que el arbol local siga igual y levantar el web. Luego decidir si se congela la localizacion en un commit/tag antes de ejecutar QA/UAT manual.
+Crear un tag para congelar `8c5b7d3` como baseline localizado. Despues, cerrar el frente Android/mobile resolviendo el entorno tecnico y ejecutando `AND-01`, `AND-02` y `AND-03` sin abrir features nuevas.
 
 ## Como retomar exactamente en la proxima sesion
 
@@ -85,66 +85,52 @@ Al retomar, primero verificar que el arbol local siga igual y levantar el web. L
 cd "c:\Users\Ramon Sulvaran\pet-ecosystem"
 ```
 
-### 2. Revisar rama, baseline y cambios pendientes
+### 2. Revisar rama, baseline y limpieza
 ```powershell
 git status -sb
 git log -1 --pretty=format:"%h %s"
-git tag --points-at HEAD
+git describe --tags --always --dirty
 ```
 
 Esperado:
 - rama `master`
-- `HEAD` en `ea573cd chore(release): freeze sanitized MVP baseline for QA/UAT`
-- tag `v0.1.0-mvp-baseline.1`
-- cambios no committeados de localizacion al espanol
+- `HEAD` en `8c5b7d3 docs(handoff): update project continuity before pause`
+- descripcion `v0.1.0-mvp-baseline.1-1-g8c5b7d3`
+- arbol limpio y sincronizado con `origin/master`
 
-### 3. Levantar servicios necesarios
+### 3. Congelar baseline localizado recomendado
+```powershell
+git tag v0.1.0-mvp-baseline-es.1 8c5b7d3
+```
+
+### 4. Levantar servicios solo si se va a validar manualmente
 Web:
 ```powershell
 corepack pnpm --filter @pet/web dev
 ```
 
-Admin si se va a validar manualmente:
+Admin:
 ```powershell
 corepack pnpm --filter @pet/admin dev
 ```
 
-Mobile Android si se va a validar manualmente:
+Mobile Android:
 ```powershell
 corepack pnpm --filter @pet/mobile dev
 ```
 
-### 4. Verificar que web responde
-```powershell
-Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing
-```
-
-Esperado:
-- status `200`
-
-### 5. Revalidacion rapida recomendada antes de QA/UAT manual
+### 5. Revalidacion rapida recomendada antes de cerrar QA/UAT
 ```powershell
 corepack pnpm typecheck
 npm run lint
 npm run smoke:mvp
-```
-
-Si se va a congelar la localizacion, correr tambien:
-```powershell
-corepack pnpm --filter @pet/web build
-corepack pnpm --filter @pet/admin build
-npx expo export --platform android
-```
-
-### 6. Siguiente prompt recomendado
-```text
-Continua desde el handoff actual. Primero revisa git status y confirma que estamos en master, HEAD ea573cd con tag v0.1.0-mvp-baseline.1 y cambios no committeados de localizacion al espanol. No abras features nuevas. Verifica rapidamente typecheck/lint/smoke:mvp, levanta web/admin/mobile si hace falta, y ayudame a decidir si congelamos la localizacion en un commit/tag antes de ejecutar la matriz manual QA/UAT critica.
+npm run smoke:mvp:critical
 ```
 
 ## Riesgos abiertos reales
-- la localizacion esta validada pero aun no versionada
-- QA/UAT manual critica sigue pendiente
+- Android/mobile sigue bloqueado por entorno tecnico local
+- el baseline localizado esta incorporado en `master`, pero aun no tiene tag propio
 - algunas cadenas tecnicas provenientes de Supabase/RPC o datos QA pueden seguir en ingles; no se tradujeron para no tocar contratos ni base de datos
 - `payments` sigue en modo `payment-ready`, sin captura real
 - `support_cases` sigue limitado a un caso por booking
-- el piloto controlado sigue bloqueado hasta que la matriz critica manual quede en `PASS`
+- el piloto controlado sigue bloqueado hasta que la matriz critica aplicable quede en `PASS`

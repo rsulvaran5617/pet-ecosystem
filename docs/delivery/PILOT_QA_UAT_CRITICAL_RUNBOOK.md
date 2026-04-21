@@ -8,6 +8,17 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 - no abre features nuevas
 - no cubre pagos reales
 
+## Estado operativo actual
+
+| Area | Estado | Nota |
+| --- | --- | --- |
+| Git / baseline | `PASS` | `master` limpio en `8c5b7d3`, sincronizado con `origin/master` |
+| `localization_es` | `PASS` | incorporada en `8c5b7d3`; ya no queda pendiente de commit |
+| Web manual | `PASS` | validacion manual ejecutada por el usuario y reportada como funcional correctamente |
+| Android/mobile | `BLOCK` | bloqueo de entorno tecnico local para `AND-01`, `AND-02` y `AND-03`; no es `FAIL` funcional |
+
+Decision operativa actual: no declarar `piloto controlado` mientras Android/mobile permanezca en `BLOCK` y mientras `8c5b7d3` no tenga tag propio de baseline localizado.
+
 ## Casos criticos incluidos
 
 | ID | Modulo | Canal | Puede automatizar el agent hoy | Requiere UI/dispositivo real |
@@ -36,6 +47,7 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 - provider pendiente con documentos o capacidad de generarlo
 - capacidad de provision temporal de rol `admin` si el usuario QA admin no lo tiene persistido
 - copy esperado en flujos MVP: espanol como idioma principal; registrar cualquier texto visible en ingles como hallazgo de localizacion
+- para el estado actual, el preflight Android/mobile esta bloqueado por entorno tecnico local
 
 ## Comando canonico para smoke automatizable
 - `corepack pnpm smoke:mvp:critical`
@@ -52,21 +64,13 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
   - `QA_ADMIN_EMAIL` / `QA_ADMIN_PASSWORD`
 
 ## Secuencia recomendada
-1. `ADM-01`
-2. `ADM-02`
-3. `WEB-01`
-4. `WEB-02`
-5. `WEB-03`
-6. `WEB-06`
-7. `WEB-07`
-8. `PRO-01`
-9. `WEB-08`
-10. `WEB-09`
-11. `WEB-10`
-12. `ADM-04`
-13. `AND-01`
-14. `AND-02`
-15. `AND-03`
+1. confirmar tag del baseline localizado `8c5b7d3`
+2. adjuntar o referenciar evidencia de web manual `PASS`, si se requiere para auditoria
+3. ejecutar o registrar evidencia admin critica si aun no esta formalizada
+4. resolver entorno Android/mobile
+5. ejecutar `AND-01`
+6. ejecutar `AND-02`
+7. ejecutar `AND-03`
 
 ## Registro minimo por caso
 
@@ -91,6 +95,7 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 - marcar `QA/UAT final completado` solo cuando todos los casos `critica_salida` esten en `PASS`
 - marcar `piloto controlado aprobado` solo cuando ademas exista commit/tag del baseline y triage explicito de pendientes no bloqueantes
 - marcar `piloto controlado no aprobado` si algun caso `critica_salida` queda en `FAIL` o `BLOCK`
+- registrar Android/mobile como `BLOCK` por entorno mientras no exista emulador o dispositivo funcional; no registrarlo como `FAIL` funcional sin evidencia de defecto de producto
 
 ## Nota de decision
 No declarar `piloto controlado` mientras algun caso `critica_salida` permanezca en `fail` o `block`.
