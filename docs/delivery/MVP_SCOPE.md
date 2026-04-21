@@ -101,7 +101,9 @@ Este cierre queda en modo `payment-ready`:
 
 Con este alcance cerrado, la meta inmediata es `listo para QA/UAT`.
 La smoke canonica ya valida `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real.
-El baseline operativo actual es `8c5b7d3`, con localizacion al espanol incorporada.
+La smoke automatizada documentada esta en `PASS`.
+El baseline localizado actual esta publicado como `v0.1.0-mvp-baseline-es.1` en `6e984eb`.
 La QA/UAT manual web esta registrada como `PASS`.
 Android/mobile queda en `BLOCK` por entorno tecnico local, no como `FAIL` funcional.
-No debe declararse `piloto controlado` hasta completar validaciones funcionales finales, resolver los bloqueos de entorno, y congelar el baseline localizado con tag propio.
+Piloto controlado: `no aprobado todavia`.
+No debe declararse `piloto controlado` hasta completar validaciones funcionales finales y resolver los bloqueos de entorno.

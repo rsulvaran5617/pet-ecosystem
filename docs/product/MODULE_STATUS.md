@@ -37,8 +37,9 @@
 
 - pagos solo en modo `payment-ready`
 - la smoke canonica `full` ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre Supabase real
-- la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol, validada con lint/typecheck/build/export/smoke e incorporada en `master` en `8c5b7d3`
-- la localizacion al espanol ya no esta pendiente de commit, pero si queda recomendado congelarla con tag propio
+- smoke automatizada documentada en `PASS`
+- la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol, validada con lint/typecheck/build/export/smoke e incorporada en el baseline publicado `v0.1.0-mvp-baseline-es.1`
+- la localizacion al espanol ya no esta pendiente de commit ni de tag
 - la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
 - Android/mobile sigue pendiente por `BLOCK` de entorno tecnico local, no por `FAIL` funcional
 - la smoke automatizada sigue siendo parcial respecto del MVP completo porque aun faltan escenarios manuales de canales mobile/admin end-to-end o su evidencia formal
@@ -48,5 +49,5 @@
 
 - estado recomendado hoy: `listo para cierre de QA/UAT`, con web manual en `PASS` y Android/mobile en `BLOCK` por entorno
 - baseline tecnico congelado en `v0.1.0-mvp-baseline.1`
-- baseline localizado actual incorporado en `8c5b7d3`, pendiente de tag propio
-- no recomendar aun `piloto controlado` mientras Android/mobile siga en `BLOCK` o sin tag del baseline localizado
+- baseline localizado actual publicado en `v0.1.0-mvp-baseline-es.1` sobre `6e984eb`
+- no recomendar aun `piloto controlado` mientras Android/mobile siga en `BLOCK` o falte cerrar evidencia critica aplicable

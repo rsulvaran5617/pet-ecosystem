@@ -12,12 +12,13 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 
 | Area | Estado | Nota |
 | --- | --- | --- |
-| Git / baseline | `PASS` | `master` limpio en `8c5b7d3`, sincronizado con `origin/master` |
-| `localization_es` | `PASS` | incorporada en `8c5b7d3`; ya no queda pendiente de commit |
+| Git / baseline | `PASS` | baseline de release publicado en `6e984eb`; tag remoto `v0.1.0-mvp-baseline-es.1` apunta al mismo commit |
+| Smoke automatizada | `PASS` | evidencia documentada de typecheck, lint, build/export y smoke MVP |
+| `localization_es` | `PASS` | incorporada en el baseline publicado; ya no queda pendiente de commit ni tag |
 | Web manual | `PASS` | validacion manual ejecutada por el usuario y reportada como funcional correctamente |
 | Android/mobile | `BLOCK` | bloqueo de entorno tecnico local para `AND-01`, `AND-02` y `AND-03`; no es `FAIL` funcional |
 
-Decision operativa actual: no declarar `piloto controlado` mientras Android/mobile permanezca en `BLOCK` y mientras `8c5b7d3` no tenga tag propio de baseline localizado.
+Decision operativa actual: no declarar `piloto controlado` mientras Android/mobile permanezca en `BLOCK` o falte cerrar evidencia critica aplicable.
 
 ## Casos criticos incluidos
 
@@ -64,7 +65,7 @@ Decision operativa actual: no declarar `piloto controlado` mientras Android/mobi
   - `QA_ADMIN_EMAIL` / `QA_ADMIN_PASSWORD`
 
 ## Secuencia recomendada
-1. confirmar tag del baseline localizado `8c5b7d3`
+1. usar `v0.1.0-mvp-baseline-es.1` como baseline publicado de referencia
 2. adjuntar o referenciar evidencia de web manual `PASS`, si se requiere para auditoria
 3. ejecutar o registrar evidencia admin critica si aun no esta formalizada
 4. resolver entorno Android/mobile
