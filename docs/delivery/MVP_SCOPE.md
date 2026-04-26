@@ -99,11 +99,12 @@ Este cierre queda en modo `payment-ready`:
 
 ## Estado recomendado de release
 
-Con este alcance cerrado, la meta inmediata es `listo para QA/UAT`.
+Con este alcance cerrado, el estado actual es `QA/UAT final completada`.
 La smoke canonica ya valida `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real.
 La smoke automatizada documentada esta en `PASS`.
 El baseline localizado actual esta publicado como `v0.1.0-mvp-baseline-es.1` en `6e984eb`.
 La QA/UAT manual web esta registrada como `PASS`.
-Android/mobile queda en `BLOCK` por entorno tecnico local, no como `FAIL` funcional.
-Piloto controlado: `no aprobado todavia`.
-No debe declararse `piloto controlado` hasta completar validaciones funcionales finales y resolver los bloqueos de entorno.
+Android/mobile esta registrado como `PASS` para `AND-01`, `AND-02` y `AND-03`.
+Ya no existe bloqueo activo de Android/mobile por entorno.
+Piloto controlado: `aprobado`.
+Produccion comercial sigue fuera de alcance actual.

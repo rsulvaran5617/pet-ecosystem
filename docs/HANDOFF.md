@@ -1,7 +1,7 @@
 # HANDOFF.md
 
 ## Fecha de publicacion documentada
-2026-04-20
+2026-04-26
 
 ## Objetivo de este handoff
 Dejar una referencia corta y operativa para retomar el MVP sin depender del historial conversacional.
@@ -26,9 +26,10 @@ Dejar una referencia corta y operativa para retomar el MVP sin depender del hist
 - smoke automatizada documentada en `PASS`
 - `Core`, `Health` y `Reminders` quedaron en `PASS` dentro de la smoke canonica
 - la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
-- Android/mobile queda en `BLOCK` por entorno tecnico local, no como `FAIL` funcional
-- el release sigue en estado `listo para QA/UAT final / cierre de evidencias`
-- piloto controlado: `no aprobado todavia` mientras Android/mobile siga en `BLOCK` o falte cerrar evidencia critica aplicable
+- Android/mobile fue ejecutado manualmente y queda registrado como `PASS`
+- ya no existe bloqueo activo de Android/mobile por entorno
+- el release queda en estado `QA/UAT final completada`
+- piloto controlado: `aprobado` sobre el baseline localizado publicado, sin abrir features nuevas
 
 ## Baseline y versionado
 - baseline tecnico congelado previo: `v0.1.0-mvp-baseline.1` en `ea573cd`
@@ -49,19 +50,20 @@ Ultima corrida completa documentada despues de la localizacion:
 - `npm run smoke:mvp:providers` -> `PASS`
 - `npm run smoke:mvp:critical` -> `PASS`
 - QA/UAT manual web ejecutada por el usuario -> `PASS`
+- QA/UAT manual Android `AND-01` -> `PASS`
+- QA/UAT manual Android `AND-02` -> `PASS`
+- QA/UAT manual Android `AND-03` -> `PASS`
 
 Notas:
 - `web build` fallo una vez dentro del sandbox con `spawn EPERM`; al ejecutarlo fuera del sandbox paso correctamente.
 - despues de los exports se limpiaron artefactos: `.codex-tmp`, `supabase/.temp`, `apps/mobile/dist`, `apps/web/.next`, `apps/admin/.next`.
 
-## Pendientes reales
-- resolver o cambiar de entorno para Android/mobile y ejecutar `AND-01`, `AND-02` y `AND-03`
-- registrar evidencia final de QA/UAT manual web ya pasada, si se requiere adjuntar capturas o videos al expediente
-- registrar o completar cualquier evidencia manual admin requerida por la matriz antes de declarar piloto controlado
-- triagear casos `importante_no_bloqueante` y `externa_entorno` si se incluyen en esta ronda
+## Pendientes reales no bloqueantes
+- adjuntar o referenciar evidencia final de QA/UAT manual web y Android si se requiere para auditoria
+- conservar triage de casos `importante_no_bloqueante` y `externa_entorno` fuera del bloqueo de salida
+- preparar el paquete operativo del piloto controlado sin cambiar alcance funcional
 
 ## Items BLOCK por entorno
-- `AND-*` requiere Android emulator o dispositivo real funcional; el bloqueo actual es tecnico/local, no funcional
 - `EXT-01` iOS fisico depende de entorno Apple
 - recovery deep link real depende de mail delivery, deep link y rate limits
 - `next dev` y `next build` pueden fallar en sandbox con `spawn EPERM`; si ocurre, ejecutar fuera del sandbox
@@ -71,13 +73,14 @@ Notas:
 - baseline localizado actual: `publicado` en `v0.1.0-mvp-baseline-es.1`
 - estado smoke automatizada: `PASS`
 - estado web manual: `PASS`
-- estado Android/mobile: `BLOCK por entorno`
-- estado para QA/UAT final: `listo para cierre de evidencias y validacion Android cuando el entorno este disponible`
-- estado para piloto controlado: `no aprobado todavia`
+- estado Android/mobile: `PASS`
+- bloqueo activo Android/mobile por entorno: `no`
+- estado para QA/UAT final: `completada`
+- estado para piloto controlado: `aprobado`
 - produccion comercial: `fuera de alcance actual`
 
 ## Siguiente paso recomendado exacto
-Cerrar el frente Android/mobile resolviendo el entorno tecnico y ejecutando `AND-01`, `AND-02` y `AND-03` sin abrir features nuevas. En paralelo, adjuntar o referenciar evidencia web/admin ya ejecutada si se requiere para auditoria.
+Preparar el paquete operativo del piloto controlado sobre el baseline localizado publicado, adjuntando o referenciando la evidencia manual ya ejecutada sin abrir features nuevas.
 
 ## Como retomar exactamente en la proxima sesion
 
@@ -121,7 +124,7 @@ Mobile Android:
 corepack pnpm --filter @pet/mobile dev
 ```
 
-### 5. Revalidacion rapida recomendada antes de cerrar QA/UAT
+### 5. Revalidacion rapida recomendada si se reabre el baseline
 ```powershell
 corepack pnpm typecheck
 npm run lint
@@ -130,8 +133,7 @@ npm run smoke:mvp:critical
 ```
 
 ## Riesgos abiertos reales
-- Android/mobile sigue bloqueado por entorno tecnico local
 - algunas cadenas tecnicas provenientes de Supabase/RPC o datos QA pueden seguir en ingles; no se tradujeron para no tocar contratos ni base de datos
 - `payments` sigue en modo `payment-ready`, sin captura real
 - `support_cases` sigue limitado a un caso por booking
-- el piloto controlado sigue bloqueado hasta que la matriz critica aplicable quede en `PASS`
+- pendientes externos como iOS fisico, recovery real y picker fisico siguen fuera del bloqueo de piloto mientras no sean criterio de salida MVP

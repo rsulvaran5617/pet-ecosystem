@@ -31,9 +31,10 @@ Decisiones activas del release:
 - la smoke canonica ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real
 - la localizacion al espanol esta incorporada en el baseline operativo actual `8c5b7d3`
 - la QA/UAT manual web esta registrada como `PASS`
-- Android/mobile esta en `BLOCK` por entorno tecnico local, no por `FAIL` funcional
-- el baseline tecnico actual debe considerarse `listo para cierre de QA/UAT final`
-- no debe declararse `piloto controlado` hasta congelar `8c5b7d3` con tag propio, cerrar el bloqueo Android/mobile, y cerrar la matriz manual critica
+- Android/mobile esta registrado como `PASS` para `AND-01`, `AND-02` y `AND-03`
+- ya no existe bloqueo activo de Android/mobile por entorno
+- el baseline tecnico actual debe considerarse con `QA/UAT final completada`
+- piloto controlado aprobado sobre el baseline localizado publicado
 - clinic, commerce, pharmacy, finance, benefits y telecare siguen fuera del baseline
 
 ## Estructura

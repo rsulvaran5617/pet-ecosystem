@@ -16,9 +16,10 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 | Smoke automatizada | `PASS` | evidencia documentada de typecheck, lint, build/export y smoke MVP |
 | `localization_es` | `PASS` | incorporada en el baseline publicado; ya no queda pendiente de commit ni tag |
 | Web manual | `PASS` | validacion manual ejecutada por el usuario y reportada como funcional correctamente |
-| Android/mobile | `BLOCK` | bloqueo de entorno tecnico local para `AND-01`, `AND-02` y `AND-03`; no es `FAIL` funcional |
+| Admin/provider critico | `PASS` | cubierto por smoke automatizada documentada y validaciones web aplicables |
+| Android/mobile | `PASS` | `AND-01`, `AND-02` y `AND-03` ejecutados manualmente; ya no existe bloqueo activo de entorno |
 
-Decision operativa actual: no declarar `piloto controlado` mientras Android/mobile permanezca en `BLOCK` o falte cerrar evidencia critica aplicable.
+Decision operativa actual: declarar `QA/UAT final completada` y `piloto controlado aprobado` sobre el baseline localizado publicado.
 
 ## Casos criticos incluidos
 
@@ -44,11 +45,11 @@ Decision operativa actual: no declarar `piloto controlado` mientras Android/mobi
 - build de referencia identificado para `web`, `admin` y `Android`
 - variables de entorno validas de Supabase en `web`, `mobile` y `admin`
 - actores QA disponibles: owner, member, provider y admin
-- Android emulator o dispositivo disponible para `AND-*`
+- Android emulator o dispositivo usado para ejecutar `AND-01`, `AND-02` y `AND-03`
 - provider pendiente con documentos o capacidad de generarlo
 - capacidad de provision temporal de rol `admin` si el usuario QA admin no lo tiene persistido
 - copy esperado en flujos MVP: espanol como idioma principal; registrar cualquier texto visible en ingles como hallazgo de localizacion
-- para el estado actual, el preflight Android/mobile esta bloqueado por entorno tecnico local
+- para el estado actual, el preflight Android/mobile ya no esta bloqueado por entorno tecnico local
 
 ## Comando canonico para smoke automatizable
 - `corepack pnpm smoke:mvp:critical`
@@ -67,11 +68,8 @@ Decision operativa actual: no declarar `piloto controlado` mientras Android/mobi
 ## Secuencia recomendada
 1. usar `v0.1.0-mvp-baseline-es.1` como baseline publicado de referencia
 2. adjuntar o referenciar evidencia de web manual `PASS`, si se requiere para auditoria
-3. ejecutar o registrar evidencia admin critica si aun no esta formalizada
-4. resolver entorno Android/mobile
-5. ejecutar `AND-01`
-6. ejecutar `AND-02`
-7. ejecutar `AND-03`
+3. adjuntar o referenciar evidencia Android `AND-01`, `AND-02` y `AND-03`, si se requiere para auditoria
+4. conservar pendientes no bloqueantes como follow-up operativo
 
 ## Registro minimo por caso
 
@@ -96,7 +94,7 @@ Decision operativa actual: no declarar `piloto controlado` mientras Android/mobi
 - marcar `QA/UAT final completado` solo cuando todos los casos `critica_salida` esten en `PASS`
 - marcar `piloto controlado aprobado` solo cuando ademas exista commit/tag del baseline y triage explicito de pendientes no bloqueantes
 - marcar `piloto controlado no aprobado` si algun caso `critica_salida` queda en `FAIL` o `BLOCK`
-- registrar Android/mobile como `BLOCK` por entorno mientras no exista emulador o dispositivo funcional; no registrarlo como `FAIL` funcional sin evidencia de defecto de producto
+- registrar Android/mobile como `PASS` en este cierre porque `AND-01`, `AND-02` y `AND-03` fueron ejecutados manualmente
 
 ## Nota de decision
-No declarar `piloto controlado` mientras algun caso `critica_salida` permanezca en `fail` o `block`.
+No queda ningun caso `critica_salida` reportado en `fail` o `block`; el piloto controlado queda aprobado.

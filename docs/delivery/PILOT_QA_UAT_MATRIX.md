@@ -4,8 +4,8 @@
 Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para decidir si la version queda lista para piloto controlado sobre `web + Android`.
 
 ## Estado base asumido
-- el baseline actual apunta a `QA/UAT`
-- no debe declararse `piloto controlado` por documentacion; solo despues de ejecutar esta matriz
+- el baseline actual queda con `QA/UAT final completada`
+- el piloto controlado queda aprobado despues de ejecutar la matriz critica aplicable
 - la captura real de pagos no forma parte de este cierre; el release queda `payment-ready`
 - la smoke automatizada ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico
 - la smoke automatizada documentada esta en `PASS`
@@ -20,13 +20,23 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 | Smoke automatizada | `PASS` | typecheck, lint, builds, exports y smoke MVP documentada | no inventa nueva corrida; registra la evidencia ya documentada |
 | `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline publicado; no queda pendiente de commit ni tag |
 | QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
-| Android/mobile | `BLOCK` | `AND-01`, `AND-02`, `AND-03` | bloqueo de entorno tecnico local; no es `FAIL` funcional |
+| Android/mobile | `PASS` | `AND-01`, `AND-02`, `AND-03` | validaciones manuales Android ejecutadas; ya no existe bloqueo activo de entorno |
+
+## Resultados manuales finales registrados
+
+| ID | Canal | Estado | Nota |
+| --- | --- | --- | --- |
+| WEB manual | web | `PASS` | pruebas manuales web ejecutadas y funcionales correctamente |
+| Admin/provider critico | admin/web | `PASS` | cubierto por smoke automatizada documentada y validaciones web aplicables |
+| AND-01 | Android/mobile | `PASS` | core auth y sesion persistida ejecutado manualmente |
+| AND-02 | Android/mobile | `PASS` | marketplace y bookings ejecutado manualmente |
+| AND-03 | Android/mobile | `PASS` | messaging sobre booking ejecutado manualmente |
 
 ## Clasificacion de severidad
 - `critica_salida`: debe pasar antes de recomendar piloto controlado
 - `importante_no_bloqueante`: debe correrse y quedar con triage
 - `externa_entorno`: depende de dispositivo, mail delivery, Apple Developer Team u otros factores externos
-- `BLOCK` por entorno no equivale a `FAIL` funcional, pero impide aprobar piloto controlado mientras afecte casos `critica_salida`
+- `BLOCK` por entorno no equivale a `FAIL` funcional, pero impediria aprobar piloto controlado si afectara casos `critica_salida`; no existe bloqueo activo Android en este cierre
 
 ## Criterios de salida
 - todas las pruebas `critica_salida` de `web`, `provider`, `admin` y `Android` deben quedar en `PASS`
@@ -113,7 +123,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - variables QA cargadas para owner, member, provider y admin
 - provider aprobado y publico disponible para discovery
 - al menos un provider pendiente separado para probar `ADM-02` y `ADM-03` sin contaminar el mismo caso
-- Android emulator o dispositivo listo para `AND-*`
+- Android emulator o dispositivo usado para ejecutar `AND-01`, `AND-02` y `AND-03`
 - carpeta de artefactos o evidencia definida para capturas y videos cortos
 - idioma esperado de la experiencia: espanol como idioma principal; registrar cualquier texto visible en ingles que aparezca en flujos MVP
 
@@ -152,7 +162,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 ## Decision operativa
 - `listo para QA/UAT` si la matriz ya puede ejecutarse sobre el baseline
 - `listo para piloto controlado` solo si toda la severidad `critica_salida` queda en `PASS`
-- estado actual: baseline localizado publicado, smoke automatizada `PASS`, web manual `PASS`, Android/mobile `BLOCK` por entorno; piloto controlado `no aprobado`
+- estado actual: baseline localizado publicado, smoke automatizada `PASS`, web manual `PASS`, Android/mobile `PASS`; QA/UAT final `completada`; piloto controlado `aprobado`
 
 ## Criterio exacto de cierre
 - `QA/UAT final completado`:
@@ -169,3 +179,9 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
   - cualquier caso `critica_salida` en `FAIL` o `BLOCK`
   - ausencia de baseline versionado
   - falta de actores, entorno o evidencia suficiente para cerrar la corrida
+
+## Decision final registrada
+
+- `QA/UAT final completada`: `si`
+- `piloto controlado aprobado`: `si`
+- pendientes restantes: `no bloqueantes`
