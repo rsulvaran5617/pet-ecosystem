@@ -8,12 +8,14 @@ Dejar una referencia corta y operativa para retomar el MVP sin depender del hist
 
 ## Estado actual real
 - rama actual: `master`
-- baseline de release publicado: `6e984eb docs(release): align QA/UAT localized baseline readiness`
-- `origin/master` publicado al cierre del baseline: `6e984eb`
+- baseline localizado publicado: `6e984eb docs(release): align QA/UAT localized baseline readiness`
+- cierre documental QA/UAT publicado: `0432b7c docs(release): close MVP QA UAT for controlled pilot`
+- HEAD operativo publicado actual: `57767b7 fix(mobile): define Android splash background color`
+- `origin/master` publicado al cierre de fase: `57767b7`
 - tag base anterior: `v0.1.0-mvp-baseline.1` apunta a `ea573cd`
 - tag localizado publicado: `v0.1.0-mvp-baseline-es.1` apunta a `6e984eb896510f4d98cd0031769037edf8b7d663`
 - remoto configurado: `origin` -> `https://github.com/rsulvaran5617/pet-ecosystem.git`
-- estado git esperado tras este ajuste documental: arbol limpio; la rama local puede quedar ahead hasta publicar este commit documental
+- estado git esperado: arbol limpio y `master` alineado con `origin/master`
 - localizacion al espanol: incorporada y publicada en el baseline localizado actual
 - servicios locales: no asumir procesos vivos; levantar web/admin/mobile solo cuando se vaya a validar manualmente
 
@@ -30,11 +32,14 @@ Dejar una referencia corta y operativa para retomar el MVP sin depender del hist
 - ya no existe bloqueo activo de Android/mobile por entorno
 - el release queda en estado `QA/UAT final completada`
 - piloto controlado: `aprobado` sobre el baseline localizado publicado, sin abrir features nuevas
+- fase actual del proyecto: `cerrada formalmente`
 
 ## Baseline y versionado
 - baseline tecnico congelado previo: `v0.1.0-mvp-baseline.1` en `ea573cd`
 - baseline localizado publicado: `v0.1.0-mvp-baseline-es.1` en `6e984eb`
-- rama publicada: `origin/master` en `6e984eb`
+- rama publicada: `origin/master` en `57767b7`
+- commit de cierre documental QA/UAT: `0432b7c`
+- commit de fix Android splash background: `57767b7`
 - no queda pendiente crear tag nuevo para este baseline
 
 ## Pruebas ya ejecutadas en PASS
@@ -63,6 +68,12 @@ Notas:
 - conservar triage de casos `importante_no_bloqueante` y `externa_entorno` fuera del bloqueo de salida
 - preparar el paquete operativo del piloto controlado sin cambiar alcance funcional
 
+## Fuera de alcance todavia
+- produccion comercial general
+- pagos reales, refunds, chargebacks, conciliacion y payouts
+- clinic, commerce, pharmacy, finance, benefits y telecare
+- dashboards avanzados, disputes, reschedule / rebook y checkout con cobro real
+
 ## Items BLOCK por entorno
 - `EXT-01` iOS fisico depende de entorno Apple
 - recovery deep link real depende de mail delivery, deep link y rate limits
@@ -77,6 +88,7 @@ Notas:
 - bloqueo activo Android/mobile por entorno: `no`
 - estado para QA/UAT final: `completada`
 - estado para piloto controlado: `aprobado`
+- fase actual del proyecto: `cerrada`
 - produccion comercial: `fuera de alcance actual`
 
 ## Siguiente paso recomendado exacto
@@ -100,6 +112,7 @@ Esperado:
 - rama `master`
 - tag `v0.1.0-mvp-baseline-es.1` publicado en `origin`
 - baseline de release publicado en `6e984eb`
+- HEAD operativo publicado en `57767b7` o posterior si existe un commit documental de cierre
 - arbol limpio
 
 ### 3. Verificar baseline localizado publicado

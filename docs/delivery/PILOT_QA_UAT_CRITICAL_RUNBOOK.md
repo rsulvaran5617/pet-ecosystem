@@ -12,7 +12,7 @@ Ejecutar la parte `critica_salida` de `docs/delivery/PILOT_QA_UAT_MATRIX.md` com
 
 | Area | Estado | Nota |
 | --- | --- | --- |
-| Git / baseline | `PASS` | baseline de release publicado en `6e984eb`; tag remoto `v0.1.0-mvp-baseline-es.1` apunta al mismo commit |
+| Git / baseline | `PASS` | baseline localizado publicado en `6e984eb`; tag remoto `v0.1.0-mvp-baseline-es.1` apunta al mismo commit; HEAD operativo publicado en `57767b7` |
 | Smoke automatizada | `PASS` | evidencia documentada de typecheck, lint, build/export y smoke MVP |
 | `localization_es` | `PASS` | incorporada en el baseline publicado; ya no queda pendiente de commit ni tag |
 | Web manual | `PASS` | validacion manual ejecutada por el usuario y reportada como funcional correctamente |
@@ -98,3 +98,4 @@ Decision operativa actual: declarar `QA/UAT final completada` y `piloto controla
 
 ## Nota de decision
 No queda ningun caso `critica_salida` reportado en `fail` o `block`; el piloto controlado queda aprobado.
+La fase actual del proyecto queda cerrada formalmente; los pendientes restantes son no bloqueantes y no habilitan nuevas features por si solos.

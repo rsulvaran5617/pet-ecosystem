@@ -103,8 +103,10 @@ Con este alcance cerrado, el estado actual es `QA/UAT final completada`.
 La smoke canonica ya valida `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real.
 La smoke automatizada documentada esta en `PASS`.
 El baseline localizado actual esta publicado como `v0.1.0-mvp-baseline-es.1` en `6e984eb`.
+El HEAD operativo publicado de cierre de fase esta en `57767b7`.
 La QA/UAT manual web esta registrada como `PASS`.
 Android/mobile esta registrado como `PASS` para `AND-01`, `AND-02` y `AND-03`.
 Ya no existe bloqueo activo de Android/mobile por entorno.
 Piloto controlado: `aprobado`.
+Pendientes restantes: `no bloqueantes`.
 Produccion comercial sigue fuera de alcance actual.

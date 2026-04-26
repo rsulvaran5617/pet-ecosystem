@@ -16,7 +16,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 
 | Area | Estado | Alcance | Nota |
 | --- | --- | --- | --- |
-| Git / baseline | `PASS` | baseline de release publicado en `6e984eb` | `v0.1.0-mvp-baseline-es.1` publicado en remoto; `v0.1.0-mvp-baseline.1` queda como tag previo en `ea573cd` |
+| Git / baseline | `PASS` | baseline localizado publicado en `6e984eb`; HEAD operativo publicado en `57767b7` | `v0.1.0-mvp-baseline-es.1` publicado en remoto; `v0.1.0-mvp-baseline.1` queda como tag previo en `ea573cd` |
 | Smoke automatizada | `PASS` | typecheck, lint, builds, exports y smoke MVP documentada | no inventa nueva corrida; registra la evidencia ya documentada |
 | `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline publicado; no queda pendiente de commit ni tag |
 | QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
@@ -185,3 +185,5 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - `QA/UAT final completada`: `si`
 - `piloto controlado aprobado`: `si`
 - pendientes restantes: `no bloqueantes`
+- fase actual del proyecto: `cerrada formalmente`
+- fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

@@ -52,3 +52,7 @@
 - baseline tecnico congelado en `v0.1.0-mvp-baseline.1`
 - baseline localizado actual publicado en `v0.1.0-mvp-baseline-es.1` sobre `6e984eb`
 - piloto controlado: `aprobado`
+- fase actual del proyecto: `cerrada formalmente`
+- HEAD operativo publicado actual: `57767b7`
+- pendientes restantes: `no bloqueantes`
+- fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

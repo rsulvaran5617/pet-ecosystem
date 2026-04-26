@@ -29,12 +29,14 @@ Decisiones activas del release:
 - `approval_required` ya incluye recepcion provider-side y acciones `approve/reject`
 - existe trazabilidad minima en `audit_logs` para mutaciones criticas del MVP
 - la smoke canonica ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre backend real
-- la localizacion al espanol esta incorporada en el baseline operativo actual `8c5b7d3`
+- baseline localizado publicado: `v0.1.0-mvp-baseline-es.1` en `6e984eb`
+- HEAD operativo publicado de cierre de fase: `57767b7`
 - la QA/UAT manual web esta registrada como `PASS`
 - Android/mobile esta registrado como `PASS` para `AND-01`, `AND-02` y `AND-03`
 - ya no existe bloqueo activo de Android/mobile por entorno
 - el baseline tecnico actual debe considerarse con `QA/UAT final completada`
 - piloto controlado aprobado sobre el baseline localizado publicado
+- pendientes restantes son no bloqueantes y operativos: evidencia auditable, validaciones externas y preparacion del piloto
 - clinic, commerce, pharmacy, finance, benefits y telecare siguen fuera del baseline
 
 ## Estructura
