@@ -116,7 +116,7 @@ export function ReviewsWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-07 / Reseñas"
+        eyebrow="Resenas"
         title="Reseñas basicas de reservas"
         description="Las reseñas permanecen ligadas a reservas completadas y se limitan a una reseña por cliente para cada reserva dentro del MVP."
       >
@@ -136,7 +136,7 @@ export function ReviewsWorkspace({
             </View>
 
             {isLoading && !reviewState ? (
-              <Text style={{ color: colorTokens.muted }}>Cargando estado de reseña desde Supabase...</Text>
+              <Text style={{ color: colorTokens.muted }}>Revisando si esta reserva ya puede recibir reseña...</Text>
             ) : reviewState ? (
               <>
                 <View style={inputStyle}>

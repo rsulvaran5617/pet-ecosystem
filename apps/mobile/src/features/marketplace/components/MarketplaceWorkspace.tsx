@@ -145,12 +145,12 @@ export function MarketplaceWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-05 / Marketplace"
-        title="Descubrimiento y preseleccion para reservas"
-        description="Portada de servicios, busqueda, filtros, perfil publico del proveedor y seleccion de servicio. La preseleccion hacia Reservas esta activa; checkout y cobro siguen diferidos."
+        eyebrow="Buscar"
+        title="Servicios para tus mascotas"
+        description="Explora proveedores aprobados, revisa servicios y prepara una reserva. El cobro real sigue fuera de este alcance."
       >
         <View style={{ gap: 12 }}>
-          {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Cargando catalogo publico de servicios desde Supabase...</Text> : null}
+          {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
 
           <View style={cardStyle}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Contexto de busqueda</Text>
@@ -245,7 +245,7 @@ export function MarketplaceWorkspace({
                   <StatusChip label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} destacados` : "catalogo vacio"} tone="active" />
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
-                  Discovery starts here. Selecting a service prepares provider, service and optional pet context for the Bookings workspace.
+                  Elige una categoria o proveedor destacado para preparar una reserva con el contexto de hogar y mascota.
                 </Text>
                 {homeSnapshot?.categoryHighlights.map((highlight) => (
                   <Pressable key={highlight.category} onPress={() => void runSearch({ category: highlight.category })} style={inputStyle}>
@@ -271,7 +271,7 @@ export function MarketplaceWorkspace({
                       {provider.categories.map((category) => providerServiceCategoryLabels[category]).join(", ")}
                     </Text>
                   </Pressable>
-                )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay proveedores publicos publicados.</Text>}
+                )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay proveedores publicos aprobados. Cuando un proveedor complete su aprobacion, aparecera aqui.</Text>}
               </View>
             </>
           ) : null}

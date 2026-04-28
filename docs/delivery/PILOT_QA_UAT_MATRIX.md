@@ -19,6 +19,9 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 | Git / baseline | `PASS` | baseline localizado publicado en `6e984eb`; HEAD operativo publicado en `57767b7` | `v0.1.0-mvp-baseline-es.1` publicado en remoto; `v0.1.0-mvp-baseline.1` queda como tag previo en `ea573cd` |
 | Smoke automatizada | `PASS` | typecheck, lint, builds, exports y smoke MVP documentada | no inventa nueva corrida; registra la evidencia ya documentada |
 | `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline publicado; no queda pendiente de commit ni tag |
+| Productizacion UX por rol | `PASS` | owner mobile, provider mobile-first, admin web-only | reorganizacion UX sobre capacidades MVP existentes, sin backend/DB/API/migraciones nuevas |
+| Hardening UX no bloqueante | `PASS` | empty states, indicadores simples, copy `payment-ready`, continuidad visual | no agrega features ni notificaciones persistidas |
+| Polish visual inicial | `PASS` | ajustes responsive y microcopy de bajo riesgo | falta evidencia visual/manual QA por rol para material de piloto |
 | QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
 | Android/mobile | `PASS` | `AND-01`, `AND-02`, `AND-03` | validaciones manuales Android ejecutadas; ya no existe bloqueo activo de entorno |
 
@@ -31,6 +34,22 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 | AND-01 | Android/mobile | `PASS` | core auth y sesion persistida ejecutado manualmente |
 | AND-02 | Android/mobile | `PASS` | marketplace y bookings ejecutado manualmente |
 | AND-03 | Android/mobile | `PASS` | messaging sobre booking ejecutado manualmente |
+
+## Checklist visual/manual QA posterior a productizacion UX
+
+Estos casos no abren nuevas features. Sirven para preparar material visual del piloto y detectar problemas de polish.
+
+| ID | Canal | Rol | Estado | Alcance |
+| --- | --- | --- | --- | --- |
+| UX-OWN-01 | Android/mobile | owner | `pendiente_no_bloqueante` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
+| UX-PRO-01 | Android/mobile | provider | `pendiente_no_bloqueante` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta |
+| UX-ADM-01 | admin web | admin | `pendiente_no_bloqueante` | Home admin, Proveedores, Soporte y responsive basico |
+
+Evidencia recomendada:
+
+- capturas o videos cortos por rol
+- registrar overflow, textos cortados, empty states frios, indicadores confusos o navegacion poco clara
+- aplicar solo ajustes visuales menores si son de bajo riesgo
 
 ## Clasificacion de severidad
 - `critica_salida`: debe pasar antes de recomendar piloto controlado
@@ -185,5 +204,6 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 - `QA/UAT final completada`: `si`
 - `piloto controlado aprobado`: `si`
 - pendientes restantes: `no bloqueantes`
-- fase actual del proyecto: `cerrada formalmente`
+- fase UX por rol: `cerrada`
+- fase actual del proyecto: `polish visual/manual QA por rol y preparacion de evidencia de piloto`
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

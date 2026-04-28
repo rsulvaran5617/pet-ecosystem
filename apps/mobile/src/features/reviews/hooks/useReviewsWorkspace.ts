@@ -83,7 +83,7 @@ export function useReviewsWorkspace(
       await loadReviewState(targetBookingId);
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el estado de resenas.");
+        setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar el estado de reseñas.");
       }
     } finally {
       if (mountedRef.current) {
@@ -110,7 +110,7 @@ export function useReviewsWorkspace(
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "La accion de resena fallo.");
+        setErrorMessage(error instanceof Error ? error.message : "La accion de reseña fallo.");
       }
 
       throw error;
@@ -137,7 +137,7 @@ export function useReviewsWorkspace(
 
     focusedBookingIdRef.current = focusedBookingId;
     setErrorMessage(null);
-    setInfoMessage("Se solicito la resena de la reserva. Cargando el estado actual.");
+    setInfoMessage("Se solicito la reseña de la reserva. Cargando el estado actual.");
     void refresh(focusedBookingId);
   }, [enabled, focusedBookingId, focusVersion]);
 
@@ -158,13 +158,13 @@ export function useReviewsWorkspace(
       const bookingId = focusedBookingIdRef.current;
 
       if (!bookingId) {
-        throw new Error("Elige una reserva completada antes de dejar una resena.");
+        throw new Error("Elige una reserva completada antes de dejar una reseña.");
       }
 
       const normalizedComment = commentDraft.trim();
 
       if (!normalizedComment) {
-        throw new Error("Se requiere un comentario para la resena.");
+        throw new Error("Se requiere un comentario para la reseña.");
       }
 
       await runAction(

@@ -84,7 +84,17 @@ function Field({ label, onChange, value, multiline = false }: { label: string; o
   );
 }
 
-export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
+export function RemindersWorkspace({
+  contextHouseholdId,
+  contextPetId,
+  enabled,
+  mode = "standalone"
+}: {
+  contextHouseholdId?: Uuid | null;
+  contextPetId?: Uuid | null;
+  enabled: boolean;
+  mode?: "standalone" | "pet-hub";
+}) {
   const {
     householdSnapshot,
     pets,
@@ -114,10 +124,38 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
   const completedReminderCount = reminders.filter((reminder) => reminder.status === "completed").length;
   const vaccineReminderCount = reminders.filter((reminder) => reminder.reminderType === "vaccine").length;
+  const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
+  const isPetHubMode = mode === "pet-hub";
+
+  useEffect(() => {
+    if (!enabled || !contextHouseholdId || contextHouseholdId === selectedHouseholdId) {
+      return;
+    }
+
+    void selectHousehold(contextHouseholdId);
+  }, [contextHouseholdId, enabled, selectHousehold, selectedHouseholdId]);
+
+  useEffect(() => {
+    if (!enabled || contextPetId === undefined || contextPetId === selectedPetId) {
+      return;
+    }
+
+    if (contextPetId === null || pets.some((pet) => pet.id === contextPetId)) {
+      void selectPet(contextPetId);
+    }
+  }, [contextPetId, enabled, pets, selectPet, selectedPetId]);
 
   useEffect(() => {
     setTargetPetId((currentPetId) => (currentPetId && !pets.some((pet) => pet.id === currentPetId) ? "" : currentPetId));
   }, [pets]);
+
+  useEffect(() => {
+    if (!isPetHubMode) {
+      return;
+    }
+
+    setTargetPetId(selectedPetId ?? "");
+  }, [isPetHubMode, selectedPetId]);
 
   if (!enabled) {
     return null;
@@ -128,21 +166,21 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-04 / Recordatorios"
-        title="Calendario y recordatorios basicos"
-        description="Solo recordatorios manuales y derivados de vacunas. Los eventos de reservas siguen diferidos hasta EP-06."
+        eyebrow="Recordatorios"
+        title={isPetHubMode && selectedPet ? `Recordatorios de ${selectedPet.name}` : "Calendario y recordatorios basicos"}
+        description="Recordatorios manuales y derivados de vacunas. Las reservas se consultan en su propia pestana."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando recordatorios desde Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando recordatorios del cuidado...</Text> : null}
 
-          {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
+          {!isPetHubMode && householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
             <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
               <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
-          )) : <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text>}
+          )) : !isPetHubMode ? <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text> : null}
 
-          <View style={cardStyle}>
+          {!isPetHubMode ? <View style={cardStyle}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Filtro por mascota</Text>
             {selectedHousehold ? (
               <>
@@ -152,7 +190,7 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
                 )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text>}
               </>
             ) : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}
-          </View>
+          </View> : null}
 
           <View style={cardStyle}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Resumen del calendario</Text>
@@ -162,7 +200,7 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
             <Text style={{ color: colorTokens.muted }}>Completados: {completedReminderCount}</Text>
             <Text style={{ color: colorTokens.muted }}>Desde vacunas: {vaccineReminderCount}</Text>
             <Text style={{ color: colorTokens.muted }}>Eventos del calendario: {calendarEvents.length}</Text>
-            <Text style={{ color: colorTokens.muted }}>Los eventos de agenda derivados de reservas siguen diferidos hasta EP-06.</Text>
+            <Text style={{ color: colorTokens.muted }}>Las reservas se consultan por ahora en la pestana Reservas.</Text>
           </View>
 
           <View style={cardStyle}>
@@ -170,12 +208,17 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
             {selectedHousehold ? canEdit ? (
               <>
                 <Field label="Titulo del recordatorio" onChange={setTitle} value={title} />
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {!isPetHubMode ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   <Button label="Recordatorio para todo el hogar" onPress={() => setTargetPetId("")} tone={targetPetId === "" ? "primary" : "secondary"} />
                   {pets.map((pet) => (
                     <Button key={pet.id} label={pet.name} onPress={() => setTargetPetId(pet.id)} tone={targetPetId === pet.id ? "primary" : "secondary"} />
                   ))}
-                </View>
+                </View> : (
+                  <View style={inputStyle}>
+                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
+                    <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedPet?.name ?? "Mascota seleccionada"}</Text>
+                  </View>
+                )}
                 <Field label="Fecha de vencimiento (AAAA-MM-DD)" onChange={setDueDate} value={dueDate} />
                 <Field label="Notas" multiline onChange={setNotes} value={notes} />
                 <Button
@@ -252,7 +295,7 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
                   </View>
                 ) : null}
               </View>
-            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay recordatorios para este filtro.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>No hay recordatorios para este filtro. Crea uno desde esta mascota para mantener el cuidado al dia.</Text>}
           </View>
 
           <View style={cardStyle}>

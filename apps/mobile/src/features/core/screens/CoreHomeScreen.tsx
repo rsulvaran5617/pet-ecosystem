@@ -31,8 +31,8 @@ import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
 import { HealthWorkspace } from "../../health/components/HealthWorkspace";
 import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
 import { MarketplaceWorkspace } from "../../marketplace/components/MarketplaceWorkspace";
-import { ProvidersWorkspace } from "../../providers/components/ProvidersWorkspace";
-import { BookingsWorkspace } from "../../bookings/components/BookingsWorkspace";
+import { ProvidersWorkspace, type ProviderWorkspaceSection } from "../../providers/components/ProvidersWorkspace";
+import { BookingsWorkspace, type BookingHubPanel } from "../../bookings/components/BookingsWorkspace";
 import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
 import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
 import { SupportWorkspace } from "../../support/components/SupportWorkspace";
@@ -68,6 +68,38 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
   expMonth: string;
   expYear: string;
 };
+
+type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta";
+type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
+type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
+
+const ownerSections: Array<{ description: string; id: OwnerSectionId; label: string }> = [
+  { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
+  { id: "mascotas", label: "Mascotas", description: "Perfiles, salud, documentos y recordatorios." },
+  { id: "buscar", label: "Buscar", description: "Proveedores aprobados y servicios disponibles." },
+  { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
+  { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
+  { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
+];
+
+const ownerSectionLookup = Object.fromEntries(
+  ownerSections.map((section) => [section.id, section])
+) as Record<OwnerSectionId, (typeof ownerSections)[number]>;
+
+const providerSections: Array<{ description: string; id: ProviderSectionId; label: string }> = [
+  { id: "inicio", label: "Inicio", description: "Estado operativo, checklist y reservas que requieren accion." },
+  { id: "negocio", label: "Negocio", description: "Organizacion y perfil publico del proveedor." },
+  { id: "servicios", label: "Servicios", description: "Servicios activos, publicos y editables." },
+  { id: "disponibilidad", label: "Horarios", description: "Bloques de disponibilidad publicados." },
+  { id: "reservas", label: "Reservas", description: "Solicitudes entrantes y operacion de servicios." },
+  { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a reservas." },
+  { id: "estado", label: "Estado", description: "Aprobacion, documentos y visibilidad en marketplace." },
+  { id: "cuenta", label: "Cuenta", description: "Perfil, preferencias y cambio de modo." }
+];
+
+const providerSectionLookup = Object.fromEntries(
+  providerSections.map((section) => [section.id, section])
+) as Record<ProviderSectionId, (typeof providerSections)[number]>;
 
 const inputStyle = {
   borderRadius: 14,
@@ -270,6 +302,145 @@ function SwitchRow({
   );
 }
 
+function OwnerShellHeader({
+  activeRole,
+  completedTasks,
+  section,
+  totalTasks
+}: {
+  activeRole: CoreRole;
+  completedTasks: number;
+  section: OwnerSectionId;
+  totalTasks: number;
+}) {
+  const sectionConfig = ownerSectionLookup[section];
+
+  return (
+    <View style={{ borderRadius: 24, backgroundColor: "#1c1917", padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#99f6e4" }}>
+        Propietario
+      </Text>
+      <Text style={{ fontSize: 30, fontWeight: "700", lineHeight: 34, color: "#f8fafc" }}>{sectionConfig.label}</Text>
+      <Text style={{ fontSize: 15, lineHeight: 22, color: "rgba(248,250,252,0.78)" }}>{sectionConfig.description}</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <StatusChip label={`${completedTasks}/${totalTasks} pasos`} tone="active" />
+        <StatusChip label={coreRoleLabels[activeRole]} tone="neutral" />
+        <StatusChip label="sin cobro real" tone="neutral" />
+      </View>
+    </View>
+  );
+}
+
+function ProviderShellHeader({
+  section
+}: {
+  section: ProviderSectionId;
+}) {
+  const sectionConfig = providerSectionLookup[section];
+
+  return (
+    <View style={{ borderRadius: 24, backgroundColor: "#134e4a", padding: 20, gap: 12 }}>
+      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#ccfbf1" }}>
+        Proveedor
+      </Text>
+      <Text style={{ fontSize: 30, fontWeight: "700", lineHeight: 34, color: "#f8fafc" }}>{sectionConfig.label}</Text>
+      <Text style={{ fontSize: 15, lineHeight: 22, color: "rgba(248,250,252,0.82)" }}>{sectionConfig.description}</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <StatusChip label="modo proveedor" tone="active" />
+        <StatusChip label="operacion MVP" tone="neutral" />
+        <StatusChip label="sin cobro real" tone="neutral" />
+      </View>
+    </View>
+  );
+}
+
+function OwnerHome({
+  activeRole,
+  completedTasks,
+  onNavigate,
+  totalTasks
+}: {
+  activeRole: CoreRole;
+  completedTasks: number;
+  onNavigate: (section: OwnerSectionId) => void;
+  totalTasks: number;
+}) {
+  const cards: Array<{ action: string; description: string; section: OwnerSectionId; title: string }> = [
+    {
+      action: "Ver mascotas",
+      description: "Perfiles, salud, documentos y recordatorios desde un solo lugar.",
+      section: "mascotas",
+      title: "Cuidado de mascotas"
+    },
+    {
+      action: "Buscar servicios",
+      description: "Encuentra proveedores aprobados y prepara una reserva.",
+      section: "buscar",
+      title: "Servicios"
+    },
+    {
+      action: "Ver reservas",
+      description: "Sigue estados, mensajes, reseñas y soporte por reserva.",
+      section: "reservas",
+      title: "Reservas"
+    },
+    {
+      action: "Abrir cuenta",
+      description: "Perfil, hogares, direcciones, preferencias y metodos guardados.",
+      section: "cuenta",
+      title: "Cuenta"
+    }
+  ];
+
+  return (
+    <View style={{ gap: 14 }}>
+      <View style={{ borderRadius: 24, backgroundColor: "rgba(255,255,255,0.92)", padding: 18, gap: 10 }}>
+        <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", color: "#0f766e" }}>Inicio</Text>
+        <Text style={{ fontSize: 28, fontWeight: "700", lineHeight: 32, color: "#1c1917" }}>Tu dia con tus mascotas</Text>
+        <Text style={{ color: colorTokens.muted, lineHeight: 22 }}>
+          Accede rapido a cuidado, servicios, reservas y mensajes desde una entrada pensada para propietarios.
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <StatusChip label={`${completedTasks}/${totalTasks} pasos de cuenta`} tone="active" />
+          <StatusChip label={coreRoleLabels[activeRole]} tone="neutral" />
+          <StatusChip label="metodos guardados" tone="neutral" />
+        </View>
+      </View>
+
+      <View style={{ gap: 10 }}>
+        <Text style={{ color: "#44403c", fontSize: 16, fontWeight: "700" }}>Que puedes resolver ahora</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          {[
+            { label: "Mascota destacada", text: "Abre Mascotas para ver perfiles y documentos.", section: "mascotas" as const },
+            { label: "Salud resumida", text: "Vacunas, alergias y condiciones viven junto al perfil.", section: "mascotas" as const },
+            { label: "Recordatorios", text: "Consulta pendientes y completa o pospone tareas.", section: "mascotas" as const },
+            { label: "Reserva activa", text: "Sigue estado, soporte y reseña desde Reservas.", section: "reservas" as const },
+            { label: "Mensajes", text: "Continua conversaciones vinculadas a reservas.", section: "mensajes" as const },
+            { label: "Servicios", text: "Busca proveedores aprobados para reservar.", section: "buscar" as const }
+          ].map((item) => (
+            <Pressable
+              key={item.label}
+              onPress={() => onNavigate(item.section)}
+              style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", flexBasis: "47%", flexGrow: 1, minWidth: 156, padding: 14, gap: 6 }}
+            >
+              <Text style={{ color: "#1c1917", fontWeight: "700" }}>{item.label}</Text>
+              <Text style={{ color: colorTokens.muted, fontSize: 13, lineHeight: 18 }}>{item.text}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {cards.map((card) => (
+        <View key={card.title} style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.9)", padding: 16, gap: 10 }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{card.title}</Text>
+          <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>{card.description}</Text>
+          <Button label={card.action} onPress={() => onNavigate(card.section)} tone="secondary" />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function CoreHomeScreen() {
   const {
     authState,
@@ -301,6 +472,17 @@ export function CoreHomeScreen() {
   const [reviewFocusVersion, setReviewFocusVersion] = useState(0);
   const [focusedSupportBookingId, setFocusedSupportBookingId] = useState<Uuid | null>(null);
   const [supportFocusVersion, setSupportFocusVersion] = useState(0);
+  const [activeOwnerSection, setActiveOwnerSection] = useState<OwnerSectionId>("inicio");
+  const [activeProviderSection, setActiveProviderSection] = useState<ProviderSectionId>("inicio");
+  const [activePetHubPanel, setActivePetHubPanel] = useState<PetHubPanel>("detalle");
+  const [petHubContext, setPetHubContext] = useState<{ householdId: Uuid | null; petId: Uuid | null }>({
+    householdId: null,
+    petId: null
+  });
+  const [activeBookingHubPanel, setActiveBookingHubPanel] = useState<BookingHubPanel>("detalle");
+  const [bookingHubContext, setBookingHubContext] = useState<{ bookingId: Uuid | null }>({
+    bookingId: null
+  });
 
   useEffect(() => {
     if (!snapshot) {
@@ -325,6 +507,9 @@ export function CoreHomeScreen() {
 
   const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
+  const completedTasks = snapshot?.onboardingTasks.filter((task) => task.status === "completed").length ?? 0;
+  const isProviderMode = activeRole === "provider" && hasProviderRole;
+  const isAccountSectionActive = isProviderMode ? activeProviderSection === "cuenta" : activeOwnerSection === "cuenta";
 
   if (isLoading) {
     return (
@@ -332,7 +517,7 @@ export function CoreHomeScreen() {
         <StatusBar barStyle="dark-content" />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
           <ActivityIndicator color="#0f766e" />
-          <Text style={{ color: "#57534e" }}>Cargando el espacio core desde Supabase...</Text>
+          <Text style={{ color: "#57534e" }}>Preparando tu experiencia...</Text>
         </View>
       </SafeAreaView>
     );
@@ -342,26 +527,34 @@ export function CoreHomeScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f7f2e7" }}>
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
-        <View style={{ borderRadius: 28, backgroundColor: "#1c1917", padding: 24, gap: 14 }}>
-          <Text style={{ fontSize: 11, fontWeight: "700", letterSpacing: 1.4, textTransform: "uppercase", color: "#99f6e4" }}>
-            EP-01 / Core
-          </Text>
-          <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
-            Nucleo mobile con autenticacion real en Supabase
-          </Text>
-          <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
-            Esta pantalla permanece dentro de Core: onboarding, autenticacion, perfil, preferencias, direcciones, cambio
-            de rol y metodos de pago guardados.
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-            <StatusChip
-              label={snapshot ? `${snapshot.onboardingTasks.filter((task) => task.status === "completed").length}/${snapshot.onboardingTasks.length} pasos` : "auth pendiente"}
-              tone={snapshot ? "active" : "pending"}
-            />
-            <StatusChip label={coreMvpBoundaries.paymentCaptureInCore ? "cobro" : "solo metodos guardados"} tone="neutral" />
-            {snapshot ? <StatusChip label={coreRoleLabels[snapshot.roles.find((role) => role.isActive)?.role ?? "pet_owner"]} tone="neutral" /> : null}
+        {authState.isAuthenticated && snapshot ? (
+          isProviderMode ? (
+            <ProviderShellHeader section={activeProviderSection} />
+          ) : (
+          <OwnerShellHeader
+            activeRole={activeRole}
+            completedTasks={completedTasks}
+            section={activeOwnerSection}
+            totalTasks={snapshot.onboardingTasks.length}
+          />
+          )
+        ) : (
+          <View style={{ borderRadius: 28, backgroundColor: "#1c1917", padding: 24, gap: 14 }}>
+            <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#99f6e4" }}>
+              Bienvenido
+            </Text>
+            <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
+              Cuidado y servicios para tus mascotas
+            </Text>
+            <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
+              Crea tu cuenta o inicia sesion para gestionar mascotas, reservas y mensajes.
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              <StatusChip label="acceso pendiente" tone="pending" />
+              <StatusChip label={coreMvpBoundaries.paymentCaptureInCore ? "cobro activo" : "sin cobro real"} tone="neutral" />
+            </View>
           </View>
-        </View>
+        )}
 
         {configError ? <Notice message={configError} tone="error" /> : null}
         {!configError && errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
@@ -377,7 +570,7 @@ export function CoreHomeScreen() {
           <CoreSectionCard
             eyebrow="Sesion de recuperacion"
             title="Define una nueva contrasena"
-            description="Supabase ya valido la sesion de recuperacion. Guarda aqui la nueva contrasena para completar el acceso."
+            description="Tu sesion de recuperacion ya fue validada. Guarda aqui la nueva contrasena para completar el acceso."
           >
             <View style={{ gap: 12 }}>
               <Field
@@ -434,8 +627,8 @@ export function CoreHomeScreen() {
           <>
             <CoreSectionCard
               eyebrow="Registro"
-              title="Crear identidad base"
-              description="Supabase Auth crea la cuenta y prepara la metadata inicial del perfil."
+              title="Crear cuenta"
+              description="Completa tus datos para empezar a cuidar a tus mascotas desde la app."
             >
               <View style={{ gap: 12 }}>
                 <Field
@@ -484,7 +677,7 @@ export function CoreHomeScreen() {
                           lastName: registerForm.lastName,
                           requestedRoles: [registerForm.role]
                         }),
-                      "Registro enviado. Completa la verificacion por correo si tu proyecto de Supabase lo requiere."
+                      "Registro enviado. Completa la verificacion por correo si tu cuenta lo requiere."
                     );
                   }}
                 />
@@ -494,7 +687,7 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Acceso"
               title="Inicio de sesion, verificacion y recuperacion"
-              description="Todos los flujos de acceso usan Supabase Auth directamente, incluido el OTP manual por correo cuando la verificacion esta activa."
+              description="Usa tu correo para entrar, verificar tu cuenta o recuperar el acceso."
             >
               <View style={{ gap: 12 }}>
                 <Field
@@ -570,7 +763,7 @@ export function CoreHomeScreen() {
                           email: recoverForm.email,
                           redirectTo: getMobileRecoveryRedirectUrl()
                         }),
-                      "Correo de recuperacion requested.",
+                      "Correo de recuperacion solicitado.",
                       false
                     );
                   }}
@@ -581,12 +774,19 @@ export function CoreHomeScreen() {
           </>
         ) : null}
 
-        {authState.isAuthenticated && snapshot ? (
+        {authState.isAuthenticated && snapshot && isAccountSectionActive ? (
           <>
+            <View style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.92)", padding: 16, gap: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Configuracion de cuenta</Text>
+              <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>
+                Aqui viven perfil, preferencias, hogares, direcciones, metodos guardados y cambio de rol. El flujo principal de cuidado queda en las otras pestanas.
+              </Text>
+            </View>
+
             <CoreSectionCard
               eyebrow="Acceso"
-              title="Session and verification"
-              description="The current status is derived from the live Supabase session."
+              title="Sesion y verificacion"
+              description="Estado actual de tu sesion, correo y recuperacion de acceso."
             >
               <View style={{ gap: 12 }}>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
@@ -614,7 +814,7 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Onboarding"
               title="Ruta actual de activacion"
-              description="Estos pasos se calculan con registros reales de auth, perfil, direcciones y pagos guardados."
+              description="Pasos basicos de cuenta antes de operar el resto de la app."
             >
               <View style={{ gap: 10 }}>
                 {snapshot.onboardingTasks.map((task) => (
@@ -632,7 +832,7 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Perfil"
               title="Perfil persistido y preferencias"
-              description="Estos campos viven en `public.profiles` y permanecen fuera de hogares o mascotas."
+              description="Datos personales y preferencias de comunicacion de tu cuenta."
             >
               <View style={{ gap: 12 }}>
                 <Field
@@ -674,7 +874,7 @@ export function CoreHomeScreen() {
                           avatarUrl: profileForm.avatarUrl?.trim() || null,
                           locale: profileForm.locale?.trim()
                         }),
-                      "Perfil updated."
+                      "Perfil actualizado."
                     );
                   }}
                 />
@@ -731,7 +931,7 @@ export function CoreHomeScreen() {
                   >
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                       <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{coreRoleLabels[role.role]}</Text>
-                      <StatusChip label={role.isActive ? "active" : "available"} tone={role.isActive ? "active" : "neutral"} />
+                      <StatusChip label={role.isActive ? "activo" : "disponible"} tone={role.isActive ? "active" : "neutral"} />
                     </View>
                     {!role.isActive ? (
                       <Button
@@ -755,7 +955,7 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Direcciones"
               title="Ubicaciones del usuario"
-              description="Direcciones remain attached to the user and never become household records."
+              description="Las direcciones pertenecen al usuario y no se convierten en registros del hogar."
             >
               <View style={{ gap: 12 }}>
                 <ChoiceBar
@@ -839,7 +1039,7 @@ export function CoreHomeScreen() {
                   <View key={address.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                       <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{address.recipientName}</Text>
-                      <StatusChip label={address.isDefault ? "default" : address.label} tone={address.isDefault ? "active" : "neutral"} />
+                      <StatusChip label={address.isDefault ? "predeterminada" : address.label} tone={address.isDefault ? "active" : "neutral"} />
                     </View>
                     <Text style={{ color: colorTokens.muted }}>{address.line1}{address.line2 ? `, ${address.line2}` : ""}</Text>
                     <Text style={{ color: colorTokens.muted }}>
@@ -872,7 +1072,7 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Metodos de pago"
               title="Solo tarjetas guardadas"
-              description={`Supported in MVP core: ${coreSupportedPaymentMethodTypes.join(", ")}.`}
+              description={`Compatibles en el core MVP: ${coreSupportedPaymentMethodTypes.join(", ")}.`}
             >
               <View style={{ gap: 12 }}>
                 <ChoiceBar
@@ -939,7 +1139,7 @@ export function CoreHomeScreen() {
                         {paymentMethod.brand.toUpperCase()} terminada en {paymentMethod.last4}
                       </Text>
                       <StatusChip
-                        label={paymentMethod.isDefault ? "default" : paymentMethod.status}
+                        label={paymentMethod.isDefault ? "predeterminada" : paymentMethod.status}
                         tone={paymentMethod.isDefault ? "active" : "neutral"}
                       />
                     </View>
@@ -966,38 +1166,169 @@ export function CoreHomeScreen() {
             </CoreSectionCard>
 
             <HouseholdsWorkspace enabled />
-            <PetsWorkspace enabled />
-            <HealthWorkspace enabled />
-            <RemindersWorkspace enabled />
-            <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive={activeRole === "provider"} />
-            <MarketplaceWorkspace
+          </>
+        ) : null}
+
+        {authState.isAuthenticated && snapshot && !isProviderMode && activeOwnerSection === "inicio" ? (
+          <OwnerHome
+            activeRole={activeRole}
+            completedTasks={completedTasks}
+            onNavigate={setActiveOwnerSection}
+            totalTasks={snapshot.onboardingTasks.length}
+          />
+        ) : null}
+        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mascotas" ? (
+          <>
+            <PetsWorkspace
+              activePanel={activePetHubPanel}
               enabled
-              onSelectBookingService={(selection) => {
-                setMarketplaceSelection(selection);
-              }}
+              onContextChange={setPetHubContext}
+              onPanelChange={setActivePetHubPanel}
             />
+            {activePetHubPanel === "salud" ? (
+              <HealthWorkspace
+                contextHouseholdId={petHubContext.householdId}
+                contextPetId={petHubContext.petId}
+                enabled
+                mode="pet-hub"
+              />
+            ) : null}
+            {activePetHubPanel === "recordatorios" ? (
+              <RemindersWorkspace
+                contextHouseholdId={petHubContext.householdId}
+                contextPetId={petHubContext.petId}
+                enabled
+                mode="pet-hub"
+              />
+            ) : null}
+          </>
+        ) : null}
+        {!authState.isAuthenticated ? <MarketplaceWorkspace enabled /> : null}
+        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "buscar" ? (
+          <MarketplaceWorkspace
+            enabled
+            onSelectBookingService={(selection) => {
+              setMarketplaceSelection(selection);
+              setActiveBookingHubPanel("detalle");
+              setActiveOwnerSection("reservas");
+            }}
+          />
+        ) : null}
+        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "reservas" ? (
+          <>
             <BookingsWorkspace
+              activePanel={activeBookingHubPanel}
               enabled
               marketplaceSelection={marketplaceSelection}
+              onBookingContextChange={setBookingHubContext}
+              onPanelChange={setActiveBookingHubPanel}
               onOpenChatForBooking={(bookingId) => {
                 setFocusedBookingId(bookingId);
                 setChatFocusVersion(Date.now());
+                setActiveBookingHubPanel("chat");
               }}
               onOpenReviewForBooking={(bookingId) => {
                 setFocusedReviewBookingId(bookingId);
                 setReviewFocusVersion(Date.now());
+                setActiveBookingHubPanel("review");
               }}
               onOpenSupportForBooking={(bookingId) => {
                 setFocusedSupportBookingId(bookingId);
                 setSupportFocusVersion(Date.now());
+                setActiveBookingHubPanel("soporte");
               }}
             />
-            <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
-            <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
-            <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+            {activeBookingHubPanel === "chat" ? (
+              <MessagingWorkspace
+                enabled
+                focusedBookingId={focusedBookingId ?? bookingHubContext.bookingId}
+                focusVersion={chatFocusVersion}
+              />
+            ) : null}
+            {activeBookingHubPanel === "review" ? (
+              <ReviewsWorkspace
+                enabled
+                focusedBookingId={focusedReviewBookingId ?? bookingHubContext.bookingId}
+                focusVersion={reviewFocusVersion}
+              />
+            ) : null}
+            {activeBookingHubPanel === "soporte" ? (
+              <SupportWorkspace
+                enabled
+                focusedBookingId={focusedSupportBookingId ?? bookingHubContext.bookingId}
+                focusVersion={supportFocusVersion}
+              />
+            ) : null}
           </>
         ) : null}
+        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mensajes" ? (
+          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+        ) : null}
+        {authState.isAuthenticated && snapshot && isProviderMode && activeProviderSection !== "mensajes" && activeProviderSection !== "cuenta" ? (
+          <ProvidersWorkspace
+            activeSection={activeProviderSection}
+            enabled
+            hasProviderRole={hasProviderRole}
+            providerRoleActive={activeRole === "provider"}
+          />
+        ) : null}
+        {authState.isAuthenticated && isProviderMode && activeProviderSection === "mensajes" ? (
+          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+        ) : null}
       </ScrollView>
+      {authState.isAuthenticated ? (
+        <View
+          style={{
+            backgroundColor: "rgba(255,255,255,0.96)",
+            borderTopColor: "rgba(28,25,23,0.12)",
+            borderTopWidth: 1,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            paddingHorizontal: 4,
+            paddingVertical: 8
+          }}
+        >
+          {(isProviderMode ? providerSections : ownerSections).map((section) => {
+            const isActive = isProviderMode ? activeProviderSection === section.id : activeOwnerSection === section.id;
+
+            return (
+              <Pressable
+                key={section.id}
+                onPress={() => {
+                  if (isProviderMode) {
+                    setActiveProviderSection(section.id as ProviderSectionId);
+                    return;
+                  }
+
+                  setActiveOwnerSection(section.id as OwnerSectionId);
+                }}
+                style={{
+                  borderRadius: 14,
+                  backgroundColor: isActive ? "rgba(15,118,110,0.12)" : "transparent",
+                  flex: 1,
+                  minWidth: 0,
+                  paddingHorizontal: 2,
+                  paddingVertical: 9
+                }}
+              >
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  style={{
+                    color: isActive ? "#0f766e" : "#57534e",
+                    fontSize: 11,
+                    fontWeight: isActive ? "700" : "600",
+                    minWidth: 0,
+                    textAlign: "center"
+                  }}
+                >
+                  {section.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }

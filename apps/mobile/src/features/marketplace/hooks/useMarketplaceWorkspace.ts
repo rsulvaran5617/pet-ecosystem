@@ -180,7 +180,7 @@ export function useMarketplaceWorkspace(enabled: boolean): UseMarketplaceWorkspa
 
         if (mountedRef.current) {
           setProviders(nextProviders);
-          setInfoMessage(nextProviders.length ? `${nextProviders.length} provider(s) found.` : "No providers matched those filters yet.");
+          setInfoMessage(nextProviders.length ? `${nextProviders.length} proveedor(es) encontrado(s).` : "No encontramos proveedores con esos filtros por ahora.");
         }
 
         return nextProviders;

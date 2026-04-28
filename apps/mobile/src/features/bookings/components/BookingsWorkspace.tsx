@@ -1,6 +1,7 @@
 import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { MarketplaceServiceSelection, Uuid } from "@pet/types";
+import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -17,6 +18,8 @@ const inputStyle = {
 } as const;
 
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
+
+export type BookingHubPanel = "detalle" | "chat" | "review" | "soporte";
 
 function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
   if (status === "confirmed" || status === "completed") {
@@ -50,15 +53,47 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
   );
 }
 
+function PanelButton({
+  isActive,
+  label,
+  onPress
+}: {
+  isActive: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        borderRadius: 999,
+        backgroundColor: isActive ? "#0f766e" : "rgba(255,255,255,0.92)",
+        borderWidth: isActive ? 0 : 1,
+        borderColor: "rgba(28,25,23,0.14)",
+        paddingHorizontal: 12,
+        paddingVertical: 9
+      }}
+    >
+      <Text style={{ color: isActive ? "#f8fafc" : "#1c1917", fontSize: 13, fontWeight: "700", textAlign: "center" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export function BookingsWorkspace({
+  activePanel = "detalle",
   enabled,
   marketplaceSelection,
+  onBookingContextChange,
+  onPanelChange,
   onOpenChatForBooking,
   onOpenReviewForBooking,
   onOpenSupportForBooking
 }: {
+  activePanel?: BookingHubPanel;
   enabled: boolean;
   marketplaceSelection: MarketplaceServiceSelection | null;
+  onBookingContextChange?: (context: { bookingId: Uuid | null }) => void;
+  onPanelChange?: (panel: BookingHubPanel) => void;
   onOpenChatForBooking?: (bookingId: Uuid) => void;
   onOpenReviewForBooking?: (bookingId: Uuid) => void;
   onOpenSupportForBooking?: (bookingId: Uuid) => void;
@@ -89,6 +124,14 @@ export function BookingsWorkspace({
     cancelBooking
   } = useBookingsWorkspace(enabled, marketplaceSelection);
 
+  const selectedBookingId = selectedBookingDetail?.booking.id ?? null;
+  const pendingBookings = bookings.filter((booking) => booking.status === "pending_approval");
+  const confirmedBookings = bookings.filter((booking) => booking.status === "confirmed");
+
+  useEffect(() => {
+    onBookingContextChange?.({ bookingId: selectedBookingId });
+  }, [onBookingContextChange, selectedBookingId]);
+
   if (!enabled) {
     return null;
   }
@@ -98,12 +141,12 @@ export function BookingsWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-06 / Reservas"
-        title="Flujo transaccional de reservas"
-        description="Preview, seleccion de mascota, creacion inmediata o con aprobacion, historial, detalle y cancelacion basica. Los metodos de pago guardados solo se referencian; el cobro sigue diferido."
+        eyebrow="Reservas"
+        title="Tus reservas"
+        description="Prepara una reserva desde un servicio, revisa su estado y entra a chat, reseña o soporte desde el detalle. Los metodos guardados solo quedan como referencia; no hay cobro real en este MVP."
       >
         <View style={{ gap: 12 }}>
-          {isLoading && !householdSnapshot ? <Text style={{ color: colorTokens.muted }}>Cargando contexto de reservas desde Supabase...</Text> : null}
+          {isLoading && !householdSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando tus reservas...</Text> : null}
 
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
@@ -112,8 +155,8 @@ export function BookingsWorkspace({
             </View>
             <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
               {activeSelection
-                ? `Seleccion de servicio importada desde Servicios.\nProveedor: ${activeSelection.providerId}\nServicio: ${activeSelection.serviceId}`
-                : "Selecciona un servicio publico en Servicios para iniciar el preview de reserva, o revisa tus reservas anteriores abajo."}
+                ? "Ya tienes un servicio seleccionado desde Buscar. Genera el preview para confirmar mascota, horario y estado inicial."
+                : "Selecciona un servicio publico en Buscar para preparar una reserva, o revisa tus reservas anteriores abajo."}
             </Text>
             {activeSelection ? (
               <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
@@ -222,17 +265,29 @@ export function BookingsWorkspace({
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Historial de reservas</Text>
               <StatusChip label={`${bookings.length} reserva(s)`} tone="neutral" />
             </View>
+            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+              <StatusChip label={`${pendingBookings.length} pendientes`} tone={pendingBookings.length ? "pending" : "neutral"} />
+              <StatusChip label={`${confirmedBookings.length} confirmadas`} tone={confirmedBookings.length ? "active" : "neutral"} />
+            </View>
             {bookings.length ? bookings.map((booking) => (
-              <Pressable key={booking.id} onPress={() => void openBookingDetail(booking.id)} style={inputStyle}>
+              <Pressable
+                key={booking.id}
+                onPress={() => {
+                  onPanelChange?.("detalle");
+                  void openBookingDetail(booking.id);
+                }}
+                style={[inputStyle, { backgroundColor: selectedBookingId === booking.id ? "rgba(15,118,110,0.08)" : "#fffdf8" }]}
+              >
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                   <Text style={{ fontWeight: "600", color: "#1c1917", flex: 1 }}>{booking.serviceName}</Text>
                   <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
                 </View>
-                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{booking.providerName} · {booking.petName}</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{booking.providerName} - {booking.petName}</Text>
                 <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(booking.scheduledStartAt)}</Text>
                 <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}</Text>
+                <Text style={{ color: "#0f766e", fontWeight: "700", marginTop: 8 }}>Ver detalle de reserva</Text>
               </Pressable>
-            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay reservas para el hogar y filtro de mascota actuales.</Text>}
+            )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay reservas con este filtro. Busca un proveedor aprobado y prepara una reserva desde un servicio publicado.</Text>}
           </View>
 
           {selectedBookingDetail ? (
@@ -240,6 +295,25 @@ export function BookingsWorkspace({
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Detalle de la reserva</Text>
                 <StatusChip label={bookingStatusLabels[selectedBookingDetail.booking.status]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
+              </View>
+              <View style={[inputStyle, { backgroundColor: "#1c1917", gap: 8 }]}>
+                <Text style={{ color: "#f8fafc", fontSize: 22, fontWeight: "800" }}>{selectedBookingDetail.booking.serviceName}</Text>
+                <Text style={{ color: "#d6d3d1", lineHeight: 20 }}>
+                  {selectedBookingDetail.booking.providerName} - {selectedBookingDetail.booking.petName}
+                </Text>
+                <Text style={{ color: "#d6d3d1", lineHeight: 20 }}>{formatDateTimeLabel(selectedBookingDetail.booking.scheduledStartAt)}</Text>
+              </View>
+              <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                <PanelButton isActive={activePanel === "detalle"} label="Detalle" onPress={() => onPanelChange?.("detalle")} />
+                {onOpenChatForBooking ? (
+                  <PanelButton isActive={activePanel === "chat"} label="Chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} />
+                ) : null}
+                {onOpenReviewForBooking && selectedBookingDetail.booking.status === "completed" ? (
+                  <PanelButton isActive={activePanel === "review"} label="Reseña" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} />
+                ) : null}
+                {onOpenSupportForBooking ? (
+                  <PanelButton isActive={activePanel === "soporte"} label="Soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} />
+                ) : null}
               </View>
               <View style={inputStyle}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
@@ -270,27 +344,38 @@ export function BookingsWorkspace({
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
                 </View>
               ))}
+              {activePanel !== "detalle" ? (
+                <View style={inputStyle}>
+                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>
+                    {activePanel === "chat" ? "Conversacion de esta reserva" : activePanel === "review" ? "Reseña de esta reserva" : "Soporte de esta reserva"}
+                  </Text>
+                  <Text style={{ color: colorTokens.muted, lineHeight: 20, marginTop: 6 }}>
+                    {activePanel === "chat"
+                      ? "El hilo queda ligado al booking; no hay chat libre fuera de una reserva."
+                      : activePanel === "review"
+                        ? "La reseña se habilita solo cuando la reserva esta completada."
+                        : "El caso de soporte queda ligado a esta reserva. En MVP no hay disputas ni chat de soporte."}
+                  </Text>
+                </View>
+              ) : null}
               {selectedBookingDetail.booking.status !== "cancelled" ? (
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   <Button disabled={isSubmitting} label="Cancelar reserva" onPress={() => void cancelBooking(selectedBookingDetail.booking.id)} />
                   {onOpenChatForBooking ? (
-                    <Button disabled={isSubmitting} label="Abrir mensajes" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
-                  {onOpenReviewForBooking ? (
-                    <Button disabled={isSubmitting} label="Abrir resena" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                  {onOpenReviewForBooking && selectedBookingDetail.booking.status === "completed" ? (
+                    <Button disabled={isSubmitting} label="Dejar reseña" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenSupportForBooking ? (
                     <Button disabled={isSubmitting} label="Abrir soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
-                  <Button disabled={isSubmitting} label="Mantener detalle abierto" onPress={clearMessages} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
                 </View>
               ) : onOpenChatForBooking || onOpenReviewForBooking || onOpenSupportForBooking ? (
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   {onOpenChatForBooking ? (
-                    <Button disabled={isSubmitting} label="Abrir mensajes" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
-                  ) : null}
-                  {onOpenReviewForBooking ? (
-                    <Button disabled={isSubmitting} label="Abrir resena" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
+                    <Button disabled={isSubmitting} label="Abrir chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} tone="secondary" />
                   ) : null}
                   {onOpenSupportForBooking ? (
                     <Button disabled={isSubmitting} label="Abrir soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} tone="secondary" />

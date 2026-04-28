@@ -73,7 +73,13 @@ function Button({
   );
 }
 
-export function AdminSupportWorkspace() {
+export function AdminSupportWorkspace({
+  onOpenQueue,
+  variant = "full"
+}: {
+  onOpenQueue?: () => void;
+  variant?: "full" | "home";
+}) {
   const {
     adminNoteDraft,
     errorMessage,
@@ -95,11 +101,77 @@ export function AdminSupportWorkspace() {
     setStatusFilter
   } = useAdminSupportWorkspace(true);
 
+  const openCases = supportCases.filter((supportCase) => supportCase.status === "open");
+  const inReviewCases = supportCases.filter((supportCase) => supportCase.status === "in_review");
+
+  if (variant === "home") {
+    return (
+      <section style={cardStyle}>
+        {errorMessage ? <div style={{ color: "#991b1b" }}>{errorMessage}</div> : null}
+        {!errorMessage && infoMessage ? <div style={{ color: "#1d4ed8" }}>{infoMessage}</div> : null}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "22px" }}>Soporte abierto</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>Casos vinculados a reservas que requieren seguimiento.</p>
+          </div>
+          <strong style={{ fontSize: "28px", color: openCases.length ? "#b45309" : "#0f766e" }}>{openCases.length}</strong>
+        </div>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <span style={{ borderRadius: "999px", background: "rgba(113,113,122,0.12)", color: "#3f3f46", padding: "6px 10px", fontWeight: 700 }}>
+            {openCases.length} abiertos
+          </span>
+          <span style={{ borderRadius: "999px", background: "rgba(217,119,6,0.12)", color: "#b45309", padding: "6px 10px", fontWeight: 700 }}>
+            {inReviewCases.length} en revision
+          </span>
+        </div>
+        {isLoading && !supportCases.length ? (
+          <p style={{ margin: 0, color: "#52525b" }}>Cargando casos de soporte...</p>
+        ) : supportCases.length ? (
+          <div style={{ display: "grid", gap: "8px" }}>
+            {supportCases.slice(0, 3).map((supportCase) => {
+              const tone = getStatusTone(supportCase.status);
+
+              return (
+                <button
+                  key={supportCase.id}
+                  onClick={() => {
+                    onOpenQueue?.();
+                    void openCaseDetail(supportCase.id);
+                  }}
+                  type="button"
+                  style={{ ...inputStyle, textAlign: "left", display: "grid", gap: "6px", cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                    <strong>{supportCase.subject}</strong>
+                    <span style={{ borderRadius: "999px", background: tone.background, color: tone.color, padding: "6px 10px", fontWeight: 700 }}>
+                      {supportCaseStatusLabels[supportCase.status]}
+                    </span>
+                  </div>
+                  <span style={{ color: "#52525b" }}>{supportCase.providerName} · {supportCase.serviceName}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p style={{ margin: 0, color: "#52525b" }}>No hay casos para este filtro. Cambia el filtro o vuelve a refrescar la cola.</p>
+        )}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <Button disabled={isSubmitting} onClick={onOpenQueue} tone="secondary">
+            Abrir soporte
+          </Button>
+          <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
+            Refrescar
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section style={{ display: "grid", gap: "20px" }}>
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#1d4ed8" }}>{infoMessage}</div> : null}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(280px,340px) minmax(0,1fr)", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 320px),1fr))", gap: "20px" }}>
         <aside style={{ display: "grid", gap: "20px", alignContent: "start" }}>
           <article style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
@@ -153,7 +225,7 @@ export function AdminSupportWorkspace() {
                       </span>
                     </div>
                     <div style={{ color: "#52525b" }}>
-                      {supportCase.creatorDisplayName} · {supportCase.providerName}
+                      {supportCase.creatorDisplayName} - {supportCase.providerName}
                     </div>
                     <div style={{ color: "#52525b" }}>{supportCase.serviceName}</div>
                     <div style={{ color: "#71717a" }}>{formatDateTime(supportCase.createdAt)}</div>
@@ -161,7 +233,7 @@ export function AdminSupportWorkspace() {
                 );
               })
             ) : (
-              <p style={{ margin: 0, color: "#52525b" }}>No hay casos de soporte para el filtro actual.</p>
+              <p style={{ margin: 0, color: "#52525b" }}>No hay casos de soporte para este filtro. Prueba con Todos si necesitas revisar actividad reciente.</p>
             )}
           </article>
         </aside>

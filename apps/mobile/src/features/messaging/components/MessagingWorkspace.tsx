@@ -91,7 +91,7 @@ export function MessagingWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-07 / Mensajes"
+        eyebrow="Mensajes"
         title="Bandeja ligada a reservas"
         description="Los hilos se crean automaticamente desde las reservas. En este MVP, solo el cliente que reservo y el propietario del proveedor pueden leer o enviar mensajes."
       >
@@ -105,7 +105,7 @@ export function MessagingWorkspace({
               <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
               <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
             </View>
-            {isLoading && !threads.length ? <Text style={{ color: colorTokens.muted }}>Cargando hilos ligados a reservas desde Supabase...</Text> : null}
+            {isLoading && !threads.length ? <Text style={{ color: colorTokens.muted }}>Buscando conversaciones ligadas a tus reservas...</Text> : null}
             {threads.length ? threads.map((thread) => (
               <Pressable
                 key={thread.id}
@@ -123,9 +123,12 @@ export function MessagingWorkspace({
                 </Text>
               </Pressable>
             )) : (
-              <Text style={{ color: colorTokens.muted }}>
-                Todavia no hay conversaciones visibles ligadas a reservas. Crea o abre una reserva para generar el primer hilo automaticamente.
-              </Text>
+              <View style={[inputStyle, { gap: 6 }]}>
+                <Text style={{ color: "#1c1917", fontWeight: "700" }}>Sin conversaciones por ahora</Text>
+                <Text style={{ color: colorTokens.muted }}>
+                  Abre una reserva y entra a Chat para iniciar o continuar una conversacion vinculada al servicio.
+                </Text>
+              </View>
             )}
           </View>
 

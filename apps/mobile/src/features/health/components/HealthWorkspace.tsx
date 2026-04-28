@@ -1,7 +1,7 @@
 import { formatHouseholdPermissions, petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { PetConditionStatus, UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -40,7 +40,17 @@ function Field({ label, onChange, value, multiline = false }: { label: string; o
   );
 }
 
-export function HealthWorkspace({ enabled }: { enabled: boolean }) {
+export function HealthWorkspace({
+  contextHouseholdId,
+  contextPetId,
+  enabled,
+  mode = "standalone"
+}: {
+  contextHouseholdId?: string | null;
+  contextPetId?: string | null;
+  enabled: boolean;
+  mode?: "standalone" | "pet-hub";
+}) {
   const { householdSnapshot, pets, selectedHouseholdId, selectedPetId, selectedPetHealthDetail, errorMessage, infoMessage, isLoading, isSubmitting, clearMessages, selectHousehold, selectPet, runAction } =
     useHealthWorkspace(enabled);
   const [editingVaccineId, setEditingVaccineId] = useState<string | null>(null);
@@ -54,6 +64,23 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const canEdit =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
+  const isPetHubMode = mode === "pet-hub";
+
+  useEffect(() => {
+    if (!enabled || !contextHouseholdId || contextHouseholdId === selectedHouseholdId) {
+      return;
+    }
+
+    void selectHousehold(contextHouseholdId);
+  }, [contextHouseholdId, enabled, selectHousehold, selectedHouseholdId]);
+
+  useEffect(() => {
+    if (!enabled || !contextPetId || contextPetId === selectedPetId || !pets.some((pet) => pet.id === contextPetId)) {
+      return;
+    }
+
+    void selectPet(contextPetId);
+  }, [contextPetId, enabled, pets, selectPet, selectedPetId]);
 
   if (!enabled) {
     return null;
@@ -63,18 +90,22 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
     <View style={{ gap: 20 }}>
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
-      <CoreSectionCard eyebrow="EP-04 / Salud" title="Panel simple de salud por mascota" description="Solo vacunas, alergias y condiciones, heredando los permisos del hogar y de la mascota.">
+      <CoreSectionCard
+        eyebrow="Salud"
+        title={isPetHubMode && selectedPet ? `Salud de ${selectedPet.name}` : "Salud por mascota"}
+        description="Registra vacunas, alergias y condiciones basicas de cada mascota."
+      >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando registros de salud desde Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando el expediente de salud...</Text> : null}
 
-          {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
+          {!isPetHubMode && householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
             <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
               <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
-          )) : <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text>}
+          )) : !isPetHubMode ? <Text style={{ color: colorTokens.muted }}>Crea primero un hogar.</Text> : null}
 
-          <View style={cardStyle}>
+          {!isPetHubMode ? <View style={cardStyle}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascotas</Text>
             {selectedHousehold ? pets.length ? pets.map((pet) => (
               <Pressable key={pet.id} onPress={() => void selectPet(pet.id)} style={[inputStyle, { backgroundColor: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8", gap: 6 }]}>
@@ -82,7 +113,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                 <Text style={{ color: colorTokens.muted }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</Text>
               </Pressable>
             )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text> : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}
-          </View>
+          </View> : null}
 
           {selectedPet && selectedPetHealthDetail ? (
             <>

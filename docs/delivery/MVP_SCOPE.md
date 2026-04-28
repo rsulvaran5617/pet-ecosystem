@@ -48,6 +48,29 @@ Este cierre queda en modo `payment-ready`:
 - no hay captura real de pago
 - no hay refunds, chargebacks ni conciliacion
 
+## Cierre de productizacion UX por rol
+
+La fase de productizacion UX posterior al MVP funcional queda `cerrada`.
+
+Este cierre reorganiza la experiencia existente sin cambiar backend, base de datos, migraciones ni contratos API. No abre V2/V3 y no incorpora capacidades fuera del MVP.
+
+Estado por rol:
+
+- owner mobile: shell por rol, Home owner, Cuenta fuera del flujo principal, Mascotas como hub y Reservas como hub transaccional
+- provider: consola separada con Home provider, negocio, perfil publico, servicios, disponibilidad, documentos, estado, reservas y mensajes dentro del alcance MVP
+- admin web: backoffice refinado con Home admin, cola de proveedores, cola de soporte y detalle contextual
+
+Hardening UX no bloqueante completado:
+
+- empty states orientados a accion
+- indicadores simples derivados de datos actuales
+- copy consistente con `payment-ready`
+- continuidad visual entre hubs
+- reduccion de copy tecnico visible para usuarios
+- polish visual inicial de bajo riesgo en owner mobile y admin web
+
+No queda hueco estructural UX dentro del alcance MVP. El frente activo recomendado es preparar material visual del piloto y ejecutar QA manual por rol antes de mover el frente hacia pagos o capacidades nuevas.
+
 ## Fuera de alcance
 
 - clinic
@@ -104,9 +127,10 @@ La smoke canonica ya valida `Core`, `Households`, `Pets`, `Health`, `Reminders` 
 La smoke automatizada documentada esta en `PASS`.
 El baseline localizado actual esta publicado como `v0.1.0-mvp-baseline-es.1` en `6e984eb`.
 El HEAD operativo publicado de cierre de fase esta en `57767b7`.
+El HEAD remoto observado antes de publicar la productizacion UX por rol esta en `65da809`.
 La QA/UAT manual web esta registrada como `PASS`.
 Android/mobile esta registrado como `PASS` para `AND-01`, `AND-02` y `AND-03`.
 Ya no existe bloqueo activo de Android/mobile por entorno.
 Piloto controlado: `aprobado`.
-Pendientes restantes: `no bloqueantes`.
+Pendientes restantes: `no bloqueantes`, principalmente evidencia visual/manual QA por rol y pendientes externos de entorno.
 Produccion comercial sigue fuera de alcance actual.

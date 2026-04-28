@@ -75,6 +75,7 @@ type DocumentFormState = {
   documentType: ProviderApprovalDocumentType;
   selectedDocument: PickedDocument | null;
 };
+export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "disponibilidad" | "reservas" | "estado";
 
 const emptyOrganizationForm: OrganizationFormState = {
   name: "",
@@ -263,10 +264,12 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
 }
 
 export function ProvidersWorkspace({
+  activeSection = "inicio",
   enabled,
   hasProviderRole,
   providerRoleActive
 }: {
+  activeSection?: ProviderWorkspaceSection;
   enabled: boolean;
   hasProviderRole: boolean;
   providerRoleActive: boolean;
@@ -344,6 +347,14 @@ export function ProvidersWorkspace({
     ],
     [selectedDisponibilidad.length, selectedDocuments.length, selectedPublicProfile, selectedServicios.length]
   );
+  const showHome = activeSection === "inicio";
+  const showOrganization = activeSection === "inicio" || activeSection === "negocio";
+  const showApproval = activeSection === "inicio" || activeSection === "estado";
+  const showBookings = activeSection === "inicio" || activeSection === "reservas";
+  const showProfile = activeSection === "negocio";
+  const showServices = activeSection === "servicios";
+  const showAvailability = activeSection === "disponibilidad";
+  const showDocuments = activeSection === "estado";
 
   if (!enabled) {
     return null;
@@ -355,9 +366,9 @@ export function ProvidersWorkspace({
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
       <CoreSectionCard
-        eyebrow="Providers / MVP"
-        title="Onboarding de proveedor, perfil publico y readiness de aprobacion"
-        description="Este alcance del MVP cubre la configuracion del proveedor y la operacion minima de reservas para servicios con aprobacion: organizacion, perfil publico, servicios, disponibilidad, documentos, estado de aprobacion y revision de reservas entrantes."
+        eyebrow="Proveedor"
+        title="Consola operativa"
+        description="Gestiona publicacion, servicios, disponibilidad, documentos y reservas entrantes con las capacidades MVP ya existentes."
       >
         {!hasProviderRole ? (
           <Text style={{ color: colorTokens.muted }}>
@@ -372,13 +383,41 @@ export function ProvidersWorkspace({
               />
             ) : null}
 
+            {showHome ? (
+              <View style={{ borderRadius: 20, backgroundColor: "#1c1917", padding: 16, gap: 12 }}>
+                <Text style={{ color: "#99f6e4", fontSize: 12, fontWeight: "700", textTransform: "uppercase" }}>Inicio proveedor</Text>
+                <Text style={{ color: "#f8fafc", fontSize: 24, fontWeight: "800", lineHeight: 28 }}>
+                  {selectedOrganization ? selectedOrganization.name : "Prepara tu negocio para operar"}
+                </Text>
+                <Text style={{ color: "#d6d3d1", lineHeight: 20 }}>
+                  Prioriza aprobacion, reservas pendientes y configuracion publica antes de ajustar detalles secundarios.
+                </Text>
+                <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                  <StatusChip
+                    label={selectedOrganization ? providerApprovalStatusLabels[selectedOrganization.approvalStatus] : "sin negocio"}
+                    tone={selectedOrganization?.approvalStatus === "approved" ? "active" : selectedOrganization ? "pending" : "neutral"}
+                  />
+                  <StatusChip label={`${pendingProviderBookings.length} pendientes`} tone={pendingProviderBookings.length ? "pending" : "neutral"} />
+                  <StatusChip label={`${selectedServicios.length} servicio(s)`} tone={selectedServicios.length ? "active" : "neutral"} />
+                  <StatusChip label={isMarketplaceVisible ? "visible" : "no visible"} tone={isMarketplaceVisible ? "active" : "neutral"} />
+                </View>
+                {reviewReadiness.map((item) => (
+                  <View key={item.label} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                    <Text style={{ color: "#f8fafc", flex: 1 }}>{item.label}</Text>
+                    <StatusChip label={item.done ? "listo" : "pendiente"} tone={item.done ? "active" : "pending"} />
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {showOrganization ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Organizaciones</Text>
                 <StatusChip label={`${organizations.length} total`} tone="neutral" />
               </View>
               {isLoading && !organizations.length && !selectedOrganizationDetail ? (
-                <Text style={{ color: colorTokens.muted }}>Cargando organizaciones de proveedores desde Supabase...</Text>
+                <Text style={{ color: colorTokens.muted }}>Preparando tus negocios de proveedor...</Text>
               ) : organizations.length ? (
                 organizations.map((organization) => (
                   <Pressable
@@ -429,7 +468,9 @@ export function ProvidersWorkspace({
                 <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh(selectedOrganizationId)} tone="secondary" />
               </View>
             </View>
+            ) : null}
 
+            {showOrganization ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>
@@ -494,7 +535,9 @@ export function ProvidersWorkspace({
                 ) : null}
               </View>
             </View>
+            ) : null}
 
+            {showApproval ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Aprobacion y publicacion</Text>
@@ -530,7 +573,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Crea o selecciona una organizacion para revisar su estado de aprobacion.</Text>
               )}
             </View>
+            ) : null}
 
+            {showBookings ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Reservas entrantes</Text>
@@ -555,13 +600,13 @@ export function ProvidersWorkspace({
                             />
                           </View>
                           <Text style={{ color: colorTokens.muted }}>
-                            {booking.householdName} Â· {booking.customerDisplayName}
+                            {booking.householdName} - {booking.customerDisplayName}
                           </Text>
                           <Text style={{ color: colorTokens.muted }}>
-                            {booking.petName} Â· {formatDateTime(booking.scheduledStartAt)}
+                            {booking.petName} - {formatDateTime(booking.scheduledStartAt)}
                           </Text>
                           <Text style={{ color: colorTokens.muted }}>
-                            {formatMoney(booking.totalPriceCents, booking.currencyCode)} Â· {booking.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
+                            {formatMoney(booking.totalPriceCents, booking.currencyCode)} - {booking.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                           </Text>
                           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
                             <Button disabled={isSubmitting} label="Ver detalle" onPress={() => void openProviderBookingDetail(booking.id)} tone="secondary" />
@@ -605,10 +650,10 @@ export function ProvidersWorkspace({
                         />
                       </View>
                       <Text style={{ color: colorTokens.muted }}>
-                        {selectedProviderBookingDetail.booking.householdName} Â· {selectedProviderBookingDetail.booking.customerDisplayName}
+                        {selectedProviderBookingDetail.booking.householdName} - {selectedProviderBookingDetail.booking.customerDisplayName}
                       </Text>
                       <Text style={{ color: colorTokens.muted }}>
-                        {selectedProviderBookingDetail.booking.petName} Â· {formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}
+                        {selectedProviderBookingDetail.booking.petName} - {formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}
                       </Text>
                       <Text style={{ color: colorTokens.muted }}>
                         Metodo de pago:{" "}
@@ -630,7 +675,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
               )}
             </View>
+            ) : null}
 
+            {showProfile ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Perfil publico</Text>
               {selectedOrganization ? (
@@ -670,7 +717,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
               )}
             </View>
+            ) : null}
 
+            {showServices ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Servicios</Text>
@@ -767,8 +816,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
               )}
             </View>
+            ) : null}
 
-            {selectedServicios.length ? (
+            {showServices && selectedServicios.length ? (
               <View style={{ gap: 8 }}>
                 {selectedServicios.map((service) => (
                   <View key={service.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
@@ -777,10 +827,10 @@ export function ProvidersWorkspace({
                       <StatusChip label={service.isPublic ? "publico" : "oculto"} tone={service.isPublic ? "active" : "neutral"} />
                     </View>
                     <Text style={{ color: colorTokens.muted }}>
-                      {providerServiceCategoryLabels[service.category]} Â· {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
+                      {providerServiceCategoryLabels[service.category]} - {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
                     </Text>
                     <Text style={{ color: colorTokens.muted }}>
-                      {formatMoney(service.basePriceCents, service.currencyCode)} Â· {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
+                      {formatMoney(service.basePriceCents, service.currencyCode)} - {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                     </Text>
                     <Text style={{ color: colorTokens.muted }}>{service.shortDescription ?? "Todavia no hay descripcion."}</Text>
                     <Button
@@ -809,6 +859,7 @@ export function ProvidersWorkspace({
               </View>
             ) : null}
 
+            {showAvailability ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Disponibilidad</Text>
@@ -881,8 +932,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
               )}
             </View>
+            ) : null}
 
-            {selectedDisponibilidad.length ? (
+            {showAvailability && selectedDisponibilidad.length ? (
               <View style={{ gap: 8 }}>
                 {selectedDisponibilidad.map((slot) => (
                   <View key={slot.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
@@ -910,6 +962,7 @@ export function ProvidersWorkspace({
               </View>
             ) : null}
 
+            {showDocuments ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Documentos de aprobacion</Text>
@@ -993,8 +1046,9 @@ export function ProvidersWorkspace({
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
               )}
             </View>
+            ) : null}
 
-            {selectedDocuments.length ? (
+            {showDocuments && selectedDocuments.length ? (
               <View style={{ gap: 8 }}>
                 {selectedDocuments.map((document) => (
                   <View key={document.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
@@ -1004,7 +1058,7 @@ export function ProvidersWorkspace({
                     </View>
                     <Text style={{ color: colorTokens.muted }}>{document.fileName}</Text>
                     <Text style={{ color: colorTokens.muted }}>
-                      {document.mimeType ?? "Tipo de archivo desconocido"} Â· {formatFileSize(document.fileSizeBytes)}
+                      {document.mimeType ?? "Tipo de archivo desconocido"} - {formatFileSize(document.fileSizeBytes)}
                     </Text>
                   </View>
                 ))}

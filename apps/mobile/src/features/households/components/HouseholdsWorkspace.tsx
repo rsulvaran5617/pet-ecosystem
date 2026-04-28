@@ -160,7 +160,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
       <CoreSectionCard
-        eyebrow="EP-02 / Households"
+        eyebrow="Hogar"
         title="Crear un hogar"
         description="Este alcance del MVP agrega hogares, integrantes, invitaciones y permisos sin pasar todavia a mascotas."
       >
@@ -186,7 +186,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
       </CoreSectionCard>
 
       <CoreSectionCard
-        eyebrow="Incoming"
+        eyebrow="Invitaciones"
         title="Invitaciones pendientes"
         description="Las invitaciones se resuelven dentro de la app para usuarios existentes en core."
       >
@@ -233,12 +233,12 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
       </CoreSectionCard>
 
       <CoreSectionCard
-        eyebrow="Households"
-        title="List and basic detail"
-        description="This covers create, list, detail, members, invitations and per-member permissions."
+        eyebrow="Hogares"
+        title="Lista y detalle basico"
+        description="Gestiona integrantes, invitaciones y permisos por hogar."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando datos del hogar desde Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando hogares, integrantes e invitaciones...</Text> : null}
 
           {snapshot?.households.length ? (
             snapshot.households.map((household) => (
@@ -278,7 +278,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                   <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>
                     {selectedHouseholdDetail.household.name}
                   </Text>
-                  <StatusChip label={canManageSelectedHousehold ? "admin access" : "member access"} tone={canManageSelectedHousehold ? "active" : "neutral"} />
+                  <StatusChip label={canManageSelectedHousehold ? "admin" : "integrante"} tone={canManageSelectedHousehold ? "active" : "neutral"} />
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
                   Tus permisos: {selectedHouseholdDetail.household.myPermissions.join(", ")}
@@ -289,7 +289,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Invitar integrantes</Text>
                 {canManageSelectedHousehold ? (
                   <>
-                    <Field keyboardType="email-address" label="Member email" onChange={setInviteEmail} value={inviteEmail} />
+                    <Field keyboardType="email-address" label="Correo del integrante" onChange={setInviteEmail} value={inviteEmail} />
                     {householdPermissionOptions.map((permission) => (
                       <PermissionRow
                         key={permission.value}
@@ -304,7 +304,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     ))}
                     <Button
                       disabled={isSubmitting}
-                      label="Send invitation"
+                      label="Enviar invitacion"
                       onPress={() => {
                         clearMessages();
                         void runAction(
@@ -323,7 +323,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                   </>
                 ) : (
                   <Text style={{ color: colorTokens.muted }}>
-                    Only household admins can invite members and manage permissions.
+                    Solo integrantes administradores pueden invitar personas y gestionar permisos.
                   </Text>
                 )}
 

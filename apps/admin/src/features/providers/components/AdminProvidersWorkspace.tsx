@@ -67,7 +67,13 @@ function Button({
   );
 }
 
-export function AdminProvidersWorkspace() {
+export function AdminProvidersWorkspace({
+  onOpenQueue,
+  variant = "full"
+}: {
+  onOpenQueue?: () => void;
+  variant?: "full" | "home";
+}) {
   const {
     errorMessage,
     infoMessage,
@@ -82,11 +88,59 @@ export function AdminProvidersWorkspace() {
     rejectOrganization
   } = useAdminProvidersWorkspace(true);
 
+  if (variant === "home") {
+    return (
+      <section style={cardStyle}>
+        {errorMessage ? <div style={{ color: "#991b1b" }}>{errorMessage}</div> : null}
+        {!errorMessage && infoMessage ? <div style={{ color: "#1d4ed8" }}>{infoMessage}</div> : null}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "22px" }}>Proveedores pendientes</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>Primera cola de decision de plataforma.</p>
+          </div>
+          <strong style={{ fontSize: "28px", color: pendingOrganizations.length ? "#b45309" : "#0f766e" }}>
+            {pendingOrganizations.length}
+          </strong>
+        </div>
+        {isLoading && !pendingOrganizations.length ? (
+          <p style={{ margin: 0, color: "#52525b" }}>Cargando cola de proveedores...</p>
+        ) : pendingOrganizations.length ? (
+          <div style={{ display: "grid", gap: "8px" }}>
+            {pendingOrganizations.slice(0, 3).map((organization) => (
+              <button
+                key={organization.id}
+                onClick={() => {
+                  onOpenQueue?.();
+                  void openOrganization(organization.id);
+                }}
+                type="button"
+                style={{ ...inputStyle, textAlign: "left", display: "grid", gap: "6px", cursor: "pointer" }}
+              >
+                <strong>{organization.name}</strong>
+                <span style={{ color: "#52525b" }}>{organization.city} · {organization.slug}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p style={{ margin: 0, color: "#52525b" }}>Cola despejada: no hay proveedores esperando revision ahora.</p>
+        )}
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <Button disabled={isSubmitting} onClick={onOpenQueue} tone="secondary">
+            Abrir cola
+          </Button>
+          <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
+            Refrescar
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section style={{ display: "grid", gap: "20px" }}>
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#1d4ed8" }}>{infoMessage}</div> : null}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(280px,340px) minmax(0,1fr)", gap: "20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 320px),1fr))", gap: "20px" }}>
         <aside style={{ display: "grid", gap: "20px", alignContent: "start" }}>
           <article style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
@@ -118,7 +172,7 @@ export function AdminProvidersWorkspace() {
                 </button>
               ))
             ) : (
-              <p style={{ margin: 0, color: "#52525b" }}>No hay proveedores esperando revision en este momento.</p>
+              <p style={{ margin: 0, color: "#52525b" }}>Cola despejada: no hay proveedores esperando revision en este momento.</p>
             )}
           </article>
         </aside>
@@ -185,7 +239,7 @@ export function AdminProvidersWorkspace() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay servicios.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Sin servicios configurados; esto puede bloquear la visibilidad en marketplace.</div>
                 )}
               </div>
 
@@ -200,7 +254,7 @@ export function AdminProvidersWorkspace() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay disponibilidad.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Sin disponibilidad configurada; revisa si corresponde rechazar o pedir ajustes fuera de la app.</div>
                 )}
               </div>
 
@@ -219,7 +273,7 @@ export function AdminProvidersWorkspace() {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ color: "#52525b", marginTop: "6px" }}>Todavia no hay documentos de aprobacion cargados.</div>
+                  <div style={{ color: "#52525b", marginTop: "6px" }}>Sin documentos cargados; la decision debe considerar este faltante.</div>
                 )}
               </div>
 

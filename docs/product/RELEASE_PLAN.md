@@ -4,6 +4,15 @@
 
 Cerrar un baseline serio de MVP, alineado entre codigo, migraciones, contratos y documentacion.
 
+Estado actual:
+
+- baseline MVP localizado: publicado como `v0.1.0-mvp-baseline-es.1`
+- QA/UAT final: `completada`
+- piloto controlado: `aprobado`
+- productizacion UX por rol: `cerrada`
+- hardening UX no bloqueante: `aplicado`
+- frente activo recomendado: material visual del piloto y QA manual por rol
+
 ## Gate 1: Baseline MVP
 
 Debe quedar resuelto:
@@ -38,6 +47,17 @@ Solo se recomienda cuando ademas exista:
 - seeds o precondiciones operativas claras
 - validacion manual final de flujos criticos
 - decision explicita sobre pendientes no bloqueantes
+
+## Gate 4: Evidencia visual del piloto
+
+Debe preparar sin abrir nuevas features:
+
+- capturas o videos cortos de owner mobile
+- capturas o videos cortos de provider mobile
+- capturas de admin web
+- checklist manual por rol con hallazgos visuales triageados
+- confirmacion de que `payment-ready` no promete cobro real
+- confirmacion de que no se abrieron backend, DB, APIs, migraciones ni V2/V3
 
 ## Freeze propuesto para el baseline actual
 

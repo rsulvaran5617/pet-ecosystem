@@ -92,7 +92,7 @@ export function SupportWorkspace({
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
-        eyebrow="EP-07 / Soporte"
+        eyebrow="Soporte"
         title="Casos de soporte basicos para reservas"
         description="El soporte sigue anclado a una reserva y orientado a la plataforma. Este MVP no incluye disputas, chat de soporte ni adjuntos."
       >
@@ -154,7 +154,7 @@ export function SupportWorkspace({
               />
             </View>
             {isLoading && !selectedCase ? (
-              <Text style={{ color: colorTokens.muted }}>Cargando datos de soporte desde Supabase...</Text>
+              <Text style={{ color: colorTokens.muted }}>Preparando el detalle del caso de soporte...</Text>
             ) : selectedCase ? (
               <>
                 <View style={inputStyle}>

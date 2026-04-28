@@ -1,8 +1,8 @@
 import * as DocumentPicker from "expo-document-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
 import { colorTokens } from "@pet/ui";
-import type { PetDocumentType, UpdatePetInput } from "@pet/types";
-import { useMemo, useState } from "react";
+import type { PetDocumentType, UpdatePetInput, Uuid } from "@pet/types";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -48,6 +48,15 @@ const emptyDocumentForm: DocumentFormState = {
   documentType: "other",
   selectedDocument: null
 };
+
+type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
+
+const hubPanelOptions: Array<{ label: string; value: PetHubPanel }> = [
+  { label: "Detalle", value: "detalle" },
+  { label: "Salud", value: "salud" },
+  { label: "Docs", value: "documentos" },
+  { label: "Recordatorios", value: "recordatorios" }
+];
 
 function Button({
   disabled,
@@ -180,7 +189,17 @@ function formatFileSize(fileSizeBytes: number | null) {
   return `${(fileSizeBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PetsWorkspace({ enabled }: { enabled: boolean }) {
+export function PetsWorkspace({
+  activePanel = "detalle",
+  enabled,
+  onContextChange,
+  onPanelChange
+}: {
+  activePanel?: PetHubPanel;
+  enabled: boolean;
+  onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
+  onPanelChange?: (panel: PetHubPanel) => void;
+}) {
   const {
     householdSnapshot,
     pets,
@@ -219,6 +238,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     enabled
   );
 
+  useEffect(() => {
+    onContextChange?.({ householdId: selectedHouseholdId, petId: selectedPetId });
+  }, [onContextChange, selectedHouseholdId, selectedPetId]);
+
   if (!enabled) {
     return null;
   }
@@ -229,39 +252,49 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
       <CoreSectionCard
-        eyebrow="EP-03 / Mascotas"
-        title="Mascotas del hogar y documentos basicos"
-        description="Las mascotas heredan el acceso del hogar y se mantienen dentro del alcance MVP de listado, creacion, edicion, resumen y documentos basicos."
+        eyebrow="Mascotas"
+        title="Mascotas del hogar"
+        description="Elige una mascota y usa su detalle como punto de entrada a salud, documentos y recordatorios."
       >
         <View style={{ gap: 12 }}>
-          {isLoading ? <Text style={{ color: colorTokens.muted }}>Cargando hogares, mascotas y documentos desde Supabase...</Text> : null}
+          {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando mascotas, documentos y permisos del hogar...</Text> : null}
+
+          <View style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.9)", padding: 16, gap: 8 }}>
+            <Text style={{ fontSize: 20, fontWeight: "700", color: "#1c1917" }}>Tus mascotas</Text>
+            <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>
+              Selecciona una mascota para ver su ficha, registrar cuidado y mantener sus documentos en contexto.
+            </Text>
+          </View>
 
           {householdSnapshot?.households.length ? (
-            householdSnapshot.households.map((household) => (
-              <Pressable
-                key={household.id}
-                onPress={() => void selectHousehold(household.id)}
-                style={{
-                  borderRadius: 18,
-                  backgroundColor:
-                    household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)",
-                  borderWidth: 1,
-                  borderColor:
-                    household.id === selectedHouseholdId ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.08)",
-                  padding: 14,
-                  gap: 8
-                }}
-              >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{household.name}</Text>
-                  <StatusChip
-                    label={household.myPermissions.includes("edit") ? "editable" : "solo lectura"}
-                    tone={household.myPermissions.includes("edit") ? "active" : "neutral"}
-                  />
-                </View>
-                <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s)</Text>
-              </Pressable>
-            ))
+            <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: "#1c1917" }}>Hogar</Text>
+              {householdSnapshot.households.map((household) => (
+                <Pressable
+                  key={household.id}
+                  onPress={() => void selectHousehold(household.id)}
+                  style={{
+                    borderRadius: 16,
+                    backgroundColor:
+                      household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(255,255,255,0.72)",
+                    borderWidth: 1,
+                    borderColor:
+                      household.id === selectedHouseholdId ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.08)",
+                    padding: 12,
+                    gap: 6
+                  }}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                    <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{household.name}</Text>
+                    <StatusChip
+                      label={household.myPermissions.includes("edit") ? "editable" : "solo lectura"}
+                      tone={household.myPermissions.includes("edit") ? "active" : "neutral"}
+                    />
+                  </View>
+                  <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s)</Text>
+                </Pressable>
+              ))}
+            </View>
           ) : (
             <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
           )}
@@ -367,7 +400,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
 
           <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascotas</Text>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Elige una mascota</Text>
               {selectedHousehold ? <StatusChip label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
             </View>
             {selectedHousehold ? (
@@ -386,12 +419,15 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                   >
                     <Pressable onPress={() => void selectPet(pet.id)} style={{ gap: 8 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                        <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{pet.name}</Text>
-                        <StatusChip label={`${pet.documentCount} documento(s)`} tone="neutral" />
+                        <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1917", flex: 1 }}>{pet.name}</Text>
+                        <StatusChip label={pet.id === selectedPetId ? "seleccionada" : `${pet.documentCount} doc(s)`} tone={pet.id === selectedPetId ? "active" : "neutral"} />
                       </View>
                       <Text style={{ color: colorTokens.muted }}>
                         {pet.species}
                         {pet.breed ? `  -  ${pet.breed}` : ""}
+                      </Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 13 }}>
+                        Toca para abrir su detalle, salud, documentos y recordatorios.
                       </Text>
                     </Pressable>
                     {canEditSelectedHousehold ? (
@@ -415,7 +451,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                   </View>
                 ))
               ) : (
-                <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text>
+                <View style={[inputStyle, { gap: 6 }]}>
+                  <Text style={{ color: "#1c1917", fontWeight: "700" }}>Este hogar todavia no tiene mascotas</Text>
+                  <Text style={{ color: colorTokens.muted }}>Crea la primera mascota para habilitar su ficha, documentos, salud y recordatorios.</Text>
+                </View>
               )
             ) : (
               <Text style={{ color: colorTokens.muted }}>Selecciona un hogar para listar sus mascotas.</Text>
@@ -424,17 +463,58 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
 
           {selectedPetDetail ? (
             <>
-              <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
+              <View style={{ borderRadius: 22, backgroundColor: "#1c1917", padding: 18, gap: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>{selectedPetDetail.pet.name}</Text>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={{ fontSize: 28, fontWeight: "700", color: "#f8fafc" }}>{selectedPetDetail.pet.name}</Text>
+                    <Text style={{ color: "rgba(248,250,252,0.76)" }}>
+                      {selectedPetDetail.pet.species}
+                      {selectedPetDetail.pet.breed ? ` - ${selectedPetDetail.pet.breed}` : ""}
+                    </Text>
+                  </View>
                   <StatusChip label={selectedPetDetail.pet.species} tone="active" />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>Raza: {selectedPetDetail.pet.breed ?? "No registrada"}</Text>
-                <Text style={{ color: colorTokens.muted }}>Sexo: {petSexLabels[selectedPetDetail.pet.sex]}</Text>
-                <Text style={{ color: colorTokens.muted }}>Fecha de nacimiento: {selectedPetDetail.pet.birthDate ?? "No registrada"}</Text>
-                <Text style={{ color: colorTokens.muted }}>
-                  Notas: {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
-                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <StatusChip label={`${selectedPetDetail.documents.length} documento(s)`} tone="neutral" />
+                  <StatusChip label={isHealthSummaryLoading ? "salud cargando" : selectedPetHealthSummary ? `${selectedPetHealthSummary.vaccineCount} vacuna(s)` : "sin salud"} tone="neutral" />
+                  <StatusChip label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {hubPanelOptions.map((option) => (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => onPanelChange?.(option.value)}
+                      style={{
+                        borderRadius: 999,
+                        backgroundColor: activePanel === option.value ? "rgba(153,246,228,0.2)" : "rgba(255,255,255,0.08)",
+                        borderColor: activePanel === option.value ? "rgba(153,246,228,0.4)" : "rgba(255,255,255,0.12)",
+                        borderWidth: 1,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8
+                      }}
+                    >
+                      <Text style={{ color: activePanel === option.value ? "#99f6e4" : "rgba(248,250,252,0.76)", fontWeight: "700" }}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                  <Button label="Registrar salud" onPress={() => onPanelChange?.("salud")} tone="secondary" />
+                  <Button label="Cargar documento" onPress={() => onPanelChange?.("documentos")} tone="secondary" />
+                  <Button label="Crear recordatorio" onPress={() => onPanelChange?.("recordatorios")} tone="secondary" />
+                </View>
+              </View>
+
+              {activePanel === "detalle" ? (
+                <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
+                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Ficha de {selectedPetDetail.pet.name}</Text>
+                  <Text style={{ color: colorTokens.muted }}>Raza: {selectedPetDetail.pet.breed ?? "No registrada"}</Text>
+                  <Text style={{ color: colorTokens.muted }}>Sexo: {petSexLabels[selectedPetDetail.pet.sex]}</Text>
+                  <Text style={{ color: colorTokens.muted }}>Fecha de nacimiento: {selectedPetDetail.pet.birthDate ?? "No registrada"}</Text>
+                  <Text style={{ color: colorTokens.muted }}>
+                    Notas: {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
+                  </Text>
                 {isHealthSummaryLoading ? (
                   <Text style={{ color: colorTokens.muted }}>Cargando resumen de salud...</Text>
                 ) : selectedPetHealthSummary ? (
@@ -450,13 +530,15 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     </Text>
                   </>
                 ) : (
-                  <Text style={{ color: colorTokens.muted }}>Todavia no hay un resumen de salud.</Text>
+                  <Text style={{ color: colorTokens.muted }}>Aun no hay datos de salud. Usa el panel Salud para registrar vacunas, alergias o condiciones.</Text>
                 )}
-              </View>
+                </View>
+              ) : null}
 
+              {activePanel === "documentos" ? (
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Documentos</Text>
+                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Documentos de {selectedPetDetail.pet.name}</Text>
                   <StatusChip label={`${selectedPetDetail.documents.length} total`} tone="neutral" />
                 </View>
                 {canEditSelectedHousehold ? (
@@ -472,7 +554,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     />
                     <Button
                       disabled={isSubmitting}
-                      label={documentForm.selectedDocument ? `Selected: ${documentForm.selectedDocument.fileName}` : "Elegir documento"}
+                      label={documentForm.selectedDocument ? `Seleccionado: ${documentForm.selectedDocument.fileName}` : "Elegir documento"}
                       onPress={() => {
                         void DocumentPicker.getDocumentAsync({
                           multiple: false,
@@ -563,9 +645,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     </View>
                   ))
                 ) : (
-                  <Text style={{ color: colorTokens.muted }}>Todavia no hay documentos cargados para esta mascota.</Text>
+                  <Text style={{ color: colorTokens.muted }}>Aun no hay documentos. Carga un archivo basico para tenerlo disponible desde la ficha de la mascota.</Text>
                 )}
               </View>
+              ) : null}
             </>
           ) : (
             <Text style={{ color: colorTokens.muted }}>

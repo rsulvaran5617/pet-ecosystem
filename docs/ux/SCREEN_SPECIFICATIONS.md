@@ -1,5 +1,17 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Estado de productizacion UX
+
+La fase UX por rol queda `cerrada` sobre el MVP existente.
+
+Estas pantallas siguen siendo el baseline funcional, pero ahora se presentan agrupadas por rol e intencion:
+
+- owner mobile: Inicio, Mascotas, Buscar, Reservas, Mensajes y Cuenta
+- provider: Inicio, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta
+- admin web: Inicio, Proveedores y Soporte
+
+No se agregaron nuevas entidades, APIs, tablas, migraciones ni capacidades V2/V3.
+
 ## Pantallas MVP minimas
 
 ### Core
@@ -74,8 +86,10 @@
 
 ### Admin
 - login admin
+- home admin
 - proveedores pendientes
 - detalle de proveedor
+- cola de soporte
 - soporte basico
 
 ## Pantallas explicitamente fuera de este baseline

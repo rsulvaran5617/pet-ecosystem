@@ -8,12 +8,20 @@ import { getAdminCoreApiClient } from "../features/core/services/supabase-admin"
 import { AdminProvidersWorkspace } from "../features/providers/components/AdminProvidersWorkspace";
 import { AdminSupportWorkspace } from "../features/support/components/AdminSupportWorkspace";
 
+type AdminSection = "inicio" | "proveedores" | "soporte";
+
+const adminSections: Array<{ description: string; id: AdminSection; label: string }> = [
+  { id: "inicio", label: "Inicio", description: "Colas accionables y siguiente decision." },
+  { id: "proveedores", label: "Proveedores", description: "Revision de proveedores pendientes." },
+  { id: "soporte", label: "Soporte", description: "Casos abiertos y resolucion basica." }
+];
+
 const shellStyle = {
   minHeight: "100vh",
   padding: "32px",
   display: "grid",
   gap: "24px",
-  width: "min(1200px, 100%)",
+  width: "min(1280px, 100%)",
   margin: "0 auto"
 } as const;
 
@@ -76,6 +84,7 @@ export default function AdminPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeSection, setActiveSection] = useState<AdminSection>("inicio");
 
   const isAdmin = useMemo(() => snapshot?.roles.some((role) => role.role === "admin") ?? false, [snapshot]);
 
@@ -149,7 +158,7 @@ export default function AdminPage() {
       {!authChecked ? (
         <section style={cardStyle}>
           <h2 style={{ margin: 0 }}>Cargando sesion administrativa</h2>
-          <p style={{ margin: 0, color: "#52525b" }}>Resolviendo la sesion actual de Supabase y el rol administrativo.</p>
+          <p style={{ margin: 0, color: "#52525b" }}>Verificando tu acceso y permisos administrativos.</p>
         </section>
       ) : null}
 
@@ -242,7 +251,7 @@ export default function AdminPage() {
 
       {authChecked && snapshot && isAdmin ? (
         <>
-          <section style={cardStyle}>
+          <section style={{ ...cardStyle, marginBottom: "20px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
               <div style={{ display: "grid", gap: "4px" }}>
                 <strong>{snapshot.profile.email}</strong>
@@ -289,8 +298,62 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
-          <AdminProvidersWorkspace />
-          <AdminSupportWorkspace />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 260px),1fr))", gap: "20px", alignItems: "start" }}>
+            <aside style={{ ...cardStyle, position: "sticky", top: "24px", padding: "16px" }}>
+              <strong style={{ color: "#18181b" }}>Backoffice MVP</strong>
+              <nav style={{ display: "grid", gap: "8px" }}>
+                {adminSections.map((section) => {
+                  const isActive = activeSection === section.id;
+
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      type="button"
+                      style={{
+                        borderRadius: "14px",
+                        border: "1px solid rgba(24,24,27,0.1)",
+                        background: isActive ? "#1d4ed8" : "rgba(255,255,255,0.86)",
+                        color: isActive ? "#f8fafc" : "#18181b",
+                        cursor: "pointer",
+                        display: "grid",
+                        gap: "4px",
+                        padding: "12px",
+                        textAlign: "left"
+                      }}
+                    >
+                      <strong>{section.label}</strong>
+                      <span style={{ color: isActive ? "rgba(248,250,252,0.78)" : "#52525b", fontSize: "13px", lineHeight: 1.4 }}>
+                        {section.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </aside>
+
+            <div style={{ display: "grid", gap: "20px", minWidth: 0 }}>
+              {activeSection === "inicio" ? (
+                <>
+                  <section style={{ ...cardStyle, background: "#111827", color: "#f8fafc" }}>
+                    <p style={{ margin: 0, color: "#93c5fd", fontSize: "12px", fontWeight: 700, textTransform: "uppercase" }}>
+                      Home admin
+                    </p>
+                    <h2 style={{ margin: 0, fontSize: "32px", lineHeight: 1.15 }}>Colas de decision</h2>
+                    <p style={{ margin: 0, color: "rgba(248,250,252,0.78)", lineHeight: 1.7 }}>
+                      Empieza por proveedores pendientes y soporte abierto. Esta vista no agrega analitica nueva: solo ordena las decisiones MVP existentes.
+                    </p>
+                  </section>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: "20px" }}>
+                    <AdminProvidersWorkspace onOpenQueue={() => setActiveSection("proveedores")} variant="home" />
+                    <AdminSupportWorkspace onOpenQueue={() => setActiveSection("soporte")} variant="home" />
+                  </div>
+                </>
+              ) : null}
+              {activeSection === "proveedores" ? <AdminProvidersWorkspace /> : null}
+              {activeSection === "soporte" ? <AdminSupportWorkspace /> : null}
+            </div>
+          </div>
         </>
       ) : null}
     </main>

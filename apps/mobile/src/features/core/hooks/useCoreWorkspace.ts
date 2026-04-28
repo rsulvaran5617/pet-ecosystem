@@ -173,7 +173,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         await refresh();
       } catch (error) {
         if (mountedRef.current) {
-          setConfigError(error instanceof Error ? error.message : "No fue posible inicializar Supabase en mobile.");
+          setConfigError(error instanceof Error ? error.message : "No fue posible inicializar la app mobile.");
         }
       } finally {
         if (mountedRef.current) {
