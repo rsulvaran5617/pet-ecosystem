@@ -21,7 +21,7 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 | `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline publicado; no queda pendiente de commit ni tag |
 | Productizacion UX por rol | `PASS` | owner mobile, provider mobile-first, admin web-only | reorganizacion UX sobre capacidades MVP existentes, sin backend/DB/API/migraciones nuevas |
 | Hardening UX no bloqueante | `PASS` | empty states, indicadores simples, copy `payment-ready`, continuidad visual | no agrega features ni notificaciones persistidas |
-| Polish visual inicial | `PASS` | ajustes responsive y microcopy de bajo riesgo | falta evidencia visual/manual QA por rol para material de piloto |
+| Polish visual inicial | `PASS` | ajustes responsive, tipografia admin y microcopy de bajo riesgo | evidencia visual local owner iniciada en `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md` |
 | QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
 | Android/mobile | `PASS` | `AND-01`, `AND-02`, `AND-03` | validaciones manuales Android ejecutadas; ya no existe bloqueo activo de entorno |
 
@@ -41,13 +41,14 @@ Estos casos no abren nuevas features. Sirven para preparar material visual del p
 
 | ID | Canal | Rol | Estado | Alcance |
 | --- | --- | --- | --- | --- |
-| UX-OWN-01 | Android/mobile | owner | `pendiente_no_bloqueante` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
+| UX-OWN-01 | Android/mobile | owner | `PASS_visual_local` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
 | UX-PRO-01 | Android/mobile | provider | `pendiente_no_bloqueante` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta |
-| UX-ADM-01 | admin web | admin | `pendiente_no_bloqueante` | Home admin, Proveedores, Soporte y responsive basico |
+| UX-ADM-01 | admin web | admin | `parcial_composicion_local` | Home admin validado sin sesion; Proveedores/Soporte pendientes con usuario admin |
 
 Evidencia recomendada:
 
 - capturas o videos cortos por rol
+- checklist operativo: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
 - registrar overflow, textos cortados, empty states frios, indicadores confusos o navegacion poco clara
 - aplicar solo ajustes visuales menores si son de bajo riesgo
 

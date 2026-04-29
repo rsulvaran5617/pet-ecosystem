@@ -35,7 +35,7 @@ Dejar una referencia corta y operativa para retomar el MVP sin depender del hist
 - fase UX por rol posterior al MVP: `cerrada documentalmente`
 - hardening UX no bloqueante: `aplicado`
 - polish visual/manual QA por rol: `iniciado`, con ajustes de bajo riesgo aplicados
-- fase actual del proyecto: `preparar evidencia visual/manual QA por rol para piloto`
+- fase actual del proyecto: `QA visual/manual por rol en ejecucion`
 
 ## Productizacion UX por rol cerrada
 
@@ -99,7 +99,8 @@ Notas:
 - adjuntar o referenciar evidencia final de QA/UAT manual web y Android si se requiere para auditoria
 - conservar triage de casos `importante_no_bloqueante` y `externa_entorno` fuera del bloqueo de salida
 - preparar el paquete operativo del piloto controlado sin cambiar alcance funcional
-- preparar material visual del piloto por rol: capturas o videos cortos owner, provider y admin
+- preparar material visual del piloto por rol: owner mobile iniciado con capturas locales; provider mobile y admin autenticado siguen pendientes
+- checklist visual/manual operativo: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
 - ejecutar checklist manual de polish visual por rol con datos MVP existentes
 - decidir si se versiona la UX productizada con commit/tag propio posterior al baseline MVP
 
@@ -125,11 +126,11 @@ Notas:
 - estado para QA/UAT final: `completada`
 - estado para piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual de trabajo: `polish visual/manual QA por rol y preparacion de evidencia de piloto`
+- fase actual de trabajo: `QA visual/manual por rol en ejecucion`
 - produccion comercial: `fuera de alcance actual`
 
 ## Siguiente paso recomendado exacto
-Preparar material visual del piloto y ejecutar QA manual por rol sobre la UX productizada, sin abrir features nuevas.
+Completar QA visual/manual con usuario provider y usuario admin autenticado. Si no aparecen huecos estructurales, abrir hardening tecnico/operativo del piloto antes de Payments MVP+.
 
 ## Retomar baseline publicado previo
 

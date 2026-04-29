@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         style={{
           margin: 0,
-          fontFamily: "'Courier New', monospace",
+          fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           background: "linear-gradient(180deg, #f4f4ef 0%, #dedbcc 100%)",
           color: "#18181b"
         }}

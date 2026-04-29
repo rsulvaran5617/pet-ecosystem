@@ -58,7 +58,8 @@
 - baseline localizado actual publicado en `v0.1.0-mvp-baseline-es.1` sobre `6e984eb`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual del proyecto: `polish visual/manual QA por rol y preparacion de evidencia de piloto`
+- fase actual del proyecto: `QA visual/manual por rol en ejecucion`
+- checklist visual/manual: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
 - HEAD operativo publicado antes de cambios UX locales: `65da809`
 - pendientes restantes: `no bloqueantes`
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare
