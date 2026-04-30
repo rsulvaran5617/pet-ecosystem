@@ -69,7 +69,7 @@ Hardening UX no bloqueante completado:
 - reduccion de copy tecnico visible para usuarios
 - polish visual inicial de bajo riesgo en owner mobile y admin web
 
-No queda hueco estructural UX dentro del alcance MVP. El frente activo es ejecutar QA visual/manual por rol usando `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`; despues de cerrar provider mobile y admin autenticado, el siguiente frente recomendado es hardening tecnico/operativo del piloto antes de mover el frente hacia pagos o capacidades nuevas.
+No queda hueco estructural UX dentro del alcance MVP. El frente activo es ejecutar QA visual/manual por rol usando `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`; Cuenta provider ya fue ajustada para no mostrar hogares ni tarjetas guardadas, y debe revalidarse con `QA_PROVIDER`. Despues de cerrar provider mobile completo y admin autenticado, el siguiente frente recomendado es hardening tecnico/operativo del piloto antes de mover el frente hacia pagos o capacidades nuevas.
 
 ## Fuera de alcance
 

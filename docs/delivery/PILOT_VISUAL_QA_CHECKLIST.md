@@ -14,7 +14,7 @@ No abre features nuevas, no cambia backend, base de datos, contratos API ni migr
 - productizacion UX por rol: `cerrada`
 - hardening UX no bloqueante: `aplicado`
 - polish visual inicial: `aplicado`
-- estado actual: `QA visual/manual por rol en preparacion`
+- estado actual: `QA visual/manual por rol en ejecucion`
 
 ## Entorno levantado
 
@@ -48,6 +48,8 @@ Estas capturas no se versionan en git porque son evidencia local de ejecucion. S
 | Severidad | Superficie | Hallazgo | Estado |
 | --- | --- | --- | --- |
 | Media | Admin web | La tipografia global monospace hacia que el backoffice se sintiera mas tecnico que operativo. | `corregido` con fuente system sans-serif |
+| Media | Provider mobile | En Cuenta provider aparecia `Crear un hogar`, una accion propia del modo propietario aunque el usuario tenga ambos roles. | `corregido`; hogares queda solo en Cuenta owner |
+| Media | Provider mobile | En Cuenta provider aparecian tarjetas guardadas, que pertenecen al flujo owner `payment-ready` y no a payouts/liquidaciones del proveedor. | `corregido`; provider ve solo alcance de pagos MVP |
 | Media | Android dev-client | Tras forzar cierre de la app, puede aparecer `Unable to load script` hasta aplicar `adb reverse tcp:8081 tcp:8081`. | `entorno`, documentado |
 | Baja | Owner mobile | La captura cruda se ve grande por densidad `440` y `font_scale=1.25`; no se observo overflow roto en tabs principales. | `observado`, sin cambio |
 | Baja | Admin/web headless | Chrome/Edge headless no genero screenshot estable, pero las rutas respondieron `200` y admin pudo inspeccionarse por DOM. | `entorno`, no bloqueante |
@@ -76,6 +78,7 @@ Estas capturas no se versionan en git porque son evidencia local de ejecucion. S
 | UX-PRO-VIS-05 | Reservas | Pendientes y confirmadas muestran acciones por estado. | `pendiente con usuario provider` |
 | UX-PRO-VIS-06 | Mensajes | Conversaciones se mantienen vinculadas a reservas. | `pendiente con usuario provider` |
 | UX-PRO-VIS-07 | Estado | Aprobacion y documentos explican impacto en marketplace. | `pendiente con usuario provider` |
+| UX-PRO-VIS-08 | Cuenta | Perfil, preferencias, direcciones y cambio de rol se mantienen visibles; hogares y tarjetas guardadas no aparecen dentro de modo provider. | `pendiente revalidar con usuario provider` |
 
 ### Admin web
 

@@ -44,7 +44,7 @@
 - la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol, validada con lint/typecheck/build/export/smoke e incorporada en el baseline publicado `v0.1.0-mvp-baseline-es.1`
 - la localizacion al espanol ya no esta pendiente de commit ni de tag
 - la productizacion UX por rol quedo implementada sobre capacidades MVP existentes: owner mobile shell/Home, Mascotas hub, Reservas hub transaccional, consola provider mobile-first, admin web backoffice y hardening UX no bloqueante
-- el polish visual/manual QA por rol quedo iniciado con ajustes de bajo riesgo; falta preparar evidencia visual del piloto y ejecutar checklist manual por rol
+- el polish visual/manual QA por rol esta en ejecucion; Cuenta provider fue ajustada para no mostrar hogares ni tarjetas guardadas, y falta revalidar con `QA_PROVIDER`
 - la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
 - Android/mobile fue ejecutado manualmente y `AND-01`, `AND-02` y `AND-03` quedan registrados como `PASS`
 - ya no existe bloqueo activo de Android/mobile por entorno
@@ -60,6 +60,6 @@
 - fase UX por rol: `cerrada`
 - fase actual del proyecto: `QA visual/manual por rol en ejecucion`
 - checklist visual/manual: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
-- HEAD operativo publicado antes de cambios UX locales: `65da809`
+- HEAD operativo publicado antes del handoff actual: `cfc70b7`
 - pendientes restantes: `no bloqueantes`
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

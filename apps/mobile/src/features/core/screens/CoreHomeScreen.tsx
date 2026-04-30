@@ -779,7 +779,9 @@ export function CoreHomeScreen() {
             <View style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.92)", padding: 16, gap: 8 }}>
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Configuracion de cuenta</Text>
               <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>
-                Aqui viven perfil, preferencias, hogares, direcciones, metodos guardados y cambio de rol. El flujo principal de cuidado queda en las otras pestanas.
+                {isProviderMode
+                  ? "Aqui viven perfil, preferencias, direcciones, metodos guardados y cambio de rol. La gestion de hogares queda en el modo propietario."
+                  : "Aqui viven perfil, preferencias, hogares, direcciones, metodos guardados y cambio de rol. El flujo principal de cuidado queda en las otras pestanas."}
               </Text>
             </View>
 
@@ -1069,103 +1071,117 @@ export function CoreHomeScreen() {
               </View>
             </CoreSectionCard>
 
-            <CoreSectionCard
-              eyebrow="Metodos de pago"
-              title="Solo tarjetas guardadas"
-              description={`Compatibles en el core MVP: ${coreSupportedPaymentMethodTypes.join(", ")}.`}
-            >
-              <View style={{ gap: 12 }}>
-                <ChoiceBar
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, brand: value }))}
-                  options={[
-                    { label: "Visa", value: "visa" },
-                    { label: "Mastercard", value: "mastercard" },
-                    { label: "Amex", value: "amex" }
-                  ]}
-                  value={paymentForm.brand}
-                />
-                <Field
-                  label="Ultimos 4"
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, last4: value }))}
-                  value={paymentForm.last4}
-                />
-                <Field
-                  keyboardType="numeric"
-                  label="Mes de vencimiento"
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expMonth: value }))}
-                  value={paymentForm.expMonth}
-                />
-                <Field
-                  keyboardType="numeric"
-                  label="Ano de vencimiento"
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expYear: value }))}
-                  value={paymentForm.expYear}
-                />
-                <Field
-                  label="Titular"
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, cardholderName: value }))}
-                  value={paymentForm.cardholderName}
-                />
-                <SwitchRow
-                  label="Marcar como metodo de pago predeterminado"
-                  onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, isDefault: value }))}
-                  value={Boolean(paymentForm.isDefault)}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Guardar tarjeta"
-                  onPress={() => {
-                    clearMessages();
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().addPaymentMethod({
-                          brand: paymentForm.brand,
-                          last4: paymentForm.last4.trim(),
-                          expMonth: Number(paymentForm.expMonth),
-                          expYear: Number(paymentForm.expYear),
-                          cardholderName: paymentForm.cardholderName.trim(),
-                          isDefault: paymentForm.isDefault
-                        }),
-                      "Metodo de pago guardado."
-                    ).then(() => {
-                      setPaymentForm(emptyPaymentForm);
-                    });
-                  }}
-                />
-                {snapshot.paymentMethods.map((paymentMethod) => (
-                  <View key={paymentMethod.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                      <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>
-                        {paymentMethod.brand.toUpperCase()} terminada en {paymentMethod.last4}
+            {!isProviderMode ? (
+              <CoreSectionCard
+                eyebrow="Metodos de pago"
+                title="Solo tarjetas guardadas"
+                description={`Compatibles en el core MVP: ${coreSupportedPaymentMethodTypes.join(", ")}.`}
+              >
+                <View style={{ gap: 12 }}>
+                  <ChoiceBar
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, brand: value }))}
+                    options={[
+                      { label: "Visa", value: "visa" },
+                      { label: "Mastercard", value: "mastercard" },
+                      { label: "Amex", value: "amex" }
+                    ]}
+                    value={paymentForm.brand}
+                  />
+                  <Field
+                    label="Ultimos 4"
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, last4: value }))}
+                    value={paymentForm.last4}
+                  />
+                  <Field
+                    keyboardType="numeric"
+                    label="Mes de vencimiento"
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expMonth: value }))}
+                    value={paymentForm.expMonth}
+                  />
+                  <Field
+                    keyboardType="numeric"
+                    label="Ano de vencimiento"
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expYear: value }))}
+                    value={paymentForm.expYear}
+                  />
+                  <Field
+                    label="Titular"
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, cardholderName: value }))}
+                    value={paymentForm.cardholderName}
+                  />
+                  <SwitchRow
+                    label="Marcar como metodo de pago predeterminado"
+                    onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, isDefault: value }))}
+                    value={Boolean(paymentForm.isDefault)}
+                  />
+                  <Button
+                    disabled={isSubmitting}
+                    label="Guardar tarjeta"
+                    onPress={() => {
+                      clearMessages();
+                      void runAction(
+                        () =>
+                          getMobileCoreApiClient().addPaymentMethod({
+                            brand: paymentForm.brand,
+                            last4: paymentForm.last4.trim(),
+                            expMonth: Number(paymentForm.expMonth),
+                            expYear: Number(paymentForm.expYear),
+                            cardholderName: paymentForm.cardholderName.trim(),
+                            isDefault: paymentForm.isDefault
+                          }),
+                        "Metodo de pago guardado."
+                      ).then(() => {
+                        setPaymentForm(emptyPaymentForm);
+                      });
+                    }}
+                  />
+                  {snapshot.paymentMethods.map((paymentMethod) => (
+                    <View key={paymentMethod.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                        <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>
+                          {paymentMethod.brand.toUpperCase()} terminada en {paymentMethod.last4}
+                        </Text>
+                        <StatusChip
+                          label={paymentMethod.isDefault ? "predeterminada" : paymentMethod.status}
+                          tone={paymentMethod.isDefault ? "active" : "neutral"}
+                        />
+                      </View>
+                      <Text style={{ color: colorTokens.muted }}>
+                        {paymentMethod.cardholderName} - vence {paymentMethod.expMonth}/{paymentMethod.expYear}
                       </Text>
-                      <StatusChip
-                        label={paymentMethod.isDefault ? "predeterminada" : paymentMethod.status}
-                        tone={paymentMethod.isDefault ? "active" : "neutral"}
-                      />
+                      {!paymentMethod.isDefault ? (
+                        <Button
+                          disabled={isSubmitting}
+                          label="Marcar como predeterminada"
+                          onPress={() => {
+                            clearMessages();
+                            void runAction(
+                              () => getMobileCoreApiClient().setDefaultPaymentMethod(paymentMethod.id),
+                              `Metodo de pago predeterminado actualizado a ${paymentMethod.brand.toUpperCase()} ${paymentMethod.last4}.`
+                            );
+                          }}
+                          tone="secondary"
+                        />
+                      ) : null}
                     </View>
-                    <Text style={{ color: colorTokens.muted }}>
-                      {paymentMethod.cardholderName} - vence {paymentMethod.expMonth}/{paymentMethod.expYear}
-                    </Text>
-                    {!paymentMethod.isDefault ? (
-                      <Button
-                        disabled={isSubmitting}
-                        label="Marcar como predeterminada"
-                        onPress={() => {
-                          clearMessages();
-                          void runAction(
-                            () => getMobileCoreApiClient().setDefaultPaymentMethod(paymentMethod.id),
-                            `Metodo de pago predeterminado actualizado a ${paymentMethod.brand.toUpperCase()} ${paymentMethod.last4}.`
-                          );
-                        }}
-                        tone="secondary"
-                      />
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            </CoreSectionCard>
+                  ))}
+                </View>
+              </CoreSectionCard>
+            ) : (
+              <CoreSectionCard
+                eyebrow="Pagos"
+                title="Pagos reales fuera del MVP"
+                description="Las tarjetas guardadas pertenecen al modo propietario como referencia para reservas. Payouts, liquidaciones y facturacion del proveedor no forman parte del MVP actual."
+              >
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <StatusChip label="payment-ready" tone="neutral" />
+                  <StatusChip label="sin cobro real" tone="neutral" />
+                  <StatusChip label="payouts fuera de alcance" tone="pending" />
+                </View>
+              </CoreSectionCard>
+            )}
 
-            <HouseholdsWorkspace enabled />
+            {!isProviderMode ? <HouseholdsWorkspace enabled /> : null}
           </>
         ) : null}
 

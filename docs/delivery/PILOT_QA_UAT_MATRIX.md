@@ -42,7 +42,7 @@ Estos casos no abren nuevas features. Sirven para preparar material visual del p
 | ID | Canal | Rol | Estado | Alcance |
 | --- | --- | --- | --- | --- |
 | UX-OWN-01 | Android/mobile | owner | `PASS_visual_local` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
-| UX-PRO-01 | Android/mobile | provider | `pendiente_no_bloqueante` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta |
+| UX-PRO-01 | Android/mobile | provider | `pendiente_revalidar` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta; Cuenta provider ya no debe mostrar hogares ni tarjetas guardadas |
 | UX-ADM-01 | admin web | admin | `parcial_composicion_local` | Home admin validado sin sesion; Proveedores/Soporte pendientes con usuario admin |
 
 Evidencia recomendada:
@@ -206,5 +206,5 @@ Evidencia recomendada:
 - `piloto controlado aprobado`: `si`
 - pendientes restantes: `no bloqueantes`
 - fase UX por rol: `cerrada`
-- fase actual del proyecto: `polish visual/manual QA por rol y preparacion de evidencia de piloto`
+- fase actual del proyecto: `QA visual/manual por rol en ejecucion`
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare
