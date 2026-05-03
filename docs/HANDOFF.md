@@ -19,7 +19,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - QA/UAT final: `completada`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual: `QA visual/manual por rol en ejecucion`
+- fase actual: `hardening tecnico/operativo del piloto cerrado`
 - working tree al iniciar este handoff: cambios locales de Cuenta provider y checklist visual
 
 ## Que ya quedo cerrado
@@ -40,14 +40,27 @@ Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera d
 
 - `Crear un hogar`, que pertenece al modo propietario
 - tarjetas guardadas / metodos de pago, que pertenecen al flujo owner `payment-ready`
+- tarea de onboarding `Agregar metodo de pago`, que tambien pertenece al flujo owner `payment-ready`
+- tarjeta informativa `Pagos reales fuera del MVP`, util para QA pero demasiado tecnica dentro de Cuenta provider
 
 Estado aplicado:
 
 - Cuenta provider ya no muestra gestion de hogares
 - Cuenta provider ya no muestra formulario ni listado de tarjetas guardadas
+- Cuenta provider ya no muestra la tarea owner-only `Agregar metodo de pago` dentro de onboarding
+- Cuenta provider ya no muestra la tarjeta informativa de pagos; el alcance `payment-ready` queda en documentacion QA
 - Cuenta provider conserva perfil, preferencias, direcciones y cambio de rol
-- Cuenta provider muestra un aviso de alcance: pagos reales, payouts, liquidaciones y facturacion provider siguen fuera del MVP
-- Cuenta owner conserva hogares y metodos guardados
+- Cuenta owner conserva hogares, metodos guardados y la tarea `Agregar metodo de pago`
+- Campos mobile de fecha/hora/vencimiento recibieron placeholders y ayudas breves (`AAAA-MM-DD`, `HH:mm`, `MM`, `AAAA`) sin cambiar formatos ni contratos
+- Header owner queda mas limpio: se retiraron chips tecnicos de progreso, rol y `sin cobro real` del encabezado superior
+- Inicio owner queda mas limpio: se retiraron chips de cuenta, rol y metodos guardados del bloque principal
+- Mascotas owner ahora usa navegacion interna por vistas (`lista`, `crear`, `editar`, `detalle`) para evitar una superficie plana de formulario/lista/detalle
+- Buscar owner ahora usa navegacion interna por vistas (`inicio`, `resultados`, `proveedor`, `seleccion`) y elimina el bloque tecnico `Navegacion`
+- Reservas owner ahora usa navegacion interna por vistas (`historial`, `servicio`, `mascota`, `metodo`, `preview`, `detalle`) para separar preparacion, preview, historial y detalle; las tarjetas del historial evitan el texto comprimido/vertical
+- Mensajes owner ahora usa navegacion interna por vistas (`bandeja`, `conversacion`): el tab abre bandeja de hilos por reserva y `Detalle de reserva > Chat` abre la conversacion contextual
+- QA visual owner mobile fue revisada con `QA_OWNER` y queda en `PASS`
+- QA visual provider mobile fue revisada con `QA_PROVIDER` y queda en `PASS`
+- QA visual admin web autenticado fue revisada con `QA_ADMIN` y queda en `PASS`
 
 No se tocaron backend, base de datos, APIs, contratos ni migraciones.
 
@@ -75,11 +88,23 @@ Validaciones ejecutadas despues de los ajustes QA visual de Cuenta provider:
 - `corepack pnpm --filter @pet/mobile build` -> `PASS`
 - `git diff --check` -> `PASS`
 
+Validaciones ejecutadas durante hardening tecnico/operativo:
+
+- `corepack pnpm lint` -> `PASS`
+- `corepack pnpm typecheck` -> `PASS`
+- `corepack pnpm --filter @pet/web build` -> `PASS`
+- `corepack pnpm --filter @pet/admin build` -> `PASS`
+- `corepack pnpm --filter @pet/mobile build` -> `PASS`
+- `git diff --check` -> `PASS` sin errores; solo avisos LF -> CRLF del entorno Windows
+- `corepack pnpm smoke:mvp` -> `PASS`
+- `corepack pnpm smoke:mvp:critical` -> `PASS`
+- `corepack pnpm smoke:mvp:admin` -> `PASS`
+- `corepack pnpm smoke:mvp:providers` -> `PASS`
+- `corepack pnpm smoke:mvp:health` -> `PASS`
+- `corepack pnpm smoke:mvp:reminders` -> `PASS`
+
 ## Pendientes reales
 
-- revalidar Cuenta provider con `QA_PROVIDER`
-- continuar recorrido provider mobile completo: Home, Negocio, Servicios, Horarios, Reservas, Mensajes y Estado
-- ejecutar admin web con usuario admin autenticado
 - preparar evidencia visual final si se requiere paquete auditable
 
 ## BLOCK por entorno
@@ -92,9 +117,9 @@ Validaciones ejecutadas despues de los ajustes QA visual de Cuenta provider:
 
 ## Siguiente frente recomendado
 
-Completar QA visual/manual por rol. Si no aparecen huecos estructurales, abrir `hardening tecnico/operativo del piloto` antes de `Payments MVP+`.
+Hardening tecnico/operativo cerrado con notas. El siguiente frente elegible es `Payments MVP+` si se decide abrir nuevo alcance funcional.
 
-Payments MVP+ cambia alcance funcional; no debe abrirse antes de cerrar evidencia visual/manual y estabilidad operativa del piloto.
+Payments MVP+ cambia alcance funcional y debe abrirse como frente separado, actualizando documentacion de alcance antes de implementar.
 
 ## Cómo retomar exactamente en la próxima sesión
 
@@ -145,43 +170,45 @@ adb reverse tcp:8081 tcp:8081
 
 1. `docs/HANDOFF.md`
 2. `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
-3. `docs/ux/ROLE_BASED_SCREEN_ARCHITECTURE.md`
-4. `docs/delivery/MVP_SCOPE.md`
-5. `docs/product/MODULE_STATUS.md`
-6. `docs/delivery/PILOT_QA_UAT_MATRIX.md`
+3. `docs/delivery/PILOT_OPERATIONS_HARDENING.md`
+4. `docs/ux/ROLE_BASED_SCREEN_ARCHITECTURE.md`
+5. `docs/delivery/MVP_SCOPE.md`
+6. `docs/product/MODULE_STATUS.md`
+7. `docs/delivery/PILOT_QA_UAT_MATRIX.md`
 
 ### Siguiente paso correcto
 
-Revalidar QA visual de Cuenta provider y continuar QA manual por rol:
+Siguiente paso recomendado:
 
-- provider mobile: confirmar que Cuenta no muestra `Crear un hogar` ni tarjetas guardadas, y que mantiene roles/cambio de modo
-- provider mobile: continuar Home, Negocio, Servicios, Horarios, Reservas, Mensajes y Estado
-- admin web: Home admin, Proveedores, Soporte con usuario admin autenticado
+- decidir si se congela este estado con commit/tag de cierre operativo
+- preparar paquete de evidencia auditable si el piloto lo requiere
+- evaluar apertura formal de `Payments MVP+` como nuevo alcance funcional
 
-No abrir Payments MVP+, hardening tecnico profundo ni V2/V3 hasta cerrar esa evidencia visual/manual.
+No abrir V2/V3 ni pagos reales sin actualizar alcance, modelo de datos, API y reglas operativas.
 
 ### Prompt exacto recomendado para continuar
 
 ```text
-Quiero continuar la QA visual/manual por rol sobre la UX productizada, empezando por revalidar Cuenta provider.
+Quiero continuar despues del cierre de QA visual/manual por rol, abriendo hardening tecnico/operativo del piloto.
 
 Contexto:
 - La productizacion UX por rol ya esta cerrada.
 - El hardening UX no bloqueante y el polish visual inicial ya estan aplicados.
-- Cuenta provider fue ajustada para no mostrar gestion de hogares ni tarjetas guardadas.
+- Owner mobile quedo en PASS con QA_OWNER.
+- Provider mobile quedo en PASS con QA_PROVIDER.
+- Admin web autenticado quedo en PASS con QA_ADMIN.
 - No quiero abrir nuevas features.
 - No quiero tocar backend, DB, APIs ni migraciones.
 - No quiero abrir V2/V3.
 
 Objetivo:
-levantar mobile/admin, revalidar Cuenta provider con QA_PROVIDER y continuar evidencia/manual QA lista para piloto controlado.
+revisar estado operativo del piloto, validar scripts/builds/runbooks necesarios y preparar evidencia final si se requiere paquete auditable.
 
 Antes de tocar codigo:
 1. revisa docs/HANDOFF.md
 2. revisa docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md
 3. revisa git status, branch, ultimos commits y tags
-4. levanta mobile con `npx expo start --dev-client --port 8081` y `adb reverse tcp:8081 tcp:8081`
-5. enumera hallazgos visuales por severidad
+4. enumera riesgos operativos por severidad
 
 Durante el trabajo:
 - solo aplicar ajustes visuales menores si son de bajo riesgo
@@ -190,7 +217,7 @@ Durante el trabajo:
 
 Al final:
 1. correr lint/typecheck/build donde aplique
-2. actualizar `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
-3. resumir evidencia visual pendiente o capturada
-4. recomendar si el siguiente frente es Payments MVP+ o hardening tecnico/operativo
+2. actualizar `docs/delivery/PILOT_OPERATIONS_HARDENING.md`
+3. resumir evidencia tecnica/operativa pendiente o capturada
+4. recomendar si el siguiente frente puede ser Payments MVP+ o si falta cerrar smoke/evidencia
 ```

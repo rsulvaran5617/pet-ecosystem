@@ -76,6 +76,7 @@ type DocumentFormState = {
   selectedDocument: PickedDocument | null;
 };
 export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "disponibilidad" | "reservas" | "estado";
+type OrganizationView = "lista" | "crear" | "editar";
 
 const emptyOrganizationForm: OrganizationFormState = {
   name: "",
@@ -156,6 +157,25 @@ function formatFileSize(fileSizeBytes: number) {
   return `${(fileSizeBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function displayBookingValue(value: string, fallback: string) {
+  const normalizedValue = value.trim().toLowerCase();
+
+  if (!normalizedValue || normalizedValue.startsWith("unknown")) {
+    return fallback;
+  }
+
+  return value;
+}
+
+function BookingInfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={{ gap: 3, width: "100%" }}>
+      <Text style={{ color: "#78716c", fontSize: 12, fontWeight: "700", textTransform: "uppercase" }}>{label}</Text>
+      <Text style={{ color: "#1c1917", fontSize: 14, lineHeight: 20 }}>{value}</Text>
+    </View>
+  );
+}
+
 function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boolean; label: string; onPress: () => void; tone?: "primary" | "secondary" }) {
   return (
     <Pressable
@@ -177,20 +197,33 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
 }
 
 function Field({
+  helperText,
   keyboardType = "default",
   label,
   onChange,
+  placeholder,
   value
 }: {
+  helperText?: string;
   keyboardType?: "default" | "numeric";
   label: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   value: string;
 }) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
-      <TextInput autoCapitalize="none" keyboardType={keyboardType} onChangeText={onChange} style={inputStyle} value={value} />
+      <TextInput
+        autoCapitalize="none"
+        keyboardType={keyboardType}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#a8a29e"
+        style={inputStyle}
+        value={value}
+      />
+      {helperText ? <Text style={{ color: "#78716c", fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -293,7 +326,7 @@ export function ProvidersWorkspace({
     refresh,
     runAction
   } = useProvidersWorkspace(enabled && hasProviderRole);
-  const [organizationMode, setOrganizationMode] = useState<"create" | "edit">("create");
+  const [organizationView, setOrganizationView] = useState<OrganizationView>("lista");
   const [organizationForm, setOrganizationForm] = useState(emptyOrganizationForm);
   const [publicProfileForm, setPublicProfileForm] = useState(emptyPublicProfileForm);
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
@@ -321,7 +354,6 @@ export function ProvidersWorkspace({
     setServiceForm(emptyServiceForm);
     setDisponibilidadForm(emptyDisponibilidadForm);
     setDocumentForm(emptyDocumentForm);
-    setOrganizationMode("edit");
   }, [selectedOrganizationDetail]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
@@ -413,127 +445,176 @@ export function ProvidersWorkspace({
             {showOrganization ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Organizaciones</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>
+                  {organizationView === "lista" ? "Negocios" : organizationView === "crear" ? "Crear negocio" : "Editar negocio"}
+                </Text>
                 <StatusChip label={`${organizations.length} total`} tone="neutral" />
               </View>
-              {isLoading && !organizations.length && !selectedOrganizationDetail ? (
-                <Text style={{ color: colorTokens.muted }}>Preparando tus negocios de proveedor...</Text>
-              ) : organizations.length ? (
-                organizations.map((organization) => (
-                  <Pressable
-                    key={organization.id}
-                    onPress={() => void selectOrganization(organization.id)}
-                    style={{
-                      borderRadius: 16,
-                      backgroundColor:
-                        organization.id === selectedOrganizationId ? "rgba(15,118,110,0.08)" : "rgba(255,255,255,0.78)",
-                      borderWidth: 1,
-                      borderColor:
-                        organization.id === selectedOrganizationId ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.08)",
-                      padding: 12,
-                      gap: 8
-                    }}
-                  >
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                      <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{organization.name}</Text>
-                      <StatusChip
-                        label={providerApprovalStatusLabels[organization.approvalStatus]}
-                        tone={
-                          organization.approvalStatus === "approved"
-                            ? "active"
-                            : organization.approvalStatus === "rejected"
-                              ? "neutral"
-                              : "pending"
-                        }
+
+              {organizationView === "lista" ? (
+                <>
+                  <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                    Selecciona el negocio activo para operar servicios, disponibilidad, reservas y estado, o crea uno nuevo si corresponde.
+                  </Text>
+                  {isLoading && !organizations.length && !selectedOrganizationDetail ? (
+                    <Text style={{ color: colorTokens.muted }}>Preparando tus negocios de proveedor...</Text>
+                  ) : organizations.length ? (
+                    organizations.map((organization) => (
+                      <View
+                        key={organization.id}
+                        style={{
+                          borderRadius: 16,
+                          backgroundColor:
+                            organization.id === selectedOrganizationId ? "rgba(15,118,110,0.08)" : "rgba(255,255,255,0.78)",
+                          borderWidth: 1,
+                          borderColor:
+                            organization.id === selectedOrganizationId ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.08)",
+                          padding: 12,
+                          gap: 10
+                        }}
+                      >
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                          <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{organization.name}</Text>
+                          <StatusChip
+                            label={providerApprovalStatusLabels[organization.approvalStatus]}
+                            tone={
+                              organization.approvalStatus === "approved"
+                                ? "active"
+                                : organization.approvalStatus === "rejected"
+                                  ? "neutral"
+                                  : "pending"
+                            }
+                          />
+                        </View>
+                        <Text style={{ color: colorTokens.muted }}>{organization.city}</Text>
+                        <Text style={{ color: colorTokens.muted }}>{organization.slug}</Text>
+                        <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                          <Button
+                            disabled={isSubmitting}
+                            label={organization.id === selectedOrganizationId ? "Seleccionado" : "Seleccionar"}
+                            onPress={() => void selectOrganization(organization.id)}
+                            tone={organization.id === selectedOrganizationId ? "primary" : "secondary"}
+                          />
+                          <Button
+                            disabled={isSubmitting}
+                            label="Editar"
+                            onPress={() => {
+                              void selectOrganization(organization.id);
+                              setOrganizationView("editar");
+                            }}
+                            tone="secondary"
+                          />
+                        </View>
+                      </View>
+                    ))
+                  ) : (
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 10 }}>
+                      <Text style={{ color: "#1c1917", fontWeight: "700" }}>Todavia no hay negocios</Text>
+                      <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                        Crea el primer negocio para completar perfil, servicios, disponibilidad y revision administrativa.
+                      </Text>
+                      <Button
+                        disabled={isSubmitting}
+                        label="Crear negocio"
+                        onPress={() => {
+                          clearMessages();
+                          setOrganizationForm(emptyOrganizationForm);
+                          setOrganizationView("crear");
+                        }}
                       />
                     </View>
-                    <Text style={{ color: colorTokens.muted }}>{organization.city}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{organization.slug}</Text>
-                  </Pressable>
-                ))
+                  )}
+                  {organizations.length ? (
+                    <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                      <Button
+                        disabled={isSubmitting}
+                        label="Crear negocio"
+                        onPress={() => {
+                          clearMessages();
+                          setOrganizationForm(emptyOrganizationForm);
+                          setOrganizationView("crear");
+                        }}
+                      />
+                      <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh(selectedOrganizationId)} tone="secondary" />
+                    </View>
+                  ) : null}
+                </>
               ) : (
-                <Text style={{ color: colorTokens.muted }}>Todavia no hay organizaciones de proveedores. Crea la primera abajo.</Text>
-              )}
-              <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                <Button
-                  disabled={isSubmitting}
-                  label="Nueva organizacion"
-                  onPress={() => {
-                    clearMessages();
-                    setOrganizationMode("create");
-                    setOrganizationForm(emptyOrganizationForm);
-                  }}
-                  tone="secondary"
-                />
-                <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh(selectedOrganizationId)} tone="secondary" />
-              </View>
-            </View>
-            ) : null}
-
-            {showOrganization ? (
-            <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>
-                  {organizationMode === "create" ? "Crear negocio" : "Editar negocio"}
-                </Text>
-                <StatusChip label={organizationMode === "create" ? "create" : "edit"} tone="neutral" />
-              </View>
-              <Field label="Nombre del negocio" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
-              <Field label="Slug" onChange={(value) => setOrganizationForm((current) => ({ ...current, slug: value }))} value={organizationForm.slug} />
-              <Field label="Ciudad" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
-              <Field label="Codigo de pais" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
-              <ChoiceBar
-                onChange={(value) => setOrganizationForm((current) => ({ ...current, isPublic: value === "public" }))}
-                options={[
-                  { label: "Publico al aprobarse", value: "public" },
-                  { label: "Mantener privado", value: "private" }
-                ]}
+                <>
+                  <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                    {organizationView === "crear"
+                      ? "Completa los datos basicos del negocio. La visibilidad publica dependera de la aprobacion administrativa."
+                      : "Edita los datos basicos del negocio seleccionado sin cambiar su flujo de aprobacion."}
+                  </Text>
+                  <Field label="Nombre del negocio" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
+                  <Field label="Slug" onChange={(value) => setOrganizationForm((current) => ({ ...current, slug: value }))} value={organizationForm.slug} />
+                  <Field label="Ciudad" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
+                  <Field label="Codigo de pais" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
+                  <ChoiceBar
+                    onChange={(value) => setOrganizationForm((current) => ({ ...current, isPublic: value === "public" }))}
+                    options={[
+                      { label: "Publico al aprobarse", value: "public" },
+                      { label: "Mantener privado", value: "private" }
+                    ]}
                     value={organizationForm.isPublic ? "public" : "private"}
-              />
-              <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                <Button
-                  disabled={isSubmitting}
-                  label={organizationMode === "create" ? "Crear organizacion" : "Guardar organizacion"}
-                  onPress={() => {
-                    clearMessages();
-                    const payload = {
-                      name: organizationForm.name.trim(),
-                      slug: organizationForm.slug.trim().toLowerCase(),
-                      city: organizationForm.city.trim(),
-                      countryCode: organizationForm.countryCode.trim().toUpperCase(),
-                      isPublic: organizationForm.isPublic
-                    } satisfies UpdateProviderOrganizationInput;
-
-                    if (organizationMode === "edit" && selectedOrganization) {
-                      void runAction(
-                        () => getMobileProvidersApiClient().updateProviderOrganization(selectedOrganization.id, payload),
-                        "Organizacion de proveedor actualizada."
-                      ).then(async () => {
-                        await refresh(selectedOrganization.id);
-                      });
-                      return;
-                    }
-
-                    void runAction(
-                      () => getMobileProvidersApiClient().createProviderOrganization(payload),
-                      "Organizacion de proveedor creada."
-                    ).then(async (organization) => {
-                      await refresh(organization.id);
-                    });
-                  }}
-                />
-                {organizationMode === "edit" ? (
-                  <Button
-                    disabled={isSubmitting}
-                    label="Crear otra"
-                    onPress={() => {
-                      setOrganizationMode("create");
-                      setOrganizationForm(emptyOrganizationForm);
-                    }}
-                    tone="secondary"
                   />
-                ) : null}
-              </View>
+                  <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                    <Button
+                      disabled={isSubmitting || (organizationView === "editar" && !selectedOrganization)}
+                      label={organizationView === "crear" ? "Crear negocio" : "Guardar cambios"}
+                      onPress={() => {
+                        clearMessages();
+                        const payload = {
+                          name: organizationForm.name.trim(),
+                          slug: organizationForm.slug.trim().toLowerCase(),
+                          city: organizationForm.city.trim(),
+                          countryCode: organizationForm.countryCode.trim().toUpperCase(),
+                          isPublic: organizationForm.isPublic
+                        } satisfies UpdateProviderOrganizationInput;
+
+                        if (organizationView === "editar" && selectedOrganization) {
+                          void runAction(
+                            () => getMobileProvidersApiClient().updateProviderOrganization(selectedOrganization.id, payload),
+                            "Organizacion de proveedor actualizada."
+                          ).then(async () => {
+                            await refresh(selectedOrganization.id);
+                            setOrganizationView("lista");
+                          });
+                          return;
+                        }
+
+                        void runAction(
+                          () => getMobileProvidersApiClient().createProviderOrganization(payload),
+                          "Organizacion de proveedor creada."
+                        ).then(async (organization) => {
+                          await refresh(organization.id);
+                          setOrganizationView("lista");
+                        });
+                      }}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label={organizationView === "crear" ? "Cancelar" : "Volver a negocios"}
+                      onPress={() => {
+                        clearMessages();
+                        if (selectedOrganizationDetail) {
+                          setOrganizationForm({
+                            name: selectedOrganizationDetail.organization.name,
+                            slug: selectedOrganizationDetail.organization.slug,
+                            city: selectedOrganizationDetail.organization.city,
+                            countryCode: selectedOrganizationDetail.organization.countryCode,
+                            isPublic: selectedOrganizationDetail.organization.isPublic
+                          });
+                        } else {
+                          setOrganizationForm(emptyOrganizationForm);
+                        }
+                        setOrganizationView("lista");
+                      }}
+                      tone="secondary"
+                    />
+                  </View>
+                </>
+              )}
             </View>
             ) : null}
 
@@ -591,24 +672,31 @@ export function ProvidersWorkspace({
                   {providerBookings.length ? (
                     <View style={{ gap: 8 }}>
                       {providerBookings.map((booking) => (
-                        <View key={booking.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
-                          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                            <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{booking.serviceName}</Text>
+                        <View key={booking.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.82)", padding: 14, gap: 12, width: "100%" }}>
+                          <View style={{ gap: 8, width: "100%" }}>
+                            <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1917", lineHeight: 22 }}>
+                              {displayBookingValue(booking.serviceName, "Servicio no disponible")}
+                            </Text>
                             <StatusChip
                               label={bookingStatusLabels[booking.status]}
                               tone={booking.status === "pending_approval" ? "pending" : booking.status === "cancelled" ? "neutral" : "active"}
                             />
                           </View>
-                          <Text style={{ color: colorTokens.muted }}>
-                            {booking.householdName} - {booking.customerDisplayName}
-                          </Text>
-                          <Text style={{ color: colorTokens.muted }}>
-                            {booking.petName} - {formatDateTime(booking.scheduledStartAt)}
-                          </Text>
-                          <Text style={{ color: colorTokens.muted }}>
-                            {formatMoney(booking.totalPriceCents, booking.currencyCode)} - {booking.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
-                          </Text>
-                          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+
+                          <View style={{ gap: 10, width: "100%" }}>
+                            <BookingInfoRow label="Hogar" value={displayBookingValue(booking.householdName, "Hogar no disponible")} />
+                            <BookingInfoRow label="Cliente" value={displayBookingValue(booking.customerDisplayName, "Cliente no disponible")} />
+                            <BookingInfoRow
+                              label="Mascota y horario"
+                              value={`${displayBookingValue(booking.petName, "Mascota no disponible")} - ${formatDateTime(booking.scheduledStartAt)}`}
+                            />
+                            <BookingInfoRow
+                              label="Servicio"
+                              value={`${formatMoney(booking.totalPriceCents, booking.currencyCode)} - ${booking.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}`}
+                            />
+                          </View>
+
+                          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", width: "100%" }}>
                             <Button disabled={isSubmitting} label="Ver detalle" onPress={() => void openProviderBookingDetail(booking.id)} tone="secondary" />
                             {booking.status === "pending_approval" ? (
                               <>
@@ -635,9 +723,9 @@ export function ProvidersWorkspace({
                   )}
 
                   {selectedProviderBookingDetail ? (
-                    <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                        <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>Detalle de la reserva</Text>
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.82)", padding: 14, gap: 12, width: "100%" }}>
+                      <View style={{ gap: 8, width: "100%" }}>
+                        <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1917", lineHeight: 22 }}>Detalle de la reserva</Text>
                         <StatusChip
                           label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
                           tone={
@@ -649,25 +737,32 @@ export function ProvidersWorkspace({
                           }
                         />
                       </View>
-                      <Text style={{ color: colorTokens.muted }}>
-                        {selectedProviderBookingDetail.booking.householdName} - {selectedProviderBookingDetail.booking.customerDisplayName}
-                      </Text>
-                      <Text style={{ color: colorTokens.muted }}>
-                        {selectedProviderBookingDetail.booking.petName} - {formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}
-                      </Text>
-                      <Text style={{ color: colorTokens.muted }}>
-                        Metodo de pago:{" "}
-                        {selectedProviderBookingDetail.paymentMethodSummary
-                          ? `${selectedProviderBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedProviderBookingDetail.paymentMethodSummary.last4}`
-                          : "Sin metodo de pago guardado vinculado"}
-                      </Text>
-                      {selectedProviderBookingDetail.statusHistory.map((change) => (
-                        <View key={change.id} style={[inputStyle, { gap: 6 }]}>
-                          <Text style={{ fontWeight: "600", color: "#1c1917" }}>{bookingStatusLabels[change.toStatus]}</Text>
-                          <Text style={{ color: colorTokens.muted }}>{formatDateTime(change.createdAt)}</Text>
-                          <Text style={{ color: colorTokens.muted }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
-                        </View>
-                      ))}
+                      <View style={{ gap: 10, width: "100%" }}>
+                        <BookingInfoRow label="Hogar" value={displayBookingValue(selectedProviderBookingDetail.booking.householdName, "Hogar no disponible")} />
+                        <BookingInfoRow label="Cliente" value={displayBookingValue(selectedProviderBookingDetail.booking.customerDisplayName, "Cliente no disponible")} />
+                        <BookingInfoRow
+                          label="Mascota y horario"
+                          value={`${displayBookingValue(selectedProviderBookingDetail.booking.petName, "Mascota no disponible")} - ${formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}`}
+                        />
+                        <BookingInfoRow
+                          label="Metodo de pago"
+                          value={
+                            selectedProviderBookingDetail.paymentMethodSummary
+                              ? `${selectedProviderBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedProviderBookingDetail.paymentMethodSummary.last4}`
+                              : "Sin metodo de pago guardado vinculado"
+                          }
+                        />
+                      </View>
+                      <View style={{ gap: 8, width: "100%" }}>
+                        <Text style={{ color: "#78716c", fontSize: 12, fontWeight: "700", textTransform: "uppercase" }}>Historial</Text>
+                        {selectedProviderBookingDetail.statusHistory.map((change) => (
+                          <View key={change.id} style={{ borderRadius: 14, backgroundColor: "#fffdf8", borderColor: "rgba(28,25,23,0.1)", borderWidth: 1, padding: 12, gap: 6, width: "100%" }}>
+                            <Text style={{ fontWeight: "700", color: "#1c1917", lineHeight: 20 }}>{bookingStatusLabels[change.toStatus]}</Text>
+                            <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{formatDateTime(change.createdAt)}</Text>
+                            <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
+                          </View>
+                        ))}
+                      </View>
                     </View>
                   ) : null}
                 </>
@@ -875,8 +970,20 @@ export function ProvidersWorkspace({
                     }))}
                     value={availabilityForm.dayOfWeek}
                   />
-                  <Field label="Empieza a" onChange={(value) => setDisponibilidadForm((current) => ({ ...current, startsAt: value }))} value={availabilityForm.startsAt} />
-                  <Field label="Termina a" onChange={(value) => setDisponibilidadForm((current) => ({ ...current, endsAt: value }))} value={availabilityForm.endsAt} />
+                  <Field
+                    helperText="Hora local en formato 24 horas."
+                    label="Empieza a"
+                    onChange={(value) => setDisponibilidadForm((current) => ({ ...current, startsAt: value }))}
+                    placeholder="HH:mm"
+                    value={availabilityForm.startsAt}
+                  />
+                  <Field
+                    helperText="Debe ser posterior a la hora de inicio."
+                    label="Termina a"
+                    onChange={(value) => setDisponibilidadForm((current) => ({ ...current, endsAt: value }))}
+                    placeholder="HH:mm"
+                    value={availabilityForm.endsAt}
+                  />
                   <ChoiceBar
                     onChange={(value) => setDisponibilidadForm((current) => ({ ...current, isActive: value === "active" }))}
                     options={[

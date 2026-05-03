@@ -19,6 +19,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 ## Alcance diferido
 - staff
 - sucursales
+- ubicacion geografica del negocio para discovery por cercania
 - CRM interno
 - dashboard de ingresos
 - payouts avanzados

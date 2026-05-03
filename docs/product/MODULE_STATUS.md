@@ -28,7 +28,8 @@
 - `localization_es` -> `closed_with_notes`
 - `role_based_ux_productization` -> `closed_with_notes`
 - `ux_hardening_non_blocking` -> `closed_with_notes`
-- `visual_polish_manual_qa` -> `partial`
+- `visual_polish_manual_qa` -> `closed_with_notes`
+- `pilot_operations_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
 - `pharmacy` -> `not_started`
@@ -44,7 +45,8 @@
 - la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol, validada con lint/typecheck/build/export/smoke e incorporada en el baseline publicado `v0.1.0-mvp-baseline-es.1`
 - la localizacion al espanol ya no esta pendiente de commit ni de tag
 - la productizacion UX por rol quedo implementada sobre capacidades MVP existentes: owner mobile shell/Home, Mascotas hub, Reservas hub transaccional, consola provider mobile-first, admin web backoffice y hardening UX no bloqueante
-- el polish visual/manual QA por rol esta en ejecucion; Cuenta provider fue ajustada para no mostrar hogares ni tarjetas guardadas, y falta revalidar con `QA_PROVIDER`
+- el polish visual/manual QA por rol quedo cerrado con `PASS`: owner mobile con `QA_OWNER`, provider mobile con `QA_PROVIDER` y admin web autenticado con `QA_ADMIN`
+- el hardening tecnico/operativo del piloto queda cerrado con notas en `docs/delivery/PILOT_OPERATIONS_HARDENING.md`; lint, typecheck, web build, admin build, mobile build, smokes canonicas y `git diff --check` estan en `PASS`
 - la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
 - Android/mobile fue ejecutado manualmente y `AND-01`, `AND-02` y `AND-03` quedan registrados como `PASS`
 - ya no existe bloqueo activo de Android/mobile por entorno
@@ -58,8 +60,8 @@
 - baseline localizado actual publicado en `v0.1.0-mvp-baseline-es.1` sobre `6e984eb`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual del proyecto: `QA visual/manual por rol en ejecucion`
+- fase actual del proyecto: `hardening tecnico/operativo del piloto cerrado`; siguiente frente elegible `Payments MVP+` si se decide abrir nuevo alcance funcional
 - checklist visual/manual: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
 - HEAD operativo publicado antes del handoff actual: `cfc70b7`
-- pendientes restantes: `no bloqueantes`
+- pendientes restantes: `no bloqueantes`; evidencia visual final si se requiere paquete auditable y pendientes externos de entorno
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

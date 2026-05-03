@@ -265,7 +265,7 @@ export function useBookingsWorkspace(
       activeSelectionRef.current = null;
       setActiveSelection(null);
       setPreview(null);
-      setInfoMessage("Booking selection cleared. Marketplace remains available above for a new service choice.");
+      setInfoMessage("Seleccion de servicio limpiada. Puedes buscar un nuevo servicio cuando quieras preparar otra reserva.");
     },
     async selectHousehold(householdId) {
       selectedHouseholdIdRef.current = householdId;
@@ -370,7 +370,7 @@ export function useBookingsWorkspace(
         }
 
         return detail;
-      }, "Booking created.");
+    }, "Reserva creada.");
     },
     async openBookingDetail(bookingId) {
       setIsSubmitting(true);
@@ -402,7 +402,7 @@ export function useBookingsWorkspace(
         }
 
         return detail;
-      }, "Booking cancelled.");
+    }, "Reserva cancelada.");
     },
     refresh
   };

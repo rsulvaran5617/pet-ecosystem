@@ -50,6 +50,7 @@ const emptyDocumentForm: DocumentFormState = {
 };
 
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
+type PetWorkspaceView = "lista" | "crear" | "editar" | "detalle";
 
 const hubPanelOptions: Array<{ label: string; value: PetHubPanel }> = [
   { label: "Detalle", value: "detalle" },
@@ -90,17 +91,32 @@ function Button({
 
 function Field({
   label,
+  helperText,
+  keyboardType,
   onChange,
+  placeholder,
   value
 }: {
   label: string;
+  helperText?: string;
+  keyboardType?: "default" | "numeric";
   onChange: (value: string) => void;
+  placeholder?: string;
   value: string;
 }) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
-      <TextInput autoCapitalize="none" onChangeText={onChange} style={inputStyle} value={value} />
+      <TextInput
+        autoCapitalize="none"
+        keyboardType={keyboardType}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#a8a29e"
+        style={inputStyle}
+        value={value}
+      />
+      {helperText ? <Text style={{ color: "#78716c", fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -217,6 +233,7 @@ export function PetsWorkspace({
     runAction
   } = usePetsWorkspace(enabled);
   const [editingPetId, setEditingPetId] = useState<string | null>(null);
+  const [petView, setPetView] = useState<PetWorkspaceView>("lista");
   const [petForm, setPetForm] = useState(emptyPetForm);
   const [documentForm, setDocumentForm] = useState(emptyDocumentForm);
 
@@ -241,6 +258,41 @@ export function PetsWorkspace({
   useEffect(() => {
     onContextChange?.({ householdId: selectedHouseholdId, petId: selectedPetId });
   }, [onContextChange, selectedHouseholdId, selectedPetId]);
+
+  const openCreatePet = () => {
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setPetView("crear");
+    onPanelChange?.("detalle");
+  };
+
+  const openEditPet = (pet: (typeof pets)[number]) => {
+    setEditingPetId(pet.id);
+    setPetForm({
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed ?? "",
+      sex: pet.sex,
+      birthDate: pet.birthDate ?? "",
+      notes: pet.notes ?? ""
+    });
+    setPetView("editar");
+    onPanelChange?.("detalle");
+  };
+
+  const openPetDetail = (petId: Uuid) => {
+    void selectPet(petId);
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setPetView("detalle");
+    onPanelChange?.("detalle");
+  };
+
+  const closePetForm = () => {
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setPetView(selectedPetId ? "detalle" : "lista");
+  };
 
   if (!enabled) {
     return null;
@@ -299,9 +351,10 @@ export function PetsWorkspace({
             <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
           )}
 
+          {petView === "crear" || petView === "editar" ? (
           <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 12 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{editingPetId ? "Editar mascota" : "Crear mascota"}</Text>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{petView === "editar" ? "Editar mascota" : "Crear mascota"}</Text>
               {selectedHousehold ? (
                 <StatusChip
                   label={canEditSelectedHousehold ? "hogar editable" : "hogar solo lectura"}
@@ -325,15 +378,17 @@ export function PetsWorkspace({
                     value={petForm.sex ?? "unknown"}
                   />
                   <Field
+                    helperText="Usa el formato ISO que espera el MVP: 2026-05-01."
                     label="Fecha de nacimiento"
                     onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, birthDate: value }))}
+                    placeholder="AAAA-MM-DD"
                     value={petForm.birthDate ?? ""}
                   />
                   <MultilineField label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
                   <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                     <Button
                       disabled={isSubmitting}
-                      label={editingPetId ? "Guardar mascota" : "Crear mascota"}
+                      label={petView === "editar" ? "Guardar mascota" : "Guardar mascota"}
                       onPress={() => {
                         clearMessages();
 
@@ -356,6 +411,7 @@ export function PetsWorkspace({
                             setPetForm(emptyPetForm);
                             await refresh();
                             await selectPet(pet.id);
+                            setPetView("detalle");
                           });
                           return;
                         }
@@ -372,20 +428,11 @@ export function PetsWorkspace({
                           setPetForm(emptyPetForm);
                           await refresh();
                           await selectPet(pet.id);
+                          setPetView("detalle");
                         });
                       }}
                     />
-                    {editingPetId ? (
-                      <Button
-                        disabled={isSubmitting}
-                        label="Cancelar edicion"
-                        onPress={() => {
-                          setEditingPetId(null);
-                          setPetForm(emptyPetForm);
-                        }}
-                        tone="secondary"
-                      />
-                    ) : null}
+                    <Button disabled={isSubmitting} label="Cancelar" onPress={closePetForm} tone="secondary" />
                   </View>
                 </>
               ) : (
@@ -397,12 +444,17 @@ export function PetsWorkspace({
               <Text style={{ color: colorTokens.muted }}>Selecciona un hogar para crear o editar mascotas.</Text>
             )}
           </View>
+          ) : null}
 
+          {petView === "lista" ? (
           <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Elige una mascota</Text>
               {selectedHousehold ? <StatusChip label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
             </View>
+            {selectedHousehold && canEditSelectedHousehold ? (
+              <Button disabled={isSubmitting} label="Agregar mascota" onPress={openCreatePet} />
+            ) : null}
             {selectedHousehold ? (
               pets.length ? (
                 pets.map((pet) => (
@@ -417,7 +469,7 @@ export function PetsWorkspace({
                       gap: 8
                     }}
                   >
-                    <Pressable onPress={() => void selectPet(pet.id)} style={{ gap: 8 }}>
+                    <Pressable onPress={() => openPetDetail(pet.id)} style={{ gap: 8 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                         <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1917", flex: 1 }}>{pet.name}</Text>
                         <StatusChip label={pet.id === selectedPetId ? "seleccionada" : `${pet.documentCount} doc(s)`} tone={pet.id === selectedPetId ? "active" : "neutral"} />
@@ -434,17 +486,7 @@ export function PetsWorkspace({
                       <Button
                         disabled={isSubmitting}
                         label="Editar"
-                        onPress={() => {
-                          setEditingPetId(pet.id);
-                          setPetForm({
-                            name: pet.name,
-                            species: pet.species,
-                            breed: pet.breed ?? "",
-                            sex: pet.sex,
-                            birthDate: pet.birthDate ?? "",
-                            notes: pet.notes ?? ""
-                          });
-                        }}
+                        onPress={() => openEditPet(pet)}
                         tone="secondary"
                       />
                     ) : null}
@@ -460,8 +502,9 @@ export function PetsWorkspace({
               <Text style={{ color: colorTokens.muted }}>Selecciona un hogar para listar sus mascotas.</Text>
             )}
           </View>
+          ) : null}
 
-          {selectedPetDetail ? (
+          {selectedPetDetail && petView === "detalle" ? (
             <>
               <View style={{ borderRadius: 22, backgroundColor: "#1c1917", padding: 18, gap: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
@@ -500,9 +543,18 @@ export function PetsWorkspace({
                   ))}
                 </View>
                 <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                  <Button
+                    label="Volver a mascotas"
+                    onPress={() => {
+                      setPetView("lista");
+                      onPanelChange?.("detalle");
+                    }}
+                    tone="secondary"
+                  />
                   <Button label="Registrar salud" onPress={() => onPanelChange?.("salud")} tone="secondary" />
                   <Button label="Cargar documento" onPress={() => onPanelChange?.("documentos")} tone="secondary" />
                   <Button label="Crear recordatorio" onPress={() => onPanelChange?.("recordatorios")} tone="secondary" />
+                  {canEditSelectedHousehold ? <Button label="Editar" onPress={() => openEditPet(selectedPetDetail.pet)} tone="secondary" /> : null}
                 </View>
               </View>
 
@@ -650,11 +702,11 @@ export function PetsWorkspace({
               </View>
               ) : null}
             </>
-          ) : (
+          ) : petView === "lista" ? (
             <Text style={{ color: colorTokens.muted }}>
               Selecciona una mascota para revisar su ficha resumida y sus documentos basicos.
             </Text>
-          )}
+          ) : null}
         </View>
       </CoreSectionCard>
     </View>

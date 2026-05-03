@@ -16,6 +16,9 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - ranking avanzado
 - cotizaciones
 - recurrencia
+- discovery geolocalizado por cercania
+- mapa de proveedores aprobados
+- ordenamiento por distancia desde hogar, direccion seleccionada o ubicacion actual
 
 ## Entidades
 - `provider_organizations`

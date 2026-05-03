@@ -81,8 +81,7 @@ export function MarketplaceWorkspace({
     selectHousehold,
     selectPet,
     search,
-    openProvider,
-    clearSelectedProvider
+    openProvider
   } = useMarketplaceWorkspace(enabled);
   const [currentView, setCurrentView] = useState<"home" | "results" | "provider" | "selection">("home");
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,102 +145,97 @@ export function MarketplaceWorkspace({
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
         eyebrow="Buscar"
-        title="Servicios para tus mascotas"
-        description="Explora proveedores aprobados, revisa servicios y prepara una reserva. El cobro real sigue fuera de este alcance."
+        title={currentView === "home" ? "Encuentra un servicio" : "Servicios para tus mascotas"}
+        description={
+          currentView === "home"
+            ? "Busca proveedores aprobados y prepara una reserva desde el contexto de tu hogar."
+            : "Avanza paso a paso: resultados, proveedor, servicio y vista previa de reserva."
+        }
       >
         <View style={{ gap: 12 }}>
           {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
 
-          <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Contexto de busqueda</Text>
-            <StatusChip label={selectedPet ? "mascota seleccionada" : "contexto del hogar"} tone="neutral" />
-            {householdSnapshot?.households.length ? (
-              <>
-                {householdSnapshot.households.map((household) => (
-                  <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
-                    <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
-                  </Pressable>
-                ))}
-                <Button label="Todas las mascotas del hogar" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
-                {pets.map((pet) => (
-                  <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
-                ))}
-              </>
-            ) : (
-              <Text style={{ color: colorTokens.muted }}>
-                El contexto de hogar y mascota es opcional aqui. La exploracion sigue funcionando antes de completar esa configuracion.
-              </Text>
-            )}
-          </View>
-
-          <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Busqueda y filtros</Text>
-            <TextInput
-              onChangeText={setSearchQuery}
-              placeholder="Buscar proveedor, ciudad o servicio"
-              style={inputStyle}
-              value={searchQuery}
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              <Button label="Todas las categorias" onPress={() => setSelectedCategory("")} tone={selectedCategory === "" ? "primary" : "secondary"} />
-              {homeSnapshot?.categoryHighlights.map((highlight) => (
-                <Button
-                  key={highlight.category}
-                  label={providerServiceCategoryLabels[highlight.category]}
-                  onPress={() => setSelectedCategory(highlight.category)}
-                  tone={selectedCategory === highlight.category ? "primary" : "secondary"}
-                />
-              ))}
-            </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              <Button label="Todas las ciudades" onPress={() => setSelectedCity("")} tone={selectedCity === "" ? "primary" : "secondary"} />
-              {homeSnapshot?.cityHighlights.map((city) => (
-                <Button key={city} label={city} onPress={() => setSelectedCity(city)} tone={selectedCity === city ? "primary" : "secondary"} />
-              ))}
-            </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              <Button label="Todas las especies" onPress={() => setSelectedSpecies("")} tone={selectedSpecies === "" ? "primary" : "secondary"} />
-              {homeSnapshot?.speciesHighlights.map((species) => (
-                <Button
-                  key={species}
-                  label={formatSpeciesLabel(species)}
-                  onPress={() => setSelectedSpecies(species)}
-                  tone={selectedSpecies === species ? "primary" : "secondary"}
-                />
-              ))}
-            </View>
-            <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <Button disabled={isLoading} label="Buscar proveedores" onPress={() => void runSearch()} />
-              <Button
-                disabled={isLoading}
-                label="Inicio"
-                onPress={() => {
-                  clearMessages();
-                  clearSelectedProvider();
-                  setSelectedServiceId(null);
-                  setCurrentView("home");
-                }}
-                tone="secondary"
-              />
-            </View>
-          </View>
-
-          <View style={cardStyle}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Navegacion</Text>
-            <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <Button disabled={currentView === "home"} label="Inicio" onPress={() => setCurrentView("home")} tone="secondary" />
-              <Button disabled={!providers.length || currentView === "results"} label="Resultados" onPress={() => setCurrentView("results")} tone="secondary" />
-              <Button disabled={!selectedProviderDetail || currentView === "provider"} label="Proveedor" onPress={() => setCurrentView("provider")} tone="secondary" />
-              <Button disabled={!selectedService || currentView === "selection"} label="Seleccion" onPress={() => setCurrentView("selection")} tone="secondary" />
-            </View>
-          </View>
-
           {currentView === "home" ? (
             <>
               <View style={cardStyle}>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Contexto</Text>
+                <StatusChip label={selectedPet ? "mascota seleccionada" : "hogar completo"} tone="neutral" />
+                {householdSnapshot?.households.length ? (
+                  <>
+                    {householdSnapshot.households.map((household) => (
+                      <Pressable
+                        key={household.id}
+                        onPress={() => void selectHousehold(household.id)}
+                        style={[
+                          inputStyle,
+                          {
+                            backgroundColor:
+                              household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8"
+                          }
+                        ]}
+                      >
+                        <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
+                        <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      <Button label="Todas las mascotas" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+                      {pets.map((pet) => (
+                        <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <Text style={{ color: colorTokens.muted }}>
+                    Puedes explorar proveedores antes de completar hogar y mascotas.
+                  </Text>
+                )}
+              </View>
+
+              <View style={cardStyle}>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Busqueda y filtros</Text>
+                <TextInput
+                  onChangeText={setSearchQuery}
+                  placeholder="Buscar proveedor, ciudad o servicio"
+                  style={inputStyle}
+                  value={searchQuery}
+                />
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <Button label="Todas las categorias" onPress={() => setSelectedCategory("")} tone={selectedCategory === "" ? "primary" : "secondary"} />
+                  {homeSnapshot?.categoryHighlights.map((highlight) => (
+                    <Button
+                      key={highlight.category}
+                      label={providerServiceCategoryLabels[highlight.category]}
+                      onPress={() => setSelectedCategory(highlight.category)}
+                      tone={selectedCategory === highlight.category ? "primary" : "secondary"}
+                    />
+                  ))}
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <Button label="Todas las ciudades" onPress={() => setSelectedCity("")} tone={selectedCity === "" ? "primary" : "secondary"} />
+                  {homeSnapshot?.cityHighlights.map((city) => (
+                    <Button key={city} label={city} onPress={() => setSelectedCity(city)} tone={selectedCity === city ? "primary" : "secondary"} />
+                  ))}
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <Button label="Todas las especies" onPress={() => setSelectedSpecies("")} tone={selectedSpecies === "" ? "primary" : "secondary"} />
+                  {homeSnapshot?.speciesHighlights.map((species) => (
+                    <Button
+                      key={species}
+                      label={formatSpeciesLabel(species)}
+                      onPress={() => setSelectedSpecies(species)}
+                      tone={selectedSpecies === species ? "primary" : "secondary"}
+                    />
+                  ))}
+                </View>
+                <Button disabled={isLoading} label="Buscar proveedores" onPress={() => void runSearch()} />
+              </View>
+
+              <View style={cardStyle}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Inicio del marketplace</Text>
+                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Explora por categoria</Text>
                   <StatusChip label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} destacados` : "catalogo vacio"} tone="active" />
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
@@ -282,8 +276,9 @@ export function MarketplaceWorkspace({
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Resultados</Text>
                 <StatusChip label={`${providers.length} resultado(s)`} tone="neutral" />
               </View>
+              <Button label="Modificar busqueda" onPress={() => setCurrentView("home")} tone="secondary" />
               {providers.length ? providers.map((provider) => (
-                <Pressable key={provider.organizationId} onPress={() => void handleOpenProvider(provider.organizationId)} style={inputStyle}>
+                <View key={provider.organizationId} style={inputStyle}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                     <Text style={{ fontWeight: "600", color: "#1c1917", flex: 1 }}>{provider.name}</Text>
                     <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
@@ -293,7 +288,10 @@ export function MarketplaceWorkspace({
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
                     Especies: {provider.speciesServed.map((species) => formatSpeciesLabel(species)).join(", ") || "No especificadas"}
                   </Text>
-                </Pressable>
+                  <View style={{ marginTop: 10 }}>
+                    <Button label="Ver proveedor" onPress={() => void handleOpenProvider(provider.organizationId)} />
+                  </View>
+                </View>
               )) : <Text style={{ color: colorTokens.muted }}>Ningun proveedor publico coincide con la busqueda y los filtros actuales.</Text>}
             </View>
           ) : null}
@@ -310,6 +308,7 @@ export function MarketplaceWorkspace({
                 </View>
                 <Text style={{ color: colorTokens.muted }}>{selectedProviderDetail.headline}</Text>
                 <Text style={{ color: colorTokens.muted }}>{selectedProviderDetail.bio}</Text>
+                <Button label="Volver a resultados" onPress={() => setCurrentView("results")} tone="secondary" />
               </View>
 
               <View style={cardStyle}>
@@ -356,7 +355,7 @@ export function MarketplaceWorkspace({
           {currentView === "selection" && selectedProviderDetail && selectedService ? (
             <View style={cardStyle}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Seleccion de servicio</Text>
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Prepara tu reserva</Text>
                 <StatusChip label="lista para reserva" tone="active" />
               </View>
               <Text style={{ fontWeight: "600", color: "#1c1917" }}>{selectedProviderDetail.name}</Text>

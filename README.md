@@ -36,7 +36,9 @@ Decisiones activas del release:
 - ya no existe bloqueo activo de Android/mobile por entorno
 - el baseline tecnico actual debe considerarse con `QA/UAT final completada`
 - piloto controlado aprobado sobre el baseline localizado publicado
-- pendientes restantes son no bloqueantes y operativos: evidencia auditable, validaciones externas y preparacion del piloto
+- QA visual/manual por rol cerrada con `PASS` para owner mobile, provider mobile y admin web autenticado
+- hardening tecnico/operativo del piloto cerrado con notas en `docs/delivery/PILOT_OPERATIONS_HARDENING.md`
+- pendientes restantes son no bloqueantes y operativos: evidencia auditable opcional, validaciones externas y preparacion del piloto
 - clinic, commerce, pharmacy, finance, benefits y telecare siguen fuera del baseline
 
 ## Estructura

@@ -31,11 +31,34 @@ function Button({ disabled, label, onPress }: { disabled?: boolean; label: strin
   );
 }
 
-function Field({ label, onChange, value, multiline = false }: { label: string; onChange: (value: string) => void; value: string; multiline?: boolean }) {
+function Field({
+  helperText,
+  label,
+  onChange,
+  placeholder,
+  value,
+  multiline = false
+}: {
+  helperText?: string;
+  label: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+  multiline?: boolean;
+}) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
-      <TextInput multiline={multiline} numberOfLines={multiline ? 4 : 1} onChangeText={onChange} style={[inputStyle, multiline ? { minHeight: 88, textAlignVertical: "top" } : null]} value={value} />
+      <TextInput
+        multiline={multiline}
+        numberOfLines={multiline ? 4 : 1}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#a8a29e"
+        style={[inputStyle, multiline ? { minHeight: 88, textAlignVertical: "top" } : null]}
+        value={value}
+      />
+      {helperText ? <Text style={{ color: "#78716c", fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -136,8 +159,20 @@ export function HealthWorkspace({
                 {canEdit ? (
                   <>
                     <Field label="Nombre de la vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} value={vaccineForm.name} />
-                    <Field label="Aplicada el" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} value={vaccineForm.administeredOn} />
-                    <Field label="Proxima dosis" onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))} value={vaccineForm.nextDueOn ?? ""} />
+                    <Field
+                      helperText="Formato requerido: AAAA-MM-DD."
+                      label="Aplicada el"
+                      onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))}
+                      placeholder="AAAA-MM-DD"
+                      value={vaccineForm.administeredOn}
+                    />
+                    <Field
+                      helperText="Opcional. Usa AAAA-MM-DD si ya conoces la proxima fecha."
+                      label="Proxima dosis"
+                      onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))}
+                      placeholder="AAAA-MM-DD"
+                      value={vaccineForm.nextDueOn ?? ""}
+                    />
                     <Field label="Notas" multiline onChange={(value) => setVaccineForm((current) => ({ ...current, notes: value }))} value={vaccineForm.notes ?? ""} />
                     <Button disabled={isSubmitting} label={editingVaccineId ? "Guardar vacuna" : "Registrar vacuna"} onPress={() => {
                       clearMessages();
@@ -194,7 +229,13 @@ export function HealthWorkspace({
                         </Pressable>
                       ))}
                     </View>
-                    <Field label="Diagnosticada el" onChange={(value) => setConditionForm((current) => ({ ...current, diagnosedOn: value }))} value={conditionForm.diagnosedOn ?? ""} />
+                    <Field
+                      helperText="Opcional. Usa AAAA-MM-DD para mantener consistencia con salud."
+                      label="Diagnosticada el"
+                      onChange={(value) => setConditionForm((current) => ({ ...current, diagnosedOn: value }))}
+                      placeholder="AAAA-MM-DD"
+                      value={conditionForm.diagnosedOn ?? ""}
+                    />
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <Text style={{ color: colorTokens.muted, flex: 1 }}>Marcar como critica</Text>
                       <Switch onValueChange={(value) => setConditionForm((current) => ({ ...current, isCritical: value }))} value={Boolean(conditionForm.isCritical)} />

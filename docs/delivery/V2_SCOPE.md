@@ -11,6 +11,10 @@ Agregar profundidad operativa y verticales principales del ecosistema.
 - provider ops ampliadas
 - staff y sucursales
 - reportes básicos proveedor
+- marketplace geolocalizado
+- ubicacion geografica de negocios proveedores
+- busqueda de proveedores por cercania
+- vista de mapa con fallback de lista
 - clínica digital
 - directorio de clínicas
 - citas

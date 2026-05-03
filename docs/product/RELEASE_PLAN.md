@@ -11,7 +11,8 @@ Estado actual:
 - piloto controlado: `aprobado`
 - productizacion UX por rol: `cerrada`
 - hardening UX no bloqueante: `aplicado`
-- frente activo recomendado: material visual del piloto y QA manual por rol
+- QA visual/manual por rol: `cerrada`
+- hardening tecnico/operativo del piloto: `cerrado_con_notas`
 
 ## Gate 1: Baseline MVP
 
@@ -58,6 +59,22 @@ Debe preparar sin abrir nuevas features:
 - checklist manual por rol con hallazgos visuales triageados
 - confirmacion de que `payment-ready` no promete cobro real
 - confirmacion de que no se abrieron backend, DB, APIs, migraciones ni V2/V3
+
+Estado: `cerrado` para owner mobile, provider mobile y admin web autenticado. La evidencia auditable final queda como pendiente operativo opcional si el piloto la requiere.
+
+## Gate 5: Hardening tecnico/operativo del piloto
+
+Debe preparar sin abrir nuevas features:
+
+- preflight de variables y actores QA
+- comandos reproducibles para web, admin, mobile y Android
+- comandos canonicos de lint, typecheck, build y smoke
+- registro de pendientes no bloqueantes y `BLOCK` por entorno
+- criterio claro para decidir si se puede abrir `Payments MVP+`
+
+Documento operativo: `docs/delivery/PILOT_OPERATIONS_HARDENING.md`
+
+Estado: `cerrado_con_notas`; lint, typecheck, builds, smokes canonicas y `git diff --check` en `PASS`.
 
 ## Freeze propuesto para el baseline actual
 

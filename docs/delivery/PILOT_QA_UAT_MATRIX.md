@@ -21,7 +21,8 @@ Convertir el cierre funcional del MVP en una matriz ejecutable de QA/UAT para de
 | `localization_es` | `PASS` | `web`, `mobile`, `admin` | incorporada al baseline publicado; no queda pendiente de commit ni tag |
 | Productizacion UX por rol | `PASS` | owner mobile, provider mobile-first, admin web-only | reorganizacion UX sobre capacidades MVP existentes, sin backend/DB/API/migraciones nuevas |
 | Hardening UX no bloqueante | `PASS` | empty states, indicadores simples, copy `payment-ready`, continuidad visual | no agrega features ni notificaciones persistidas |
-| Polish visual inicial | `PASS` | ajustes responsive, tipografia admin y microcopy de bajo riesgo | evidencia visual local owner iniciada en `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md` |
+| QA visual/manual por rol | `PASS` | owner mobile, provider mobile y admin web autenticado | cerrado en `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md` |
+| Polish visual inicial | `PASS` | ajustes responsive, tipografia admin y microcopy de bajo riesgo | incorporado al cierre visual/manual por rol |
 | QA/UAT manual web | `PASS` | flujos web manuales ejecutados por el usuario | funciona correctamente segun validacion manual reportada |
 | Android/mobile | `PASS` | `AND-01`, `AND-02`, `AND-03` | validaciones manuales Android ejecutadas; ya no existe bloqueo activo de entorno |
 
@@ -41,9 +42,9 @@ Estos casos no abren nuevas features. Sirven para preparar material visual del p
 
 | ID | Canal | Rol | Estado | Alcance |
 | --- | --- | --- | --- | --- |
-| UX-OWN-01 | Android/mobile | owner | `PASS_visual_local` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
-| UX-PRO-01 | Android/mobile | provider | `pendiente_revalidar` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta; Cuenta provider ya no debe mostrar hogares ni tarjetas guardadas |
-| UX-ADM-01 | admin web | admin | `parcial_composicion_local` | Home admin validado sin sesion; Proveedores/Soporte pendientes con usuario admin |
+| UX-OWN-01 | Android/mobile | owner | `PASS_QA_OWNER` | Inicio, Mascotas hub, Reservas hub, Buscar, Mensajes y Cuenta |
+| UX-PRO-01 | Android/mobile | provider | `PASS_QA_PROVIDER` | Home provider, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta |
+| UX-ADM-01 | admin web | admin | `PASS_QA_ADMIN` | Home admin, Proveedores y Soporte con usuario admin autenticado |
 
 Evidencia recomendada:
 
@@ -206,5 +207,5 @@ Evidencia recomendada:
 - `piloto controlado aprobado`: `si`
 - pendientes restantes: `no bloqueantes`
 - fase UX por rol: `cerrada`
-- fase actual del proyecto: `QA visual/manual por rol en ejecucion`
+- fase actual del proyecto: `hardening tecnico/operativo del piloto cerrado`
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

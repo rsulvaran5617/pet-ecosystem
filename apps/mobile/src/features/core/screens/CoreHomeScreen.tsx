@@ -207,15 +207,19 @@ function Button({
 }
 
 function Field({
+  helperText,
   keyboardType,
   label,
   onChange,
+  placeholder,
   secureTextEntry,
   value
 }: {
+  helperText?: string;
   keyboardType?: "default" | "email-address" | "numeric";
   label: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   secureTextEntry?: boolean;
   value: string;
 }) {
@@ -226,10 +230,13 @@ function Field({
         autoCapitalize="none"
         keyboardType={keyboardType}
         onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#a8a29e"
         secureTextEntry={secureTextEntry}
         style={inputStyle}
         value={value}
       />
+      {helperText ? <Text style={{ color: "#78716c", fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -303,15 +310,9 @@ function SwitchRow({
 }
 
 function OwnerShellHeader({
-  activeRole,
-  completedTasks,
-  section,
-  totalTasks
+  section
 }: {
-  activeRole: CoreRole;
-  completedTasks: number;
   section: OwnerSectionId;
-  totalTasks: number;
 }) {
   const sectionConfig = ownerSectionLookup[section];
 
@@ -322,11 +323,6 @@ function OwnerShellHeader({
       </Text>
       <Text style={{ fontSize: 30, fontWeight: "700", lineHeight: 34, color: "#f8fafc" }}>{sectionConfig.label}</Text>
       <Text style={{ fontSize: 15, lineHeight: 22, color: "rgba(248,250,252,0.78)" }}>{sectionConfig.description}</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <StatusChip label={`${completedTasks}/${totalTasks} pasos`} tone="active" />
-        <StatusChip label={coreRoleLabels[activeRole]} tone="neutral" />
-        <StatusChip label="sin cobro real" tone="neutral" />
-      </View>
     </View>
   );
 }
@@ -355,15 +351,9 @@ function ProviderShellHeader({
 }
 
 function OwnerHome({
-  activeRole,
-  completedTasks,
   onNavigate,
-  totalTasks
 }: {
-  activeRole: CoreRole;
-  completedTasks: number;
   onNavigate: (section: OwnerSectionId) => void;
-  totalTasks: number;
 }) {
   const cards: Array<{ action: string; description: string; section: OwnerSectionId; title: string }> = [
     {
@@ -400,11 +390,6 @@ function OwnerHome({
         <Text style={{ color: colorTokens.muted, lineHeight: 22 }}>
           Accede rapido a cuidado, servicios, reservas y mensajes desde una entrada pensada para propietarios.
         </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          <StatusChip label={`${completedTasks}/${totalTasks} pasos de cuenta`} tone="active" />
-          <StatusChip label={coreRoleLabels[activeRole]} tone="neutral" />
-          <StatusChip label="metodos guardados" tone="neutral" />
-        </View>
       </View>
 
       <View style={{ gap: 10 }}>
@@ -507,8 +492,9 @@ export function CoreHomeScreen() {
 
   const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
-  const completedTasks = snapshot?.onboardingTasks.filter((task) => task.status === "completed").length ?? 0;
   const isProviderMode = activeRole === "provider" && hasProviderRole;
+  const accountOnboardingTasks =
+    snapshot?.onboardingTasks.filter((task) => !isProviderMode || task.id !== "add_payment_method") ?? [];
   const isAccountSectionActive = isProviderMode ? activeProviderSection === "cuenta" : activeOwnerSection === "cuenta";
 
   if (isLoading) {
@@ -532,10 +518,7 @@ export function CoreHomeScreen() {
             <ProviderShellHeader section={activeProviderSection} />
           ) : (
           <OwnerShellHeader
-            activeRole={activeRole}
-            completedTasks={completedTasks}
             section={activeOwnerSection}
-            totalTasks={snapshot.onboardingTasks.length}
           />
           )
         ) : (
@@ -780,7 +763,7 @@ export function CoreHomeScreen() {
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Configuracion de cuenta</Text>
               <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>
                 {isProviderMode
-                  ? "Aqui viven perfil, preferencias, direcciones, metodos guardados y cambio de rol. La gestion de hogares queda en el modo propietario."
+                  ? "Aqui viven perfil, preferencias, direcciones, alcance de pagos del MVP y cambio de rol. La gestion de hogares queda en el modo propietario."
                   : "Aqui viven perfil, preferencias, hogares, direcciones, metodos guardados y cambio de rol. El flujo principal de cuidado queda en las otras pestanas."}
               </Text>
             </View>
@@ -816,10 +799,14 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Onboarding"
               title="Ruta actual de activacion"
-              description="Pasos basicos de cuenta antes de operar el resto de la app."
+              description={
+                isProviderMode
+                  ? "Pasos de cuenta relevantes para operar en modo proveedor. Las tareas del propietario quedan en su modo."
+                  : "Pasos basicos de cuenta antes de operar el resto de la app."
+              }
             >
               <View style={{ gap: 10 }}>
-                {snapshot.onboardingTasks.map((task) => (
+                {accountOnboardingTasks.map((task) => (
                   <View key={task.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                       <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{task.title}</Text>
@@ -1094,14 +1081,18 @@ export function CoreHomeScreen() {
                   />
                   <Field
                     keyboardType="numeric"
+                    helperText="Usa dos digitos, por ejemplo 05."
                     label="Mes de vencimiento"
                     onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expMonth: value }))}
+                    placeholder="MM"
                     value={paymentForm.expMonth}
                   />
                   <Field
                     keyboardType="numeric"
+                    helperText="Usa cuatro digitos, por ejemplo 2028."
                     label="Ano de vencimiento"
                     onChange={(value) => setPaymentForm((currentForm) => ({ ...currentForm, expYear: value }))}
+                    placeholder="AAAA"
                     value={paymentForm.expYear}
                   />
                   <Field
@@ -1167,19 +1158,7 @@ export function CoreHomeScreen() {
                   ))}
                 </View>
               </CoreSectionCard>
-            ) : (
-              <CoreSectionCard
-                eyebrow="Pagos"
-                title="Pagos reales fuera del MVP"
-                description="Las tarjetas guardadas pertenecen al modo propietario como referencia para reservas. Payouts, liquidaciones y facturacion del proveedor no forman parte del MVP actual."
-              >
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  <StatusChip label="payment-ready" tone="neutral" />
-                  <StatusChip label="sin cobro real" tone="neutral" />
-                  <StatusChip label="payouts fuera de alcance" tone="pending" />
-                </View>
-              </CoreSectionCard>
-            )}
+            ) : null}
 
             {!isProviderMode ? <HouseholdsWorkspace enabled /> : null}
           </>
@@ -1187,10 +1166,7 @@ export function CoreHomeScreen() {
 
         {authState.isAuthenticated && snapshot && !isProviderMode && activeOwnerSection === "inicio" ? (
           <OwnerHome
-            activeRole={activeRole}
-            completedTasks={completedTasks}
             onNavigate={setActiveOwnerSection}
-            totalTasks={snapshot.onboardingTasks.length}
           />
         ) : null}
         {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mascotas" ? (
@@ -1236,6 +1212,7 @@ export function CoreHomeScreen() {
               activePanel={activeBookingHubPanel}
               enabled
               marketplaceSelection={marketplaceSelection}
+              onClearMarketplaceSelection={() => setMarketplaceSelection(null)}
               onBookingContextChange={setBookingHubContext}
               onPanelChange={setActiveBookingHubPanel}
               onOpenChatForBooking={(bookingId) => {
@@ -1278,7 +1255,7 @@ export function CoreHomeScreen() {
           </>
         ) : null}
         {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mensajes" ? (
-          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+          <MessagingWorkspace enabled focusedBookingId={null} focusVersion={0} />
         ) : null}
         {authState.isAuthenticated && snapshot && isProviderMode && activeProviderSection !== "mensajes" && activeProviderSection !== "cuenta" ? (
           <ProvidersWorkspace
@@ -1289,7 +1266,7 @@ export function CoreHomeScreen() {
           />
         ) : null}
         {authState.isAuthenticated && isProviderMode && activeProviderSection === "mensajes" ? (
-          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+          <MessagingWorkspace enabled focusedBookingId={null} focusVersion={0} />
         ) : null}
       </ScrollView>
       {authState.isAuthenticated ? (

@@ -758,7 +758,7 @@ La fase de productizacion UX por rol queda cerrada. El producto deja de presenta
 - Negocio/perfil publico, servicios, disponibilidad, documentos y estado de aprobacion organizados por seccion.
 - Reservas proveedor como cola operativa con acciones por estado.
 - Mensajes reutilizados dentro del alcance MVP ligado a bookings.
-- Cuenta provider mantiene perfil, preferencias, direcciones y cambio de rol; hogares y tarjetas guardadas pertenecen al modo propietario y no se muestran dentro de la consola provider.
+- Cuenta provider mantiene perfil, preferencias, direcciones y cambio de rol; hogares, tarjetas guardadas, tarjetas informativas de pagos y tareas owner-only como `Agregar metodo de pago` pertenecen al modo propietario/documentacion QA y no se muestran dentro de la consola provider.
 
 #### Admin
 

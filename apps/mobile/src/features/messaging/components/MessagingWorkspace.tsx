@@ -1,6 +1,7 @@
 ﻿import { bookingStatusLabels } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { Uuid } from "@pet/types";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -17,6 +18,8 @@ const inputStyle = {
 } as const;
 
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
+
+type MessagingView = "bandeja" | "conversacion";
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
@@ -69,7 +72,6 @@ export function MessagingWorkspace({
   const {
     threads,
     selectedThreadDetail,
-    selectedThreadId,
     messageDraft,
     errorMessage,
     infoMessage,
@@ -82,6 +84,25 @@ export function MessagingWorkspace({
     setMessageDraft
   } = useMessagingWorkspace(enabled, focusedBookingId, focusVersion);
 
+  const [messagingView, setMessagingView] = useState<MessagingView>("bandeja");
+
+  useEffect(() => {
+    if (!enabled || !focusedBookingId || focusVersion === 0) {
+      return;
+    }
+
+    setMessagingView("conversacion");
+  }, [enabled, focusedBookingId, focusVersion]);
+
+  const openConversation = async (threadId: Uuid) => {
+    try {
+      await openThread(threadId);
+      setMessagingView("conversacion");
+    } catch {
+      // El hook ya expone el error en la UI.
+    }
+  };
+
   if (!enabled) {
     return null;
   }
@@ -92,13 +113,18 @@ export function MessagingWorkspace({
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
       <CoreSectionCard
         eyebrow="Mensajes"
-        title="Bandeja ligada a reservas"
-        description="Los hilos se crean automaticamente desde las reservas. En este MVP, solo el cliente que reservo y el propietario del proveedor pueden leer o enviar mensajes."
+        title={messagingView === "bandeja" ? "Bandeja de reservas" : "Conversacion de reserva"}
+        description={
+          messagingView === "bandeja"
+            ? "Cada hilo pertenece a una reserva. Abre una conversacion para leer y responder en contexto."
+            : "Este chat vive dentro de una reserva; no hay mensajeria libre fuera del booking."
+        }
       >
         <View style={{ gap: 12 }}>
+          {messagingView === "bandeja" ? (
           <View style={cardStyle}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Bandeja</Text>
+            <View style={{ gap: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Conversaciones por reserva</Text>
               <StatusChip label={`${threads.length} hilo(s)`} tone="neutral" />
             </View>
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
@@ -109,18 +135,21 @@ export function MessagingWorkspace({
             {threads.length ? threads.map((thread) => (
               <Pressable
                 key={thread.id}
-                onPress={() => void openThread(thread.id)}
-                style={[inputStyle, { gap: 8, backgroundColor: thread.id === selectedThreadId ? "rgba(15,118,110,0.08)" : "#fffdf8" }]}
+                onPress={() => void openConversation(thread.id)}
+                style={[inputStyle, { gap: 8 }]}
               >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917", flex: 1 }}>{thread.serviceName}</Text>
+                <View style={{ gap: 8 }}>
+                  <Text style={{ fontWeight: "700", color: "#1c1917", fontSize: 16 }}>{thread.serviceName}</Text>
                   <StatusChip label={bookingStatusLabels[thread.bookingStatus]} tone={getStatusTone(thread.bookingStatus)} />
                 </View>
-                <Text style={{ color: colorTokens.muted }}>{thread.customerDisplayName} · {thread.providerDisplayName}</Text>
+                <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                  {thread.customerDisplayName} - {thread.providerDisplayName}
+                </Text>
                 <Text style={{ color: colorTokens.muted }}>Mascota: {thread.petName}</Text>
                 <Text style={{ color: colorTokens.muted }}>
                   {thread.lastMessagePreview ?? "Todavia no hay mensajes. Abre el hilo para iniciar la conversacion de la reserva."}
                 </Text>
+                <Text style={{ color: "#0f766e", fontWeight: "700", marginTop: 4 }}>Abrir conversacion</Text>
               </Pressable>
             )) : (
               <View style={[inputStyle, { gap: 6 }]}>
@@ -131,10 +160,12 @@ export function MessagingWorkspace({
               </View>
             )}
           </View>
+          ) : null}
 
+          {messagingView === "conversacion" ? (
           <View style={cardStyle}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Detalle del hilo</Text>
+            <View style={{ gap: 8 }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Conversacion</Text>
               {selectedThreadDetail ? (
                 <StatusChip
                   label={bookingStatusLabels[selectedThreadDetail.thread.bookingStatus]}
@@ -144,24 +175,17 @@ export function MessagingWorkspace({
                 <StatusChip label="sin hilo seleccionado" tone="neutral" />
               )}
             </View>
+            <Button label="Volver a la bandeja" onPress={() => setMessagingView("bandeja")} tone="secondary" />
 
             {selectedThreadDetail ? (
               <>
-                <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Servicio</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.serviceName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Mascota</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.petName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Cliente</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.customerDisplayName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Proveedor</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedThreadDetail.thread.providerDisplayName}</Text>
+                <View style={[inputStyle, { backgroundColor: "rgba(15,118,110,0.08)", gap: 8 }]}>
+                  <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "700", textTransform: "uppercase" }}>Reserva vinculada</Text>
+                  <Text style={{ fontWeight: "700", color: "#1c1917", fontSize: 16 }}>{selectedThreadDetail.thread.serviceName}</Text>
+                  <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                    {selectedThreadDetail.thread.providerDisplayName} - {selectedThreadDetail.thread.customerDisplayName}
+                  </Text>
+                  <Text style={{ color: colorTokens.muted }}>Mascota: {selectedThreadDetail.thread.petName}</Text>
                 </View>
 
                 <View style={{ gap: 10 }}>
@@ -182,8 +206,8 @@ export function MessagingWorkspace({
                           width: "100%"
                         }}
                       >
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                          <Text style={{ fontWeight: "600", color: "#1c1917", flex: 1 }}>{message.senderDisplayName}</Text>
+                        <View style={{ gap: 4 }}>
+                          <Text style={{ fontWeight: "600", color: "#1c1917" }}>{message.senderDisplayName}</Text>
                           <Text style={{ color: "#78716c", fontSize: 12 }}>{formatDateTime(message.createdAt)}</Text>
                         </View>
                         <Text style={{ color: "#44403c", lineHeight: 20 }}>{message.messageText}</Text>
@@ -214,6 +238,7 @@ export function MessagingWorkspace({
               </Text>
             )}
           </View>
+          ) : null}
         </View>
       </CoreSectionCard>
     </View>

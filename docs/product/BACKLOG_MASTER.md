@@ -42,3 +42,26 @@ manda el archivo de release (`docs/delivery/MVP_SCOPE.md`, `docs/delivery/V2_SCO
 10. EP-10
 11. EP-11
 12. EP-12
+
+## Historias candidatas V2
+
+### EP-05-MKT-V2-01 - Discovery por cercania y mapa
+
+- ID: EP-05-MKT-V2-01
+- epica: EP-05 Discovery y marketplace
+- actor: duenio de mascota
+- descripcion: como duenio de mascota quiero ver proveedores aprobados en un mapa y ordenarlos por cercania a mi hogar o ubicacion seleccionada, para elegir servicios accesibles geograficamente.
+- criterios de aceptacion:
+  - los negocios proveedores pueden tener una ubicacion geografica validada
+  - el marketplace permite buscar proveedores por cercania
+  - el duenio puede elegir hogar, direccion o ubicacion actual como punto de referencia
+  - los resultados muestran distancia aproximada
+  - el mapa solo muestra proveedores aprobados, publicos y con servicios activos
+  - la ubicacion no expone datos privados fuera del perfil publico acordado
+- dependencias:
+  - provider organizations con ubicacion geografica
+  - direcciones de hogares o ubicacion seleccionada del owner
+  - permisos de ubicacion mobile si se usa ubicacion actual
+  - indices geoespaciales en Supabase/Postgres
+  - UX de mapa y fallback de lista
+- release: V2

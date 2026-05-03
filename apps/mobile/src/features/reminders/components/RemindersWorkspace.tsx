@@ -68,7 +68,21 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
   );
 }
 
-function Field({ label, onChange, value, multiline = false }: { label: string; onChange: (value: string) => void; value: string; multiline?: boolean }) {
+function Field({
+  helperText,
+  label,
+  onChange,
+  placeholder,
+  value,
+  multiline = false
+}: {
+  helperText?: string;
+  label: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+  multiline?: boolean;
+}) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
@@ -76,10 +90,12 @@ function Field({ label, onChange, value, multiline = false }: { label: string; o
         multiline={multiline}
         numberOfLines={multiline ? 4 : 1}
         onChangeText={onChange}
-        placeholder={label}
+        placeholder={placeholder ?? label}
+        placeholderTextColor="#a8a29e"
         style={[inputStyle, multiline ? { minHeight: 88, textAlignVertical: "top" } : null]}
         value={value}
       />
+      {helperText ? <Text style={{ color: "#78716c", fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -219,7 +235,13 @@ export function RemindersWorkspace({
                     <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedPet?.name ?? "Mascota seleccionada"}</Text>
                   </View>
                 )}
-                <Field label="Fecha de vencimiento (AAAA-MM-DD)" onChange={setDueDate} value={dueDate} />
+                <Field
+                  helperText="Se guardara a las 09:00 del dia elegido. No cambia el formato enviado al MVP."
+                  label="Fecha de vencimiento"
+                  onChange={setDueDate}
+                  placeholder="AAAA-MM-DD"
+                  value={dueDate}
+                />
                 <Field label="Notas" multiline onChange={setNotes} value={notes} />
                 <Button
                   disabled={isSubmitting}
@@ -274,8 +296,10 @@ export function RemindersWorkspace({
                       />
                     ) : null}
                     <Field
-                      label="Posponer hasta (AAAA-MM-DD)"
+                      helperText="Usa una fecha futura en formato AAAA-MM-DD."
+                      label="Posponer hasta"
                       onChange={(value) => setSnoozeDates((currentDates) => ({ ...currentDates, [reminder.id]: value }))}
+                      placeholder="AAAA-MM-DD"
                       value={snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder)}
                     />
                     <Button
