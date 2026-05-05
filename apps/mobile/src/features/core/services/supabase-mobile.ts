@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  createBookingOperationsApiClient,
   createBookingsApiClient,
   createCoreApiClient,
   createHealthApiClient,
@@ -20,6 +21,7 @@ import { AppState } from "react-native";
 let mobileSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 let mobileCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
 let mobileBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null = null;
+let mobileBookingOperationsApiClient: ReturnType<typeof createBookingOperationsApiClient> | null = null;
 let mobileHouseholdsApiClient: ReturnType<typeof createHouseholdsApiClient> | null = null;
 let mobilePetsApiClient: ReturnType<typeof createPetsApiClient> | null = null;
 let mobileHealthApiClient: ReturnType<typeof createHealthApiClient> | null = null;
@@ -154,6 +156,14 @@ export function getMobileBookingsApiClient() {
   }
 
   return mobileBookingsApiClient;
+}
+
+export function getMobileBookingOperationsApiClient() {
+  if (!mobileBookingOperationsApiClient) {
+    mobileBookingOperationsApiClient = createBookingOperationsApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileBookingOperationsApiClient;
 }
 
 export function getMobileHouseholdsApiClient() {

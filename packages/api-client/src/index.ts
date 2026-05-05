@@ -13,6 +13,7 @@ export function createApiClientConfig(config: ApiClientConfig): ApiClientConfig 
 
 export * from "./core";
 export * from "./bookings";
+export * from "./operations";
 export * from "./health";
 export * from "./households";
 export * from "./marketplace";

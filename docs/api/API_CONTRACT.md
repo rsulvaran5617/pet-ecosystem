@@ -89,12 +89,28 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
 - `GET /provider/bookings`
+- `GET /bookings/{id}/operations`
+- `POST /bookings/{id}/operations/check-in`
+- `POST /bookings/{id}/operations/check-out`
+- `GET /bookings/{id}/operations/evidence`
+- `POST /bookings/{id}/operations/evidence`
+- `GET /bookings/{id}/operations/report-card`
+- `PUT /bookings/{id}/operations/report-card`
+- `GET /bookings/{id}/operations/internal-notes`
+- `POST /bookings/{id}/operations/internal-notes`
 
 Notas:
 
 - `approve/reject` aplican solo a `pending_approval`
 - `complete` aplica al owner proveedor sobre `confirmed`
 - el booking puede referenciar un `payment_method` guardado, pero no captura pago real
+- `operations` pertenece a V2 provider operations no financiero
+- el timeline operacional devuelve check-in, check-out, evidencia, report card, internal notes y estado operacional derivado
+- check-in/check-out, evidencia, report card e internal notes solo pueden mutarse por el owner proveedor de la organizacion del booking o por flujos server-side equivalentes
+- admin puede leer operaciones para soporte o auditoria operativa
+- owner no tiene lectura directa inicial de operaciones
+- internal notes no son visibles para owner
+- evidencia usa `storage_bucket` y `storage_path`, no URL arbitraria
 
 ### Messaging / Reviews / Support
 

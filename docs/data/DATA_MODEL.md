@@ -23,6 +23,11 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - una reserva conecta hogar, mascota, proveedor y servicio
 - una reserva puede referenciar opcionalmente un `payment_method` guardado sin ejecutar cobro real
 - el pricing de la reserva se congela en `booking_pricing`
+- V2 provider operations agrega un timeline operacional asociado a `bookings`
+- `booking_operations` registra eventos de check-in y check-out de la reserva
+- `booking_operation_evidence` guarda metadata de archivos de evidencia asociados a la reserva
+- `booking_operation_report` guarda un report card operacional unico por reserva
+- `booking_operation_notes` guarda notas internas del proveedor asociadas a la reserva
 - la reserva deja su trazabilidad funcional en `booking_status_history`
 - la reserva crea automaticamente un `chat_thread` transaccional 1:1
 - una reserva completada puede generar una sola `review`
@@ -42,6 +47,13 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - los documentos de mascota guardan metadata relacional y archivo en storage privado
 - los registros de salud heredan visibilidad desde la misma membresia del hogar
 - las reservas heredan permiso de lectura desde el hogar y desde el owner de la organizacion proveedora involucrada
+- el timeline operacional hereda contexto desde `bookings`, `provider_organizations`, household y mascota
+- check-in/check-out y report card pertenecen al provider owner de la organizacion vinculada al booking
+- evidencia operacional requiere metadata en tabla y archivo protegido en storage
+- evidencia operacional usa `storage_bucket` y `storage_path`; no usa URL arbitraria externa
+- las notas internas de provider operations no son visibles al owner
+- admin puede leer provider operations para soporte o auditoria operativa
+- provider externo no puede leer ni mutar operaciones de bookings de otra organizacion
 - adjuntar un `payment_method` al booking exige permiso `pay` o `admin` en el hogar
 - el chat MVP no es libre: hereda su alcance desde el booking
 - las reviews heredan su elegibilidad desde el booking completado

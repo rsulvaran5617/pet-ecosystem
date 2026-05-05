@@ -24,6 +24,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileProvidersApiClient } from "../../core/services/supabase-mobile";
+import { BookingOperationsTimeline } from "../../bookings/components/BookingOperationsTimeline";
 import { useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const inputStyle = {
@@ -763,6 +764,7 @@ export function ProvidersWorkspace({
                           </View>
                         ))}
                       </View>
+                      <BookingOperationsTimeline bookingId={selectedProviderBookingDetail.booking.id} enabled={selectedProviderBookingDetail.booking.status === "confirmed"} />
                     </View>
                   ) : null}
                 </>

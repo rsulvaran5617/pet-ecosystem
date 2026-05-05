@@ -356,6 +356,132 @@ export interface Database {
         };
         Relationships: [];
       };
+      booking_operations: {
+        Row: {
+          id: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          created_by_user_id: string;
+          location_latitude: number | null;
+          location_longitude: number | null;
+          location_label: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          created_by_user_id: string;
+          location_latitude?: number | null;
+          location_longitude?: number | null;
+          location_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          operation_type?: "check_in" | "check_out";
+          created_by_user_id?: string;
+          location_latitude?: number | null;
+          location_longitude?: number | null;
+          location_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_evidence: {
+        Row: {
+          id: string;
+          booking_id: string;
+          storage_bucket: string;
+          storage_path: string;
+          file_name: string;
+          file_size_bytes: number;
+          mime_type: string | null;
+          uploaded_by_user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          storage_bucket?: string;
+          storage_path: string;
+          file_name: string;
+          file_size_bytes: number;
+          mime_type?: string | null;
+          uploaded_by_user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          storage_bucket?: string;
+          storage_path?: string;
+          file_name?: string;
+          file_size_bytes?: number;
+          mime_type?: string | null;
+          uploaded_by_user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_report: {
+        Row: {
+          id: string;
+          booking_id: string;
+          report_text: string;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          report_text: string;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          report_text?: string;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_notes: {
+        Row: {
+          id: string;
+          booking_id: string;
+          note_text: string;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          note_text: string;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          note_text?: string;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       chat_threads: {
         Row: {
           id: string;

@@ -75,6 +75,17 @@
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
 - `GET /provider/bookings`
+- `GET /bookings/{id}/operations`
+- `POST /bookings/{id}/operations/check-in`
+- `POST /bookings/{id}/operations/check-out`
+- `GET /bookings/{id}/operations/evidence`
+- `POST /bookings/{id}/operations/evidence`
+- `GET /bookings/{id}/operations/report-card`
+- `PUT /bookings/{id}/operations/report-card`
+- `GET /bookings/{id}/operations/internal-notes`
+- `POST /bookings/{id}/operations/internal-notes`
+
+Nota: `operations` pertenece a V2 provider operations no financiero; no habilita pagos reales ni payouts.
 
 ## Messaging
 
