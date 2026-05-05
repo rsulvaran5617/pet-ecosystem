@@ -136,6 +136,149 @@ create table if not exists public.booking_operation_notes (
   updated_at timestamptz not null default now()
 );
 
+-- Remediation for remote partial schemas created before this migration was
+-- registered. Keep legacy file_url if present, but do not use it for new writes.
+alter table public.booking_operation_evidence
+  add column if not exists storage_bucket text not null default 'booking-operation-evidence';
+
+alter table public.booking_operation_evidence
+  add column if not exists storage_path text;
+
+alter table public.booking_operation_evidence
+  add column if not exists file_size_bytes integer;
+
+alter table public.booking_operation_report
+  add column if not exists report_text text;
+
+do $$
+begin
+  if exists (select 1 from public.booking_operation_evidence where storage_path is null) then
+    raise exception 'booking_operation_evidence.storage_path contains null values; backfill legacy evidence metadata before applying V2 booking operations migration';
+  end if;
+
+  alter table public.booking_operation_evidence
+    alter column storage_path set not null;
+end $$;
+
+do $$
+begin
+  if exists (select 1 from public.booking_operation_evidence where file_size_bytes is null) then
+    raise exception 'booking_operation_evidence.file_size_bytes contains null values; backfill legacy evidence metadata before applying V2 booking operations migration';
+  end if;
+
+  alter table public.booking_operation_evidence
+    alter column file_size_bytes set not null;
+end $$;
+
+do $$
+begin
+  if exists (select 1 from public.booking_operation_report where report_text is null) then
+    raise exception 'booking_operation_report.report_text contains null values; backfill legacy report cards before applying V2 booking operations migration';
+  end if;
+
+  alter table public.booking_operation_report
+    alter column report_text set not null;
+end $$;
+
+alter table public.booking_operation_evidence
+  alter column storage_bucket set default 'booking-operation-evidence';
+
+do $$
+begin
+  alter table public.booking_operations
+    add constraint booking_operations_operation_type_check
+    check (operation_type in ('check_in', 'check_out'));
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operations
+    add constraint booking_operations_location_pair_check
+    check (
+      (location_latitude is null and location_longitude is null)
+      or (location_latitude is not null and location_longitude is not null)
+    );
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operations
+    add constraint booking_operations_latitude_range_check
+    check (location_latitude is null or (location_latitude between -90 and 90));
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operations
+    add constraint booking_operations_longitude_range_check
+    check (location_longitude is null or (location_longitude between -180 and 180));
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operations
+    add constraint booking_operations_check_out_without_location_check
+    check (
+      operation_type = 'check_in'
+      or (location_latitude is null and location_longitude is null and location_label is null)
+    );
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operation_evidence
+    add constraint booking_operation_evidence_file_size_check
+    check (file_size_bytes > 0 and file_size_bytes <= 52428800);
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operation_evidence
+    add constraint booking_operation_evidence_bucket_check
+    check (storage_bucket = 'booking-operation-evidence');
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operation_evidence
+    add constraint booking_operation_evidence_path_booking_check
+    check (public.extract_booking_id_from_operation_storage_path(storage_path) = booking_id);
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operation_report
+    add constraint booking_operation_report_text_check
+    check (char_length(trim(report_text)) between 1 and 500);
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  alter table public.booking_operation_notes
+    add constraint booking_operation_notes_text_check
+    check (char_length(trim(note_text)) between 1 and 1000);
+exception
+  when duplicate_object then null;
+end $$;
+
 create unique index if not exists booking_operations_one_check_in_per_booking_idx
   on public.booking_operations (booking_id)
   where operation_type = 'check_in';
@@ -160,6 +303,8 @@ alter table public.booking_operation_evidence enable row level security;
 alter table public.booking_operation_report enable row level security;
 alter table public.booking_operation_notes enable row level security;
 
+drop policy if exists booking_operations_provider_write on public.booking_operations;
+drop policy if exists booking_operations_admin_read on public.booking_operations;
 drop policy if exists booking_operations_select_provider on public.booking_operations;
 create policy booking_operations_select_provider
 on public.booking_operations
@@ -180,6 +325,8 @@ with check (
   and public.can_manage_booking_operations(booking_id, auth.uid())
 );
 
+drop policy if exists booking_operation_evidence_provider_write on public.booking_operation_evidence;
+drop policy if exists booking_operation_evidence_admin_read on public.booking_operation_evidence;
 drop policy if exists booking_operation_evidence_select_provider on public.booking_operation_evidence;
 create policy booking_operation_evidence_select_provider
 on public.booking_operation_evidence
@@ -202,6 +349,8 @@ with check (
   and public.extract_booking_id_from_operation_storage_path(storage_path) = booking_id
 );
 
+drop policy if exists booking_operation_report_provider_write on public.booking_operation_report;
+drop policy if exists booking_operation_report_admin_read on public.booking_operation_report;
 drop policy if exists booking_operation_report_select_provider on public.booking_operation_report;
 create policy booking_operation_report_select_provider
 on public.booking_operation_report
@@ -233,6 +382,8 @@ with check (
   and public.can_manage_booking_operations(booking_id, auth.uid())
 );
 
+drop policy if exists booking_operation_notes_provider_write on public.booking_operation_notes;
+drop policy if exists booking_operation_notes_admin_read on public.booking_operation_notes;
 drop policy if exists booking_operation_notes_select_provider on public.booking_operation_notes;
 create policy booking_operation_notes_select_provider
 on public.booking_operation_notes
