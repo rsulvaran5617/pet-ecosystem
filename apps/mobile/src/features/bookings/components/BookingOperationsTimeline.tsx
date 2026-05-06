@@ -98,8 +98,16 @@ const actionErrorStyle = {
 };
 
 export function BookingOperationsTimeline({ bookingId, enabled = true }: { bookingId: Uuid; enabled?: boolean }) {
-  const { timeline, isLoading, isSubmittingCheckIn, errorMessage, actionErrorMessage, registerCheckIn } =
-    useBookingOperations(bookingId, enabled);
+  const {
+    timeline,
+    isLoading,
+    isSubmittingCheckIn,
+    isSubmittingCheckOut,
+    errorMessage,
+    actionErrorMessage,
+    registerCheckIn,
+    registerCheckOut
+  } = useBookingOperations(bookingId, enabled);
 
   if (!enabled) {
     return null;
@@ -197,6 +205,24 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
             >
               <Text style={actionButtonTextStyle}>
                 {isSubmittingCheckIn ? "Registrando check-in..." : "Registrar check-in"}
+              </Text>
+            </Pressable>
+            {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}
+          </View>
+        )}
+
+        {timeline.checkIn && !timeline.checkOut && (
+          <View style={{ marginTop: 12 }}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isSubmittingCheckOut}
+              onPress={() => {
+                void registerCheckOut();
+              }}
+              style={{ ...actionButtonStyle, ...(isSubmittingCheckOut ? actionButtonDisabledStyle : {}) }}
+            >
+              <Text style={actionButtonTextStyle}>
+                {isSubmittingCheckOut ? "Registrando check-out..." : "Registrar check-out"}
               </Text>
             </Pressable>
             {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}

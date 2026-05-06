@@ -7,16 +7,19 @@ interface UseBookingOperationsResult {
   timeline: BookingOperationsTimeline | null;
   isLoading: boolean;
   isSubmittingCheckIn: boolean;
+  isSubmittingCheckOut: boolean;
   errorMessage: string | null;
   actionErrorMessage: string | null;
   refresh: () => Promise<void>;
   registerCheckIn: () => Promise<void>;
+  registerCheckOut: () => Promise<void>;
 }
 
 export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = true): UseBookingOperationsResult {
   const [timeline, setTimeline] = useState<BookingOperationsTimeline | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
+  const [isSubmittingCheckOut, setIsSubmittingCheckOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
 
@@ -57,6 +60,25 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     }
   };
 
+  const registerCheckOut = async () => {
+    if (!bookingId || !enabled || isSubmittingCheckOut) return;
+
+    setIsSubmittingCheckOut(true);
+    setActionErrorMessage(null);
+
+    try {
+      const client = getMobileBookingOperationsApiClient();
+      await client.createCheckOut(bookingId);
+      await refresh();
+    } catch {
+      setActionErrorMessage(
+        "No se pudo registrar el check-out. Verifica que la reserva tenga check-in y que tu usuario tenga permisos de proveedor."
+      );
+    } finally {
+      setIsSubmittingCheckOut(false);
+    }
+  };
+
   useEffect(() => {
     refresh();
   }, [bookingId, enabled]);
@@ -65,9 +87,11 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     timeline,
     isLoading,
     isSubmittingCheckIn,
+    isSubmittingCheckOut,
     errorMessage,
     actionErrorMessage,
     registerCheckIn,
+    registerCheckOut,
     refresh
   };
 }

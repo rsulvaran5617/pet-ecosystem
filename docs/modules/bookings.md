@@ -56,7 +56,8 @@ Queda fuera:
 
 Estado de implementacion mobile:
 - Slice A check-in proveedor esta implementado en Android para reservas `confirmed` y validado manualmente: el proveedor puede registrar check-in desde `Ejecucion Operacional` y el timeline muestra `Llegada / Check-in registrado`.
-- Check-out, evidencia, report card e internal notes quedan pendientes como slices separados.
+- Slice B check-out proveedor esta implementado en Android para reservas `confirmed` con check-in previo y validado manualmente: el proveedor puede registrar check-out y el timeline muestra `Salida / Check-out registrado`.
+- Evidencia, report card e internal notes quedan pendientes como slices separados.
 
 ## Entidades
 - `provider_services`
