@@ -116,6 +116,14 @@ export interface RevokeBookingOperationTokenResult {
   revokedAt: string;
 }
 
+export interface ConsumeBookingOperationTokenResult {
+  success: boolean;
+  bookingId: Uuid;
+  operationType: BookingOperationType;
+  operationId: Uuid;
+  usedAt: string;
+}
+
 // ============================================================================
 // Input types for API operations
 // ============================================================================

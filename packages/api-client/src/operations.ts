@@ -8,6 +8,7 @@ import type {
   BookingOperationType,
   BookingOperationsTimeline,
   BookingReportCard,
+  ConsumeBookingOperationTokenResult,
   CreateCheckInInput,
   Database,
   RevokeBookingOperationTokenResult,
@@ -27,6 +28,7 @@ export interface BookingOperationsApiClient {
   createCheckIn(bookingId: Uuid, input: CreateCheckInInput): Promise<BookingCheckIn>;
   createCheckOut(bookingId: Uuid): Promise<BookingCheckOut>;
   createBookingOperationToken(bookingId: Uuid, operationType: BookingOperationType): Promise<BookingOperationTokenResult>;
+  consumeBookingOperationToken(rawToken: string): Promise<ConsumeBookingOperationTokenResult>;
   revokeBookingOperationToken(tokenId: Uuid): Promise<RevokeBookingOperationTokenResult>;
   uploadEvidence(bookingId: Uuid, input: UploadEvidenceInput): Promise<BookingEvidence>;
   upsertReportCard(bookingId: Uuid, input: UpsertReportCardInput): Promise<BookingReportCard>;
@@ -132,6 +134,18 @@ function mapRevokeOperationTokenResult(
   };
 }
 
+function mapConsumeOperationTokenResult(
+  row: Database["public"]["Functions"]["consume_booking_operation_token"]["Returns"][number]
+): ConsumeBookingOperationTokenResult {
+  return {
+    success: row.success,
+    bookingId: row.booking_id,
+    operationType: row.operation_type,
+    operationId: row.operation_id,
+    usedAt: row.used_at
+  };
+}
+
 async function getCurrentUser(supabase: OperationsSupabaseClient) {
   const { data, error } = await supabase.auth.getUser();
 
@@ -208,6 +222,24 @@ export function createBookingOperationsApiClient(
       }
 
       return mapOperationTokenResult(row);
+    },
+
+    async consumeBookingOperationToken(rawToken) {
+      const { data, error } = await supabase.rpc("consume_booking_operation_token", {
+        raw_token: rawToken
+      });
+
+      if (error) {
+        fail(error, "Unable to consume booking operation QR token.");
+      }
+
+      const row = data?.[0];
+
+      if (!row) {
+        throw new Error("Booking operation QR consume response was empty.");
+      }
+
+      return mapConsumeOperationTokenResult(row);
     },
 
     async revokeBookingOperationToken(tokenId) {

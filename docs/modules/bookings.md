@@ -57,6 +57,8 @@ Queda fuera:
 Estado de implementacion mobile:
 - Slice A check-in proveedor esta implementado en Android para reservas `confirmed` y validado manualmente: el proveedor puede registrar check-in desde `Ejecucion Operacional` y el timeline muestra `Llegada / Check-in registrado`.
 - Slice B check-out proveedor esta implementado en Android para reservas `confirmed` con check-in previo y validado manualmente: el proveedor puede registrar check-out y el timeline muestra `Salida / Check-out registrado`.
+- QR-2 owner mobile display esta implementado y validado manualmente en Android: el owner genera QR temporal de check-in y check-out desde reserva `confirmed`.
+- QR-3 provider scanner esta implementado y validado manualmente en Android: el provider escanea QR operacional, consume el token temporal via RPC y el timeline registra check-in/check-out.
 - Evidencia, report card e internal notes quedan pendientes como slices separados.
 
 ## Modelo QR V2 para check-in/check-out
