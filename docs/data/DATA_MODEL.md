@@ -25,6 +25,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - el pricing de la reserva se congela en `booking_pricing`
 - V2 provider operations agrega un timeline operacional asociado a `bookings`
 - `booking_operations` registra eventos de check-in y check-out de la reserva
+- `booking_operation_tokens` modela QR temporales owner -> provider para autorizar check-in/check-out sin exponer `booking_id` plano
 - `booking_operation_evidence` guarda metadata de archivos de evidencia asociados a la reserva
 - `booking_operation_report` guarda un report card operacional unico por reserva
 - `booking_operation_notes` guarda notas internas del proveedor asociadas a la reserva
@@ -48,8 +49,11 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - los registros de salud heredan visibilidad desde la misma membresia del hogar
 - las reservas heredan permiso de lectura desde el hogar y desde el owner de la organizacion proveedora involucrada
 - el timeline operacional hereda contexto desde `bookings`, `provider_organizations`, household y mascota
-- check-in/check-out y report card pertenecen al provider owner de la organizacion vinculada al booking
+- check-in/check-out deben quedar autorizados por QR temporal single-use generado por owner elegible y consumido por provider elegible; botones manuales son fallback piloto
+- report card pertenece al provider owner de la organizacion vinculada al booking
+- tokens QR guardan hash, estado, expiracion, uso y revocacion; no guardan token plano persistente
 - evidencia operacional requiere metadata en tabla y archivo protegido en storage
+- evidencia operacional documenta actividad; no es prueba principal de presencia en el modelo QR
 - evidencia operacional usa `storage_bucket` y `storage_path`; no usa URL arbitraria externa
 - las notas internas de provider operations no son visibles al owner
 - admin puede leer provider operations para soporte o auditoria operativa

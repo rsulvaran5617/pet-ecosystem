@@ -50,7 +50,7 @@
 - la QA/UAT manual web fue ejecutada por el usuario y queda registrada como `PASS`
 - Android/mobile fue ejecutado manualmente y `AND-01`, `AND-02` y `AND-03` quedan registrados como `PASS`
 - ya no existe bloqueo activo de Android/mobile por entorno
-- V2 provider operations / booking operations: Slice A check-in y Slice B check-out proveedor quedan implementados y validados manualmente en Android sobre Supabase remoto; evidencia, report card e internal notes siguen pendientes como slices separados.
+- V2 provider operations / booking operations: Slice A check-in y Slice B check-out proveedor quedan implementados y validados manualmente en Android sobre Supabase remoto; QR-0 redefine el flujo principal futuro como QR temporal owner -> provider, dejando botones manuales como fallback piloto. Evidencia queda pausada y sera fotos/documentos de actividad, no prueba principal de presencia; report card e internal notes siguen pendientes.
 - quedan pendientes externos/no bloqueantes de evidencia o ampliacion de cobertura fuera del criterio de salida MVP
 - el baseline esta alineado para piloto controlado, no para produccion comercial
 

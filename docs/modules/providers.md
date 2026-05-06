@@ -27,7 +27,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 
 ## Alcance V2 provider operations / booking operations
 - operar reservas confirmadas con timeline operacional
-- registrar check-in y check-out de servicio
+- registrar check-in y check-out de servicio preferiblemente mediante QR temporal mostrado por owner/familia
 - subir evidencia operacional del servicio
 - completar report card no financiero
 - mantener notas internas del equipo proveedor
@@ -67,8 +67,11 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
+- el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
+- el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side
 - internal notes son privadas para provider/admin y no deben mostrarse al owner
 - evidencia visible para owner requiere decision explicita posterior
+- evidencia operacional no es la prueba principal de presencia; sirve como fotos/documentos de actividad despues del flujo QR
 - provider operations no habilita cobro real, payouts, ingresos, refunds ni conciliacion
 - la revision administrativa de documentos pertenece al dominio `admin`
 
@@ -99,13 +102,14 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - `GET /bookings/{id}/operations` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-in` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-out` (V2 provider operations)
+- `POST /bookings/{id}/operations/tokens/consume` (V2 QR provider operations, propuesto)
 - `POST /bookings/{id}/operations/evidence` (V2 provider operations)
 - `PUT /bookings/{id}/operations/report-card` (V2 provider operations)
 - `POST /bookings/{id}/operations/internal-notes` (V2 provider operations)
 
 ## Criterio de done V2 provider operations
 - el proveedor ve un timeline operacional en reservas confirmadas de su organizacion
-- el proveedor puede registrar check-in y check-out segun reglas de estado acordadas
+- el proveedor puede registrar check-in y check-out mediante QR temporal validado server-side; los botones manuales son fallback piloto
 - el proveedor puede asociar evidencia al booking con storage protegido
 - el proveedor puede crear o actualizar un report card operacional
 - el proveedor puede crear notas internas no visibles al owner

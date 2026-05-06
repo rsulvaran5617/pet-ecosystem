@@ -94,6 +94,25 @@ Reglas de evidencia/storage:
 - admin puede leer archivos para soporte o auditoria operativa.
 - no se permite `file_url` arbitrario; se usa `storage_bucket` + `storage_path`.
 - si se necesita evidencia visible al owner, agregar un flag de visibilidad y politicas storage antes de abrir esa lectura.
+- en el modelo QR, evidencia no reemplaza validacion de presencia; check-in/check-out se autorizan por token temporal.
+
+### booking_operation_tokens (V2 QR provider operations, propuesta QR-1)
+
+Objetivo: soportar QR temporal owner -> provider para check-in/check-out.
+
+Reglas esperadas:
+- no permitir mutacion directa por cliente sobre `booking_operation_tokens`.
+- creacion de token solo via RPC `create_booking_operation_token(target_booking_id, target_operation_type)` con `security definer`.
+- consumo de token solo via RPC `consume_booking_operation_token(raw_token)` con `security definer`.
+- revocacion via RPC `revoke_booking_operation_token(token_id)` si entra en alcance.
+- owner puede crear token solo para bookings de hogares donde tiene permiso y solo para booking `confirmed`.
+- provider puede consumir token solo si gestiona la organizacion proveedora del booking.
+- provider externo no puede leer ni consumir tokens de otra organizacion.
+- admin puede leer metadata para auditoria/soporte, pero no debe ver token plano.
+- `token_hash` no debe exponerse a vistas o clientes normales.
+- token debe ser single-use, tener expiracion corta y marcar `used_at/used_by_user_id` al consumirse.
+- crear un nuevo token debe revocar tokens activos previos del mismo booking y `operation_type`.
+- owner no escribe directamente en `booking_operations`; provider tampoco deberia escribir check-in/check-out directo salvo fallback piloto documentado.
 
 ### chat_threads / chat_messages
 Visible solo a participantes del booking:

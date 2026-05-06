@@ -115,6 +115,37 @@ Reglas conceptuales:
 - owner no lee evidencia en esta iteracion conservadora
 - evidencia queda limitada a provider/admin hasta definir visibilidad de cliente
 - la primera iteracion limita la cantidad de evidencias por booking desde API client, pero debe evaluarse si requiere constraint o RPC server-side
+- en el modelo QR, evidencia no es prueba principal de presencia; documenta actividad posterior a check-in/check-out
+
+### booking_operation_tokens
+
+Entidad propuesta para QR-1 provider operations. Permite que el owner/familia muestre un QR temporal para check-in/check-out y que el proveedor lo consuma sin exponer `booking_id` plano ni permitir replay.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null references bookings(id) on delete cascade`
+- `operation_type text not null check (operation_type in ('check_in', 'check_out'))`
+- `token_hash text not null unique`
+- `token_preview text null`
+- `status text not null check (status in ('active', 'used', 'expired', 'revoked'))`
+- `expires_at timestamptz not null`
+- `used_at timestamptz null`
+- `used_by_user_id uuid null references auth.users(id)`
+- `created_by_user_id uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+- `revoked_at timestamptz null`
+- `revoked_by_user_id uuid null references auth.users(id)`
+
+Reglas conceptuales:
+
+- no guardar token plano de forma persistente
+- el token plano se devuelve solo al crear el QR
+- token single-use con expiracion corta
+- revocar tokens activos previos del mismo booking y `operation_type` al crear uno nuevo
+- consumo valida booking `confirmed`, secuencia operacional y ownership provider
+- owner genera tokens solo para reservas de su hogar
+- provider consume tokens solo para reservas de su organizacion
 
 ### booking_operation_report
 

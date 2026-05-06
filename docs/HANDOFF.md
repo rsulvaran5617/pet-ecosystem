@@ -40,7 +40,9 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - La migracion remota de booking operations V2 ya fue aplicada al Supabase remoto.
 - Slice A mobile provider check-in queda implementado y validado manualmente en Android: desde una reserva confirmada del proveedor aparece `Registrar check-in`, se ejecuta correctamente y el timeline pasa a mostrar `Llegada / Check-in registrado` con fecha/hora.
 - Slice B mobile provider check-out queda implementado y validado manualmente en Android: desde una reserva confirmada con check-in registrado aparece `Registrar check-out`, se ejecuta correctamente y el timeline pasa a mostrar `Salida / Check-out registrado`; el estado operacional avanza a `Evidencia requerida`.
-- Fuera de estos slices quedan evidencia, report card e internal notes.
+- Decision QR-0: el flujo principal futuro para check-in/check-out sera QR temporal mostrado por owner/familia y escaneado por provider; los botones manuales quedan fallback piloto.
+- Los cambios locales exploratorios de Slice C evidencia fueron pausados en stash antes del rediseño QR.
+- Fuera de estos slices quedan QR backend/mobile, evidencia, report card e internal notes.
 
 ## Ajustes QA visual de Cuenta provider
 

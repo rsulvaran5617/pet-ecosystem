@@ -59,6 +59,30 @@ Estado de implementacion mobile:
 - Slice B check-out proveedor esta implementado en Android para reservas `confirmed` con check-in previo y validado manualmente: el proveedor puede registrar check-out y el timeline muestra `Salida / Check-out registrado`.
 - Evidencia, report card e internal notes quedan pendientes como slices separados.
 
+## Modelo QR V2 para check-in/check-out
+
+Decision de producto: el flujo principal futuro de check-in y check-out operacional sera por QR temporal mostrado por el owner/familia y escaneado por el proveedor. Los botones manuales existentes quedan como fallback de piloto/soporte interno, no como prueba principal de presencia.
+
+Flujo owner:
+- abre una reserva `confirmed`
+- muestra un QR temporal de `check_in`
+- despues del check-in, puede mostrar un QR temporal de `check_out`
+- no escribe directamente en `booking_operations`
+- solo puede generar tokens para reservas de hogares donde tiene permiso
+
+Flujo provider:
+- abre una reserva `confirmed` de su organizacion
+- escanea el QR de `check_in` o `check_out`
+- el sistema valida token, expiracion, estado, operacion esperada, booking y organizacion proveedora
+- si es valido, registra la operacion y actualiza el timeline
+
+Reglas del QR:
+- el QR contiene un token temporal, no un `booking_id` plano
+- el token persistido se guarda como hash
+- el token es single-use, expira en ventana corta y puede revocarse
+- provider externo no puede consumir tokens de otra organizacion
+- evidencia operacional queda pausada como prueba principal de presencia; mas adelante sera solo fotos/documentos de actividad
+
 ## Entidades
 - `provider_services`
 - `bookings`
@@ -68,6 +92,7 @@ Estado de implementacion mobile:
 - `booking_operation_evidence` (V2 provider operations)
 - `booking_operation_report` (V2 provider operations)
 - `booking_operation_notes` (V2 provider operations)
+- `booking_operation_tokens` (V2 QR provider operations, propuesta QR-1)
 - `payment_methods`
 - `audit_logs`
 
@@ -107,6 +132,9 @@ Estado de implementacion mobile:
 - `GET /bookings/{id}/operations` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-in` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-out` (V2 provider operations)
+- `POST /bookings/{id}/operations/tokens` (V2 QR provider operations, propuesto)
+- `POST /bookings/{id}/operations/tokens/consume` (V2 QR provider operations, propuesto)
+- `POST /bookings/{id}/operations/tokens/{tokenId}/revoke` (V2 QR provider operations, opcional)
 - `GET /bookings/{id}/operations/evidence` (V2 provider operations)
 - `POST /bookings/{id}/operations/evidence` (V2 provider operations)
 - `GET /bookings/{id}/operations/report-card` (V2 provider operations)

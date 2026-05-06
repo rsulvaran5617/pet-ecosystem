@@ -92,6 +92,9 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `GET /bookings/{id}/operations`
 - `POST /bookings/{id}/operations/check-in`
 - `POST /bookings/{id}/operations/check-out`
+- `POST /bookings/{id}/operations/tokens`
+- `POST /bookings/{id}/operations/tokens/consume`
+- `POST /bookings/{id}/operations/tokens/{tokenId}/revoke` (opcional)
 - `GET /bookings/{id}/operations/evidence`
 - `POST /bookings/{id}/operations/evidence`
 - `GET /bookings/{id}/operations/report-card`
@@ -106,11 +109,18 @@ Notas:
 - el booking puede referenciar un `payment_method` guardado, pero no captura pago real
 - `operations` pertenece a V2 provider operations no financiero
 - el timeline operacional devuelve check-in, check-out, evidencia, report card, internal notes y estado operacional derivado
-- check-in/check-out, evidencia, report card e internal notes solo pueden mutarse por el owner proveedor de la organizacion del booking o por flujos server-side equivalentes
+- check-in/check-out deben migrar a flujo principal QR: owner genera token temporal y provider lo consume via RPC/server-side; botones manuales quedan fallback piloto
+- evidencia, report card e internal notes solo pueden mutarse por el owner proveedor de la organizacion del booking o por flujos server-side equivalentes
 - admin puede leer operaciones para soporte o auditoria operativa
 - owner no tiene lectura directa inicial de operaciones
 - internal notes no son visibles para owner
 - evidencia usa `storage_bucket` y `storage_path`, no URL arbitraria
+
+Contratos QR propuestos:
+- `POST /bookings/{id}/operations/tokens` crea un token temporal para `check_in` o `check_out`; solo owner elegible del hogar del booking; devuelve token plano una sola vez y metadata segura.
+- `POST /bookings/{id}/operations/tokens/consume` consume token temporal; solo provider elegible de la organizacion del booking; valida hash, expiracion, status, operacion y booking `confirmed`; registra `booking_operations`.
+- `POST /bookings/{id}/operations/tokens/{tokenId}/revoke` revoca token activo; owner elegible/admin; opcional para QR-1.
+- Ningun contrato debe exponer `token_hash` a UI normal.
 
 ### Messaging / Reviews / Support
 
