@@ -54,6 +54,10 @@ Queda fuera:
 - seguimiento de pedidos de commerce
 - telecare, memberships o beneficios monetarios
 
+Estado de implementacion mobile:
+- Slice A check-in proveedor esta implementado en Android para reservas `confirmed` y validado manualmente: el proveedor puede registrar check-in desde `Ejecucion Operacional` y el timeline muestra `Llegada / Check-in registrado`.
+- Check-out, evidencia, report card e internal notes quedan pendientes como slices separados.
+
 ## Entidades
 - `provider_services`
 - `bookings`

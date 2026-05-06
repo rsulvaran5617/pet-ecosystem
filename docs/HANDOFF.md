@@ -34,6 +34,13 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - polish visual inicial
 - checklist visual del piloto iniciado
 
+## Actualizacion V2 provider operations
+
+- Rama de trabajo: `feature/v2-booking-operations-clean`
+- La migracion remota de booking operations V2 ya fue aplicada al Supabase remoto.
+- Slice A mobile provider check-in queda implementado y validado manualmente en Android: desde una reserva confirmada del proveedor aparece `Registrar check-in`, se ejecuta correctamente y el timeline pasa a mostrar `Llegada / Check-in registrado` con fecha/hora.
+- Fuera de este slice quedan check-out, evidencia, report card e internal notes.
+
 ## Ajustes QA visual de Cuenta provider
 
 Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera de contexto en modo provider:

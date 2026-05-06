@@ -6,14 +6,19 @@ import { getMobileBookingOperationsApiClient } from "../../core/services/supabas
 interface UseBookingOperationsResult {
   timeline: BookingOperationsTimeline | null;
   isLoading: boolean;
+  isSubmittingCheckIn: boolean;
   errorMessage: string | null;
+  actionErrorMessage: string | null;
   refresh: () => Promise<void>;
+  registerCheckIn: () => Promise<void>;
 }
 
 export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = true): UseBookingOperationsResult {
   const [timeline, setTimeline] = useState<BookingOperationsTimeline | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
 
   const refresh = async () => {
     if (!bookingId || !enabled) return;
@@ -33,6 +38,25 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     }
   };
 
+  const registerCheckIn = async () => {
+    if (!bookingId || !enabled || isSubmittingCheckIn) return;
+
+    setIsSubmittingCheckIn(true);
+    setActionErrorMessage(null);
+
+    try {
+      const client = getMobileBookingOperationsApiClient();
+      await client.createCheckIn(bookingId, {});
+      await refresh();
+    } catch {
+      setActionErrorMessage(
+        "No se pudo registrar el check-in. Verifica que la reserva este confirmada y que tu usuario tenga permisos de proveedor."
+      );
+    } finally {
+      setIsSubmittingCheckIn(false);
+    }
+  };
+
   useEffect(() => {
     refresh();
   }, [bookingId, enabled]);
@@ -40,7 +64,10 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
   return {
     timeline,
     isLoading,
+    isSubmittingCheckIn,
     errorMessage,
+    actionErrorMessage,
+    registerCheckIn,
     refresh
   };
 }

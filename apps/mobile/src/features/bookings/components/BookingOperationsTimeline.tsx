@@ -1,5 +1,5 @@
 import type { BookingOperationsTimeline as BookingOperationsTimelineData, Uuid } from "@pet/types";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import { useBookingOperations } from "../hooks/useBookingOperations";
 import {
@@ -70,8 +70,36 @@ const errorTextStyle = {
   fontWeight: "600" as const
 };
 
+const actionButtonStyle = {
+  alignItems: "center" as const,
+  backgroundColor: "#0f766e",
+  borderRadius: 8,
+  marginTop: 12,
+  paddingHorizontal: 14,
+  paddingVertical: 10
+};
+
+const actionButtonDisabledStyle = {
+  backgroundColor: "#99f6e4"
+};
+
+const actionButtonTextStyle = {
+  color: "#fffdf8",
+  fontSize: 13,
+  fontWeight: "700" as const
+};
+
+const actionErrorStyle = {
+  color: "#831843",
+  fontSize: 12,
+  fontWeight: "600" as const,
+  lineHeight: 18,
+  marginTop: 8
+};
+
 export function BookingOperationsTimeline({ bookingId, enabled = true }: { bookingId: Uuid; enabled?: boolean }) {
-  const { timeline, isLoading, errorMessage } = useBookingOperations(bookingId, enabled);
+  const { timeline, isLoading, isSubmittingCheckIn, errorMessage, actionErrorMessage, registerCheckIn } =
+    useBookingOperations(bookingId, enabled);
 
   if (!enabled) {
     return null;
@@ -159,6 +187,19 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
         {!timeline.checkIn && (
           <View style={{ marginTop: 12 }}>
             <Text style={{ fontSize: 13, color: "#64748b", fontStyle: "italic" }}>Esperando check-in del proveedor...</Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isSubmittingCheckIn}
+              onPress={() => {
+                void registerCheckIn();
+              }}
+              style={{ ...actionButtonStyle, ...(isSubmittingCheckIn ? actionButtonDisabledStyle : {}) }}
+            >
+              <Text style={actionButtonTextStyle}>
+                {isSubmittingCheckIn ? "Registrando check-in..." : "Registrar check-in"}
+              </Text>
+            </Pressable>
+            {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}
           </View>
         )}
       </View>
