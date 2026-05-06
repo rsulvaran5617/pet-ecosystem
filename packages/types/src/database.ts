@@ -356,6 +356,180 @@ export interface Database {
         };
         Relationships: [];
       };
+      booking_operations: {
+        Row: {
+          id: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          created_by_user_id: string;
+          location_latitude: number | null;
+          location_longitude: number | null;
+          location_label: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          created_by_user_id: string;
+          location_latitude?: number | null;
+          location_longitude?: number | null;
+          location_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          operation_type?: "check_in" | "check_out";
+          created_by_user_id?: string;
+          location_latitude?: number | null;
+          location_longitude?: number | null;
+          location_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_evidence: {
+        Row: {
+          id: string;
+          booking_id: string;
+          storage_bucket: string;
+          storage_path: string;
+          file_name: string;
+          file_size_bytes: number;
+          mime_type: string | null;
+          uploaded_by_user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          storage_bucket?: string;
+          storage_path: string;
+          file_name: string;
+          file_size_bytes: number;
+          mime_type?: string | null;
+          uploaded_by_user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          storage_bucket?: string;
+          storage_path?: string;
+          file_name?: string;
+          file_size_bytes?: number;
+          mime_type?: string | null;
+          uploaded_by_user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_report: {
+        Row: {
+          id: string;
+          booking_id: string;
+          report_text: string;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          report_text: string;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          report_text?: string;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_notes: {
+        Row: {
+          id: string;
+          booking_id: string;
+          note_text: string;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          note_text: string;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          note_text?: string;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      booking_operation_tokens: {
+        Row: {
+          id: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          token_hash: string;
+          token_preview: string | null;
+          status: "active" | "used" | "expired" | "revoked";
+          expires_at: string;
+          used_at: string | null;
+          used_by_user_id: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          revoked_at: string | null;
+          revoked_by_user_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          token_hash: string;
+          token_preview?: string | null;
+          status?: "active" | "used" | "expired" | "revoked";
+          expires_at: string;
+          used_at?: string | null;
+          used_by_user_id?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          revoked_at?: string | null;
+          revoked_by_user_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          booking_id?: string;
+          operation_type?: "check_in" | "check_out";
+          token_hash?: string;
+          token_preview?: string | null;
+          status?: "active" | "used" | "expired" | "revoked";
+          expires_at?: string;
+          used_at?: string | null;
+          used_by_user_id?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          revoked_at?: string | null;
+          revoked_by_user_id?: string | null;
+        };
+        Relationships: [];
+      };
       chat_threads: {
         Row: {
           id: string;
@@ -1555,6 +1729,43 @@ export interface Database {
           target_booking_id: string;
         };
         Returns: Database["public"]["Tables"]["bookings"]["Row"];
+      };
+      create_booking_operation_token: {
+        Args: {
+          target_booking_id: string;
+          target_operation_type: "check_in" | "check_out";
+        };
+        Returns: Array<{
+          token: string;
+          token_preview: string | null;
+          expires_at: string;
+          operation_type: "check_in" | "check_out";
+          booking_id: string;
+        }>;
+      };
+      consume_booking_operation_token: {
+        Args: {
+          raw_token: string;
+        };
+        Returns: Array<{
+          success: boolean;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          operation_id: string;
+          used_at: string;
+        }>;
+      };
+      revoke_booking_operation_token: {
+        Args: {
+          target_token_id: string;
+        };
+        Returns: Array<{
+          token_id: string;
+          booking_id: string;
+          operation_type: "check_in" | "check_out";
+          status: "active" | "used" | "expired" | "revoked";
+          revoked_at: string;
+        }>;
       };
       can_view_chat_thread: {
         Args: {

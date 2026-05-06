@@ -66,6 +66,54 @@ Marcar un booking `confirmed` como `completed` exige ownership del proveedor inv
 Adjuntar un `payment_method` exige permiso `pay` o `admin`.
 No se habilita insercion ni edicion directa por tabla para usuarios autenticados.
 
+### booking_operations / booking_operation_evidence / booking_operation_report / booking_operation_notes (V2 provider operations)
+Definidas en `supabase/migrations/20260504140000_booking_operations_v2.sql` para V2 no financiero.
+
+Visibilidad esperada:
+- owner: no tiene lectura directa en la primera migracion conservadora; lectura owner de timeline/evidencia/report card queda diferida hasta agregar una decision explicita de visibilidad.
+- provider: puede leer operaciones de bookings de su propia organizacion.
+- provider: puede crear check-in/check-out, evidencia, report card e internal notes solo para bookings `confirmed` de su propia organizacion.
+- admin: puede leer operaciones para soporte, auditoria operativa y revision de incidentes; no se habilitan mutaciones admin directas en esta migracion.
+- provider externo: no puede leer ni mutar operaciones de bookings de otra organizacion.
+- anon/public: sin acceso.
+
+Reglas negativas:
+- owner no puede ver `booking_operation_notes`.
+- owner no puede ver `booking_operation_evidence` ni `booking_operation_report` hasta que exista flag o decision de visibilidad.
+- owner no puede subir ni editar evidencia/report card provider-side.
+- provider no puede ver datos sensibles del household fuera del contexto ya permitido por booking.
+- provider no puede crear operaciones para reservas canceladas o de otra organizacion.
+- ninguna tabla debe aceptar mutaciones anonimas.
+
+Reglas de evidencia/storage:
+- la metadata de evidencia vive en `booking_operation_evidence`.
+- el archivo vive en bucket privado `booking-operation-evidence`.
+- el path debe estar scoped por `booking_id`.
+- upload debe validar ownership provider-side antes de guardar metadata.
+- lectura owner de archivos queda diferida; por ahora evidence queda provider/admin.
+- admin puede leer archivos para soporte o auditoria operativa.
+- no se permite `file_url` arbitrario; se usa `storage_bucket` + `storage_path`.
+- si se necesita evidencia visible al owner, agregar un flag de visibilidad y politicas storage antes de abrir esa lectura.
+- en el modelo QR, evidencia no reemplaza validacion de presencia; check-in/check-out se autorizan por token temporal.
+
+### booking_operation_tokens (V2 QR provider operations, propuesta QR-1)
+
+Objetivo: soportar QR temporal owner -> provider para check-in/check-out.
+
+Reglas esperadas:
+- no permitir mutacion directa por cliente sobre `booking_operation_tokens`.
+- creacion de token solo via RPC `create_booking_operation_token(target_booking_id, target_operation_type)` con `security definer`.
+- consumo de token solo via RPC `consume_booking_operation_token(raw_token)` con `security definer`.
+- revocacion via RPC `revoke_booking_operation_token(token_id)` si entra en alcance.
+- owner puede crear token solo para bookings de hogares donde tiene permiso y solo para booking `confirmed`.
+- provider puede consumir token solo si gestiona la organizacion proveedora del booking.
+- provider externo no puede leer ni consumir tokens de otra organizacion.
+- admin puede leer metadata para auditoria/soporte, pero no debe ver token plano.
+- `token_hash` no debe exponerse a vistas o clientes normales.
+- token debe ser single-use, tener expiracion corta y marcar `used_at/used_by_user_id` al consumirse.
+- crear un nuevo token debe revocar tokens activos previos del mismo booking y `operation_type`.
+- owner no escribe directamente en `booking_operations`; provider tampoco deberia escribir check-in/check-out directo salvo fallback piloto documentado.
+
 ### chat_threads / chat_messages
 Visible solo a participantes del booking:
 - el usuario que realizo la reserva

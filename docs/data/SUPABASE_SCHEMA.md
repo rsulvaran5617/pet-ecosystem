@@ -65,3 +65,124 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 
 ## Regla de cambio
 No crear tablas fuera del modelo oficial sin actualizar esta documentacion.
+
+## Tablas V2 propuestas pendientes de migracion
+
+### booking_operations
+
+Entidad propuesta para V2 provider operations. La migracion relacionada es `supabase/migrations/20260504140000_booking_operations_v2.sql`.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null references bookings(id) on delete cascade`
+- `operation_type text not null check (operation_type in ('check_in', 'check_out'))`
+- `created_by_user_id uuid not null references auth.users(id) on delete cascade`
+- `location_latitude numeric(9,6) null`
+- `location_longitude numeric(9,6) null`
+- `location_label text null`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- representa eventos de ejecucion operacional de una reserva
+- check-in y check-out pertenecen al provider owner de la organizacion del booking
+- se permite un unico check-in y un unico check-out por booking mediante indices unicos parciales
+- las mutaciones directas quedan limitadas a provider owner sobre bookings `confirmed`
+- no cambia `bookings.status` por si sola
+
+### booking_operation_evidence
+
+Entidad propuesta para metadata de evidencia operacional.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null references bookings(id) on delete cascade`
+- `storage_bucket text not null default 'booking-operation-evidence'`
+- `storage_path text not null`
+- `file_name text not null`
+- `file_size_bytes integer not null check (file_size_bytes > 0 and file_size_bytes <= 52428800)`
+- `mime_type text null`
+- `uploaded_by_user_id uuid not null references auth.users(id) on delete cascade`
+- `created_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- guarda metadata relacional de evidencia; el archivo vive en el bucket privado `booking-operation-evidence`
+- `storage_path` debe iniciar con el `booking_id` para permitir scoping por RLS/storage
+- owner no lee evidencia en esta iteracion conservadora
+- evidencia queda limitada a provider/admin hasta definir visibilidad de cliente
+- la primera iteracion limita la cantidad de evidencias por booking desde API client, pero debe evaluarse si requiere constraint o RPC server-side
+- en el modelo QR, evidencia no es prueba principal de presencia; documenta actividad posterior a check-in/check-out
+
+### booking_operation_tokens
+
+Entidad propuesta para QR-1 provider operations. Permite que el owner/familia muestre un QR temporal para check-in/check-out y que el proveedor lo consuma sin exponer `booking_id` plano ni permitir replay.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null references bookings(id) on delete cascade`
+- `operation_type text not null check (operation_type in ('check_in', 'check_out'))`
+- `token_hash text not null unique`
+- `token_preview text null`
+- `status text not null check (status in ('active', 'used', 'expired', 'revoked'))`
+- `expires_at timestamptz not null`
+- `used_at timestamptz null`
+- `used_by_user_id uuid null references auth.users(id)`
+- `created_by_user_id uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+- `revoked_at timestamptz null`
+- `revoked_by_user_id uuid null references auth.users(id)`
+
+Reglas conceptuales:
+
+- no guardar token plano de forma persistente
+- el token plano se devuelve solo al crear el QR
+- token single-use con expiracion corta
+- revocar tokens activos previos del mismo booking y `operation_type` al crear uno nuevo
+- consumo valida booking `confirmed`, secuencia operacional y ownership provider
+- owner genera tokens solo para reservas de su hogar
+- provider consume tokens solo para reservas de su organizacion
+
+### booking_operation_report
+
+Entidad propuesta para report card operacional.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null unique references bookings(id) on delete cascade`
+- `report_text text check (char_length(report_text) <= 500)`
+- `created_by_user_id uuid not null references auth.users(id) on delete cascade`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- existe como maximo un report card por booking
+- lo crea o actualiza el provider owner de la organizacion del booking
+- admin puede leerlo para soporte o auditoria operativa
+- en esta migracion conservadora owner no lee report card hasta que exista una decision explicita de visibilidad
+
+### booking_operation_notes
+
+Entidad propuesta para notas internas operativas.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `booking_id uuid not null references bookings(id) on delete cascade`
+- `note_text text not null check (char_length(note_text) > 0 and char_length(note_text) <= 1000)`
+- `created_by_user_id uuid not null references auth.users(id) on delete cascade`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- las notas son internas para provider/admin
+- owner no debe verlas
+- no reemplazan chat ni soporte
+- deben quedar protegidas por RLS antes de aplicar migracion.

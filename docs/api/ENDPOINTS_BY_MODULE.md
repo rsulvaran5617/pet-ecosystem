@@ -75,6 +75,20 @@
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
 - `GET /provider/bookings`
+- `GET /bookings/{id}/operations`
+- `POST /bookings/{id}/operations/check-in`
+- `POST /bookings/{id}/operations/check-out`
+- `POST /bookings/{id}/operations/tokens` (QR create token, propuesto)
+- `POST /bookings/{id}/operations/tokens/consume` (QR consume token, propuesto)
+- `POST /bookings/{id}/operations/tokens/{tokenId}/revoke` (QR revoke token, opcional)
+- `GET /bookings/{id}/operations/evidence`
+- `POST /bookings/{id}/operations/evidence`
+- `GET /bookings/{id}/operations/report-card`
+- `PUT /bookings/{id}/operations/report-card`
+- `GET /bookings/{id}/operations/internal-notes`
+- `POST /bookings/{id}/operations/internal-notes`
+
+Nota: `operations` pertenece a V2 provider operations no financiero; no habilita pagos reales ni payouts. El flujo principal futuro para check-in/check-out sera QR temporal owner -> provider; endpoints manuales quedan como fallback piloto mientras se implementa QR.
 
 ## Messaging
 

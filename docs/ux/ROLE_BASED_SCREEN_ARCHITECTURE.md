@@ -153,6 +153,7 @@ La experiencia debe ser densa, escaneable y orientada a accion.
 - `Pets` habilita `Health`, `Documents`, `Reminders` y `Bookings`.
 - `Marketplace` entrega seleccion a `BookingPreview`.
 - `BookingDetail` entrega contexto a `ChatThread`, `ReviewBooking` y `SupportCaseCreate`.
+- `BookingDetail` tambien sera el punto owner para mostrar QR temporal de check-in/check-out en V2 provider operations.
 - `AccountSettings` gestiona perfil, preferencias, direcciones, metodos guardados y rol activo.
 
 ### Proveedor
@@ -227,6 +228,7 @@ La experiencia debe ser densa, escaneable y orientada a accion.
 - `ProviderBookingsList` depende de bookings asociados a la organizacion.
 - `ProviderCustomerChat` depende de booking existente.
 - `ProviderReviews` depende de bookings `completed` con review.
+- `ProviderBookingDetail` sera el punto provider para escanear QR temporal de check-in/check-out; botones manuales quedan fallback piloto.
 
 ### Admin
 
@@ -538,8 +540,18 @@ Admin sigue siendo web-first para MVP. No se recomienda abrir admin mobile en es
 2. Ver pendientes y confirmadas.
 3. Abrir detalle.
 4. Si `pending_approval`, aprobar o rechazar.
-5. Si `confirmed`, marcar como completada cuando corresponda.
-6. Usar chat vinculado si hay conversacion.
+5. Si `confirmed`, ejecutar check-in/check-out escaneando QR temporal mostrado por owner/familia.
+6. Usar botones manuales solo como fallback piloto/soporte si QR no esta disponible.
+7. Marcar como completada cuando corresponda.
+8. Usar chat vinculado si hay conversacion.
+
+### Owner muestra QR operacional
+
+1. Reservas.
+2. Abrir detalle de booking `confirmed`.
+3. Mostrar QR temporal de check-in.
+4. Despues del check-in, mostrar QR temporal de check-out.
+5. No registrar operaciones directamente; el provider consume el token mediante scanner.
 
 ### Admin aprueba provider
 

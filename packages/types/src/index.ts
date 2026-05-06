@@ -7,6 +7,7 @@ export * from "./reminders";
 export * from "./marketplace";
 export * from "./providers";
 export * from "./bookings";
+export * from "./operations";
 export * from "./messaging";
 export * from "./reviews";
 export * from "./support";

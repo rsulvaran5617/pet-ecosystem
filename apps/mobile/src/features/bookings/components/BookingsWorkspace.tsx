@@ -6,6 +6,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
 import { StatusChip } from "../../core/components/StatusChip";
+import { BookingOperationsTimeline } from "./BookingOperationsTimeline";
 import { useBookingsWorkspace } from "../hooks/useBookingsWorkspace";
 
 const inputStyle = {
@@ -433,6 +434,12 @@ export function BookingsWorkspace({
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
                 </View>
               ))}
+              <BookingOperationsTimeline
+                bookingId={selectedBookingDetail.booking.id}
+                bookingStatus={selectedBookingDetail.booking.status}
+                context="owner"
+                enabled={selectedBookingDetail.booking.status === "confirmed"}
+              />
               {activePanel !== "detalle" ? (
                 <View style={inputStyle}>
                   <Text style={{ fontWeight: "600", color: "#1c1917" }}>
