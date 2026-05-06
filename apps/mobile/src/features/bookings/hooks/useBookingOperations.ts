@@ -1,4 +1,4 @@
-import type { BookingOperationsTimeline, Uuid } from "@pet/types";
+import type { BookingOperationTokenResult, BookingOperationType, BookingOperationsTimeline, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getMobileBookingOperationsApiClient } from "../../core/services/supabase-mobile";
@@ -8,11 +8,16 @@ interface UseBookingOperationsResult {
   isLoading: boolean;
   isSubmittingCheckIn: boolean;
   isSubmittingCheckOut: boolean;
+  isGeneratingOperationQr: boolean;
   errorMessage: string | null;
   actionErrorMessage: string | null;
+  qrErrorMessage: string | null;
+  operationQrToken: BookingOperationTokenResult | null;
   refresh: () => Promise<void>;
   registerCheckIn: () => Promise<void>;
   registerCheckOut: () => Promise<void>;
+  generateOperationQrToken: (operationType: BookingOperationType) => Promise<void>;
+  clearOperationQrToken: () => void;
 }
 
 export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = true): UseBookingOperationsResult {
@@ -20,8 +25,11 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
   const [isSubmittingCheckOut, setIsSubmittingCheckOut] = useState(false);
+  const [isGeneratingOperationQr, setIsGeneratingOperationQr] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
+  const [qrErrorMessage, setQrErrorMessage] = useState<string | null>(null);
+  const [operationQrToken, setOperationQrToken] = useState<BookingOperationTokenResult | null>(null);
 
   const refresh = async () => {
     if (!bookingId || !enabled) return;
@@ -79,19 +87,52 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     }
   };
 
+  const generateOperationQrToken = async (operationType: BookingOperationType) => {
+    if (!bookingId || !enabled || isGeneratingOperationQr) return;
+
+    setIsGeneratingOperationQr(true);
+    setQrErrorMessage(null);
+
+    try {
+      const client = getMobileBookingOperationsApiClient();
+      const token = await client.createBookingOperationToken(bookingId, operationType);
+      setOperationQrToken(token);
+    } catch {
+      setQrErrorMessage(
+        "No se pudo generar el QR. Verifica que la reserva este confirmada y que tengas permisos sobre este hogar."
+      );
+    } finally {
+      setIsGeneratingOperationQr(false);
+    }
+  };
+
+  const clearOperationQrToken = () => {
+    setOperationQrToken(null);
+    setQrErrorMessage(null);
+  };
+
   useEffect(() => {
     refresh();
   }, [bookingId, enabled]);
+
+  useEffect(() => {
+    clearOperationQrToken();
+  }, [bookingId]);
 
   return {
     timeline,
     isLoading,
     isSubmittingCheckIn,
     isSubmittingCheckOut,
+    isGeneratingOperationQr,
     errorMessage,
     actionErrorMessage,
+    qrErrorMessage,
+    operationQrToken,
     registerCheckIn,
     registerCheckOut,
+    generateOperationQrToken,
+    clearOperationQrToken,
     refresh
   };
 }

@@ -94,6 +94,28 @@ export interface BookingOperationsTimeline {
   notes: BookingOperationNote[];
 }
 
+export type BookingOperationTokenStatus = "active" | "used" | "expired" | "revoked";
+
+/**
+ * Plain QR token returned once by the create token RPC.
+ * The persistent database row stores only token_hash.
+ */
+export interface BookingOperationTokenResult {
+  token: string;
+  tokenPreview: string | null;
+  expiresAt: string;
+  operationType: BookingOperationType;
+  bookingId: Uuid;
+}
+
+export interface RevokeBookingOperationTokenResult {
+  tokenId: Uuid;
+  bookingId: Uuid;
+  operationType: BookingOperationType;
+  status: BookingOperationTokenStatus;
+  revokedAt: string;
+}
+
 // ============================================================================
 // Input types for API operations
 // ============================================================================

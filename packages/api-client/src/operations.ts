@@ -4,10 +4,13 @@ import type {
   BookingCheckOut,
   BookingEvidence,
   BookingOperationNote,
+  BookingOperationTokenResult,
+  BookingOperationType,
   BookingOperationsTimeline,
   BookingReportCard,
   CreateCheckInInput,
   Database,
+  RevokeBookingOperationTokenResult,
   UpsertReportCardInput,
   UploadEvidenceInput,
   Uuid
@@ -23,6 +26,8 @@ type BookingOperationNoteRow = Database["public"]["Tables"]["booking_operation_n
 export interface BookingOperationsApiClient {
   createCheckIn(bookingId: Uuid, input: CreateCheckInInput): Promise<BookingCheckIn>;
   createCheckOut(bookingId: Uuid): Promise<BookingCheckOut>;
+  createBookingOperationToken(bookingId: Uuid, operationType: BookingOperationType): Promise<BookingOperationTokenResult>;
+  revokeBookingOperationToken(tokenId: Uuid): Promise<RevokeBookingOperationTokenResult>;
   uploadEvidence(bookingId: Uuid, input: UploadEvidenceInput): Promise<BookingEvidence>;
   upsertReportCard(bookingId: Uuid, input: UpsertReportCardInput): Promise<BookingReportCard>;
   addOperationNote(bookingId: Uuid, input: AddOperationNoteInput): Promise<BookingOperationNote>;
@@ -103,6 +108,30 @@ function mapOperationNote(row: BookingOperationNoteRow): BookingOperationNote {
   };
 }
 
+function mapOperationTokenResult(
+  row: Database["public"]["Functions"]["create_booking_operation_token"]["Returns"][number]
+): BookingOperationTokenResult {
+  return {
+    token: row.token,
+    tokenPreview: row.token_preview,
+    expiresAt: row.expires_at,
+    operationType: row.operation_type,
+    bookingId: row.booking_id
+  };
+}
+
+function mapRevokeOperationTokenResult(
+  row: Database["public"]["Functions"]["revoke_booking_operation_token"]["Returns"][number]
+): RevokeBookingOperationTokenResult {
+  return {
+    tokenId: row.token_id,
+    bookingId: row.booking_id,
+    operationType: row.operation_type,
+    status: row.status,
+    revokedAt: row.revoked_at
+  };
+}
+
 async function getCurrentUser(supabase: OperationsSupabaseClient) {
   const { data, error } = await supabase.auth.getUser();
 
@@ -160,6 +189,43 @@ export function createBookingOperationsApiClient(
       }
 
       return mapCheckOut(data as BookingOperationRow);
+    },
+
+    async createBookingOperationToken(bookingId, operationType) {
+      const { data, error } = await supabase.rpc("create_booking_operation_token", {
+        target_booking_id: bookingId,
+        target_operation_type: operationType
+      });
+
+      if (error) {
+        fail(error, "Unable to create booking operation QR token.");
+      }
+
+      const row = data?.[0];
+
+      if (!row) {
+        throw new Error("Booking operation QR token response was empty.");
+      }
+
+      return mapOperationTokenResult(row);
+    },
+
+    async revokeBookingOperationToken(tokenId) {
+      const { data, error } = await supabase.rpc("revoke_booking_operation_token", {
+        target_token_id: tokenId
+      });
+
+      if (error) {
+        fail(error, "Unable to revoke booking operation QR token.");
+      }
+
+      const row = data?.[0];
+
+      if (!row) {
+        throw new Error("Booking operation QR token revoke response was empty.");
+      }
+
+      return mapRevokeOperationTokenResult(row);
     },
 
     async uploadEvidence(bookingId, input) {

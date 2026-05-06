@@ -764,7 +764,12 @@ export function ProvidersWorkspace({
                           </View>
                         ))}
                       </View>
-                      <BookingOperationsTimeline bookingId={selectedProviderBookingDetail.booking.id} enabled={selectedProviderBookingDetail.booking.status === "confirmed"} />
+                      <BookingOperationsTimeline
+                        bookingId={selectedProviderBookingDetail.booking.id}
+                        bookingStatus={selectedProviderBookingDetail.booking.status}
+                        context="provider"
+                        enabled={selectedProviderBookingDetail.booking.status === "confirmed"}
+                      />
                     </View>
                   ) : null}
                 </>

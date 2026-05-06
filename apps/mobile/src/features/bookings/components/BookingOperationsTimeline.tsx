@@ -1,5 +1,6 @@
-import type { BookingOperationsTimeline as BookingOperationsTimelineData, Uuid } from "@pet/types";
+import type { BookingOperationType, BookingOperationsTimeline as BookingOperationsTimelineData, BookingStatus, Uuid } from "@pet/types";
 import { Pressable, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 import { useBookingOperations } from "../hooks/useBookingOperations";
 import {
@@ -97,16 +98,52 @@ const actionErrorStyle = {
   marginTop: 8
 };
 
-export function BookingOperationsTimeline({ bookingId, enabled = true }: { bookingId: Uuid; enabled?: boolean }) {
+const qrPanelStyle = {
+  alignItems: "center" as const,
+  backgroundColor: "#ffffff",
+  borderColor: "rgba(15,118,110,0.18)",
+  borderRadius: 8,
+  borderWidth: 1,
+  gap: 10,
+  marginTop: 12,
+  padding: 14
+};
+
+function formatExpiryLabel(value: string) {
+  return new Intl.DateTimeFormat("es-PA", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function getQrActionLabel(operationType: BookingOperationType) {
+  return operationType === "check_in" ? "Mostrar QR de check-in" : "Mostrar QR de check-out";
+}
+
+export function BookingOperationsTimeline({
+  bookingId,
+  bookingStatus,
+  context = "provider",
+  enabled = true
+}: {
+  bookingId: Uuid;
+  bookingStatus?: BookingStatus;
+  context?: "owner" | "provider";
+  enabled?: boolean;
+}) {
   const {
     timeline,
     isLoading,
     isSubmittingCheckIn,
     isSubmittingCheckOut,
+    isGeneratingOperationQr,
     errorMessage,
     actionErrorMessage,
+    qrErrorMessage,
+    operationQrToken,
     registerCheckIn,
-    registerCheckOut
+    registerCheckOut,
+    generateOperationQrToken
   } = useBookingOperations(bookingId, enabled);
 
   if (!enabled) {
@@ -166,6 +203,20 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
     evidence_pending: "Evidencia requerida",
     documented: "Documentado"
   };
+  const isOwnerContext = context === "owner";
+  const isProviderContext = context === "provider";
+  const isConfirmedBooking = bookingStatus === "confirmed";
+  const ownerCanGenerateCheckInQr = isOwnerContext && isConfirmedBooking && !timeline.checkIn;
+  const ownerCanGenerateCheckOutQr = isOwnerContext && isConfirmedBooking && Boolean(timeline.checkIn) && !timeline.checkOut;
+  const ownerQrOperationType: BookingOperationType | null = ownerCanGenerateCheckInQr
+    ? "check_in"
+    : ownerCanGenerateCheckOutQr
+      ? "check_out"
+      : null;
+  const ownerQrHelperText =
+    ownerQrOperationType === "check_in"
+      ? "Muestra este codigo al proveedor para registrar el inicio del servicio."
+      : "Muestra este codigo al proveedor para registrar el cierre del servicio.";
 
   return (
     <View style={containerStyle}>
@@ -192,7 +243,7 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
         <BookingReportCardComponent reportCard={timeline.reportCard} />
         <BookingOperationNotesCard notes={timeline.notes} />
 
-        {!timeline.checkIn && (
+        {!timeline.checkIn && isProviderContext && (
           <View style={{ marginTop: 12 }}>
             <Text style={{ fontSize: 13, color: "#64748b", fontStyle: "italic" }}>Esperando check-in del proveedor...</Text>
             <Pressable
@@ -211,7 +262,7 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
           </View>
         )}
 
-        {timeline.checkIn && !timeline.checkOut && (
+        {timeline.checkIn && !timeline.checkOut && isProviderContext && (
           <View style={{ marginTop: 12 }}>
             <Pressable
               accessibilityRole="button"
@@ -228,6 +279,48 @@ export function BookingOperationsTimeline({ bookingId, enabled = true }: { booki
             {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}
           </View>
         )}
+
+        {ownerQrOperationType ? (
+          <View style={{ marginTop: 12 }}>
+            {!timeline.checkIn ? (
+              <Text style={{ fontSize: 13, color: "#64748b", fontStyle: "italic" }}>Esperando check-in por QR...</Text>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              disabled={isGeneratingOperationQr}
+              onPress={() => {
+                void generateOperationQrToken(ownerQrOperationType);
+              }}
+              style={{ ...actionButtonStyle, ...(isGeneratingOperationQr ? actionButtonDisabledStyle : {}) }}
+            >
+              <Text style={actionButtonTextStyle}>
+                {isGeneratingOperationQr ? "Generando QR..." : getQrActionLabel(ownerQrOperationType)}
+              </Text>
+            </Pressable>
+            {qrErrorMessage ? <Text style={actionErrorStyle}>{qrErrorMessage}</Text> : null}
+          </View>
+        ) : null}
+
+        {isOwnerContext && timeline.checkIn && timeline.checkOut ? (
+          <Text style={{ color: "#0f766e", fontSize: 13, fontWeight: "700", marginTop: 12 }}>
+            Operacion completada para check-in y check-out.
+          </Text>
+        ) : null}
+
+        {operationQrToken ? (
+          <View style={qrPanelStyle}>
+            <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "800", textTransform: "uppercase" }}>
+              Codigo temporal
+            </Text>
+            <QRCode backgroundColor="#ffffff" color="#1c1917" size={180} value={operationQrToken.token} />
+            <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "700" }}>
+              Expira: {formatExpiryLabel(operationQrToken.expiresAt)}
+            </Text>
+            <Text style={{ color: "#64748b", fontSize: 12, lineHeight: 17, textAlign: "center" }}>
+              {ownerQrHelperText} No compartas este codigo fuera de esta reserva.
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );
