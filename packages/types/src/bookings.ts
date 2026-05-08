@@ -2,6 +2,7 @@ import type { IsoDateString, TimestampedEntity, Uuid } from "./base";
 
 export type BookingMode = "instant" | "approval_required";
 export type BookingStatus = "pending_approval" | "confirmed" | "completed" | "cancelled";
+export type BookingSlotStatus = "available" | "low_capacity" | "full" | "unavailable" | "expired";
 
 export interface BookingPaymentMethodSummary {
   id: Uuid;
@@ -68,6 +69,9 @@ export interface BookingSummary extends TimestampedEntity {
   scheduledEndAt: IsoDateString;
   cancellationDeadlineAt: IsoDateString;
   cancellationWindowHours: number;
+  availabilityRuleId: Uuid | null;
+  slotStartAt: IsoDateString | null;
+  slotEndAt: IsoDateString | null;
   cancelledAt: IsoDateString | null;
   cancelReason: string | null;
   householdName: string;
@@ -95,6 +99,35 @@ export interface CreateBookingPreviewInput {
 }
 
 export type CreateBookingInput = CreateBookingPreviewInput;
+
+export interface BookingSlot {
+  availabilityRuleId: Uuid;
+  organizationId: Uuid;
+  serviceId: Uuid;
+  slotDate: string;
+  slotStartAt: IsoDateString;
+  slotEndAt: IsoDateString;
+  capacityTotal: number;
+  reservedCount: number;
+  availableCount: number;
+  status: BookingSlotStatus;
+}
+
+export interface ListBookingSlotsInput {
+  serviceId: Uuid;
+  fromDate: string;
+  toDate: string;
+}
+
+export interface CreateBookingFromSlotInput {
+  householdId: Uuid;
+  petId: Uuid;
+  serviceId: Uuid;
+  availabilityRuleId: Uuid;
+  slotStartAt: IsoDateString;
+  slotEndAt: IsoDateString;
+  paymentMethodId?: Uuid | null;
+}
 
 export interface CancelBookingInput {
   reason?: string | null;

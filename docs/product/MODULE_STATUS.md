@@ -30,6 +30,7 @@
 - `ux_hardening_non_blocking` -> `closed_with_notes`
 - `visual_polish_manual_qa` -> `closed_with_notes`
 - `pilot_operations_hardening` -> `closed_with_notes`
+- `booking_capacity_v2` -> `partial`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
 - `pharmacy` -> `not_started`
@@ -51,6 +52,7 @@
 - Android/mobile fue ejecutado manualmente y `AND-01`, `AND-02` y `AND-03` quedan registrados como `PASS`
 - ya no existe bloqueo activo de Android/mobile por entorno
 - V2 provider operations / booking operations: Slice A check-in, Slice B check-out, QR-2 owner QR display y QR-3 provider scanner quedan implementados y validados manualmente en Android sobre Supabase remoto. El flujo principal de check-in/check-out queda como QR temporal owner -> provider, dejando botones manuales como fallback piloto. Evidencia queda pausada y sera fotos/documentos de actividad, no prueba principal de presencia; report card e internal notes siguen pendientes.
+- V2 booking capacity: CAP-0 documental abre el diseno de slots con capacidad. Modelo recomendado: reglas recurrentes por servicio, excepciones por fecha, slots calculados por RPC y creacion transaccional de booking desde slot para evitar sobreventa. No hay migracion ni implementacion backend aplicada todavia.
 - quedan pendientes externos/no bloqueantes de evidencia o ampliacion de cobertura fuera del criterio de salida MVP
 - el baseline esta alineado para piloto controlado, no para produccion comercial
 

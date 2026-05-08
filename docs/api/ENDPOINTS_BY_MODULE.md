@@ -74,6 +74,8 @@
 - `POST /bookings/{id}/reject`
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
+- `GET /bookings/services/{serviceId}/slots` (V2 booking capacity, propuesto)
+- `POST /bookings/from-slot` (V2 booking capacity, propuesto)
 - `GET /provider/bookings`
 - `GET /bookings/{id}/operations`
 - `POST /bookings/{id}/operations/check-in`
@@ -89,6 +91,8 @@
 - `POST /bookings/{id}/operations/internal-notes`
 
 Nota: `operations` pertenece a V2 provider operations no financiero; no habilita pagos reales ni payouts. El flujo principal futuro para check-in/check-out sera QR temporal owner -> provider; endpoints manuales quedan como fallback piloto mientras se implementa QR.
+
+Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, pero la reserva final debe entrar por RPC transaccional `create_booking_from_slot`; la UI no es fuente de verdad para cupos.
 
 ## Messaging
 
@@ -118,6 +122,10 @@ Nota: `operations` pertenece a V2 provider operations no financiero; no habilita
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`
 - `PATCH /provider/availability/{id}`
+- `POST /provider/organizations/{id}/availability-rules` (V2 booking capacity, propuesto)
+- `PATCH /provider/availability-rules/{ruleId}` (V2 booking capacity, propuesto)
+- `POST /provider/availability-rules/{ruleId}/exceptions` (V2 booking capacity, propuesto)
+- `PATCH /provider/availability-exceptions/{exceptionId}` (V2 booking capacity, propuesto)
 - `GET /provider/organizations/{id}/documents`
 - `POST /provider/organizations/{id}/documents`
 - `GET /provider/organizations/{id}/approval-status`

@@ -46,6 +46,18 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Los cambios locales exploratorios de Slice C evidencia fueron pausados en stash antes del rediseño QR.
 - Fuera de estos slices quedan evidencia, report card e internal notes.
 
+## Actualizacion V2 Booking Capacity
+
+- Rama de trabajo documental: `feature/v2-booking-capacity`
+- Baseline de partida: `v0.2.0-booking-qr-ops.1`
+- CAP-0 abre diseno documental para slots/franjas con capacidad.
+- Evidencia documental/actividad queda pausada y preservada en stash; no se mezcla con capacity.
+- Modelo actual diagnosticado: `provider_availability` semanal por organizacion sin capacidad; `preview_booking`/`create_booking` eligen el proximo bloque activo.
+- Modelo recomendado: hibrido, con reglas recurrentes por servicio, excepciones puntuales por fecha, proyeccion de slots por RPC y creacion transaccional de booking desde slot.
+- Principio de seguridad: owner no modifica capacidad; provider administra solo sus organizaciones; backend valida cupo final y evita sobreventa.
+- QR operations no cambia: sigue despues de que la reserva existe y no participa en seleccion de cupo.
+- CAP-1 backend debe crear migracion y RPCs con dry-run antes de cualquier `supabase db push` real.
+
 ## Ajustes QA visual de Cuenta provider
 
 Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera de contexto en modo provider:

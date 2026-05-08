@@ -85,6 +85,53 @@ Reglas del QR:
 - provider externo no puede consumir tokens de otra organizacion
 - evidencia operacional queda pausada como prueba principal de presencia; mas adelante sera solo fotos/documentos de actividad
 
+## Modelo V2 Booking Capacity / booking slots
+
+CAP-0 abre el diseno documental para evolucionar booking desde "proximo bloque disponible" hacia slots/franjas con capacidad visible para owner y validada por backend.
+
+Estado actual:
+- `provider_availability` modela disponibilidad semanal por organizacion con `day_of_week`, `starts_at`, `ends_at` e `is_active`.
+- `provider_services` define servicio, modo de booking, duracion, precio y ventana de cancelacion.
+- `preview_booking` y `create_booking` resuelven el proximo bloque activo mediante `resolve_next_provider_service_window`.
+- owner no elige slot; la UI solo muestra un preview resuelto.
+- no existe capacidad por franja, ni conteo de cupos, ni proteccion explicita anti-sobreventa por slot.
+
+Objetivo V2:
+- provider configura franjas por servicio con capacidad maxima.
+- owner ve slots proyectados por fecha como tarjetas: hora, cupos disponibles y estado.
+- `pending_approval` y `confirmed` consumen cupo.
+- `cancelled`, `rejected`, `expired` y `provider_cancelled` antes del inicio liberan cupo.
+- `completed` no libera cupo porque el servicio ya ocurrio.
+- `no_show` debe consumir cupo salvo decision operativa contraria, porque el tiempo/recurso ya fue reservado.
+- la UI nunca es fuente de verdad; `create_booking_from_slot` debe validar capacidad transaccionalmente.
+
+Alternativas evaluadas:
+- A. Extender `provider_availability` con `capacity`: simple y compatible, pero mezcla recurrencia general con servicio/capacidad y maneja mal excepciones por fecha.
+- B. Crear `provider_service_slots` concretos por fecha: excelente para calendario y excepciones, pero requiere generar/gestionar muchos registros y mayor mantenimiento.
+- C. Modelo hibrido recomendado: reglas recurrentes por servicio con capacidad, proyeccion por RPC en rango de fechas y excepciones puntuales por fecha. Da buen balance para piloto V2.
+
+Modelo recomendado:
+- mantener compatibilidad con `provider_availability` mientras se migra gradualmente.
+- crear `provider_availability_rules` o extender una entidad equivalente para reglas recurrentes por `provider_service_id`.
+- agregar `provider_availability_exceptions` para cerrar, reducir capacidad o sobreescribir una fecha concreta.
+- agregar campos en `bookings` para trazar el slot elegido: `availability_rule_id`, `slot_start_at`, `slot_end_at`.
+- calcular cupos disponibles desde bookings existentes; evitar `reserved_count` manual salvo que se agregue una estrategia transaccional clara.
+
+RPCs propuestas:
+- `get_service_booking_slots(target_service_id, from_date, to_date)` devuelve slots proyectados con `capacity_total`, `reserved_count`, `available_count` y estado `available | low_capacity | full | unavailable | expired`.
+- `create_booking_from_slot(target_household_id, target_pet_id, target_provider_service_id, target_slot_start_at, target_slot_end_at, target_availability_rule_id, target_payment_method_id)` valida permisos, servicio, provider, regla activa, capacidad y crea booking/precio/historial en una transaccion.
+- `validate_slot_capacity(...)` puede existir como helper interno para no duplicar logica.
+- `hold_booking_slot(...)` queda diferido; solo justificarlo si pagos reales o checkout largo requieren retener cupo antes de crear booking.
+
+Riesgos:
+- timezone entre fecha local de negocio y `timestamptz`.
+- dos owners intentando tomar el ultimo cupo simultaneamente.
+- reservas `pending_approval` que bloquean cupos demasiado tiempo.
+- duraciones variables por servicio dentro de una misma franja.
+- multiples empleados/recursos por proveedor.
+- compatibilidad futura con pagos, reprogramacion y cancelaciones provider-side.
+- compatibilidad con QR operations: QR sigue despues de booking confirmado y no participa en capacidad.
+
 ## Entidades
 - `provider_services`
 - `bookings`
@@ -95,6 +142,8 @@ Reglas del QR:
 - `booking_operation_report` (V2 provider operations)
 - `booking_operation_notes` (V2 provider operations)
 - `booking_operation_tokens` (V2 QR provider operations, propuesta QR-1)
+- `provider_availability_rules` (V2 booking capacity, propuesto)
+- `provider_availability_exceptions` (V2 booking capacity, propuesto)
 - `payment_methods`
 - `audit_logs`
 
@@ -102,8 +151,10 @@ Reglas del QR:
 - todo booking debe vincular hogar, mascota, proveedor y servicio
 - el preview consume la seleccion real dejada por marketplace
 - el servicio publicado define `booking_mode`, precio base, moneda y ventana base de cancelacion
+- en V2 capacity, el servicio publicado tambien puede tener reglas de slot/capacidad visibles al owner
 - `instant` crea la reserva en estado `confirmed`
 - `approval_required` crea la reserva en estado `pending_approval`
+- `pending_approval` y `confirmed` consumen cupo de slot; `completed` mantiene el cupo consumido historicamente
 - el owner proveedor puede aprobar o rechazar una reserva `pending_approval`
 - el owner proveedor puede marcar un booking `confirmed` como `completed`
 - la cancelacion del hogar solo aplica dentro de la ventana configurada por el servicio
@@ -131,6 +182,8 @@ Reglas del QR:
 - `POST /bookings/{id}/reject`
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
+- `GET /bookings/services/{serviceId}/slots` (V2 booking capacity, propuesto)
+- `POST /bookings/from-slot` (V2 booking capacity, propuesto)
 - `GET /bookings/{id}/operations` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-in` (V2 provider operations)
 - `POST /bookings/{id}/operations/check-out` (V2 provider operations)
