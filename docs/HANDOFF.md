@@ -19,7 +19,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - QA/UAT final: `completada`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual: `hardening tecnico/operativo del piloto cerrado`
+- fase actual: `baseline v0.3.0 aprobado para piloto controlado`
 - working tree al iniciar este handoff: cambios locales de Cuenta provider y checklist visual
 
 ## Que ya quedo cerrado
@@ -51,6 +51,8 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 
 - Rama de trabajo documental: `feature/v2-booking-capacity`
 - Baseline de partida: `v0.2.0-booking-qr-ops.1`
+- Baseline publicado: `v0.3.0-booking-capacity-ops.1` en `a677f7bf8aa60b9758af13c5d578c27c7b100a00`.
+- Readiness operativo: `docs/delivery/V0_3_0_PILOT_READINESS.md`.
 - CAP-0 abre diseno documental para slots/franjas con capacidad.
 - Evidencia documental/actividad queda integrada sobre el flujo QR como Slice C; el stash previo se conserva sin aplicarse.
 - Modelo actual diagnosticado: `provider_availability` semanal por organizacion sin capacidad; `preview_booking`/`create_booking` eligen el proximo bloque activo.
@@ -62,6 +64,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - CAP-3 owner UI queda implementado localmente: owner selecciona fecha/slot con `react-native-calendars` como capa visual, tarjetas propias de cupo y `create_booking_from_slot` como unica mutacion final cuando hay slot elegido.
 - Fix CAP-3 aplicado: `Generar preview` con slot seleccionado construye una vista previa local y no consume cupo; solo `Confirmar reserva` llama `create_booking_from_slot` y consume capacidad.
 - El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
+- Validaciones tecnicas desde `master` publicado estan en PASS y los flujos criticos Android quedan validados manualmente para piloto controlado.
 
 ## Ajustes QA visual de Cuenta provider
 

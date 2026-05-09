@@ -134,3 +134,13 @@ Ya no existe bloqueo activo de Android/mobile por entorno.
 Piloto controlado: `aprobado`.
 Pendientes restantes: `no bloqueantes`, principalmente evidencia visual/manual QA por rol y pendientes externos de entorno.
 Produccion comercial sigue fuera de alcance actual.
+
+## Nota posterior al MVP: baseline v0.3.0
+
+El baseline `v0.3.0-booking-capacity-ops.1` queda publicado sobre `master` en `a677f7bf8aa60b9758af13c5d578c27c7b100a00` como evolucion operativa controlada para piloto.
+
+Incluye booking por capacidad, slots owner, reglas provider de capacidad, QR check-in/check-out, evidencia documental posterior al check-out y visual alignment. Mantiene Payments reales, geolocalizacion, report card, notas internas y V2 comerciales no incluidos fuera de alcance.
+
+Estado: aprobado para piloto controlado con validaciones de typecheck/lint/build en PASS, Supabase dry-run remoto al dia y flujos criticos Android validados manualmente.
+
+Documento de readiness: `docs/delivery/V0_3_0_PILOT_READINESS.md`.
