@@ -9,7 +9,7 @@ import {
   providerServiceCategoryLabels,
   providerServiceCategoryOrder
 } from "@pet/config";
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingMode,
   CreateProviderAvailabilityRuleInput,
@@ -31,14 +31,14 @@ import { BookingOperationsTimeline } from "../../bookings/components/BookingOper
 import { useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const inputStyle = {
-  borderRadius: 14,
+  borderRadius: 16,
   borderWidth: 1,
-  borderColor: "rgba(28,25,23,0.14)",
+  borderColor: colorTokens.line,
   paddingHorizontal: 14,
   paddingVertical: 12,
   fontSize: 15,
-  backgroundColor: "#fffdf8",
-  color: "#1c1917"
+  backgroundColor: colorTokens.surface,
+  color: colorTokens.ink
 } as const;
 
 type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
@@ -226,15 +226,16 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
       onPress={onPress}
       style={{
         borderRadius: 999,
-        backgroundColor: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : colorTokens.surface,
         borderWidth: tone === "primary" ? 0 : 1,
-        borderColor: "rgba(28,25,23,0.14)",
+        borderColor: "rgba(0,151,143,0.26)",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        opacity: disabled ? 0.65 : 1
+        opacity: disabled ? 0.65 : 1,
+        ...visualTokens.mobile.softShadow
       }}
     >
-      <Text style={{ color: tone === "primary" ? "#f8fafc" : "#1c1917", fontWeight: "700", textAlign: "center" }}>{label}</Text>
+      <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontWeight: "800", textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }

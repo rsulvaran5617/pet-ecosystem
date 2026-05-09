@@ -1,5 +1,5 @@
 ﻿import { coreMvpBoundaries, coreRoleLabels, coreSupportedPaymentMethodTypes } from "@pet/config";
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   AddPaymentMethodInput,
   CoreRole,
@@ -102,14 +102,14 @@ const providerSectionLookup = Object.fromEntries(
 ) as Record<ProviderSectionId, (typeof providerSections)[number]>;
 
 const inputStyle = {
-  borderRadius: 14,
+  borderRadius: 16,
   borderWidth: 1,
-  borderColor: "rgba(28,25,23,0.14)",
+  borderColor: colorTokens.line,
   paddingHorizontal: 14,
   paddingVertical: 12,
   fontSize: 15,
-  backgroundColor: "#fffdf8",
-  color: "#1c1917"
+  backgroundColor: colorTokens.surface,
+  color: colorTokens.ink
 } as const;
 
 const emptyRegisterForm: RegisterFormState = {
@@ -191,15 +191,16 @@ function Button({
       onPress={onPress}
       style={{
         borderRadius: 999,
-        backgroundColor: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : colorTokens.surface,
         borderWidth: tone === "primary" ? 0 : 1,
-        borderColor: "rgba(28,25,23,0.14)",
+        borderColor: "rgba(0,151,143,0.28)",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        opacity: disabled ? 0.65 : 1
+        opacity: disabled ? 0.65 : 1,
+        ...visualTokens.mobile.softShadow
       }}
     >
-      <Text style={{ color: tone === "primary" ? "#f8fafc" : "#1c1917", fontWeight: "700", textAlign: "center" }}>
+      <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontWeight: "800", textAlign: "center" }}>
         {label}
       </Text>
     </Pressable>
@@ -225,7 +226,7 @@ function Field({
 }) {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
+      <Text style={{ fontSize: 12, fontWeight: "700", color: colorTokens.mutedStrong }}>{label}</Text>
       <TextInput
         autoCapitalize="none"
         keyboardType={keyboardType}
@@ -262,13 +263,13 @@ function ChoiceBar<TValue extends string>({
             style={{
               borderRadius: 999,
               borderWidth: 1,
-              borderColor: isActive ? "rgba(15,118,110,0.3)" : "rgba(28,25,23,0.14)",
-              backgroundColor: isActive ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.86)",
+              borderColor: isActive ? "rgba(0,151,143,0.34)" : colorTokens.line,
+              backgroundColor: isActive ? colorTokens.accentSoft : colorTokens.surface,
               paddingHorizontal: 12,
               paddingVertical: 8
             }}
           >
-            <Text style={{ color: isActive ? "#0f766e" : "#1c1917", fontWeight: "600" }}>{option.label}</Text>
+            <Text style={{ color: isActive ? colorTokens.accentDark : colorTokens.ink, fontWeight: "700" }}>{option.label}</Text>
           </Pressable>
         );
       })}
@@ -282,12 +283,12 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
       style={{
         borderRadius: 18,
         borderWidth: 1,
-        borderColor: tone === "error" ? "rgba(127,29,29,0.18)" : "rgba(15,118,110,0.2)",
-        backgroundColor: tone === "error" ? "rgba(127,29,29,0.08)" : "rgba(15,118,110,0.1)",
+        borderColor: tone === "error" ? "rgba(239,68,68,0.24)" : "rgba(0,151,143,0.2)",
+        backgroundColor: tone === "error" ? colorTokens.dangerSoft : colorTokens.accentSoft,
         padding: 14
       }}
     >
-      <Text style={{ color: tone === "error" ? "#991b1b" : "#0f766e", fontWeight: "600" }}>{message}</Text>
+      <Text style={{ color: tone === "error" ? "#991b1b" : colorTokens.accentDark, fontWeight: "700" }}>{message}</Text>
     </View>
   );
 }
@@ -317,12 +318,14 @@ function OwnerShellHeader({
   const sectionConfig = ownerSectionLookup[section];
 
   return (
-    <View style={{ borderRadius: 24, backgroundColor: "#1c1917", padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#99f6e4" }}>
-        Propietario
-      </Text>
-      <Text style={{ fontSize: 30, fontWeight: "700", lineHeight: 34, color: "#f8fafc" }}>{sectionConfig.label}</Text>
-      <Text style={{ fontSize: 15, lineHeight: 22, color: "rgba(248,250,252,0.78)" }}>{sectionConfig.description}</Text>
+    <View style={{ borderRadius: 28, backgroundColor: colorTokens.surface, padding: 20, gap: 8, ...visualTokens.mobile.shadow }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <View style={{ gap: 4, flex: 1 }}>
+          <Text style={{ fontSize: 30, fontWeight: "800", lineHeight: 34, color: colorTokens.ink }}>{sectionConfig.label}</Text>
+          <Text style={{ fontSize: 15, lineHeight: 22, color: colorTokens.muted }}>{sectionConfig.description}</Text>
+        </View>
+        <StatusChip label="Propietario" tone="active" />
+      </View>
     </View>
   );
 }
@@ -335,14 +338,15 @@ function ProviderShellHeader({
   const sectionConfig = providerSectionLookup[section];
 
   return (
-    <View style={{ borderRadius: 24, backgroundColor: "#134e4a", padding: 20, gap: 12 }}>
-      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#ccfbf1" }}>
-        Proveedor
-      </Text>
-      <Text style={{ fontSize: 30, fontWeight: "700", lineHeight: 34, color: "#f8fafc" }}>{sectionConfig.label}</Text>
-      <Text style={{ fontSize: 15, lineHeight: 22, color: "rgba(248,250,252,0.82)" }}>{sectionConfig.description}</Text>
+    <View style={{ borderRadius: 28, backgroundColor: colorTokens.surface, padding: 20, gap: 10, ...visualTokens.mobile.shadow }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <View style={{ gap: 4, flex: 1 }}>
+          <Text style={{ fontSize: 30, fontWeight: "800", lineHeight: 34, color: colorTokens.ink }}>{sectionConfig.label}</Text>
+          <Text style={{ fontSize: 15, lineHeight: 22, color: colorTokens.muted }}>{sectionConfig.description}</Text>
+        </View>
+        <StatusChip label="Proveedor" tone="active" />
+      </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <StatusChip label="modo proveedor" tone="active" />
         <StatusChip label="operacion MVP" tone="neutral" />
         <StatusChip label="sin cobro real" tone="neutral" />
       </View>
@@ -384,9 +388,9 @@ function OwnerHome({
 
   return (
     <View style={{ gap: 14 }}>
-      <View style={{ borderRadius: 24, backgroundColor: "rgba(255,255,255,0.92)", padding: 18, gap: 10 }}>
-        <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", color: "#0f766e" }}>Inicio</Text>
-        <Text style={{ fontSize: 28, fontWeight: "700", lineHeight: 32, color: "#1c1917" }}>Tu dia con tus mascotas</Text>
+      <View style={{ borderRadius: 24, backgroundColor: colorTokens.surface, padding: 18, gap: 10, ...visualTokens.mobile.shadow }}>
+        <Text style={{ fontSize: 12, fontWeight: "700", color: colorTokens.accentDark }}>Inicio</Text>
+        <Text style={{ fontSize: 28, fontWeight: "800", lineHeight: 32, color: colorTokens.ink }}>Tu dia con tus mascotas</Text>
         <Text style={{ color: colorTokens.muted, lineHeight: 22 }}>
           Accede rapido a cuidado, servicios, reservas y mensajes desde una entrada pensada para propietarios.
         </Text>
@@ -406,9 +410,20 @@ function OwnerHome({
             <Pressable
               key={item.label}
               onPress={() => onNavigate(item.section)}
-              style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", flexBasis: "47%", flexGrow: 1, minWidth: 156, padding: 14, gap: 6 }}
+              style={{
+                borderRadius: 18,
+                backgroundColor: colorTokens.surface,
+                borderColor: colorTokens.line,
+                borderWidth: 1,
+                flexBasis: "47%",
+                flexGrow: 1,
+                minWidth: 156,
+                padding: 14,
+                gap: 6,
+                ...visualTokens.mobile.softShadow
+              }}
             >
-              <Text style={{ color: "#1c1917", fontWeight: "700" }}>{item.label}</Text>
+              <Text style={{ color: colorTokens.ink, fontWeight: "800" }}>{item.label}</Text>
               <Text style={{ color: colorTokens.muted, fontSize: 13, lineHeight: 18 }}>{item.text}</Text>
             </Pressable>
           ))}
@@ -416,8 +431,8 @@ function OwnerHome({
       </View>
 
       {cards.map((card) => (
-        <View key={card.title} style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,0.9)", padding: 16, gap: 10 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>{card.title}</Text>
+        <View key={card.title} style={{ borderRadius: 20, backgroundColor: colorTokens.surface, padding: 16, gap: 10, ...visualTokens.mobile.shadow }}>
+          <Text style={{ fontSize: 18, fontWeight: "800", color: colorTokens.ink }}>{card.title}</Text>
           <Text style={{ color: colorTokens.muted, lineHeight: 21 }}>{card.description}</Text>
           <Button label={card.action} onPress={() => onNavigate(card.section)} tone="secondary" />
         </View>
@@ -499,20 +514,20 @@ export function CoreHomeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#f7f2e7" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colorTokens.canvas }}>
         <StatusBar barStyle="dark-content" />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 12 }}>
-          <ActivityIndicator color="#0f766e" />
-          <Text style={{ color: "#57534e" }}>Preparando tu experiencia...</Text>
+          <ActivityIndicator color={colorTokens.accent} />
+          <Text style={{ color: colorTokens.muted }}>Preparando tu experiencia...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f7f2e7" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colorTokens.canvas }}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: visualTokens.mobile.screenPadding, gap: 20 }}>
         {authState.isAuthenticated && snapshot ? (
           isProviderMode ? (
             <ProviderShellHeader section={activeProviderSection} />
@@ -522,8 +537,8 @@ export function CoreHomeScreen() {
           />
           )
         ) : (
-          <View style={{ borderRadius: 28, backgroundColor: "#1c1917", padding: 24, gap: 14 }}>
-            <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", color: "#99f6e4" }}>
+          <View style={{ borderRadius: 28, backgroundColor: colorTokens.admin, padding: 24, gap: 14, ...visualTokens.mobile.shadow }}>
+            <Text style={{ fontSize: 11, fontWeight: "700", color: "#99f6e4" }}>
               Bienvenido
             </Text>
             <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
@@ -1272,13 +1287,14 @@ export function CoreHomeScreen() {
       {authState.isAuthenticated ? (
         <View
           style={{
-            backgroundColor: "rgba(255,255,255,0.96)",
-            borderTopColor: "rgba(28,25,23,0.12)",
+            backgroundColor: "rgba(255,255,255,0.98)",
+            borderTopColor: colorTokens.line,
             borderTopWidth: 1,
             flexDirection: "row",
             justifyContent: "space-between",
-            paddingHorizontal: 4,
-            paddingVertical: 8
+            paddingHorizontal: 6,
+            paddingVertical: 8,
+            ...visualTokens.mobile.softShadow
           }}
         >
           {(isProviderMode ? providerSections : ownerSections).map((section) => {
@@ -1296,8 +1312,8 @@ export function CoreHomeScreen() {
                   setActiveOwnerSection(section.id as OwnerSectionId);
                 }}
                 style={{
-                  borderRadius: 14,
-                  backgroundColor: isActive ? "rgba(15,118,110,0.12)" : "transparent",
+                  borderRadius: 16,
+                  backgroundColor: isActive ? colorTokens.accentSoft : "transparent",
                   flex: 1,
                   minWidth: 0,
                   paddingHorizontal: 2,
@@ -1308,9 +1324,9 @@ export function CoreHomeScreen() {
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   style={{
-                    color: isActive ? "#0f766e" : "#57534e",
+                    color: isActive ? colorTokens.accentDark : colorTokens.muted,
                     fontSize: 11,
-                    fontWeight: isActive ? "700" : "600",
+                    fontWeight: isActive ? "800" : "600",
                     minWidth: 0,
                     textAlign: "center"
                   }}

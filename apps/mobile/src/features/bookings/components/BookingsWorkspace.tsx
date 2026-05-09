@@ -1,5 +1,5 @@
 import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type { MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -11,15 +11,23 @@ import { BookingSlotsCalendar } from "./BookingSlotsCalendar";
 import { useBookingsWorkspace } from "../hooks/useBookingsWorkspace";
 
 const inputStyle = {
-  borderRadius: 14,
+  borderRadius: 16,
   borderWidth: 1,
-  borderColor: "rgba(28,25,23,0.14)",
+  borderColor: colorTokens.line,
   paddingHorizontal: 14,
   paddingVertical: 12,
-  backgroundColor: "#fffdf8"
+  backgroundColor: colorTokens.surface
 } as const;
 
-const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
+const cardStyle = {
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: colorTokens.line,
+  backgroundColor: colorTokens.surface,
+  padding: 14,
+  gap: 10,
+  ...visualTokens.mobile.softShadow
+} as const;
 
 export type BookingHubPanel = "detalle" | "chat" | "review" | "soporte";
 type BookingWorkspaceView = "historial" | "servicio" | "mascota" | "horario" | "metodo" | "preview" | "detalle";
@@ -43,15 +51,16 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
       onPress={onPress}
       style={{
         borderRadius: 999,
-        backgroundColor: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : colorTokens.surface,
         borderWidth: tone === "primary" ? 0 : 1,
-        borderColor: "rgba(28,25,23,0.14)",
+        borderColor: "rgba(0,151,143,0.26)",
         paddingHorizontal: 14,
         paddingVertical: 10,
-        opacity: disabled ? 0.65 : 1
+        opacity: disabled ? 0.65 : 1,
+        ...visualTokens.mobile.softShadow
       }}
     >
-      <Text style={{ color: tone === "primary" ? "#f8fafc" : "#1c1917", fontWeight: "700", textAlign: "center" }}>{label}</Text>
+      <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontWeight: "800", textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }

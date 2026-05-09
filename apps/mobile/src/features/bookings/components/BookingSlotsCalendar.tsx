@@ -1,4 +1,4 @@
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type { BookingSlot } from "@pet/types";
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -31,6 +31,7 @@ const slotCardStyle = {
   borderWidth: 1,
   padding: 12,
   gap: 8,
+  ...visualTokens.mobile.softShadow
 } as const;
 
 function formatTime(value: string) {
@@ -135,7 +136,7 @@ export function BookingSlotsCalendar({
         onDayPress={(day: { dateString: string }) => onSelectDate(day.dateString)}
         theme={{
           arrowColor: colorTokens.accent,
-          calendarBackground: "#fffdf8",
+          calendarBackground: colorTokens.surface,
           selectedDayBackgroundColor: colorTokens.accent,
           todayTextColor: colorTokens.accent
         }}
@@ -155,8 +156,8 @@ export function BookingSlotsCalendar({
                 style={[
                   slotCardStyle,
                   {
-                    backgroundColor: isSelected ? "rgba(15,118,110,0.08)" : "#fffdf8",
-                    borderColor: isSelected ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.14)",
+                    backgroundColor: isSelected ? colorTokens.accentSoft : colorTokens.surface,
+                    borderColor: isSelected ? "rgba(0,151,143,0.32)" : colorTokens.line,
                     opacity: isSelectable ? 1 : 0.6
                   }
                 ]}

@@ -1,22 +1,24 @@
 ﻿"use client";
 
 import { providerApprovalDocumentTypeLabels, providerApprovalStatusLabels, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { colorTokens, visualTokens } from "@pet/ui";
 
 import { useAdminProvidersWorkspace } from "../hooks/useAdminProvidersWorkspace";
 
 const cardStyle = {
-  borderRadius: "22px",
-  background: "rgba(255,255,255,0.82)",
+  borderRadius: "18px",
+  background: "#ffffff",
   border: "1px solid rgba(24,24,27,0.12)",
   padding: "20px",
   display: "grid",
-  gap: "14px"
+  gap: "14px",
+  boxShadow: visualTokens.web.softShadow
 } as const;
 
 const inputStyle = {
   borderRadius: "14px",
   border: "1px solid rgba(24,24,27,0.14)",
-  background: "#fefcf5",
+  background: "#ffffff",
   padding: "12px 14px",
   fontSize: "15px"
 } as const;
@@ -43,8 +45,8 @@ function Button({
     tone === "danger"
       ? { background: "#b91c1c", color: "#fef2f2", border: "none" }
       : tone === "primary"
-        ? { background: "#1d4ed8", color: "#f8fafc", border: "none" }
-        : { background: "rgba(255,255,255,0.86)", color: "#18181b", border: "1px solid rgba(24,24,27,0.14)" };
+        ? { background: colorTokens.adminAccent, color: "#f8fafc", border: "none" }
+        : { background: "#ffffff", color: colorTokens.adminAccent, border: "1px solid rgba(0,138,151,0.28)" };
 
   return (
     <button
@@ -98,7 +100,7 @@ export function AdminProvidersWorkspace({
             <h2 style={{ margin: 0, fontSize: "22px" }}>Proveedores pendientes</h2>
             <p style={{ margin: "6px 0 0", color: "#52525b" }}>Primera cola de decision de plataforma.</p>
           </div>
-          <strong style={{ fontSize: "28px", color: pendingOrganizations.length ? "#b45309" : "#0f766e" }}>
+          <strong style={{ fontSize: "28px", color: pendingOrganizations.length ? "#b45309" : colorTokens.adminAccent }}>
             {pendingOrganizations.length}
           </strong>
         </div>
@@ -114,7 +116,7 @@ export function AdminProvidersWorkspace({
                   void openOrganization(organization.id);
                 }}
                 type="button"
-                style={{ ...inputStyle, textAlign: "left", display: "grid", gap: "6px", cursor: "pointer" }}
+              style={{ ...inputStyle, textAlign: "left", display: "grid", gap: "6px", cursor: "pointer", boxShadow: visualTokens.web.softShadow }}
               >
                 <strong>{organization.name}</strong>
                 <span style={{ color: "#52525b" }}>{organization.city} · {organization.slug}</span>
@@ -139,7 +141,7 @@ export function AdminProvidersWorkspace({
   return (
     <section style={{ display: "grid", gap: "20px" }}>
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
-      {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#1d4ed8" }}>{infoMessage}</div> : null}
+      {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: colorTokens.adminAccent }}>{infoMessage}</div> : null}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 320px),1fr))", gap: "20px" }}>
         <aside style={{ display: "grid", gap: "20px", alignContent: "start" }}>
           <article style={cardStyle}>

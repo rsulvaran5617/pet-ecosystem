@@ -63,6 +63,14 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 
 ## Ajustes QA visual de Cuenta provider
 
+## Actualizacion visual alignment reference canon
+
+- Fase abierta: `visual_alignment_reference_canon`.
+- Canon visual: imagenes en `docs/ux/reference/` para owner mobile, mascotas, marketplace, booking, horarios/capacidad provider y admin web.
+- Guia derivada: `docs/ux/VISUAL_STYLE_GUIDE.md`.
+- Alcance aplicado: tokens visuales compartidos, cards/chips/botones mobile, shell owner/provider, navegacion inferior mobile y shell/cards/admin web.
+- No se cambio backend, Supabase, RLS, RPCs, migraciones, contratos API, pagos, permisos, QR flow ni reglas de booking.
+- Quedan pendientes de polish fino: reproduccion exacta de iconografia/imagenes fotograficas de las referencias y validacion visual manual en dispositivo/navegador.
 
 Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera de contexto en modo provider:
 
