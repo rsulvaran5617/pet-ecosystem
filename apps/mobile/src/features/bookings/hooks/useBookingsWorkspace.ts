@@ -95,11 +95,80 @@ export function useBookingsWorkspace(
   }
 
   function getActionErrorMessage(error: unknown, fallbackMessage: string) {
-    if (error instanceof Error && error.message === "Selected slot is no longer available") {
-      return "Este horario acaba de llenarse. Elige otro.";
+    if (
+      error instanceof Error &&
+      [
+        "Selected slot is no longer available",
+        "Selected slot is not available",
+        "Selected slot was not found",
+        "Selected slot range is invalid"
+      ].includes(error.message)
+    ) {
+      return "Este horario acaba de llenarse. Elige otro horario disponible.";
+    }
+
+    if (error instanceof Error && error.message === "Selected provider service has no active availability yet") {
+      return "Este servicio no tiene disponibilidad activa para el flujo legacy. Elige un horario disponible o prueba otro servicio.";
     }
 
     return error instanceof Error ? error.message : fallbackMessage;
+  }
+
+  function buildSlotPreview(selection: MarketplaceServiceSelection, slot: BookingSlot): BookingPreview {
+    if (!selectedHouseholdIdRef.current) {
+      throw new Error("Elige un hogar antes de continuar con la vista previa de la reserva.");
+    }
+
+    if (!selectedPetIdRef.current) {
+      throw new Error("Elige una mascota antes de continuar con la vista previa de la reserva.");
+    }
+
+    if (
+      !selection.providerName ||
+      !selection.serviceName ||
+      !selection.serviceBookingMode ||
+      selection.serviceBasePriceCents === undefined ||
+      !selection.serviceCurrencyCode ||
+      selection.serviceCancellationWindowHours === undefined
+    ) {
+      throw new Error("No fue posible preparar la vista previa del horario seleccionado. Vuelve a seleccionar el servicio desde Buscar.");
+    }
+
+    const household = householdSnapshot?.households.find((candidate) => candidate.id === selectedHouseholdIdRef.current);
+    const pet = pets.find((candidate) => candidate.id === selectedPetIdRef.current);
+    const paymentMethod = paymentMethods.find((candidate) => candidate.id === selectedPaymentMethodIdRef.current) ?? null;
+    const cancellationDeadline = new Date(slot.slotStartAt);
+    cancellationDeadline.setHours(cancellationDeadline.getHours() - Math.max(selection.serviceCancellationWindowHours, 0));
+
+    return {
+      householdId: selectedHouseholdIdRef.current,
+      petId: selectedPetIdRef.current,
+      providerOrganizationId: selection.providerId,
+      providerServiceId: selection.serviceId,
+      selectedPaymentMethodId: selectedPaymentMethodIdRef.current,
+      bookingMode: selection.serviceBookingMode,
+      statusOnCreate: selection.serviceBookingMode === "instant" ? "confirmed" : "pending_approval",
+      scheduledStartAt: slot.slotStartAt,
+      scheduledEndAt: slot.slotEndAt,
+      cancellationDeadlineAt: cancellationDeadline.toISOString(),
+      cancellationWindowHours: selection.serviceCancellationWindowHours,
+      currencyCode: selection.serviceCurrencyCode,
+      unitPriceCents: selection.serviceBasePriceCents,
+      subtotalPriceCents: selection.serviceBasePriceCents,
+      totalPriceCents: selection.serviceBasePriceCents,
+      householdName: household?.name ?? "Hogar seleccionado",
+      petName: pet?.name ?? "Mascota seleccionada",
+      providerName: selection.providerName,
+      serviceName: selection.serviceName,
+      serviceDurationMinutes: selection.serviceDurationMinutes ?? null,
+      paymentMethodSummary: paymentMethod
+        ? {
+            id: paymentMethod.id,
+            brand: paymentMethod.brand,
+            last4: paymentMethod.last4
+          }
+        : null
+    };
   }
 
   async function loadBookings(householdId: Uuid | null, petId: Uuid | null) {
@@ -422,13 +491,16 @@ export function useBookingsWorkspace(
 
       return runAction(
         async () => {
-          const nextPreview = await getMobileBookingsApiClient().previewBooking({
-            householdId: selectedHouseholdIdRef.current!,
-            petId: selectedPetIdRef.current!,
-            providerId: activeSelectionRef.current!.providerId,
-            serviceId: activeSelectionRef.current!.serviceId,
-            paymentMethodId: selectedPaymentMethodIdRef.current
-          });
+          const selectedSlot = selectedBookingSlotRef.current;
+          const nextPreview = selectedSlot
+            ? buildSlotPreview(activeSelectionRef.current!, selectedSlot)
+            : await getMobileBookingsApiClient().previewBooking({
+                householdId: selectedHouseholdIdRef.current!,
+                petId: selectedPetIdRef.current!,
+                providerId: activeSelectionRef.current!.providerId,
+                serviceId: activeSelectionRef.current!.serviceId,
+                paymentMethodId: selectedPaymentMethodIdRef.current
+              });
 
           if (mountedRef.current) {
             setPreview(nextPreview);

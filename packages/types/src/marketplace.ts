@@ -102,5 +102,12 @@ export interface MarketplaceServiceSelection {
   petId: Uuid | null;
   providerId: Uuid;
   serviceId: Uuid;
+  providerName?: string;
+  serviceName?: string;
+  serviceDurationMinutes?: number | null;
+  serviceBookingMode?: BookingMode;
+  serviceBasePriceCents?: number;
+  serviceCurrencyCode?: string;
+  serviceCancellationWindowHours?: number;
   selectedAt: IsoDateString;
 }

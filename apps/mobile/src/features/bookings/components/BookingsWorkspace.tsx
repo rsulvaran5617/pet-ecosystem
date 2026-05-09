@@ -428,7 +428,7 @@ export function BookingsWorkspace({
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   <Button
                     disabled={isSubmitting}
-                    label="Crear reserva"
+                    label="Confirmar reserva"
                     onPress={() => void handleCreateBooking()}
                   />
                   <Button disabled={isSubmitting} label="Cambiar horario" onPress={() => showBookingView("horario")} tone="secondary" />

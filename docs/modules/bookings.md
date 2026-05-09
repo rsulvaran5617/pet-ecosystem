@@ -123,7 +123,9 @@ Estado CAP-2:
 Estado CAP-3:
 - owner mobile consume `get_service_booking_slots` para mostrar un calendario visual y tarjetas de slots por dia.
 - `react-native-calendars` se usa solo como widget de seleccion/visualizacion; no es fuente de verdad de capacidad.
+- `Generar preview` con slot seleccionado no llama RPC ni crea booking; usa el slot y snapshot del servicio para presentar una vista previa local sin consumir cupo.
 - al confirmar una reserva con slot elegido, owner mobile usa `create_booking_from_slot`.
+- si el cupo se agota entre preview y confirmacion, la UI muestra `Este horario acaba de llenarse. Elige otro horario disponible.`
 - el flujo actual de reserva legacy sigue disponible como fallback piloto cuando no hay slots publicados.
 
 RPCs propuestas:

@@ -59,6 +59,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - CAP-1 backend quedo aplicado y publicado en `feature/v2-booking-capacity`: tablas `provider_availability_rules` / `provider_availability_exceptions`, columnas de slot en `bookings`, RPC `get_service_booking_slots` y RPC transaccional `create_booking_from_slot`.
 - CAP-2 provider UI queda implementado en mobile: la consola provider muestra `Horarios y capacidad`, permite crear/editar reglas por servicio con dia, horario, capacidad y estado activo/inactivo.
 - CAP-3 owner UI queda implementado localmente: owner selecciona fecha/slot con `react-native-calendars` como capa visual, tarjetas propias de cupo y `create_booking_from_slot` como unica mutacion final cuando hay slot elegido.
+- Fix CAP-3 aplicado: `Generar preview` con slot seleccionado construye una vista previa local y no consume cupo; solo `Confirmar reserva` llama `create_booking_from_slot` y consume capacidad.
 - El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
 
 ## Ajustes QA visual de Cuenta provider

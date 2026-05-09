@@ -396,6 +396,13 @@ export function MarketplaceWorkspace({
                       petId: selectedPetId,
                       providerId: selectedProviderDetail.organizationId,
                       serviceId: selectedService.id,
+                      providerName: selectedProviderDetail.name,
+                      serviceName: selectedService.name,
+                      serviceDurationMinutes: selectedService.durationMinutes,
+                      serviceBookingMode: selectedService.bookingMode,
+                      serviceBasePriceCents: selectedService.basePriceCents,
+                      serviceCurrencyCode: selectedService.currencyCode,
+                      serviceCancellationWindowHours: selectedService.cancellationWindowHours,
                       selectedAt: new Date().toISOString()
                     });
                   }}
