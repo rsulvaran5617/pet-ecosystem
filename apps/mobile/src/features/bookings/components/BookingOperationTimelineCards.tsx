@@ -95,8 +95,8 @@ export function BookingEvidenceCard({ evidences }: { evidences: BookingEvidence[
     <View style={timelineItemStyle}>
       <View style={{ ...timelineDotStyle, backgroundColor: "#7c2d12" }} />
       <View style={contentStyle}>
-        <Text style={labelStyle}>Evidencia</Text>
-        <Text style={titleStyle}>{evidences.length} archivo(s) subido(s)</Text>
+        <Text style={labelStyle}>Evidencia documental</Text>
+        <Text style={titleStyle}>Documento registrado</Text>
         {evidences.map((evidence, idx) => (
           <View key={evidence.id} style={{ marginTop: idx === 0 ? 8 : 4 }}>
             <Text style={detailStyle}>

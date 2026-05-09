@@ -9,12 +9,15 @@ import {
   providerServiceCategoryLabels,
   providerServiceCategoryOrder
 } from "@pet/config";
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingMode,
+  CreateProviderAvailabilityRuleInput,
+  ProviderAvailabilityRule,
   ProviderApprovalDocumentType,
   ProviderServiceCategory,
   UpdateProviderOrganizationInput,
+  UpdateProviderAvailabilityRuleInput,
   UpdateProviderServiceInput,
   Uuid
 } from "@pet/types";
@@ -28,14 +31,14 @@ import { BookingOperationsTimeline } from "../../bookings/components/BookingOper
 import { useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const inputStyle = {
-  borderRadius: 14,
+  borderRadius: 16,
   borderWidth: 1,
-  borderColor: "rgba(28,25,23,0.14)",
+  borderColor: colorTokens.line,
   paddingHorizontal: 14,
   paddingVertical: 12,
   fontSize: 15,
-  backgroundColor: "#fffdf8",
-  color: "#1c1917"
+  backgroundColor: colorTokens.surface,
+  color: colorTokens.ink
 } as const;
 
 type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
@@ -61,9 +64,11 @@ type ServiceFormState = {
 };
 type DisponibilidadFormState = {
   id?: Uuid;
+  serviceId: Uuid | "";
   dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   startsAt: string;
   endsAt: string;
+  capacity: string;
   isActive: boolean;
 };
 type PickedDocument = {
@@ -109,9 +114,11 @@ const emptyServiceForm: ServiceFormState = {
 };
 
 const emptyDisponibilidadForm: DisponibilidadFormState = {
+  serviceId: "",
   dayOfWeek: 1,
   startsAt: "09:00",
   endsAt: "17:00",
+  capacity: "1",
   isActive: true
 };
 
@@ -168,6 +175,41 @@ function displayBookingValue(value: string, fallback: string) {
   return value;
 }
 
+function validateAvailabilityRuleForm(form: DisponibilidadFormState) {
+  const capacity = Number(form.capacity);
+
+  if (!form.serviceId) {
+    return "Selecciona un servicio para configurar horarios.";
+  }
+
+  if (!Number.isFinite(capacity) || capacity <= 0) {
+    return "La capacidad debe ser mayor que cero.";
+  }
+
+  if (form.startsAt >= form.endsAt) {
+    return "La hora final debe ser posterior a la hora inicial.";
+  }
+
+  return null;
+}
+
+function buildAvailabilityRulePayload(form: DisponibilidadFormState) {
+  const validationError = validateAvailabilityRuleForm(form);
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  return {
+    serviceId: form.serviceId,
+    dayOfWeek: form.dayOfWeek,
+    startsAt: form.startsAt,
+    endsAt: form.endsAt,
+    capacity: Number(form.capacity),
+    isActive: form.isActive
+  };
+}
+
 function BookingInfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ gap: 3, width: "100%" }}>
@@ -184,15 +226,16 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
       onPress={onPress}
       style={{
         borderRadius: 999,
-        backgroundColor: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : colorTokens.surface,
         borderWidth: tone === "primary" ? 0 : 1,
-        borderColor: "rgba(28,25,23,0.14)",
+        borderColor: "rgba(0,151,143,0.26)",
         paddingHorizontal: 16,
         paddingVertical: 12,
-        opacity: disabled ? 0.65 : 1
+        opacity: disabled ? 0.65 : 1,
+        ...visualTokens.mobile.softShadow
       }}
     >
-      <Text style={{ color: tone === "primary" ? "#f8fafc" : "#1c1917", fontWeight: "700", textAlign: "center" }}>{label}</Text>
+      <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontWeight: "800", textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }
@@ -353,14 +396,24 @@ export function ProvidersWorkspace({
       isPublic: selectedOrganizationDetail.publicProfile?.isPublic ?? true
     });
     setServiceForm(emptyServiceForm);
-    setDisponibilidadForm(emptyDisponibilidadForm);
+    setDisponibilidadForm({
+      ...emptyDisponibilidadForm,
+      serviceId: selectedOrganizationDetail.services[0]?.id ?? ""
+    });
     setDocumentForm(emptyDocumentForm);
   }, [selectedOrganizationDetail]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
   const selectedServicios = selectedOrganizationDetail?.services ?? [];
-  const selectedDisponibilidad = selectedOrganizationDetail?.availability ?? [];
+  const emptyAvailabilityFormForSelectedService = useMemo(
+    () => ({
+      ...emptyDisponibilidadForm,
+      serviceId: selectedServicios[0]?.id ?? ""
+    }),
+    [selectedServicios]
+  );
+  const selectedAvailabilityRules = selectedOrganizationDetail?.availabilityRules ?? [];
   const selectedDocuments = selectedOrganizationDetail?.approvalDocuments ?? [];
   const pendingProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval");
   const confirmedProviderBookings = providerBookings.filter((booking) => booking.status === "confirmed");
@@ -375,10 +428,10 @@ export function ProvidersWorkspace({
     () => [
       { label: "Perfil del negocio guardado", done: Boolean(selectedPublicProfile) },
       { label: "Al menos un servicio configurado", done: selectedServicios.length > 0 },
-      { label: "Disponibilidad configurada", done: selectedDisponibilidad.length > 0 },
+      { label: "Horarios con capacidad configurados", done: selectedAvailabilityRules.length > 0 },
       { label: "Documentos de aprobacion cargados", done: selectedDocuments.length > 0 }
     ],
-    [selectedDisponibilidad.length, selectedDocuments.length, selectedPublicProfile, selectedServicios.length]
+    [selectedAvailabilityRules.length, selectedDocuments.length, selectedPublicProfile, selectedServicios.length]
   );
   const showHome = activeSection === "inicio";
   const showOrganization = activeSection === "inicio" || activeSection === "negocio";
@@ -964,11 +1017,24 @@ export function ProvidersWorkspace({
             {showAvailability ? (
             <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Disponibilidad</Text>
-                <StatusChip label={`${selectedDisponibilidad.length} slot(s)`} tone="neutral" />
+                <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Horarios y capacidad</Text>
+                <StatusChip label={`${selectedAvailabilityRules.length} regla(s)`} tone="neutral" />
               </View>
+              <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+                Define cuando puedes atender cada servicio y cuantos cupos tienes por franja.
+              </Text>
               {selectedOrganization ? (
+                selectedServicios.length ? (
                 <>
+                  <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>Servicio</Text>
+                  <ChoiceBar
+                    onChange={(value) => setDisponibilidadForm((current) => ({ ...current, serviceId: value }))}
+                    options={selectedServicios.map((service) => ({
+                      label: service.name,
+                      value: service.id
+                    }))}
+                    value={availabilityForm.serviceId || selectedServicios[0]?.id || ""}
+                  />
                   <ChoiceBar
                     onChange={(value) => setDisponibilidadForm((current) => ({ ...current, dayOfWeek: value }))}
                     options={providerDayOfWeekOrder.map((dayOfWeek) => ({
@@ -991,6 +1057,13 @@ export function ProvidersWorkspace({
                     placeholder="HH:mm"
                     value={availabilityForm.endsAt}
                   />
+                  <Field
+                    helperText="Numero maximo de reservas que puedes tomar en esta franja."
+                    keyboardType="numeric"
+                    label="Capacidad"
+                    onChange={(value) => setDisponibilidadForm((current) => ({ ...current, capacity: value }))}
+                    value={availabilityForm.capacity}
+                  />
                   <ChoiceBar
                     onChange={(value) => setDisponibilidadForm((current) => ({ ...current, isActive: value === "active" }))}
                     options={[
@@ -1002,78 +1075,110 @@ export function ProvidersWorkspace({
                   <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                     <Button
                       disabled={isSubmitting}
-                      label={availabilityForm.id ? "Guardar bloque" : "Crear bloque"}
+                      label={availabilityForm.id ? "Guardar horario" : "Crear horario"}
                       onPress={() => {
                         clearMessages();
 
                         if (availabilityForm.id) {
+                          const payload = buildAvailabilityRulePayload(availabilityForm) satisfies UpdateProviderAvailabilityRuleInput;
                           void runAction(
                             () =>
-                              getMobileProvidersApiClient().updateProviderAvailabilitySlot(availabilityForm.id!, {
-                                dayOfWeek: availabilityForm.dayOfWeek,
-                                startsAt: availabilityForm.startsAt,
-                                endsAt: availabilityForm.endsAt,
-                                isActive: availabilityForm.isActive
-                              }),
-                            "Bloque de disponibilidad actualizado."
+                              getMobileProvidersApiClient().updateProviderAvailabilityRule(availabilityForm.id!, payload),
+                            "Horario actualizado."
                           ).then(async () => {
-                            setDisponibilidadForm(emptyDisponibilidadForm);
+                            setDisponibilidadForm(emptyAvailabilityFormForSelectedService);
                             await refresh(selectedOrganization.id);
                           });
                           return;
                         }
 
+                        const payload = {
+                          organizationId: selectedOrganization.id,
+                          ...buildAvailabilityRulePayload(availabilityForm)
+                        } satisfies CreateProviderAvailabilityRuleInput;
                         void runAction(
-                          () =>
-                            getMobileProvidersApiClient().addProviderAvailabilitySlot({
-                              organizationId: selectedOrganization.id,
-                              dayOfWeek: availabilityForm.dayOfWeek,
-                              startsAt: availabilityForm.startsAt,
-                              endsAt: availabilityForm.endsAt,
-                              isActive: availabilityForm.isActive
-                            }),
-                          "Bloque de disponibilidad creado."
+                          () => getMobileProvidersApiClient().createProviderAvailabilityRule(payload),
+                          "Horario guardado."
                         ).then(async () => {
-                          setDisponibilidadForm(emptyDisponibilidadForm);
+                          setDisponibilidadForm(emptyAvailabilityFormForSelectedService);
                           await refresh(selectedOrganization.id);
                         });
                       }}
                     />
-                    {availabilityForm.id ? <Button disabled={isSubmitting} label="Cancelar edicion" onPress={() => setDisponibilidadForm(emptyDisponibilidadForm)} tone="secondary" /> : null}
+                    {availabilityForm.id ? (
+                      <Button
+                        disabled={isSubmitting}
+                        label="Cancelar edicion"
+                        onPress={() => setDisponibilidadForm(emptyAvailabilityFormForSelectedService)}
+                        tone="secondary"
+                      />
+                    ) : null}
                   </View>
                 </>
+                ) : (
+                  <Text style={{ color: colorTokens.muted }}>Primero crea un servicio para configurar horarios.</Text>
+                )
               ) : (
-                <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>
+                <Text style={{ color: colorTokens.muted }}>Crea o selecciona tu negocio para configurar disponibilidad.</Text>
               )}
             </View>
             ) : null}
 
-            {showAvailability && selectedDisponibilidad.length ? (
+            {showAvailability && selectedAvailabilityRules.length ? (
               <View style={{ gap: 8 }}>
-                {selectedDisponibilidad.map((slot) => (
-                  <View key={slot.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
+                {selectedAvailabilityRules.map((rule: ProviderAvailabilityRule) => {
+                  const service = selectedServicios.find((candidate) => candidate.id === rule.serviceId);
+
+                  return (
+                  <View key={rule.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 8 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                      <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>{providerDayOfWeekLabels[slot.dayOfWeek]}</Text>
-                      <StatusChip label={slot.isActive ? "activo" : "inactivo"} tone={slot.isActive ? "active" : "neutral"} />
+                      <Text style={{ fontSize: 15, fontWeight: "600", color: "#1c1917", flex: 1 }}>
+                        {service?.name ?? "Servicio no disponible"}
+                      </Text>
+                      <StatusChip label={rule.isActive ? "activo" : "inactivo"} tone={rule.isActive ? "active" : "neutral"} />
                     </View>
-                    <Text style={{ color: colorTokens.muted }}>{slot.startsAt.slice(0, 5)} - {slot.endsAt.slice(0, 5)}</Text>
-                    <Button
-                      disabled={isSubmitting}
-                      label="Editar"
-                      onPress={() =>
-                        setDisponibilidadForm({
-                          id: slot.id,
-                          dayOfWeek: slot.dayOfWeek,
-                          startsAt: slot.startsAt,
-                          endsAt: slot.endsAt,
-                          isActive: slot.isActive
-                        })
-                      }
-                      tone="secondary"
-                    />
+                    <Text style={{ color: colorTokens.muted }}>
+                      {providerDayOfWeekLabels[rule.dayOfWeek]} - {rule.startsAt.slice(0, 5)} a {rule.endsAt.slice(0, 5)}
+                    </Text>
+                    <Text style={{ color: colorTokens.muted }}>Capacidad: {rule.capacity} cupo(s)</Text>
+                    <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                      <Button
+                        disabled={isSubmitting}
+                        label="Editar"
+                        onPress={() =>
+                          setDisponibilidadForm({
+                            id: rule.id,
+                            serviceId: rule.serviceId,
+                            dayOfWeek: rule.dayOfWeek,
+                            startsAt: rule.startsAt,
+                            endsAt: rule.endsAt,
+                            capacity: String(rule.capacity),
+                            isActive: rule.isActive
+                          })
+                        }
+                        tone="secondary"
+                      />
+                      <Button
+                        disabled={isSubmitting}
+                        label={rule.isActive ? "Desactivar" : "Activar"}
+                        onPress={() => {
+                          clearMessages();
+                          void runAction(
+                            () => getMobileProvidersApiClient().setProviderAvailabilityRuleActive(rule.id, !rule.isActive),
+                            rule.isActive ? "Horario desactivado." : "Horario activado."
+                          ).then(async () => {
+                            await refresh(selectedOrganization?.id);
+                          });
+                        }}
+                        tone="secondary"
+                      />
+                    </View>
                   </View>
-                ))}
+                  );
+                })}
               </View>
+            ) : showAvailability && selectedOrganization && selectedServicios.length ? (
+              <Text style={{ color: colorTokens.muted }}>Aun no tienes horarios con capacidad configurados.</Text>
             ) : null}
 
             {showDocuments ? (

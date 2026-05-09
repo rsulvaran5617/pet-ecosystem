@@ -1,5 +1,5 @@
 import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
-import { colorTokens } from "@pet/ui";
+import { colorTokens, visualTokens } from "@pet/ui";
 import type { MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -7,21 +7,30 @@ import { Pressable, Text, View } from "react-native";
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
 import { StatusChip } from "../../core/components/StatusChip";
 import { BookingOperationsTimeline } from "./BookingOperationsTimeline";
+import { BookingSlotsCalendar } from "./BookingSlotsCalendar";
 import { useBookingsWorkspace } from "../hooks/useBookingsWorkspace";
 
 const inputStyle = {
-  borderRadius: 14,
+  borderRadius: 16,
   borderWidth: 1,
-  borderColor: "rgba(28,25,23,0.14)",
+  borderColor: colorTokens.line,
   paddingHorizontal: 14,
   paddingVertical: 12,
-  backgroundColor: "#fffdf8"
+  backgroundColor: colorTokens.surface
 } as const;
 
-const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
+const cardStyle = {
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: colorTokens.line,
+  backgroundColor: colorTokens.surface,
+  padding: 14,
+  gap: 10,
+  ...visualTokens.mobile.softShadow
+} as const;
 
 export type BookingHubPanel = "detalle" | "chat" | "review" | "soporte";
-type BookingWorkspaceView = "historial" | "servicio" | "mascota" | "metodo" | "preview" | "detalle";
+type BookingWorkspaceView = "historial" | "servicio" | "mascota" | "horario" | "metodo" | "preview" | "detalle";
 
 function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
   if (status === "confirmed" || status === "completed") {
@@ -42,15 +51,16 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
       onPress={onPress}
       style={{
         borderRadius: 999,
-        backgroundColor: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : colorTokens.surface,
         borderWidth: tone === "primary" ? 0 : 1,
-        borderColor: "rgba(28,25,23,0.14)",
+        borderColor: "rgba(0,151,143,0.26)",
         paddingHorizontal: 14,
         paddingVertical: 10,
-        opacity: disabled ? 0.65 : 1
+        opacity: disabled ? 0.65 : 1,
+        ...visualTokens.mobile.softShadow
       }}
     >
-      <Text style={{ color: tone === "primary" ? "#f8fafc" : "#1c1917", fontWeight: "700", textAlign: "center" }}>{label}</Text>
+      <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontWeight: "800", textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
 }
@@ -79,6 +89,13 @@ function PanelButton({
       <Text style={{ color: isActive ? "#f8fafc" : "#1c1917", fontSize: 13, fontWeight: "700", textAlign: "center" }}>{label}</Text>
     </Pressable>
   );
+}
+
+function formatSlotCancellationDeadline(slotStartAt: string, cancellationWindowHours: number) {
+  const deadline = new Date(slotStartAt);
+  deadline.setHours(deadline.getHours() - Math.max(cancellationWindowHours, 0));
+
+  return formatDateTimeLabel(deadline.toISOString());
 }
 
 export function BookingsWorkspace({
@@ -113,15 +130,22 @@ export function BookingsWorkspace({
     selectedHouseholdId,
     selectedPetId,
     selectedPaymentMethodId,
+    bookingSlots,
+    selectedBookingSlot,
+    selectedSlotDate,
     errorMessage,
     infoMessage,
     isLoading,
+    isLoadingSlots,
     isSubmitting,
     clearMessages,
     clearSelection,
     selectHousehold,
     selectPet,
     selectPaymentMethod,
+    loadBookingSlots,
+    selectSlotDate,
+    selectBookingSlot,
     buildPreview,
     createBooking,
     openBookingDetail,
@@ -145,6 +169,14 @@ export function BookingsWorkspace({
     setBookingView("servicio");
     onPanelChange?.("detalle");
   }, [marketplaceSelection?.selectedAt, onPanelChange]);
+
+  useEffect(() => {
+    if (bookingView !== "horario" || !activeSelection) {
+      return;
+    }
+
+    void loadBookingSlots().catch(() => undefined);
+  }, [activeSelection?.serviceId, bookingView]);
 
   const showBookingView = (view: BookingWorkspaceView) => {
     setBookingView(view);
@@ -206,7 +238,7 @@ export function BookingsWorkspace({
             </View>
             <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
               {activeSelection
-                ? "Ya tienes un servicio seleccionado desde Buscar. Continúa con la mascota para preparar la vista previa."
+                ? "Ya tienes un servicio seleccionado desde Buscar. Continua con la mascota y elige un horario disponible."
                 : "Selecciona un servicio publico en Buscar para preparar una reserva."}
             </Text>
             {activeSelection ? (
@@ -251,14 +283,52 @@ export function BookingsWorkspace({
               ))}
             </View>
             <Text style={{ color: colorTokens.muted }}>
-              Las reservas requieren una mascota concreta. Elige una antes de generar la vista previa.
+              Las reservas requieren una mascota concreta. Elige una antes de seleccionar el horario.
             </Text>
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-              <Button disabled={!selectedPetId || isSubmitting} label="Continuar" onPress={() => showBookingView("metodo")} />
+              <Button disabled={!selectedPetId || isSubmitting} label="Elegir horario" onPress={() => showBookingView("horario")} />
               <Button disabled={isSubmitting} label="Volver al servicio" onPress={() => showBookingView("servicio")} tone="secondary" />
             </View>
           </View>
           </>
+          ) : null}
+
+          {bookingView === "horario" ? (
+          <View style={cardStyle}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917", flex: 1 }}>Selecciona un horario</Text>
+              <StatusChip label={selectedBookingSlot ? "horario listo" : "pendiente"} tone={selectedBookingSlot ? "active" : "pending"} />
+            </View>
+            <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>
+              Los cupos vienen del calendario del proveedor. La reserva final se valida nuevamente al confirmar para evitar sobreventa.
+            </Text>
+            <BookingSlotsCalendar
+              isLoading={isLoadingSlots}
+              onSelectDate={selectSlotDate}
+              onSelectSlot={selectBookingSlot}
+              selectedDate={selectedSlotDate}
+              selectedSlot={selectedBookingSlot}
+              slots={bookingSlots}
+            />
+            {selectedBookingSlot ? (
+              <View style={inputStyle}>
+                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Horario elegido</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                  {formatDateTimeLabel(selectedBookingSlot.slotStartAt)} - {formatDateTimeLabel(selectedBookingSlot.slotEndAt)}
+                </Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                  {selectedBookingSlot.availableCount} cupo(s) disponible(s)
+                </Text>
+              </View>
+            ) : null}
+            <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+              <Button disabled={!selectedBookingSlot || isSubmitting} label="Continuar" onPress={() => showBookingView("metodo")} />
+              {!bookingSlots.length && !isLoadingSlots ? (
+                <Button disabled={isSubmitting} label="Continuar sin horario" onPress={() => showBookingView("metodo")} tone="secondary" />
+              ) : null}
+              <Button disabled={isSubmitting} label="Cambiar mascota" onPress={() => showBookingView("mascota")} tone="secondary" />
+            </View>
+          </View>
           ) : null}
 
           {bookingView === "metodo" ? (
@@ -278,13 +348,25 @@ export function BookingsWorkspace({
             <Text style={{ color: colorTokens.muted }}>
               Vincular un metodo de pago guardado es opcional. No se realizara ningun cobro en este MVP.
             </Text>
+            {selectedBookingSlot ? (
+              <View style={inputStyle}>
+                <Text style={{ fontWeight: "600", color: "#1c1917" }}>Horario seleccionado</Text>
+                <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                  {formatDateTimeLabel(selectedBookingSlot.slotStartAt)} - {formatDateTimeLabel(selectedBookingSlot.slotEndAt)}
+                </Text>
+              </View>
+            ) : (
+              <Text style={{ color: colorTokens.muted }}>
+                No hay horario seleccionado. Puedes continuar con el flujo anterior como fallback piloto.
+              </Text>
+            )}
             <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
               <Button
                 disabled={!selectedPetId || !selectedHouseholdId || isSubmitting}
                 label="Generar preview"
                 onPress={() => void handleGeneratePreview()}
               />
-              <Button disabled={isSubmitting} label="Cambiar mascota" onPress={() => showBookingView("mascota")} tone="secondary" />
+              <Button disabled={isSubmitting} label="Cambiar horario" onPress={() => showBookingView("horario")} tone="secondary" />
             </View>
           </View>
           ) : null}
@@ -313,16 +395,32 @@ export function BookingsWorkspace({
                   <Text style={{ fontWeight: "600", color: "#1c1917" }}>Modo</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{bookingModeLabels[preview.bookingMode]}</Text>
                 </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontWeight: "600", color: "#1c1917" }}>Inicio</Text>
-                  <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(preview.scheduledStartAt)}</Text>
-                </View>
+                {selectedBookingSlot ? (
+                  <View style={inputStyle}>
+                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>Horario seleccionado</Text>
+                    <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                      {formatDateTimeLabel(selectedBookingSlot.slotStartAt)} - {formatDateTimeLabel(selectedBookingSlot.slotEndAt)}
+                    </Text>
+                    <Text style={{ color: colorTokens.muted, marginTop: 6 }}>
+                      Este cupo se validara de nuevo al crear la reserva.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={inputStyle}>
+                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>Inicio</Text>
+                    <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatDateTimeLabel(preview.scheduledStartAt)}</Text>
+                  </View>
+                )}
                 <View style={inputStyle}>
                   <Text style={{ fontWeight: "600", color: "#1c1917" }}>Precio</Text>
                   <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{formatCurrencyAmount(preview.totalPriceCents, preview.currencyCode)}</Text>
                 </View>
                 <Text style={{ color: colorTokens.muted }}>
-                  Politica de cancelacion: esta reserva puede cancelarse hasta {formatDateTimeLabel(preview.cancellationDeadlineAt)} dentro de la ventana base del proveedor de {preview.cancellationWindowHours} hora(s).
+                  Politica de cancelacion: esta reserva puede cancelarse hasta{" "}
+                  {selectedBookingSlot
+                    ? formatSlotCancellationDeadline(selectedBookingSlot.slotStartAt, preview.cancellationWindowHours)
+                    : formatDateTimeLabel(preview.cancellationDeadlineAt)}{" "}
+                  dentro de la ventana base del proveedor de {preview.cancellationWindowHours} hora(s).
                 </Text>
                 <Text style={{ color: colorTokens.muted }}>
                   Metodo de pago: {preview.paymentMethodSummary ? `${preview.paymentMethodSummary.brand.toUpperCase()} ${preview.paymentMethodSummary.last4}` : "Sin metodo de pago guardado vinculado"}
@@ -330,17 +428,17 @@ export function BookingsWorkspace({
                 <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                   <Button
                     disabled={isSubmitting}
-                    label="Crear reserva"
+                    label="Confirmar reserva"
                     onPress={() => void handleCreateBooking()}
                   />
-                  <Button disabled={isSubmitting} label="Cambiar mascota" onPress={() => showBookingView("mascota")} tone="secondary" />
+                  <Button disabled={isSubmitting} label="Cambiar horario" onPress={() => showBookingView("horario")} tone="secondary" />
                   <Button disabled={isSubmitting} label="Cambiar metodo" onPress={() => showBookingView("metodo")} tone="secondary" />
                   <Button disabled={isSubmitting} label="Volver a historial" onPress={() => showBookingView("historial")} tone="secondary" />
                 </View>
               </>
             ) : (
               <Text style={{ color: colorTokens.muted }}>
-                Genera el preview despues de seleccionar hogar, mascota y metodo de pago opcional. El preview resuelve el siguiente cupo publicado del proveedor, muestra el precio y te indica si la reserva es inmediata o queda pendiente de aprobacion.
+                Genera el preview despues de seleccionar hogar, mascota y metodo de pago opcional. El preview muestra precio y te indica si la reserva es inmediata o queda pendiente de aprobacion; si elegiste horario, el cupo final se valida al crear la reserva.
               </Text>
             )}
           </View>

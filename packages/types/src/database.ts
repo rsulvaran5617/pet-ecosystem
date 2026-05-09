@@ -9,6 +9,7 @@ import type { PetConditionStatus } from "./health";
 import type { HouseholdInvitationStatus, HouseholdPermission } from "./households";
 import type {
   BookingMode,
+  BookingSlotStatus,
   BookingStatus
 } from "./bookings";
 import type {
@@ -242,6 +243,9 @@ export interface Database {
           scheduled_end_at: string;
           cancellation_deadline_at: string;
           cancellation_window_hours: number;
+          availability_rule_id: string | null;
+          slot_start_at: string | null;
+          slot_end_at: string | null;
           cancelled_at: string | null;
           cancel_reason: string | null;
           created_at: string;
@@ -261,6 +265,9 @@ export interface Database {
           scheduled_end_at: string;
           cancellation_deadline_at: string;
           cancellation_window_hours: number;
+          availability_rule_id?: string | null;
+          slot_start_at?: string | null;
+          slot_end_at?: string | null;
           cancelled_at?: string | null;
           cancel_reason?: string | null;
           created_at?: string;
@@ -280,6 +287,9 @@ export interface Database {
           scheduled_end_at?: string;
           cancellation_deadline_at?: string;
           cancellation_window_hours?: number;
+          availability_rule_id?: string | null;
+          slot_start_at?: string | null;
+          slot_end_at?: string | null;
           cancelled_at?: string | null;
           cancel_reason?: string | null;
           created_at?: string;
@@ -1280,6 +1290,102 @@ export interface Database {
         };
         Relationships: [];
       };
+      provider_availability_rules: {
+        Row: {
+          id: string;
+          organization_id: string;
+          service_id: string;
+          day_of_week: number;
+          starts_at: string;
+          ends_at: string;
+          capacity: number;
+          is_active: boolean;
+          effective_from: string | null;
+          effective_until: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          service_id: string;
+          day_of_week: number;
+          starts_at: string;
+          ends_at: string;
+          capacity: number;
+          is_active?: boolean;
+          effective_from?: string | null;
+          effective_until?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          service_id?: string;
+          day_of_week?: number;
+          starts_at?: string;
+          ends_at?: string;
+          capacity?: number;
+          is_active?: boolean;
+          effective_from?: string | null;
+          effective_until?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      provider_availability_exceptions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          service_id: string | null;
+          availability_rule_id: string | null;
+          exception_date: string;
+          starts_at: string | null;
+          ends_at: string | null;
+          capacity_override: number | null;
+          is_closed: boolean;
+          reason: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          service_id?: string | null;
+          availability_rule_id?: string | null;
+          exception_date: string;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          capacity_override?: number | null;
+          is_closed?: boolean;
+          reason?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          service_id?: string | null;
+          availability_rule_id?: string | null;
+          exception_date?: string;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          capacity_override?: number | null;
+          is_closed?: boolean;
+          reason?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       provider_documents: {
         Row: {
           id: string;
@@ -1669,6 +1775,37 @@ export interface Database {
           target_pet_id: string;
           target_provider_organization_id: string;
           target_provider_service_id: string;
+          target_payment_method_id?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["bookings"]["Row"];
+      };
+      get_service_booking_slots: {
+        Args: {
+          target_service_id: string;
+          from_date: string;
+          to_date: string;
+        };
+        Returns: {
+          availability_rule_id: string;
+          organization_id: string;
+          service_id: string;
+          slot_date: string;
+          slot_start_at: string;
+          slot_end_at: string;
+          capacity_total: number;
+          reserved_count: number;
+          available_count: number;
+          status: BookingSlotStatus;
+        }[];
+      };
+      create_booking_from_slot: {
+        Args: {
+          target_household_id: string;
+          target_pet_id: string;
+          target_provider_service_id: string;
+          target_slot_start_at: string;
+          target_slot_end_at: string;
+          target_availability_rule_id: string;
           target_payment_method_id?: string | null;
         };
         Returns: Database["public"]["Tables"]["bookings"]["Row"];

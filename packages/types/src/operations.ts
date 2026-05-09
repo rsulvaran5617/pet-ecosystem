@@ -11,7 +11,7 @@ export type BookingOperationType = "check_in" | "check_out";
  * - checked_in: check-in recorded
  * - checked_out: check-out recorded
  * - evidence_pending: awaiting evidence upload
- * - documented: operation complete with evidence and report
+ * - documented: operation complete with evidence
  */
 export type BookingOperationalState =
   | "pending"
@@ -59,8 +59,7 @@ export interface BookingEvidence extends TimestampedEntity {
 }
 
 /**
- * Service report card: summary of work performed
- * Maximum 500 characters, frozen once booking completed
+ * Service report card: summary of work performed, implemented in a later slice
  */
 export interface BookingReportCard extends TimestampedEntity {
   id: Uuid;
@@ -143,9 +142,8 @@ export interface CreateCheckInInput {
  */
 export interface UploadEvidenceInput {
   storageBucket?: string;
-  storagePath: string;
   fileName: string;
-  fileSizeBytes: number;
+  fileBytes: ArrayBuffer;
   mimeType?: string | null;
 }
 

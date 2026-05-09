@@ -88,6 +88,8 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `POST /bookings/{id}/reject`
 - `POST /bookings/{id}/complete`
 - `POST /bookings/{id}/cancel`
+- `GET /bookings/services/{serviceId}/slots`
+- `POST /bookings/from-slot`
 - `GET /provider/bookings`
 - `GET /bookings/{id}/operations`
 - `POST /bookings/{id}/operations/check-in`
@@ -115,6 +117,27 @@ Notas:
 - owner no tiene lectura directa inicial de operaciones
 - internal notes no son visibles para owner
 - evidencia usa `storage_bucket` y `storage_path`, no URL arbitraria
+
+Contratos V2 booking capacity propuestos:
+- `GET /bookings/services/{serviceId}/slots?from=YYYY-MM-DD&to=YYYY-MM-DD` proyecta slots desde reglas de disponibilidad/capacidad y devuelve solo informacion bookable para owner: `slot_start_at`, `slot_end_at`, `availability_rule_id`, `capacity_total`, `available_count`, `status`.
+- `POST /bookings/from-slot` crea una reserva desde un slot elegido. Debe ejecutarse como RPC transaccional y validar household/pet, servicio publico, provider aprobado, regla activa, capacidad disponible, precio snapshot y permisos de payment method opcional.
+- `POST /bookings/preview` y `POST /bookings` quedan como flujo legacy/compatibilidad hasta que la UI owner migre totalmente a slots.
+- `validate_slot_capacity` queda como helper interno; no debe exponerse como mutacion confiable para UI.
+- `hold_booking_slot` queda diferido salvo que checkout/pagos reales requieran retencion temporal antes de crear booking.
+
+Estados V2 booking capacity:
+- slot `available`: cupos disponibles suficientes.
+- slot `low_capacity`: ultimo cupo o umbral bajo.
+- slot `full`: sin cupo disponible.
+- slot `unavailable`: regla inactiva o excepcion cierra la fecha.
+- slot `expired`: inicio en el pasado.
+
+Reglas de cupo:
+- `pending_approval` consume cupo.
+- `confirmed` consume cupo.
+- `completed` mantiene cupo consumido historicamente.
+- `cancelled`, `rejected`, `expired` y `provider_cancelled` antes del inicio liberan cupo.
+- `no_show` consume cupo por defecto porque el recurso fue reservado.
 
 Contratos QR propuestos:
 - `POST /bookings/{id}/operations/tokens` crea un token temporal para `check_in` o `check_out`; solo owner elegible del hogar del booking; devuelve token plano una sola vez y metadata segura.
@@ -147,6 +170,10 @@ Contratos QR propuestos:
 - `GET /provider/organizations/{id}/documents`
 - `POST /provider/organizations/{id}/documents`
 - `GET /provider/organizations/{id}/approval-status`
+- `POST /provider/organizations/{id}/availability-rules` (V2 booking capacity, propuesto)
+- `PATCH /provider/availability-rules/{ruleId}` (V2 booking capacity, propuesto)
+- `POST /provider/availability-rules/{ruleId}/exceptions` (V2 booking capacity, propuesto)
+- `PATCH /provider/availability-exceptions/{exceptionId}` (V2 booking capacity, propuesto)
 
 ### Admin
 

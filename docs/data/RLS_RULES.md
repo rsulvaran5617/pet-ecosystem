@@ -66,6 +66,33 @@ Marcar un booking `confirmed` como `completed` exige ownership del proveedor inv
 Adjuntar un `payment_method` exige permiso `pay` o `admin`.
 No se habilita insercion ni edicion directa por tabla para usuarios autenticados.
 
+### provider_availability_rules / provider_availability_exceptions (V2 booking capacity, propuesto)
+
+Objetivo: modelar slots/capacidad sin abrir escritura directa de owners sobre configuracion provider.
+
+Visibilidad esperada:
+- owner: no lee la configuracion privada completa; lee slots calculados por `get_service_booking_slots` solo para servicios publicos/aprobados.
+- provider: lee y administra reglas/excepciones solo de sus propias organizaciones.
+- admin: puede leer metadata para soporte/auditoria.
+- anon/public: sin escritura; lectura publica directa no recomendada.
+
+Mutaciones:
+- provider crea/edita reglas mediante RPCs controladas o politicas scoped por `can_manage_provider_organization`.
+- owner no puede crear, modificar ni desactivar capacidad.
+- `create_booking_from_slot` es la unica mutacion owner que consume cupo y crea booking.
+- `validate_slot_capacity` debe ser helper interno o RPC de solo lectura; no debe ser fuente de verdad separada de `create_booking_from_slot`.
+
+Proteccion anti-sobreventa:
+- `create_booking_from_slot` debe ejecutarse como `security definer` y tomar bloqueo transaccional por regla/slot antes de contar bookings.
+- el conteo debe incluir `pending_approval` y `confirmed`; `completed` mantiene cupo consumido historico.
+- cancelaciones/rechazos liberan cupo solo al cambiar estado del booking.
+- la UI no puede confiar en `available_count` previo para crear booking.
+
+Reglas negativas:
+- owner no puede leer capacidad privada de servicios no publicos.
+- provider externo no puede leer ni modificar reglas de otra organizacion.
+- no habilitar insert/update/delete directo sobre `bookings` para consumir cupo.
+
 ### booking_operations / booking_operation_evidence / booking_operation_report / booking_operation_notes (V2 provider operations)
 Definidas en `supabase/migrations/20260504140000_booking_operations_v2.sql` para V2 no financiero.
 

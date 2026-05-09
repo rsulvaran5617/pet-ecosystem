@@ -3,11 +3,14 @@ import type {
   BookingPaymentMethodSummary,
   BookingPreview,
   BookingPricingSnapshot,
+  BookingSlot,
   BookingStatusChange,
   BookingSummary,
+  CreateBookingFromSlotInput,
   CreateBookingInput,
   CreateBookingPreviewInput,
   Database,
+  ListBookingSlotsInput,
   ListBookingsFilters,
   ListProviderBookingsFilters,
   Uuid
@@ -22,10 +25,13 @@ type HouseholdRow = Database["public"]["Tables"]["households"]["Row"];
 type PaymentMethodRow = Database["public"]["Tables"]["payment_methods"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type PreviewBookingRow = Database["public"]["Functions"]["preview_booking"]["Returns"][number];
+type BookingSlotRow = Database["public"]["Functions"]["get_service_booking_slots"]["Returns"][number];
 
 export interface BookingsApiClient {
   previewBooking(input: CreateBookingPreviewInput): Promise<BookingPreview>;
   createBooking(input: CreateBookingInput): Promise<BookingDetail>;
+  listBookingSlots(input: ListBookingSlotsInput): Promise<BookingSlot[]>;
+  createBookingFromSlot(input: CreateBookingFromSlotInput): Promise<BookingDetail>;
   listBookings(filters: ListBookingsFilters): Promise<BookingSummary[]>;
   listProviderBookings(filters: ListProviderBookingsFilters): Promise<BookingSummary[]>;
   getBookingDetail(bookingId: Uuid): Promise<BookingDetail>;
@@ -41,6 +47,21 @@ function fail(error: { message: string } | null, fallbackMessage: string): never
   }
 
   throw new Error(fallbackMessage);
+}
+
+function mapBookingSlot(row: BookingSlotRow): BookingSlot {
+  return {
+    availabilityRuleId: row.availability_rule_id,
+    organizationId: row.organization_id,
+    serviceId: row.service_id,
+    slotDate: row.slot_date,
+    slotStartAt: row.slot_start_at,
+    slotEndAt: row.slot_end_at,
+    capacityTotal: row.capacity_total,
+    reservedCount: row.reserved_count,
+    availableCount: row.available_count,
+    status: row.status
+  };
 }
 
 function mapPaymentMethodSummary(
@@ -242,6 +263,9 @@ function buildBookingSummary(
     scheduledEndAt: bookingRow.scheduled_end_at,
     cancellationDeadlineAt: bookingRow.cancellation_deadline_at,
     cancellationWindowHours: bookingRow.cancellation_window_hours,
+    availabilityRuleId: bookingRow.availability_rule_id,
+    slotStartAt: bookingRow.slot_start_at,
+    slotEndAt: bookingRow.slot_end_at,
     cancelledAt: bookingRow.cancelled_at,
     cancelReason: bookingRow.cancel_reason,
     householdName: householdNamesById.get(bookingRow.household_id) ?? "Unknown household",
@@ -344,6 +368,36 @@ export function createBookingsApiClient(supabase: BookingsSupabaseClient): Booki
 
       if (error) {
         fail(error, "Unable to create the booking.");
+      }
+
+      return buildBookingDetail(supabase, data);
+    },
+    async listBookingSlots(input) {
+      const { data, error } = await supabase.rpc("get_service_booking_slots", {
+        target_service_id: input.serviceId,
+        from_date: input.fromDate,
+        to_date: input.toDate
+      });
+
+      if (error) {
+        fail(error, "Unable to load booking slots.");
+      }
+
+      return (data ?? []).map(mapBookingSlot);
+    },
+    async createBookingFromSlot(input) {
+      const { data, error } = await supabase.rpc("create_booking_from_slot", {
+        target_household_id: input.householdId,
+        target_pet_id: input.petId,
+        target_provider_service_id: input.serviceId,
+        target_slot_start_at: input.slotStartAt,
+        target_slot_end_at: input.slotEndAt,
+        target_availability_rule_id: input.availabilityRuleId,
+        target_payment_method_id: input.paymentMethodId ?? null
+      });
+
+      if (error) {
+        fail(error, "Unable to create the booking from the selected slot.");
       }
 
       return buildBookingDetail(supabase, data);

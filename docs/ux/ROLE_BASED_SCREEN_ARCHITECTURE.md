@@ -152,6 +152,7 @@ La experiencia debe ser densa, escaneable y orientada a accion.
 - `Households` habilita `Pets`.
 - `Pets` habilita `Health`, `Documents`, `Reminders` y `Bookings`.
 - `Marketplace` entrega seleccion a `BookingPreview`.
+- En V2 booking capacity, `Marketplace` entrega seleccion de servicio y `BookingPreview` debe evolucionar a seleccion explicita de slot/cupo.
 - `BookingDetail` entrega contexto a `ChatThread`, `ReviewBooking` y `SupportCaseCreate`.
 - `BookingDetail` tambien sera el punto owner para mostrar QR temporal de check-in/check-out en V2 provider operations.
 - `AccountSettings` gestiona perfil, preferencias, direcciones, metodos guardados y rol activo.
@@ -225,6 +226,7 @@ La experiencia debe ser densa, escaneable y orientada a accion.
 - `ProviderOrganization` debe existir antes de `ProviderPublicProfile`, `ProviderServices`, `ProviderAvailability` y `ProviderApprovalDocuments`.
 - `ProviderApprovalStatus = approved` es requerido para visibilidad en marketplace.
 - `ProviderServices` y `ProviderAvailability` alimentan `Marketplace`.
+- En V2 booking capacity, `ProviderAvailability` evoluciona a `Horarios y capacidad`, alimentando slots proyectados para booking owner.
 - `ProviderBookingsList` depende de bookings asociados a la organizacion.
 - `ProviderCustomerChat` depende de booking existente.
 - `ProviderReviews` depende de bookings `completed` con review.
@@ -492,10 +494,11 @@ Admin sigue siendo web-first para MVP. No se recomienda abrir admin mobile en es
 3. Resultados y filtros basicos.
 4. Perfil publico del proveedor.
 5. Seleccionar servicio.
-6. Booking preview.
-7. Seleccionar hogar, mascota y metodo guardado opcional.
-8. Crear reserva.
-9. Ver detalle con estado `confirmed` o `pending_approval`.
+6. En V2 booking capacity, seleccionar dia/slot con cupos disponibles.
+7. Booking preview.
+8. Seleccionar hogar, mascota y metodo guardado opcional.
+9. Crear reserva contra RPC transaccional de slot.
+10. Ver detalle con estado `confirmed` o `pending_approval`.
 
 ### Owner conversa y deja resena
 
@@ -533,6 +536,15 @@ Admin sigue siendo web-first para MVP. No se recomienda abrir admin mobile en es
 3. Definir categoria, precio, moneda, modo de booking y ventana de cancelacion.
 4. Marcar servicio activo/publico.
 5. Confirmar que la organizacion debe estar aprobada para aparecer en marketplace.
+
+### Provider configura horarios y capacidad
+
+1. Servicios.
+2. Seleccionar servicio.
+3. Abrir `Horarios y capacidad`.
+4. Crear franja semanal: dia, hora inicio, hora fin, capacidad y estado.
+5. Opcionalmente agregar excepcion de fecha para cerrar o ajustar cupos.
+6. Confirmar que los slots owner se proyectan solo para servicios activos/publicos de organizaciones aprobadas.
 
 ### Provider recibe y gestiona reservas
 
@@ -593,6 +605,7 @@ Admin sigue siendo web-first para MVP. No se recomienda abrir admin mobile en es
 | Provider organization/profile | implementado | `ProviderOnboarding`, `Negocio` | Checklist orientado a publicacion. |
 | Provider services | implementado | `Servicios` | Reusar formularios existentes. |
 | Provider availability | implementado | `Disponibilidad` | Reusar formularios existentes. |
+| Booking capacity slots | propuesto V2 | `Horarios y capacidad`, `BookingPreview > Seleccionar horario` | Modelo hibrido recomendado; requiere backend transaccional antes de UI final. |
 | Provider documents/status | implementado | `Estado`, `Documentos` | Explicar impacto en marketplace. |
 | Provider bookings | implementado | `Reservas proveedor` | Acciones por estado. |
 | Admin providers | implementado | `Admin > Proveedores` | Ya cercano a backoffice, mejorar cola/detalle. |

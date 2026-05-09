@@ -1,6 +1,7 @@
 import type {
   BookingDetail,
   BookingPreview,
+  BookingSlot,
   BookingSummary,
   HouseholdsSnapshot,
   MarketplaceServiceSelection,
@@ -28,15 +29,22 @@ interface UseBookingsWorkspaceResult {
   selectedHouseholdId: Uuid | null;
   selectedPetId: Uuid | null;
   selectedPaymentMethodId: Uuid | null;
+  bookingSlots: BookingSlot[];
+  selectedBookingSlot: BookingSlot | null;
+  selectedSlotDate: string | null;
   errorMessage: string | null;
   infoMessage: string | null;
   isLoading: boolean;
+  isLoadingSlots: boolean;
   isSubmitting: boolean;
   clearMessages: () => void;
   clearSelection: () => void;
   selectHousehold: (householdId: Uuid) => Promise<void>;
   selectPet: (petId: Uuid | null) => Promise<void>;
   selectPaymentMethod: (paymentMethodId: Uuid | null) => void;
+  loadBookingSlots: () => Promise<BookingSlot[]>;
+  selectSlotDate: (slotDate: string) => void;
+  selectBookingSlot: (slot: BookingSlot | null) => void;
   buildPreview: () => Promise<BookingPreview>;
   createBooking: () => Promise<BookingDetail>;
   openBookingDetail: (bookingId: Uuid) => Promise<void>;
@@ -53,6 +61,7 @@ export function useBookingsWorkspace(
   const selectedHouseholdIdRef = useRef<Uuid | null>(incomingSelection?.householdId ?? null);
   const selectedPetIdRef = useRef<Uuid | null>(incomingSelection?.petId ?? null);
   const selectedPaymentMethodIdRef = useRef<Uuid | null>(null);
+  const selectedBookingSlotRef = useRef<BookingSlot | null>(null);
   const [householdSnapshot, setHouseholdSnapshot] = useState<HouseholdsSnapshot | null>(null);
   const [pets, setPets] = useState<PetSummary[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<UserPaymentMethod[]>([]);
@@ -63,10 +72,104 @@ export function useBookingsWorkspace(
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(incomingSelection?.householdId ?? null);
   const [selectedPetId, setSelectedPetId] = useState<Uuid | null>(incomingSelection?.petId ?? null);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<Uuid | null>(null);
+  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([]);
+  const [selectedBookingSlot, setSelectedBookingSlot] = useState<BookingSlot | null>(null);
+  const [selectedSlotDate, setSelectedSlotDate] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function formatDateOnly(date: Date) {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  function resetSlotSelection() {
+    selectedBookingSlotRef.current = null;
+    setSelectedBookingSlot(null);
+  }
+
+  function getActionErrorMessage(error: unknown, fallbackMessage: string) {
+    if (
+      error instanceof Error &&
+      [
+        "Selected slot is no longer available",
+        "Selected slot is not available",
+        "Selected slot was not found",
+        "Selected slot range is invalid"
+      ].includes(error.message)
+    ) {
+      return "Este horario acaba de llenarse. Elige otro horario disponible.";
+    }
+
+    if (error instanceof Error && error.message === "Selected provider service has no active availability yet") {
+      return "Este servicio no tiene disponibilidad activa para el flujo legacy. Elige un horario disponible o prueba otro servicio.";
+    }
+
+    return error instanceof Error ? error.message : fallbackMessage;
+  }
+
+  function buildSlotPreview(selection: MarketplaceServiceSelection, slot: BookingSlot): BookingPreview {
+    if (!selectedHouseholdIdRef.current) {
+      throw new Error("Elige un hogar antes de continuar con la vista previa de la reserva.");
+    }
+
+    if (!selectedPetIdRef.current) {
+      throw new Error("Elige una mascota antes de continuar con la vista previa de la reserva.");
+    }
+
+    if (
+      !selection.providerName ||
+      !selection.serviceName ||
+      !selection.serviceBookingMode ||
+      selection.serviceBasePriceCents === undefined ||
+      !selection.serviceCurrencyCode ||
+      selection.serviceCancellationWindowHours === undefined
+    ) {
+      throw new Error("No fue posible preparar la vista previa del horario seleccionado. Vuelve a seleccionar el servicio desde Buscar.");
+    }
+
+    const household = householdSnapshot?.households.find((candidate) => candidate.id === selectedHouseholdIdRef.current);
+    const pet = pets.find((candidate) => candidate.id === selectedPetIdRef.current);
+    const paymentMethod = paymentMethods.find((candidate) => candidate.id === selectedPaymentMethodIdRef.current) ?? null;
+    const cancellationDeadline = new Date(slot.slotStartAt);
+    cancellationDeadline.setHours(cancellationDeadline.getHours() - Math.max(selection.serviceCancellationWindowHours, 0));
+
+    return {
+      householdId: selectedHouseholdIdRef.current,
+      petId: selectedPetIdRef.current,
+      providerOrganizationId: selection.providerId,
+      providerServiceId: selection.serviceId,
+      selectedPaymentMethodId: selectedPaymentMethodIdRef.current,
+      bookingMode: selection.serviceBookingMode,
+      statusOnCreate: selection.serviceBookingMode === "instant" ? "confirmed" : "pending_approval",
+      scheduledStartAt: slot.slotStartAt,
+      scheduledEndAt: slot.slotEndAt,
+      cancellationDeadlineAt: cancellationDeadline.toISOString(),
+      cancellationWindowHours: selection.serviceCancellationWindowHours,
+      currencyCode: selection.serviceCurrencyCode,
+      unitPriceCents: selection.serviceBasePriceCents,
+      subtotalPriceCents: selection.serviceBasePriceCents,
+      totalPriceCents: selection.serviceBasePriceCents,
+      householdName: household?.name ?? "Hogar seleccionado",
+      petName: pet?.name ?? "Mascota seleccionada",
+      providerName: selection.providerName,
+      serviceName: selection.serviceName,
+      serviceDurationMinutes: selection.serviceDurationMinutes ?? null,
+      paymentMethodSummary: paymentMethod
+        ? {
+            id: paymentMethod.id,
+            brand: paymentMethod.brand,
+            last4: paymentMethod.last4
+          }
+        : null
+    };
+  }
 
   async function loadBookings(householdId: Uuid | null, petId: Uuid | null) {
     if (!householdId) {
@@ -135,6 +238,9 @@ export function useBookingsWorkspace(
         setSelectedHouseholdId(null);
         setSelectedPetId(null);
         setSelectedPaymentMethodId(null);
+        setBookingSlots([]);
+        setSelectedSlotDate(null);
+        resetSlotSelection();
         activeSelectionRef.current = null;
         selectedHouseholdIdRef.current = null;
         selectedPetIdRef.current = null;
@@ -206,7 +312,7 @@ export function useBookingsWorkspace(
       return result;
     } catch (error) {
       if (mountedRef.current) {
-        setErrorMessage(error instanceof Error ? error.message : "La accion de reservas fallo.");
+        setErrorMessage(getActionErrorMessage(error, "La accion de reservas fallo."));
       }
 
       throw error;
@@ -237,6 +343,9 @@ export function useBookingsWorkspace(
     setActiveSelection(incomingSelection);
     setPreview(null);
     setSelectedBookingDetail(null);
+    setBookingSlots([]);
+    setSelectedSlotDate(null);
+    resetSlotSelection();
     setInfoMessage("Seleccion de servicio importada desde Servicios. Revisa hogar, mascota y metodo de pago antes de generar la vista previa.");
     setErrorMessage(null);
     void refresh(incomingSelection);
@@ -253,9 +362,13 @@ export function useBookingsWorkspace(
     selectedHouseholdId,
     selectedPetId,
     selectedPaymentMethodId,
+    bookingSlots,
+    selectedBookingSlot,
+    selectedSlotDate,
     errorMessage,
     infoMessage,
     isLoading,
+    isLoadingSlots,
     isSubmitting,
     clearMessages() {
       setErrorMessage(null);
@@ -265,6 +378,9 @@ export function useBookingsWorkspace(
       activeSelectionRef.current = null;
       setActiveSelection(null);
       setPreview(null);
+      setBookingSlots([]);
+      setSelectedSlotDate(null);
+      resetSlotSelection();
       setInfoMessage("Seleccion de servicio limpiada. Puedes buscar un nuevo servicio cuando quieras preparar otra reserva.");
     },
     async selectHousehold(householdId) {
@@ -272,6 +388,7 @@ export function useBookingsWorkspace(
       selectedPetIdRef.current = null;
       setSelectedHouseholdId(householdId);
       setPreview(null);
+      resetSlotSelection();
       setIsLoading(true);
 
       try {
@@ -290,6 +407,7 @@ export function useBookingsWorkspace(
       selectedPetIdRef.current = petId;
       setSelectedPetId(petId);
       setPreview(null);
+      resetSlotSelection();
       setIsLoading(true);
 
       try {
@@ -309,6 +427,55 @@ export function useBookingsWorkspace(
       setSelectedPaymentMethodId(paymentMethodId);
       setPreview(null);
     },
+    async loadBookingSlots() {
+      if (!activeSelectionRef.current) {
+        throw new Error("Selecciona un servicio antes de consultar horarios.");
+      }
+
+      setIsLoadingSlots(true);
+      setErrorMessage(null);
+
+      try {
+        const from = new Date();
+        const to = new Date(from);
+        to.setDate(to.getDate() + 21);
+        const slots = await getMobileBookingsApiClient().listBookingSlots({
+          serviceId: activeSelectionRef.current.serviceId,
+          fromDate: formatDateOnly(from),
+          toDate: formatDateOnly(to)
+        });
+
+        if (mountedRef.current) {
+          setBookingSlots(slots);
+          const firstAvailableSlot =
+            slots.find((slot) => slot.status === "available" || slot.status === "low_capacity") ?? slots[0] ?? null;
+          setSelectedSlotDate(firstAvailableSlot?.slotDate ?? formatDateOnly(from));
+          selectedBookingSlotRef.current = null;
+          setSelectedBookingSlot(null);
+        }
+
+        return slots;
+      } catch (error) {
+        if (mountedRef.current) {
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar los horarios disponibles.");
+        }
+
+        throw error;
+      } finally {
+        if (mountedRef.current) {
+          setIsLoadingSlots(false);
+        }
+      }
+    },
+    selectSlotDate(slotDate) {
+      setSelectedSlotDate(slotDate);
+      resetSlotSelection();
+    },
+    selectBookingSlot(slot) {
+      selectedBookingSlotRef.current = slot;
+      setSelectedBookingSlot(slot);
+      setPreview(null);
+    },
     async buildPreview() {
       if (!activeSelectionRef.current) {
         throw new Error("Selecciona un servicio del marketplace antes de generar la vista previa de la reserva.");
@@ -324,13 +491,16 @@ export function useBookingsWorkspace(
 
       return runAction(
         async () => {
-          const nextPreview = await getMobileBookingsApiClient().previewBooking({
-            householdId: selectedHouseholdIdRef.current!,
-            petId: selectedPetIdRef.current!,
-            providerId: activeSelectionRef.current!.providerId,
-            serviceId: activeSelectionRef.current!.serviceId,
-            paymentMethodId: selectedPaymentMethodIdRef.current
-          });
+          const selectedSlot = selectedBookingSlotRef.current;
+          const nextPreview = selectedSlot
+            ? buildSlotPreview(activeSelectionRef.current!, selectedSlot)
+            : await getMobileBookingsApiClient().previewBooking({
+                householdId: selectedHouseholdIdRef.current!,
+                petId: selectedPetIdRef.current!,
+                providerId: activeSelectionRef.current!.providerId,
+                serviceId: activeSelectionRef.current!.serviceId,
+                paymentMethodId: selectedPaymentMethodIdRef.current
+              });
 
           if (mountedRef.current) {
             setPreview(nextPreview);
@@ -353,19 +523,34 @@ export function useBookingsWorkspace(
       }
 
       return runAction(async () => {
-        const detail = await getMobileBookingsApiClient().createBooking({
-          householdId: selectedHouseholdIdRef.current!,
-          petId: selectedPetIdRef.current!,
-          providerId: activeSelectionRef.current!.providerId,
-          serviceId: activeSelectionRef.current!.serviceId,
-          paymentMethodId: selectedPaymentMethodIdRef.current
-        });
+        const selectedSlot = selectedBookingSlotRef.current;
+        const detail = selectedSlot
+          ? await getMobileBookingsApiClient().createBookingFromSlot({
+              householdId: selectedHouseholdIdRef.current!,
+              petId: selectedPetIdRef.current!,
+              serviceId: activeSelectionRef.current!.serviceId,
+              availabilityRuleId: selectedSlot.availabilityRuleId,
+              slotStartAt: selectedSlot.slotStartAt,
+              slotEndAt: selectedSlot.slotEndAt,
+              paymentMethodId: selectedPaymentMethodIdRef.current
+            })
+          : await getMobileBookingsApiClient().createBooking({
+              householdId: selectedHouseholdIdRef.current!,
+              petId: selectedPetIdRef.current!,
+              providerId: activeSelectionRef.current!.providerId,
+              serviceId: activeSelectionRef.current!.serviceId,
+              paymentMethodId: selectedPaymentMethodIdRef.current
+            });
 
         activeSelectionRef.current = null;
+        selectedBookingSlotRef.current = null;
 
         if (mountedRef.current) {
           setActiveSelection(null);
           setPreview(null);
+          setBookingSlots([]);
+          setSelectedBookingSlot(null);
+          setSelectedSlotDate(null);
           setSelectedBookingDetail(detail);
         }
 

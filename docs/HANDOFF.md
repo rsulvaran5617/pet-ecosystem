@@ -44,9 +44,35 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - QR-2 owner mobile display queda implementado y validado manualmente en Android: el owner genera QR temporal de check-in/check-out desde una reserva confirmada.
 - QR-3 provider scanner queda implementado y validado manualmente en Android: el provider escanea el QR operacional del owner, consume el token via RPC y el timeline registra check-in/check-out sin crash de camara ni error RLS.
 - Los cambios locales exploratorios de Slice C evidencia fueron pausados en stash antes del rediseño QR.
-- Fuera de estos slices quedan evidencia, report card e internal notes.
+- Slice C evidencia documental queda validado manualmente en Android sobre el modelo QR: provider carga `Evidencia documental` despues de check-out, el archivo va al bucket privado `booking-operation-evidence` y la metadata usa `storage_bucket` + `storage_path`. Para compatibilidad con el esquema remoto legacy que aun exige `file_url not null`, el cliente envia `file_url = storage_path` como path privado, sin URL publica arbitraria.
+- Fuera de estos slices quedan report card e internal notes.
+
+## Actualizacion V2 Booking Capacity
+
+- Rama de trabajo documental: `feature/v2-booking-capacity`
+- Baseline de partida: `v0.2.0-booking-qr-ops.1`
+- CAP-0 abre diseno documental para slots/franjas con capacidad.
+- Evidencia documental/actividad queda integrada sobre el flujo QR como Slice C; el stash previo se conserva sin aplicarse.
+- Modelo actual diagnosticado: `provider_availability` semanal por organizacion sin capacidad; `preview_booking`/`create_booking` eligen el proximo bloque activo.
+- Modelo recomendado: hibrido, con reglas recurrentes por servicio, excepciones puntuales por fecha, proyeccion de slots por RPC y creacion transaccional de booking desde slot.
+- Principio de seguridad: owner no modifica capacidad; provider administra solo sus organizaciones; backend valida cupo final y evita sobreventa.
+- QR operations no cambia: sigue despues de que la reserva existe y no participa en seleccion de cupo.
+- CAP-1 backend quedo aplicado y publicado en `feature/v2-booking-capacity`: tablas `provider_availability_rules` / `provider_availability_exceptions`, columnas de slot en `bookings`, RPC `get_service_booking_slots` y RPC transaccional `create_booking_from_slot`.
+- CAP-2 provider UI queda implementado en mobile: la consola provider muestra `Horarios y capacidad`, permite crear/editar reglas por servicio con dia, horario, capacidad y estado activo/inactivo.
+- CAP-3 owner UI queda implementado localmente: owner selecciona fecha/slot con `react-native-calendars` como capa visual, tarjetas propias de cupo y `create_booking_from_slot` como unica mutacion final cuando hay slot elegido.
+- Fix CAP-3 aplicado: `Generar preview` con slot seleccionado construye una vista previa local y no consume cupo; solo `Confirmar reserva` llama `create_booking_from_slot` y consume capacidad.
+- El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
 
 ## Ajustes QA visual de Cuenta provider
+
+## Actualizacion visual alignment reference canon
+
+- Fase abierta: `visual_alignment_reference_canon`.
+- Canon visual: imagenes en `docs/ux/reference/` para owner mobile, mascotas, marketplace, booking, horarios/capacidad provider y admin web.
+- Guia derivada: `docs/ux/VISUAL_STYLE_GUIDE.md`.
+- Alcance aplicado: tokens visuales compartidos, cards/chips/botones mobile, shell owner/provider, navegacion inferior mobile y shell/cards/admin web.
+- No se cambio backend, Supabase, RLS, RPCs, migraciones, contratos API, pagos, permisos, QR flow ni reglas de booking.
+- Quedan pendientes de polish fino: reproduccion exacta de iconografia/imagenes fotograficas de las referencias y validacion visual manual en dispositivo/navegador.
 
 Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera de contexto en modo provider:
 

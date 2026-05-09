@@ -55,6 +55,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `payment_methods` almacena solo metodos guardados del usuario. El MVP queda en modo `payment-ready`; no existe captura real de pago.
 - `provider_organizations` controla ownership, estado de aprobacion y visibilidad base.
 - `provider_public_profiles`, `provider_services` y `provider_availability` alimentan discovery publico.
+- V2 booking capacity propone reglas de disponibilidad por servicio con capacidad y excepciones por fecha; `provider_availability` actual se conserva para compatibilidad hasta migrar.
 - `bookings` soporta `pending_approval`, `confirmed`, `completed` y `cancelled`.
 - `booking_pricing` congela el snapshot economico al momento de crear la reserva.
 - `booking_status_history` conserva la trazabilidad funcional del booking.
@@ -67,6 +68,72 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 No crear tablas fuera del modelo oficial sin actualizar esta documentacion.
 
 ## Tablas V2 propuestas pendientes de migracion
+
+### provider_availability_rules
+
+Entidad propuesta para V2 booking capacity. Representa reglas recurrentes por servicio, no bookings concretos.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `organization_id uuid not null references provider_organizations(id) on delete cascade`
+- `provider_service_id uuid not null references provider_services(id) on delete cascade`
+- `day_of_week smallint not null check (day_of_week between 0 and 6)`
+- `starts_at time not null`
+- `ends_at time not null`
+- `capacity integer not null check (capacity > 0)`
+- `is_active boolean not null default true`
+- `effective_from date null`
+- `effective_until date null`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- la regla pertenece al owner de la organizacion del servicio.
+- `ends_at` debe ser posterior a `starts_at`.
+- `provider_service_id` debe pertenecer a `organization_id`.
+- CAP-1 debe decidir si permite solapamiento de reglas del mismo servicio/dia; recomendacion inicial: bloquear solapamientos activos.
+- la capacidad configura cupos maximos por slot proyectado.
+
+### provider_availability_exceptions
+
+Entidad propuesta para cerrar o ajustar fechas concretas sin borrar la regla recurrente.
+
+Campos conceptuales:
+
+- `id uuid primary key default gen_random_uuid()`
+- `availability_rule_id uuid not null references provider_availability_rules(id) on delete cascade`
+- `exception_date date not null`
+- `is_available boolean not null default false`
+- `capacity_override integer null check (capacity_override is null or capacity_override >= 0)`
+- `starts_at_override time null`
+- `ends_at_override time null`
+- `reason text null`
+- `created_by_user_id uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Reglas conceptuales:
+
+- una excepcion puede cerrar la fecha (`is_available = false`) o ajustar capacidad/horario.
+- capacity `0` o `is_available = false` vuelve el slot `unavailable`.
+- debe existir unicidad por regla y fecha.
+
+### bookings slot fields
+
+Campos propuestos sobre `bookings` para trazabilidad V2:
+
+- `availability_rule_id uuid null references provider_availability_rules(id) on delete set null`
+- `slot_start_at timestamptz null`
+- `slot_end_at timestamptz null`
+
+Reglas conceptuales:
+
+- bookings existentes conservan `null` en estos campos.
+- bookings creados por `create_booking_from_slot` deben guardar regla e intervalo.
+- `scheduled_start_at`/`scheduled_end_at` siguen siendo el rango canonico operacional.
+- `slot_start_at`/`slot_end_at` permiten conteo de cupos y auditoria del slot seleccionado.
 
 ### booking_operations
 

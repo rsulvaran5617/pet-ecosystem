@@ -2,6 +2,7 @@
 
 import { coreRoleLabels } from "@pet/config";
 import type { CoreIdentitySnapshot } from "@pet/types";
+import { colorTokens, visualTokens } from "@pet/ui";
 import { useEffect, useMemo, useState } from "react";
 
 import { getAdminCoreApiClient } from "../features/core/services/supabase-admin";
@@ -18,26 +19,27 @@ const adminSections: Array<{ description: string; id: AdminSection; label: strin
 
 const shellStyle = {
   minHeight: "100vh",
-  padding: "32px",
+  padding: "24px 32px",
   display: "grid",
   gap: "24px",
-  width: "min(1280px, 100%)",
-  margin: "0 auto"
+  width: "100%",
+  background: visualTokens.web.shellBackground
 } as const;
 
 const cardStyle = {
-  borderRadius: "24px",
+  borderRadius: "18px",
   border: "1px solid rgba(24,24,27,0.12)",
-  background: "rgba(255,255,255,0.82)",
+  background: "#ffffff",
   padding: "24px",
   display: "grid",
-  gap: "14px"
+  gap: "14px",
+  boxShadow: visualTokens.web.cardShadow
 } as const;
 
 const inputStyle = {
   borderRadius: "14px",
   border: "1px solid rgba(24,24,27,0.14)",
-  background: "#fefcf5",
+  background: "#ffffff",
   padding: "12px 14px",
   fontSize: "15px"
 } as const;
@@ -63,8 +65,8 @@ function Button({
       style={{
         borderRadius: "999px",
         border: tone === "primary" ? "none" : "1px solid rgba(24,24,27,0.14)",
-        background: tone === "primary" ? "#1d4ed8" : "rgba(255,255,255,0.88)",
-        color: tone === "primary" ? "#f8fafc" : "#18181b",
+        background: tone === "primary" ? colorTokens.adminAccent : "rgba(255,255,255,0.92)",
+        color: tone === "primary" ? "#f8fafc" : colorTokens.adminAccent,
         padding: "12px 18px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
@@ -117,21 +119,25 @@ export default function AdminPage() {
     <main style={shellStyle}>
       <header
         style={{
-          borderRadius: "28px",
-          padding: "32px",
-          background: "rgba(17,24,39,0.94)",
-          color: "#f8fafc",
-          display: "grid",
-          gap: "12px"
+          borderRadius: "18px",
+          padding: "28px 32px",
+          background: "#ffffff",
+          border: "1px solid rgba(15,23,42,0.08)",
+          boxShadow: visualTokens.web.softShadow,
+          color: colorTokens.ink,
+          display: "flex",
+          gap: "16px",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap"
         }}
       >
-        <p style={{ margin: 0, fontSize: "12px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#93c5fd" }}>
-          Administracion / Operacion de plataforma MVP
-        </p>
-        <h1 style={{ margin: 0, fontSize: "42px", lineHeight: 1.05 }}>Aprobaciones de proveedores y triaje de soporte</h1>
-        <p style={{ margin: 0, maxWidth: "760px", lineHeight: 1.7, color: "rgba(248,250,252,0.82)" }}>
-          Esta superficie administrativa se limita a los alcances canonicos del MVP: revision de aprobaciones de proveedores y triaje de casos de soporte. No abre disputas, macros ni operaciones avanzadas.
-        </p>
+        <div style={{ display: "grid", gap: "6px" }}>
+          <h1 style={{ margin: 0, fontSize: "30px", lineHeight: 1.12 }}>Centro de operaciones</h1>
+          <p style={{ margin: 0, maxWidth: "760px", lineHeight: 1.55, color: colorTokens.muted }}>
+            Resumen y gestion operativa de aprobaciones de proveedores y casos de soporte MVP.
+          </p>
+        </div>
         {snapshot ? (
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             {snapshot.roles.map((role) => (
@@ -140,8 +146,8 @@ export default function AdminPage() {
                 style={{
                   borderRadius: "999px",
                   padding: "8px 12px",
-                  background: role.role === "admin" ? "rgba(59,130,246,0.18)" : "rgba(255,255,255,0.1)",
-                  color: role.role === "admin" ? "#bfdbfe" : "#e4e4e7",
+                  background: role.role === "admin" ? colorTokens.blueSoft : "rgba(95,102,117,0.08)",
+                  color: role.role === "admin" ? colorTokens.admin : colorTokens.mutedStrong,
                   fontWeight: 700
                 }}
               >
@@ -251,7 +257,7 @@ export default function AdminPage() {
 
       {authChecked && snapshot && isAdmin ? (
         <>
-          <section style={{ ...cardStyle, marginBottom: "20px" }}>
+          <section style={{ ...cardStyle, marginBottom: "20px", padding: "18px 20px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
               <div style={{ display: "grid", gap: "4px" }}>
                 <strong>{snapshot.profile.email}</strong>
@@ -298,9 +304,9 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 260px),1fr))", gap: "20px", alignItems: "start" }}>
-            <aside style={{ ...cardStyle, position: "sticky", top: "24px", padding: "16px" }}>
-              <strong style={{ color: "#18181b" }}>Backoffice MVP</strong>
+          <div style={{ display: "grid", gridTemplateColumns: "240px minmax(0,1fr)", gap: "24px", alignItems: "start" }}>
+            <aside style={{ borderRadius: "18px", background: colorTokens.admin, color: "#f8fafc", position: "sticky", top: "24px", padding: "18px", display: "grid", gap: "22px", minHeight: "calc(100vh - 48px)", boxShadow: "0 24px 60px rgba(2,6,23,0.22)" }}>
+              <strong style={{ color: "#f8fafc", fontSize: "22px", lineHeight: 1.05 }}>Pet<br />Ecosystem</strong>
               <nav style={{ display: "grid", gap: "8px" }}>
                 {adminSections.map((section) => {
                   const isActive = activeSection === section.id;
@@ -311,9 +317,9 @@ export default function AdminPage() {
                       onClick={() => setActiveSection(section.id)}
                       type="button"
                       style={{
-                        borderRadius: "14px",
-                        border: "1px solid rgba(24,24,27,0.1)",
-                        background: isActive ? "#1d4ed8" : "rgba(255,255,255,0.86)",
+                        borderRadius: "12px",
+                        border: "1px solid transparent",
+                        background: isActive ? "linear-gradient(135deg,#00978f,#007f8a)" : "transparent",
                         color: isActive ? "#f8fafc" : "#18181b",
                         cursor: "pointer",
                         display: "grid",
@@ -322,8 +328,8 @@ export default function AdminPage() {
                         textAlign: "left"
                       }}
                     >
-                      <strong>{section.label}</strong>
-                      <span style={{ color: isActive ? "rgba(248,250,252,0.78)" : "#52525b", fontSize: "13px", lineHeight: 1.4 }}>
+                      <strong style={{ color: "#f8fafc" }}>{section.label}</strong>
+                      <span style={{ color: isActive ? "rgba(248,250,252,0.78)" : "rgba(248,250,252,0.7)", fontSize: "13px", lineHeight: 1.4 }}>
                         {section.description}
                       </span>
                     </button>

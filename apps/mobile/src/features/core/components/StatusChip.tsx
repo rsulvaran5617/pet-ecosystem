@@ -1,3 +1,4 @@
+import { colorTokens } from "@pet/ui";
 import { Text, View } from "react-native";
 
 interface StatusChipProps {
@@ -7,19 +8,19 @@ interface StatusChipProps {
 
 const palette = {
   active: {
-    backgroundColor: "rgba(15, 118, 110, 0.12)",
-    borderColor: "rgba(15, 118, 110, 0.24)",
-    color: "#0f766e"
+    backgroundColor: colorTokens.accentSoft,
+    borderColor: "rgba(0,151,143,0.22)",
+    color: colorTokens.accentDark
   },
   pending: {
-    backgroundColor: "rgba(180, 83, 9, 0.12)",
-    borderColor: "rgba(180, 83, 9, 0.24)",
-    color: "#b45309"
+    backgroundColor: colorTokens.warningSoft,
+    borderColor: "rgba(249,115,22,0.24)",
+    color: "#c2410c"
   },
   neutral: {
-    backgroundColor: "rgba(87, 83, 78, 0.08)",
-    borderColor: "rgba(87, 83, 78, 0.14)",
-    color: "#44403c"
+    backgroundColor: "rgba(95,102,117,0.08)",
+    borderColor: "rgba(95,102,117,0.14)",
+    color: colorTokens.mutedStrong
   }
 } as const;
 
@@ -38,10 +39,9 @@ export function StatusChip({ label, tone }: StatusChipProps) {
       <Text
         style={{
           color: palette[tone].color,
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: "700",
-          letterSpacing: 0.8,
-          textTransform: "uppercase"
+          letterSpacing: 0
         }}
       >
         {label}

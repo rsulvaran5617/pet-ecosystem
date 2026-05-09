@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { colorTokens, visualTokens } from "@pet/ui";
 import { Text, View } from "react-native";
 
 interface CoreSectionCardProps {
@@ -12,12 +13,13 @@ export function CoreSectionCard({ eyebrow, title, description, children }: CoreS
   return (
     <View
       style={{
-        borderRadius: 24,
+        borderRadius: visualTokens.mobile.sectionRadius,
         borderWidth: 1,
-        borderColor: "rgba(28, 25, 23, 0.1)",
-        backgroundColor: "rgba(255,255,255,0.92)",
+        borderColor: colorTokens.line,
+        backgroundColor: "rgba(255,255,255,0.96)",
         padding: 20,
-        gap: 16
+        gap: 16,
+        ...visualTokens.mobile.shadow
       }}
     >
       <View style={{ gap: 6 }}>
@@ -27,13 +29,13 @@ export function CoreSectionCard({ eyebrow, title, description, children }: CoreS
             fontWeight: "700",
             letterSpacing: 1.2,
             textTransform: "uppercase",
-            color: "#0f766e"
+            color: colorTokens.accent
           }}
         >
           {eyebrow}
         </Text>
-        <Text style={{ fontSize: 24, fontWeight: "700", color: "#1c1917" }}>{title}</Text>
-        <Text style={{ fontSize: 15, lineHeight: 22, color: "#57534e" }}>{description}</Text>
+        <Text style={{ fontSize: 24, fontWeight: "800", color: colorTokens.ink }}>{title}</Text>
+        <Text style={{ fontSize: 15, lineHeight: 22, color: colorTokens.muted }}>{description}</Text>
       </View>
       {children}
     </View>
