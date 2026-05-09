@@ -56,9 +56,13 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Modelo recomendado: hibrido, con reglas recurrentes por servicio, excepciones puntuales por fecha, proyeccion de slots por RPC y creacion transaccional de booking desde slot.
 - Principio de seguridad: owner no modifica capacidad; provider administra solo sus organizaciones; backend valida cupo final y evita sobreventa.
 - QR operations no cambia: sigue despues de que la reserva existe y no participa en seleccion de cupo.
-- CAP-1 backend debe crear migracion y RPCs con dry-run antes de cualquier `supabase db push` real.
+- CAP-1 backend quedo aplicado y publicado en `feature/v2-booking-capacity`: tablas `provider_availability_rules` / `provider_availability_exceptions`, columnas de slot en `bookings`, RPC `get_service_booking_slots` y RPC transaccional `create_booking_from_slot`.
+- CAP-2 provider UI queda implementado en mobile: la consola provider muestra `Horarios y capacidad`, permite crear/editar reglas por servicio con dia, horario, capacidad y estado activo/inactivo.
+- CAP-3 owner UI queda implementado localmente: owner selecciona fecha/slot con `react-native-calendars` como capa visual, tarjetas propias de cupo y `create_booking_from_slot` como unica mutacion final cuando hay slot elegido.
+- El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
 
 ## Ajustes QA visual de Cuenta provider
+
 
 Durante la revision visual con `QA_PROVIDER` se detectaron dos elementos fuera de contexto en modo provider:
 

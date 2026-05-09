@@ -43,6 +43,12 @@ Flujo provider:
 - cerrar o ajustar una fecha concreta mediante excepcion.
 - ver reservas tomadas por slot para operar capacidad.
 
+Estado CAP-2:
+- mobile provider implementa la pantalla `Horarios y capacidad` dentro de la consola proveedor.
+- el proveedor puede seleccionar servicio, dia, hora inicio, hora fin, capacidad y activo/inactivo.
+- la lista muestra reglas existentes con servicio, dia, horario, capacidad y estado.
+- CAP-2 no calcula cupos disponibles ni crea bookings; esa lectura owner queda para CAP-3.
+
 Reglas provider:
 - solo el owner de la organizacion administra capacidad de sus servicios.
 - la capacidad debe ser mayor a cero cuando la regla esta activa.

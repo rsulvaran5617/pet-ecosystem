@@ -1,16 +1,19 @@
 import type {
   CreateProviderAvailabilityInput,
+  CreateProviderAvailabilityRuleInput,
   CreateProviderOrganizationInput,
   CreateProviderServiceInput,
   Database,
   ProviderApprovalDocument,
   ProviderApprovalStatusSnapshot,
+  ProviderAvailabilityRule,
   ProviderAvailabilitySlot,
   ProviderOrganization,
   ProviderOrganizationDetail,
   ProviderPublicProfile,
   ProviderService,
   UpdateProviderAvailabilityInput,
+  UpdateProviderAvailabilityRuleInput,
   UpdateProviderOrganizationInput,
   UpdateProviderServiceInput,
   UploadProviderApprovalDocumentInput,
@@ -24,6 +27,7 @@ type ProviderOrganizationRow = Database["public"]["Tables"]["provider_organizati
 type ProviderPublicProfileRow = Database["public"]["Tables"]["provider_public_profiles"]["Row"];
 type ProviderServiceRow = Database["public"]["Tables"]["provider_services"]["Row"];
 type ProviderAvailabilityRow = Database["public"]["Tables"]["provider_availability"]["Row"];
+type ProviderAvailabilityRuleRow = Database["public"]["Tables"]["provider_availability_rules"]["Row"];
 type ProviderDocumentRow = Database["public"]["Tables"]["provider_documents"]["Row"];
 
 const providerDocumentsBucketId = "provider-documents";
@@ -38,6 +42,10 @@ export interface ProvidersApiClient {
   updateProviderService(serviceId: Uuid, input: UpdateProviderServiceInput): Promise<ProviderService>;
   addProviderAvailabilitySlot(input: CreateProviderAvailabilityInput): Promise<ProviderAvailabilitySlot>;
   updateProviderAvailabilitySlot(slotId: Uuid, input: UpdateProviderAvailabilityInput): Promise<ProviderAvailabilitySlot>;
+  listProviderAvailabilityRules(organizationId: Uuid): Promise<ProviderAvailabilityRule[]>;
+  createProviderAvailabilityRule(input: CreateProviderAvailabilityRuleInput): Promise<ProviderAvailabilityRule>;
+  updateProviderAvailabilityRule(ruleId: Uuid, input: UpdateProviderAvailabilityRuleInput): Promise<ProviderAvailabilityRule>;
+  setProviderAvailabilityRuleActive(ruleId: Uuid, isActive: boolean): Promise<ProviderAvailabilityRule>;
   listProviderApprovalDocuments(organizationId: Uuid): Promise<ProviderApprovalDocument[]>;
   uploadProviderApprovalDocument(organizationId: Uuid, input: UploadProviderApprovalDocumentInput): Promise<ProviderApprovalDocument>;
   getProviderApprovalStatus(organizationId: Uuid): Promise<ProviderApprovalStatusSnapshot>;
@@ -153,6 +161,23 @@ function mapProviderAvailability(row: ProviderAvailabilityRow): ProviderAvailabi
   };
 }
 
+function mapProviderAvailabilityRule(row: ProviderAvailabilityRuleRow): ProviderAvailabilityRule {
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    serviceId: row.service_id,
+    dayOfWeek: row.day_of_week as ProviderAvailabilityRule["dayOfWeek"],
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    capacity: row.capacity,
+    isActive: row.is_active,
+    effectiveFrom: row.effective_from,
+    effectiveUntil: row.effective_until,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
 function mapProviderDocument(row: ProviderDocumentRow): ProviderApprovalDocument {
   return {
     id: row.id,
@@ -187,12 +212,24 @@ async function getProviderOrganizationDetailById(
     fail(organizationError, "No fue posible cargar la organizacion del proveedor.");
   }
 
-  const [{ data: publicProfileRow, error: publicProfileError }, { data: serviceRows, error: servicesError }, { data: availabilityRows, error: availabilityError }, { data: documentRows, error: documentsError }] =
+  const [
+    { data: publicProfileRow, error: publicProfileError },
+    { data: serviceRows, error: servicesError },
+    { data: availabilityRows, error: availabilityError },
+    { data: availabilityRuleRows, error: availabilityRulesError },
+    { data: documentRows, error: documentsError }
+  ] =
     await Promise.all([
       supabase.from("provider_public_profiles").select("*").eq("organization_id", organizationId).maybeSingle(),
       supabase.from("provider_services").select("*").eq("organization_id", organizationId).order("created_at", { ascending: true }),
       supabase
         .from("provider_availability")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .order("day_of_week", { ascending: true })
+        .order("starts_at", { ascending: true }),
+      supabase
+        .from("provider_availability_rules")
         .select("*")
         .eq("organization_id", organizationId)
         .order("day_of_week", { ascending: true })
@@ -212,6 +249,10 @@ async function getProviderOrganizationDetailById(
     fail(availabilityError, "Unable to load the provider availability.");
   }
 
+  if (availabilityRulesError) {
+    fail(availabilityRulesError, "Unable to load the provider availability rules.");
+  }
+
   if (documentsError) {
     fail(documentsError, "Unable to load the provider approval documents.");
   }
@@ -221,6 +262,7 @@ async function getProviderOrganizationDetailById(
     publicProfile: publicProfileRow ? mapProviderPublicProfile(publicProfileRow) : null,
     services: (serviceRows ?? []).map(mapProviderService),
     availability: (availabilityRows ?? []).map(mapProviderAvailability),
+    availabilityRules: (availabilityRuleRows ?? []).map(mapProviderAvailabilityRule),
     approvalDocuments: (documentRows ?? []).map(mapProviderDocument)
   } satisfies ProviderOrganizationDetail;
 }
@@ -364,6 +406,107 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       }
 
       return mapProviderAvailability(data);
+    },
+    async listProviderAvailabilityRules(organizationId) {
+      const { data, error } = await supabase
+        .from("provider_availability_rules")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .order("day_of_week", { ascending: true })
+        .order("starts_at", { ascending: true });
+
+      if (error) {
+        fail(error, "Unable to load provider availability rules.");
+      }
+
+      return (data ?? []).map(mapProviderAvailabilityRule);
+    },
+    async createProviderAvailabilityRule(input) {
+      const user = await requireCurrentUser(supabase);
+      const { data, error } = await supabase
+        .from("provider_availability_rules")
+        .insert({
+          organization_id: input.organizationId,
+          service_id: input.serviceId,
+          day_of_week: input.dayOfWeek,
+          starts_at: input.startsAt,
+          ends_at: input.endsAt,
+          capacity: input.capacity,
+          is_active: input.isActive ?? true,
+          effective_from: input.effectiveFrom ?? null,
+          effective_until: input.effectiveUntil ?? null,
+          created_by_user_id: user.id
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        fail(error, "Unable to create provider availability rule.");
+      }
+
+      return mapProviderAvailabilityRule(data);
+    },
+    async updateProviderAvailabilityRule(ruleId, input) {
+      const payload: Database["public"]["Tables"]["provider_availability_rules"]["Update"] = {};
+
+      if (input.serviceId !== undefined) {
+        payload.service_id = input.serviceId;
+      }
+
+      if (input.dayOfWeek !== undefined) {
+        payload.day_of_week = input.dayOfWeek;
+      }
+
+      if (input.startsAt !== undefined) {
+        payload.starts_at = input.startsAt;
+      }
+
+      if (input.endsAt !== undefined) {
+        payload.ends_at = input.endsAt;
+      }
+
+      if (input.capacity !== undefined) {
+        payload.capacity = input.capacity;
+      }
+
+      if (input.isActive !== undefined) {
+        payload.is_active = input.isActive;
+      }
+
+      if (input.effectiveFrom !== undefined) {
+        payload.effective_from = input.effectiveFrom;
+      }
+
+      if (input.effectiveUntil !== undefined) {
+        payload.effective_until = input.effectiveUntil;
+      }
+
+      const { data, error } = await supabase
+        .from("provider_availability_rules")
+        .update(payload)
+        .eq("id", ruleId)
+        .select("*")
+        .single();
+
+      if (error) {
+        fail(error, "Unable to update provider availability rule.");
+      }
+
+      return mapProviderAvailabilityRule(data);
+    },
+    async setProviderAvailabilityRuleActive(ruleId, isActive) {
+      const { data, error } = await supabase
+        .from("provider_availability_rules")
+        .update({ is_active: isActive })
+        .eq("id", ruleId)
+        .select("*")
+        .single();
+
+      if (error) {
+        fail(error, "Unable to update provider availability rule status.");
+      }
+
+      return mapProviderAvailabilityRule(data);
     },
     async listProviderApprovalDocuments(organizationId) {
       const { data, error } = await supabase

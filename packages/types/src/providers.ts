@@ -1,4 +1,5 @@
 import type { BookingMode } from "./bookings";
+import type { ProviderDayOfWeek } from "./marketplace";
 import type { TimestampedEntity, Uuid } from "./base";
 import type {
   ProviderApprovalStatus,
@@ -29,6 +30,7 @@ export interface ProviderOrganizationDetail {
   publicProfile: ProviderPublicProfile | null;
   services: ProviderService[];
   availability: ProviderAvailabilitySlot[];
+  availabilityRules: ProviderAvailabilityRule[];
   approvalDocuments: ProviderApprovalDocument[];
 }
 
@@ -96,6 +98,42 @@ export interface UpdateProviderAvailabilityInput {
   startsAt: string;
   endsAt: string;
   isActive?: boolean;
+}
+
+export interface ProviderAvailabilityRule extends TimestampedEntity {
+  id: Uuid;
+  organizationId: Uuid;
+  serviceId: Uuid;
+  dayOfWeek: ProviderDayOfWeek;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+  isActive: boolean;
+  effectiveFrom: string | null;
+  effectiveUntil: string | null;
+}
+
+export interface CreateProviderAvailabilityRuleInput {
+  organizationId: Uuid;
+  serviceId: Uuid;
+  dayOfWeek: ProviderDayOfWeek;
+  startsAt: string;
+  endsAt: string;
+  capacity: number;
+  isActive?: boolean;
+  effectiveFrom?: string | null;
+  effectiveUntil?: string | null;
+}
+
+export interface UpdateProviderAvailabilityRuleInput {
+  serviceId?: Uuid;
+  dayOfWeek?: ProviderDayOfWeek;
+  startsAt?: string;
+  endsAt?: string;
+  capacity?: number;
+  isActive?: boolean;
+  effectiveFrom?: string | null;
+  effectiveUntil?: string | null;
 }
 
 export interface UploadProviderApprovalDocumentInput {

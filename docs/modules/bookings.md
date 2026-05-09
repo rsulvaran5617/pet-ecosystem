@@ -117,6 +117,15 @@ Modelo recomendado:
 - agregar campos en `bookings` para trazar el slot elegido: `availability_rule_id`, `slot_start_at`, `slot_end_at`.
 - calcular cupos disponibles desde bookings existentes; evitar `reserved_count` manual salvo que se agregue una estrategia transaccional clara.
 
+Estado CAP-2:
+- provider mobile ya permite configurar reglas de disponibilidad con capacidad por servicio.
+
+Estado CAP-3:
+- owner mobile consume `get_service_booking_slots` para mostrar un calendario visual y tarjetas de slots por dia.
+- `react-native-calendars` se usa solo como widget de seleccion/visualizacion; no es fuente de verdad de capacidad.
+- al confirmar una reserva con slot elegido, owner mobile usa `create_booking_from_slot`.
+- el flujo actual de reserva legacy sigue disponible como fallback piloto cuando no hay slots publicados.
+
 RPCs propuestas:
 - `get_service_booking_slots(target_service_id, from_date, to_date)` devuelve slots proyectados con `capacity_total`, `reserved_count`, `available_count` y estado `available | low_capacity | full | unavailable | expired`.
 - `create_booking_from_slot(target_household_id, target_pet_id, target_provider_service_id, target_slot_start_at, target_slot_end_at, target_availability_rule_id, target_payment_method_id)` valida permisos, servicio, provider, regla activa, capacidad y crea booking/precio/historial en una transaccion.
