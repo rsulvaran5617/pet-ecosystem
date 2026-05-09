@@ -44,14 +44,15 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - QR-2 owner mobile display queda implementado y validado manualmente en Android: el owner genera QR temporal de check-in/check-out desde una reserva confirmada.
 - QR-3 provider scanner queda implementado y validado manualmente en Android: el provider escanea el QR operacional del owner, consume el token via RPC y el timeline registra check-in/check-out sin crash de camara ni error RLS.
 - Los cambios locales exploratorios de Slice C evidencia fueron pausados en stash antes del rediseño QR.
-- Fuera de estos slices quedan evidencia, report card e internal notes.
+- Slice C evidencia documental queda validado manualmente en Android sobre el modelo QR: provider carga `Evidencia documental` despues de check-out, el archivo va al bucket privado `booking-operation-evidence` y la metadata usa `storage_bucket` + `storage_path`. Para compatibilidad con el esquema remoto legacy que aun exige `file_url not null`, el cliente envia `file_url = storage_path` como path privado, sin URL publica arbitraria.
+- Fuera de estos slices quedan report card e internal notes.
 
 ## Actualizacion V2 Booking Capacity
 
 - Rama de trabajo documental: `feature/v2-booking-capacity`
 - Baseline de partida: `v0.2.0-booking-qr-ops.1`
 - CAP-0 abre diseno documental para slots/franjas con capacidad.
-- Evidencia documental/actividad queda pausada y preservada en stash; no se mezcla con capacity.
+- Evidencia documental/actividad queda integrada sobre el flujo QR como Slice C; el stash previo se conserva sin aplicarse.
 - Modelo actual diagnosticado: `provider_availability` semanal por organizacion sin capacidad; `preview_booking`/`create_booking` eligen el proximo bloque activo.
 - Modelo recomendado: hibrido, con reglas recurrentes por servicio, excepciones puntuales por fecha, proyeccion de slots por RPC y creacion transaccional de booking desde slot.
 - Principio de seguridad: owner no modifica capacidad; provider administra solo sus organizaciones; backend valida cupo final y evita sobreventa.

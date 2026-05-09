@@ -23,6 +23,7 @@ type BookingOperationRow = Database["public"]["Tables"]["booking_operations"]["R
 type BookingOperationEvidenceRow = Database["public"]["Tables"]["booking_operation_evidence"]["Row"];
 type BookingOperationReportRow = Database["public"]["Tables"]["booking_operation_report"]["Row"];
 type BookingOperationNoteRow = Database["public"]["Tables"]["booking_operation_notes"]["Row"];
+const bookingOperationEvidenceBucketId = "booking-operation-evidence";
 
 export interface BookingOperationsApiClient {
   createCheckIn(bookingId: Uuid, input: CreateCheckInInput): Promise<BookingCheckIn>;
@@ -41,6 +42,12 @@ function fail(error: { message: string } | null, fallbackMessage: string): never
     throw new Error(error.message);
   }
   throw new Error(fallbackMessage);
+}
+
+function failEvidenceUploadStep(error: { message: string } | null, fallbackMessage: string): never {
+  const detail = error?.message ? ` Detalle: ${error.message}` : "";
+
+  throw new Error(`${fallbackMessage}${detail}`);
 }
 
 function mapCheckIn(row: BookingOperationRow): BookingCheckIn {
@@ -160,6 +167,18 @@ async function getCurrentUser(supabase: OperationsSupabaseClient) {
   return data.user;
 }
 
+function sanitizeFileName(fileName: string) {
+  const trimmedFileName = fileName.trim() || "evidencia";
+
+  return trimmedFileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "evidencia";
+}
+
+function buildEvidenceStoragePath(bookingId: Uuid, fileName: string) {
+  const randomSuffix = Math.random().toString(36).slice(2, 10);
+
+  return `${bookingId}/${Date.now()}-${randomSuffix}-${sanitizeFileName(fileName)}`;
+}
+
 export function createBookingOperationsApiClient(
   supabase: OperationsSupabaseClient
 ): BookingOperationsApiClient {
@@ -261,10 +280,17 @@ export function createBookingOperationsApiClient(
     },
 
     async uploadEvidence(bookingId, input) {
+      const user = await getCurrentUser(supabase);
+      const fileSizeBytes = input.fileBytes.byteLength;
+
+      if (fileSizeBytes === 0) {
+        throw new Error("El documento de evidencia esta vacio.");
+      }
+
       // Validate file size (max 50MB)
       const maxFileSizeBytes = 50 * 1024 * 1024;
-      if (input.fileSizeBytes > maxFileSizeBytes) {
-        throw new Error("File size exceeds maximum allowed (50MB).");
+      if (fileSizeBytes > maxFileSizeBytes) {
+        throw new Error("El documento de evidencia supera el maximo permitido de 50 MB.");
       }
 
       // Validate evidence count (max 5)
@@ -274,30 +300,49 @@ export function createBookingOperationsApiClient(
         .eq("booking_id", bookingId);
 
       if (countError) {
-        fail(countError, "Unable to check evidence count.");
+        failEvidenceUploadStep(countError, "No se pudo consultar la evidencia documental existente.");
       }
 
       if ((existingEvidences?.length ?? 0) >= 5) {
-        throw new Error("Maximum evidence items (5) reached for this booking.");
+        throw new Error("Esta reserva ya tiene el maximo permitido de 5 documentos de evidencia.");
       }
 
-      const user = await getCurrentUser(supabase);
+      const storageBucket = input.storageBucket ?? bookingOperationEvidenceBucketId;
+      const storagePath = buildEvidenceStoragePath(bookingId, input.fileName);
+      const uploadPayload = new Uint8Array(input.fileBytes);
+      const { error: uploadError } = await supabase.storage.from(storageBucket).upload(storagePath, uploadPayload, {
+        contentType: input.mimeType ?? undefined,
+        upsert: false
+      });
+
+      if (uploadError) {
+        failEvidenceUploadStep(uploadError, "No se pudo subir el documento al bucket privado de evidencia.");
+      }
+
+      const evidenceMetadata = {
+        booking_id: bookingId,
+        storage_bucket: storageBucket,
+        storage_path: storagePath,
+        // Compatibilidad con ambientes remotos que aun tienen file_url legacy NOT NULL.
+        file_url: storagePath,
+        file_name: input.fileName,
+        file_size_bytes: fileSizeBytes,
+        mime_type: input.mimeType ?? null,
+        uploaded_by_user_id: user.id
+      };
+
       const { data, error } = await supabase
         .from("booking_operation_evidence")
-        .insert({
-          booking_id: bookingId,
-          storage_bucket: input.storageBucket ?? "booking-operation-evidence",
-          storage_path: input.storagePath,
-          file_name: input.fileName,
-          file_size_bytes: input.fileSizeBytes,
-          mime_type: input.mimeType ?? null,
-          uploaded_by_user_id: user.id
-        })
+        .insert(evidenceMetadata)
         .select("*")
         .single();
 
       if (error) {
-        fail(error, "Unable to upload evidence for booking.");
+        await supabase.storage.from(storageBucket).remove([storagePath]).catch(() => undefined);
+        failEvidenceUploadStep(
+          error,
+          `No se pudo registrar la metadata de evidencia documental con file_url legacy incluido (${storagePath}).`
+        );
       }
 
       return mapEvidence(data as BookingOperationEvidenceRow);
@@ -430,8 +475,6 @@ export function createBookingOperationsApiClient(
       } else if (!checkOut) {
         operationalState = "checked_in";
       } else if (evidences.length === 0) {
-        operationalState = "evidence_pending";
-      } else if (!reportCard) {
         operationalState = "evidence_pending";
       } else {
         operationalState = "documented";

@@ -1,4 +1,5 @@
 import type { BookingOperationType, BookingOperationsTimeline as BookingOperationsTimelineData, BookingStatus, Uuid } from "@pet/types";
+import * as DocumentPicker from "expo-document-picker";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -167,6 +168,7 @@ export function BookingOperationsTimeline({
     isLoading,
     isSubmittingCheckIn,
     isSubmittingCheckOut,
+    isUploadingEvidence,
     isGeneratingOperationQr,
     isConsumingOperationQr,
     errorMessage,
@@ -176,6 +178,7 @@ export function BookingOperationsTimeline({
     operationQrToken,
     registerCheckIn,
     registerCheckOut,
+    uploadEvidence,
     generateOperationQrToken,
     consumeOperationQrToken,
     clearQrMessages
@@ -242,11 +245,17 @@ export function BookingOperationsTimeline({
   const isProviderContext = context === "provider";
   const isConfirmedBooking = bookingStatus === "confirmed";
   const hasOperationInProgress =
-    isSubmittingCheckIn || isSubmittingCheckOut || isGeneratingOperationQr || isConsumingOperationQr;
+    isSubmittingCheckIn || isSubmittingCheckOut || isUploadingEvidence || isGeneratingOperationQr || isConsumingOperationQr;
   const ownerCanGenerateCheckInQr = isOwnerContext && isConfirmedBooking && !timeline.checkIn;
   const ownerCanGenerateCheckOutQr = isOwnerContext && isConfirmedBooking && Boolean(timeline.checkIn) && !timeline.checkOut;
   const providerQrScannerAvailable = isProviderContext && isConfirmedBooking && !timeline.checkOut;
   const providerCanScanQr = providerQrScannerAvailable && !hasOperationInProgress;
+  const providerCanUploadEvidence =
+    isProviderContext &&
+    isConfirmedBooking &&
+    Boolean(timeline.checkIn) &&
+    Boolean(timeline.checkOut) &&
+    timeline.evidences.length === 0;
   const ownerQrOperationType: BookingOperationType | null = ownerCanGenerateCheckInQr
     ? "check_in"
     : ownerCanGenerateCheckOutQr
@@ -292,6 +301,36 @@ export function BookingOperationsTimeline({
     }
 
     setIsScannerLocked(false);
+  };
+  const handleUploadEvidence = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true,
+      multiple: false,
+      type: "*/*"
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    const asset = result.assets[0];
+
+    if (!asset) {
+      return;
+    }
+
+    try {
+      const response = await fetch(asset.uri);
+      const fileBytes = await response.arrayBuffer();
+
+      await uploadEvidence({
+        fileBytes,
+        fileName: asset.name,
+        mimeType: asset.mimeType ?? null
+      });
+    } catch {
+      // El hook publica el mensaje de error visible para el usuario.
+    }
   };
 
   return (
@@ -405,6 +444,28 @@ export function BookingOperationsTimeline({
             {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}
           </View>
         )}
+
+        {providerCanUploadEvidence ? (
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "700" }}>Evidencia documental</Text>
+            <Text style={{ color: "#64748b", fontSize: 12, lineHeight: 17, marginTop: 4 }}>
+              Carga un documento de actividad despues del check-out. No reemplaza la validacion por QR.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isUploadingEvidence}
+              onPress={() => {
+                void handleUploadEvidence();
+              }}
+              style={{ ...actionButtonStyle, ...(isUploadingEvidence ? actionButtonDisabledStyle : {}) }}
+            >
+              <Text style={actionButtonTextStyle}>
+                {isUploadingEvidence ? "Cargando evidencia..." : "Cargar evidencia de actividad"}
+              </Text>
+            </Pressable>
+            {actionErrorMessage ? <Text style={actionErrorStyle}>{actionErrorMessage}</Text> : null}
+          </View>
+        ) : null}
 
         {ownerQrOperationType ? (
           <View style={{ marginTop: 12 }}>

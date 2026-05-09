@@ -1,4 +1,4 @@
-import type { BookingOperationTokenResult, BookingOperationType, BookingOperationsTimeline, Uuid } from "@pet/types";
+import type { BookingEvidence, BookingOperationTokenResult, BookingOperationType, BookingOperationsTimeline, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getMobileBookingOperationsApiClient } from "../../core/services/supabase-mobile";
@@ -8,6 +8,7 @@ interface UseBookingOperationsResult {
   isLoading: boolean;
   isSubmittingCheckIn: boolean;
   isSubmittingCheckOut: boolean;
+  isUploadingEvidence: boolean;
   isGeneratingOperationQr: boolean;
   isConsumingOperationQr: boolean;
   errorMessage: string | null;
@@ -18,10 +19,38 @@ interface UseBookingOperationsResult {
   refresh: () => Promise<void>;
   registerCheckIn: () => Promise<void>;
   registerCheckOut: () => Promise<void>;
+  uploadEvidence: (input: { fileBytes: ArrayBuffer; fileName: string; mimeType?: string | null }) => Promise<BookingEvidence | null>;
   generateOperationQrToken: (operationType: BookingOperationType) => Promise<void>;
   consumeOperationQrToken: (rawToken: string) => Promise<boolean>;
   clearOperationQrToken: () => void;
   clearQrMessages: () => void;
+}
+
+const evidenceUploadFallbackMessage =
+  "No se pudo cargar la evidencia documental. Verifica que la reserva tenga check-in y check-out, y que tu usuario tenga permisos de proveedor.";
+
+function getEvidenceUploadErrorMessage(error: unknown) {
+  if (!(error instanceof Error) || !error.message.trim()) {
+    return evidenceUploadFallbackMessage;
+  }
+
+  const message = error.message.trim();
+  const normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.includes("bucket") && normalizedMessage.includes("not found")) {
+    return "No se encontro el bucket privado de evidencia documental. Verifica la configuracion de Storage antes de reintentar.";
+  }
+
+  if (
+    normalizedMessage.includes("row-level security") ||
+    normalizedMessage.includes("permission denied") ||
+    normalizedMessage.includes("not authorized") ||
+    normalizedMessage.includes("unauthorized")
+  ) {
+    return `${evidenceUploadFallbackMessage} Detalle tecnico: ${message}`;
+  }
+
+  return `No se pudo cargar la evidencia documental. Detalle tecnico: ${message}`;
 }
 
 export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = true): UseBookingOperationsResult {
@@ -29,6 +58,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
   const [isSubmittingCheckOut, setIsSubmittingCheckOut] = useState(false);
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
   const [isGeneratingOperationQr, setIsGeneratingOperationQr] = useState(false);
   const [isConsumingOperationQr, setIsConsumingOperationQr] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -90,6 +120,25 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
       );
     } finally {
       setIsSubmittingCheckOut(false);
+    }
+  };
+
+  const uploadEvidence = async (input: { fileBytes: ArrayBuffer; fileName: string; mimeType?: string | null }) => {
+    if (!bookingId || !enabled || isUploadingEvidence) return null;
+
+    setIsUploadingEvidence(true);
+    setActionErrorMessage(null);
+
+    try {
+      const client = getMobileBookingOperationsApiClient();
+      const evidence = await client.uploadEvidence(bookingId, input);
+      await refresh();
+      return evidence;
+    } catch (error) {
+      setActionErrorMessage(getEvidenceUploadErrorMessage(error));
+      return null;
+    } finally {
+      setIsUploadingEvidence(false);
     }
   };
 
@@ -157,6 +206,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     isLoading,
     isSubmittingCheckIn,
     isSubmittingCheckOut,
+    isUploadingEvidence,
     isGeneratingOperationQr,
     isConsumingOperationQr,
     errorMessage,
@@ -166,6 +216,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
     operationQrToken,
     registerCheckIn,
     registerCheckOut,
+    uploadEvidence,
     generateOperationQrToken,
     consumeOperationQrToken,
     clearOperationQrToken,
