@@ -33,6 +33,7 @@
 - `pilot_operations_hardening` -> `closed_with_notes`
 - `booking_capacity_v2` -> `partial`
 - `controlled_avatar_media` -> `partial`
+- `pet_memory_status` -> `partial`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
 - `pharmacy` -> `not_started`
@@ -56,6 +57,7 @@
 - V2 provider operations / booking operations: Slice A check-in, Slice B check-out, QR-2 owner QR display, QR-3 provider scanner y Slice C evidencia documental quedan implementados y validados manualmente en Android sobre Supabase remoto. El flujo principal de check-in/check-out queda como QR temporal owner -> provider, dejando botones manuales como fallback piloto. Evidencia se carga despues de check-out al bucket privado `booking-operation-evidence` como documento de actividad; no reemplaza QR como prueba principal de presencia. Por compatibilidad con esquema remoto legacy, `file_url` se guarda como el `storage_path` privado cuando la columna aun es requerida. Report card e internal notes siguen pendientes.
 - V2 booking capacity: CAP-0 documental, CAP-1 backend/RPC, CAP-2 provider UI y CAP-3 owner UI estan en curso sobre `feature/v2-booking-capacity`. Modelo: reglas recurrentes por servicio, excepciones por fecha, slots calculados por RPC y creacion transaccional de booking desde slot para evitar sobreventa. Provider mobile permite configurar horarios con capacidad; owner mobile muestra calendario/slots y crea booking desde slot cuando hay cupo elegido. Fix CAP-3 separa preview local de confirmacion: preview no consume cupo y solo confirmar reserva llama `create_booking_from_slot`. El flujo legacy queda como fallback piloto.
 - Controlled avatar media: mascotas y perfiles publicos de proveedor usan buckets privados `pet-avatars` y `provider-avatars`, metadata `storage_bucket`/`storage_path` y URLs firmadas temporales. No se agregan nuevas URLs externas arbitrarias.
+- Pet memory status: mascotas pueden alternar `active` / `in_memory` sin borrar perfil ni historial; reservas nuevas rechazan mascotas `in_memory`. La migracion `20260510123000_pet_memory_status_slice_b.sql` ya fue aplicada remoto.
 - Baseline `v0.3.0-booking-capacity-ops.1` queda aprobado para piloto controlado sobre `master` en `a677f7b`; readiness documentado en `docs/delivery/V0_3_0_PILOT_READINESS.md`.
 - Visual alignment reference canon: fase visual controlada iniciada sobre las referencias en `docs/ux/reference/`. Se deriva guia minima en `docs/ux/VISUAL_STYLE_GUIDE.md` y se alinean tokens, cards, chips, botones, navegacion mobile y shell/admin cards sin cambiar logica funcional, backend, DB, contratos API ni reglas de negocio.
 - quedan pendientes externos/no bloqueantes de evidencia o ampliacion de cobertura fuera del criterio de salida MVP

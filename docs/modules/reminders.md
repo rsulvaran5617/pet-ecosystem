@@ -26,6 +26,7 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 
 ## Reglas
 - un recordatorio puede pertenecer a una mascota o al hogar
+- si una mascota queda `in_memory`, sus recordatorios historicos se conservan; crear nuevos recordatorios debe tratarse como gestion controlada, no como flujo operativo activo
 - las vacunas con proxima fecha deben generar recordatorios
 - los eventos derivados de booking no deben adelantarse ni duplicar el dominio `bookings`
 

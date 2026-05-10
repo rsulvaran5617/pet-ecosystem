@@ -55,6 +55,7 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `POST /pets`
 - `GET /pets/{id}`
 - `PATCH /pets/{id}`
+- `POST /pets/{id}/memory-status`
 - `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`
@@ -111,6 +112,8 @@ Notas:
 - mascotas exponen avatar privado mediante URL firmada temporal
 - proveedores exponen avatar publico desde `provider-avatars` mediante URL firmada temporal solo para perfiles/organizaciones visibles
 - no se agregan nuevas URLs externas arbitrarias para avatares
+- `memory-status` permite alternar `active` / `in_memory` sin borrar mascotas ni historiales
+- reservas nuevas deben rechazar mascotas `in_memory`
 - `approve/reject` aplican solo a `pending_approval`
 - `complete` aplica al owner proveedor sobre `confirmed`
 - el booking puede referenciar un `payment_method` guardado, pero no captura pago real

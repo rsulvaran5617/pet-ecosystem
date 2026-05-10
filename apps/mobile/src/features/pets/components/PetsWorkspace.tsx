@@ -554,6 +554,7 @@ export function PetsWorkspace({
   const [activeDocumentType, setActiveDocumentType] = useState<PetDocumentType>(petDocumentTypeOrder[0]);
   const [isDocumentFormOpen, setIsDocumentFormOpen] = useState(false);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
+  const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
@@ -624,12 +625,14 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setPetMemoryConfirmationId(null);
     setPetView("crear");
     onPanelChange?.("detalle");
   };
 
   const openEditPet = (pet: (typeof pets)[number]) => {
     setEditingPetId(pet.id);
+    setPetMemoryConfirmationId(null);
     setPetForm({
       name: pet.name,
       species: pet.species,
@@ -657,11 +660,28 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setPetMemoryConfirmationId(null);
     setPetView(selectedPetId ? "detalle" : "lista");
   };
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
+  const isSelectedPetInMemory = selectedPet?.status === "in_memory";
+  const updatePetMemoryStatus = (petId: Uuid, status: "active" | "in_memory") => {
+    clearMessages();
+    void runAction(
+      () =>
+        getMobilePetsApiClient().setPetMemoryStatus(petId, {
+          status
+        }),
+      status === "in_memory" ? "Mascota marcada En memoria. Su historial queda conservado." : "Mascota reactivada.",
+      false
+    ).then(async () => {
+      setPetMemoryConfirmationId(null);
+      await refresh();
+      await selectPet(petId);
+    });
+  };
   const uploadPetAvatar = (petId: Uuid) => {
     void DocumentPicker.getDocumentAsync({
       multiple: false,
@@ -771,6 +791,7 @@ export function PetsWorkspace({
                     <Text numberOfLines={1} style={{ color: "#111827", fontSize: 14, fontWeight: "900" }}>{pet.name}</Text>
                     <Text numberOfLines={1} style={{ color: "#0f766e", fontSize: 11, fontWeight: "700" }}>{getPetDescription(pet)}</Text>
                     <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 11 }}>{formatPetAge(pet.birthDate)}</Text>
+                    {pet.status === "in_memory" ? <Text style={{ color: "#7c3aed", fontSize: 9, fontWeight: "900" }}>En memoria</Text> : null}
                   </View>
                   {isSelected ? (
                     <View
@@ -1024,7 +1045,7 @@ export function PetsWorkspace({
                           borderRadius: 51,
                           backgroundColor: "rgba(20,184,166,0.12)",
                           borderWidth: 3,
-                          borderColor: "rgba(20,184,166,0.18)",
+                          borderColor: isSelectedPetInMemory ? "rgba(124,58,237,0.24)" : "rgba(20,184,166,0.18)",
                           alignItems: "center",
                           justifyContent: "center"
                         }}
@@ -1077,6 +1098,18 @@ export function PetsWorkspace({
                           <PetLineIcon color="#0f766e" name="shield" size={11} strokeWidth={2.4} />
                           <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Verificado</Text>
                         </View>
+                        {isSelectedPetInMemory ? (
+                          <View
+                            style={{
+                              borderRadius: 999,
+                              backgroundColor: "rgba(124,58,237,0.12)",
+                              paddingHorizontal: 7,
+                              paddingVertical: 4
+                            }}
+                          >
+                            <Text style={{ color: "#6d28d9", fontSize: 10, fontWeight: "900" }}>En memoria</Text>
+                          </View>
+                        ) : null}
                       </View>
                       <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 13, fontWeight: "700" }}>{selectedPetBreed}</Text>
                       <View style={{ gap: 8 }}>
@@ -1099,7 +1132,94 @@ export function PetsWorkspace({
                     <StatusChip label={petSexLabels[selectedPetDetail.pet.sex]} tone="neutral" />
                     <StatusChip label={selectedPetDetail.pet.species} tone="active" />
                     <StatusChip label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
+                    {canEditSelectedHousehold ? (
+                      <Pressable
+                        onPress={() => openEditPet(selectedPetDetail.pet)}
+                        style={{ borderColor: "rgba(15,118,110,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 5 }}
+                      >
+                        <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Editar datos</Text>
+                      </Pressable>
+                    ) : null}
+                    {canEditSelectedHousehold ? (
+                      <Pressable
+                        disabled={isSubmitting}
+                        onPress={() => {
+                          if (isSelectedPetInMemory) {
+                            updatePetMemoryStatus(selectedPetDetail.pet.id, "active");
+                            return;
+                          }
+
+                          setPetMemoryConfirmationId(selectedPetDetail.pet.id);
+                        }}
+                        style={{
+                          borderColor: isSelectedPetInMemory ? "rgba(15,118,110,0.18)" : "rgba(124,58,237,0.22)",
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          opacity: isSubmitting ? 0.65 : 1,
+                          paddingHorizontal: 9,
+                          paddingVertical: 5
+                        }}
+                      >
+                        <Text style={{ color: isSelectedPetInMemory ? "#0f766e" : "#6d28d9", fontSize: 10, fontWeight: "900" }}>
+                          {isSelectedPetInMemory ? "Reactivar" : "Marcar En memoria"}
+                        </Text>
+                      </Pressable>
+                    ) : null}
                   </View>
+                  {petMemoryConfirmationId === selectedPetDetail.pet.id ? (
+                    <View
+                      style={{
+                        borderColor: "rgba(124,58,237,0.18)",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        backgroundColor: "rgba(124,58,237,0.08)",
+                        gap: 10,
+                        padding: 12
+                      }}
+                    >
+                      <Text style={{ color: "#4c1d95", fontSize: 13, fontWeight: "900" }}>Confirmar estado En memoria</Text>
+                      <Text style={{ color: "#5b21b6", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                        Esta accion coloca a {selectedPetDetail.pet.name} en un lugar especial del hogar, dedicado a nuestros companeros que ya no estan con nosotros. Su perfil, documentos, salud e historial se conservaran con cuidado, y no aparecera en nuevas reservas.
+                      </Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        <Pressable
+                          disabled={isSubmitting}
+                          onPress={() => updatePetMemoryStatus(selectedPetDetail.pet.id, "in_memory")}
+                          style={{
+                            backgroundColor: "#6d28d9",
+                            borderRadius: 999,
+                            opacity: isSubmitting ? 0.65 : 1,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8
+                          }}
+                        >
+                          <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>Confirmar En memoria</Text>
+                        </Pressable>
+                        <Pressable
+                          disabled={isSubmitting}
+                          onPress={() => setPetMemoryConfirmationId(null)}
+                          style={{
+                            backgroundColor: "#ffffff",
+                            borderColor: "rgba(124,58,237,0.18)",
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            opacity: isSubmitting ? 0.65 : 1,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8
+                          }}
+                        >
+                          <Text style={{ color: "#5b21b6", fontSize: 11, fontWeight: "900" }}>Cancelar</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ) : null}
+                  {isSelectedPetInMemory ? (
+                    <View style={{ borderRadius: 14, backgroundColor: "rgba(124,58,237,0.08)", padding: 11 }}>
+                      <Text style={{ color: "#5b21b6", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                        Este perfil queda como recuerdo del hogar. Sus documentos e historial se conservan, pero no aparecera para nuevas reservas.
+                      </Text>
+                    </View>
+                  ) : null}
                   {selectedPetDetail.pet.notes ? (
                     <Text style={{ color: "#64748b", fontSize: 12, lineHeight: 17 }}>{selectedPetDetail.pet.notes}</Text>
                   ) : null}
@@ -1107,9 +1227,9 @@ export function PetsWorkspace({
 
                 <View style={{ flexDirection: "row", gap: 10 }}>
                   {[
-                    { icon: "heart" as const, label: "Registrar salud", onPress: () => onPanelChange?.("salud"), tint: "#0f9f8f" },
+                    ...(isSelectedPetInMemory ? [] : [{ icon: "heart" as const, label: "Registrar salud", onPress: () => onPanelChange?.("salud"), tint: "#0f9f8f" }]),
                     { icon: "file" as const, label: "Cargar documento", onPress: () => onPanelChange?.("documentos"), tint: "#2563eb" },
-                    { icon: "bell" as const, label: "Crear recordatorio", onPress: () => onPanelChange?.("recordatorios"), tint: "#f97316" }
+                    ...(isSelectedPetInMemory ? [] : [{ icon: "bell" as const, label: "Crear recordatorio", onPress: () => onPanelChange?.("recordatorios"), tint: "#f97316" }])
                   ].map((action) => (
                     <Pressable
                       key={action.label}

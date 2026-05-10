@@ -7,6 +7,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - listar mascotas del hogar
 - crear mascota
 - editar mascota
+- marcar mascota como `En memoria` sin borrar perfil ni historial
 - ver perfil resumen de mascota
 - cargar foto/avatar controlado de mascota
 - listar documentos basicos de mascota
@@ -18,6 +19,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - compartir documentos con proveedores
 - permisos por mascota
 - expediente clinico avanzado
+- borrado fisico de mascotas, documentos, salud, recordatorios o historial
 - archivado o restore de documentos si no queda explicitamente pedido por release posterior
 
 ## Entidades
@@ -28,8 +30,11 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 
 ## Reglas
 - toda mascota pertenece a un `household`
+- una mascota puede estar `active` o `in_memory`
+- `in_memory` conserva documentos, salud, recordatorios e historial, y evita uso accidental en nuevas reservas
 - un miembro con permiso de hogar `view` puede consultar mascotas y documentos
 - un miembro con permiso de hogar `edit` o `admin` puede crear y editar mascotas
+- un miembro con permiso de hogar `edit` o `admin` puede marcar o reactivar una mascota entre `active` e `in_memory`
 - un miembro con permiso de hogar `edit` o `admin` puede cargar o reemplazar la foto/avatar de la mascota
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
@@ -45,6 +50,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - `POST /pets`
 - `GET /pets/{id}`
 - `PATCH /pets/{id}`
+- `POST /pets/{id}/memory-status`
 - `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`

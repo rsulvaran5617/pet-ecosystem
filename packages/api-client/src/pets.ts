@@ -4,6 +4,7 @@ import type {
   PetDetail,
   PetDocument,
   PetSummary,
+  SetPetMemoryStatusInput,
   UpdatePetInput,
   UploadPetAvatarInput,
   UploadPetDocumentInput,
@@ -23,6 +24,7 @@ export interface PetsApiClient {
   listHouseholdPets(householdId: Uuid): Promise<PetSummary[]>;
   createPet(input: CreatePetInput): Promise<PetSummary>;
   updatePet(petId: Uuid, input: UpdatePetInput): Promise<PetSummary>;
+  setPetMemoryStatus(petId: Uuid, input: SetPetMemoryStatusInput): Promise<PetSummary>;
   getPetDetail(petId: Uuid): Promise<PetDetail>;
   listPetDocuments(petId: Uuid): Promise<PetDocument[]>;
   uploadPetAvatar(petId: Uuid, input: UploadPetAvatarInput): Promise<PetSummary>;
@@ -96,6 +98,8 @@ function mapPetSummary(
     createdByUserId: petRow.created_by_user_id,
     name: petRow.name,
     species: petRow.species,
+    status: petRow.status,
+    inMemoryAt: petRow.in_memory_at,
     breed: petProfile?.breed ?? null,
     sex: petProfile?.sex ?? "unknown",
     birthDate: petProfile?.birth_date ?? null,
@@ -264,6 +268,18 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
 
       if (error) {
         fail(error, "Unable to update the pet.");
+      }
+
+      return getPetSummaryById(supabase, data.id);
+    },
+    async setPetMemoryStatus(petId, input) {
+      const { data, error } = await supabase.rpc("set_pet_memory_status", {
+        target_pet_id: petId,
+        next_status: input.status
+      });
+
+      if (error) {
+        fail(error, "No fue posible actualizar el estado de la mascota.");
       }
 
       return getPetSummaryById(supabase, data.id);

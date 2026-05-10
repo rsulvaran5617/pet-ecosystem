@@ -1,6 +1,7 @@
 import type { TimestampedEntity, Uuid } from "./base";
 
 export type PetSex = "female" | "male" | "unknown";
+export type PetStatus = "active" | "in_memory";
 export type PetDocumentType = "vaccination_record" | "medical_record" | "identity" | "insurance" | "other";
 
 export interface PetSummary extends TimestampedEntity {
@@ -9,6 +10,8 @@ export interface PetSummary extends TimestampedEntity {
   createdByUserId: Uuid;
   name: string;
   species: string;
+  status: PetStatus;
+  inMemoryAt: string | null;
   breed: string | null;
   sex: PetSex;
   birthDate: string | null;
@@ -68,4 +71,8 @@ export interface UploadPetAvatarInput {
   fileName: string;
   mimeType?: string | null;
   fileBytes: ArrayBuffer;
+}
+
+export interface SetPetMemoryStatusInput {
+  status: PetStatus;
 }

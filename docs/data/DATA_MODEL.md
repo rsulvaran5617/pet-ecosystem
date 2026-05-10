@@ -15,6 +15,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - una mascota pertenece a un hogar
 - una mascota tiene un perfil resumen en `pet_profiles`
 - una mascota puede tener avatar privado en `pet-avatars` referenciado por metadata controlada
+- una mascota puede estar `active` o `in_memory`; `in_memory` conserva historial y bloquea nuevas reservas
 - una mascota puede tener multiples documentos y registros de salud
 - los registros de salud base del MVP viven en `pet_vaccines`, `pet_allergies` y `pet_conditions`
 - un reminder pertenece a un hogar y opcionalmente a una mascota

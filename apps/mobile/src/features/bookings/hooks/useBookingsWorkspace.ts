@@ -111,6 +111,10 @@ export function useBookingsWorkspace(
       return "Este servicio no tiene disponibilidad activa para el flujo legacy. Elige un horario disponible o prueba otro servicio.";
     }
 
+    if (error instanceof Error && error.message === "Selected pet is in memory and cannot be used for new bookings") {
+      return "Esta mascota esta en memoria. Conservamos su historial, pero no puede usarse para nuevas reservas.";
+    }
+
     return error instanceof Error ? error.message : fallbackMessage;
   }
 
@@ -207,7 +211,7 @@ export function useBookingsWorkspace(
       return;
     }
 
-    const nextPets = await getMobilePetsApiClient().listHouseholdPets(householdId);
+    const nextPets = (await getMobilePetsApiClient().listHouseholdPets(householdId)).filter((pet) => pet.status === "active");
 
     if (!mountedRef.current) {
       return;

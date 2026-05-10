@@ -487,7 +487,7 @@ export function BookingsWorkspace({
               ))}
             </View>
             <Text style={bodyTextStyle}>
-              Las reservas requieren una mascota concreta. Elige una antes de seleccionar el horario.
+              Las reservas nuevas solo muestran mascotas activas. Las mascotas en memoria conservan su historial, pero no se usan para nuevos servicios.
             </Text>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
               <Button disabled={!selectedPetId || isSubmitting} label="Elegir horario" onPress={() => showBookingView("horario")} />

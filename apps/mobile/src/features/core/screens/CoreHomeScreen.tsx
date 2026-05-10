@@ -84,7 +84,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
 type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
-type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species">;
+type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
 type OwnerHomePaymentMethod = Pick<UserPaymentMethod, "brand" | "isDefault" | "last4" | "status">;
@@ -764,6 +764,11 @@ function OwnerHome({
                       <Text numberOfLines={1} style={{ color: colorTokens.mutedStrong, fontSize: 12, lineHeight: 16 }}>
                         {getPetAgeLabel(pet.birthDate)}
                       </Text>
+                      {pet.status === "in_memory" ? (
+                        <Text numberOfLines={1} style={{ color: "#7c3aed", fontSize: 10, fontWeight: "900", lineHeight: 14 }}>
+                          En memoria
+                        </Text>
+                      ) : null}
                     </View>
                     <View style={{ backgroundColor: colorTokens.accentSoft, borderRadius: 999, padding: 6 }}>
                       <OwnerLineIcon color={colorTokens.accentDark} name="heart" size={16} />

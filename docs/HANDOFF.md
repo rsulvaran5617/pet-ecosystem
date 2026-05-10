@@ -66,6 +66,12 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
 - Validaciones tecnicas desde `master` publicado estan en PASS y los flujos criticos Android quedan validados manualmente para piloto controlado.
 
+## Actualizacion Mascota En memoria
+
+- Slice Pet Memory queda versionado localmente despues de aplicar remoto la migracion `20260510123000_pet_memory_status_slice_b.sql`.
+- El estado de mascota admite `active` e `in_memory`; `in_memory` conserva perfil, documentos, salud, recordatorios e historial.
+- Reservas nuevas deben usar solo mascotas activas; el backend valida `ensure_pet_is_bookable` en preview/booking desde slot.
+
 ## Ajustes QA visual de Cuenta provider
 
 ## Actualizacion visual alignment reference canon

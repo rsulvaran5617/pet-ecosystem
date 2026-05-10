@@ -16,7 +16,7 @@ import type {
   ProviderApprovalStatus,
   ProviderServiceCategory
 } from "./marketplace";
-import type { PetDocumentType, PetSex } from "./pets";
+import type { PetDocumentType, PetSex, PetStatus } from "./pets";
 import type { ProviderApprovalDocumentType } from "./providers";
 import type { SupportCaseStatus } from "./support";
 import type {
@@ -835,6 +835,8 @@ export interface Database {
           created_by_user_id: string;
           name: string;
           species: string;
+          status: PetStatus;
+          in_memory_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -844,6 +846,8 @@ export interface Database {
           created_by_user_id: string;
           name: string;
           species: string;
+          status?: PetStatus;
+          in_memory_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -853,6 +857,8 @@ export interface Database {
           created_by_user_id?: string;
           name?: string;
           species?: string;
+          status?: PetStatus;
+          in_memory_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1534,6 +1540,19 @@ export interface Database {
           next_avatar_storage_path: string;
         };
         Returns: Database["public"]["Tables"]["pet_profiles"]["Row"];
+      };
+      set_pet_memory_status: {
+        Args: {
+          target_pet_id: string;
+          next_status: PetStatus;
+        };
+        Returns: Database["public"]["Tables"]["pets"]["Row"];
+      };
+      ensure_pet_is_bookable: {
+        Args: {
+          target_pet_id: string;
+        };
+        Returns: void;
       };
       create_pet_vaccine: {
         Args: {

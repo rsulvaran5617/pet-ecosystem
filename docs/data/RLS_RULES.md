@@ -38,6 +38,8 @@ Aceptar o rechazar solo puede hacerlo el usuario invitado.
 ### pets
 Visible para usuarios con acceso al hogar y permisos correspondientes.
 Crear o editar mascota requiere permisos derivados de `edit` o `admin`.
+Cambiar estado `active`/`in_memory` requiere los mismos permisos de edicion del hogar.
+`in_memory` no borra datos ni cambia visibilidad historica; solo evita uso en nuevas reservas.
 
 ### pet_documents
 Visible para miembros autorizados del hogar.
@@ -72,6 +74,7 @@ No se deben agregar nuevas URLs externas arbitrarias para avatar de proveedor; u
 ### bookings / booking_pricing / booking_status_history
 Visible a miembros del hogar via funciones de acceso y al owner de la organizacion proveedora involucrada via `can_view_booking`.
 Crear o cancelar bookings ocurre via RPC `security definer` y exige permiso `book` en el hogar.
+Crear preview/bookings nuevos debe rechazar mascotas `in_memory`.
 Aprobar o rechazar un booking `pending_approval` exige ownership de la organizacion proveedora.
 Marcar un booking `confirmed` como `completed` exige ownership del proveedor involucrado.
 Adjuntar un `payment_method` exige permiso `pay` o `admin`.
