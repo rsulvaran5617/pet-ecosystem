@@ -561,9 +561,10 @@ function ProviderShellHeader({
   const sectionConfig = providerSectionLookup[section];
   const isAccountSection = section === "cuenta";
   const isHomeSection = section === "inicio";
+  const isBusinessSection = section === "negocio";
   const isServicesSection = section === "servicios";
   const isAvailabilitySection = section === "disponibilidad";
-  const hasGreenHeader = isAccountSection || isHomeSection || isServicesSection || isAvailabilitySection;
+  const hasGreenHeader = isAccountSection || isHomeSection || isBusinessSection || isServicesSection || isAvailabilitySection;
 
   return (
     <View style={{ borderRadius: 28, backgroundColor: hasGreenHeader ? colorTokens.accentDark : colorTokens.surface, padding: 20, gap: 10, ...visualTokens.mobile.shadow }}>
