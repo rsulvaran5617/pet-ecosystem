@@ -14,11 +14,13 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - un hogar puede tener multiples mascotas
 - una mascota pertenece a un hogar
 - una mascota tiene un perfil resumen en `pet_profiles`
+- una mascota puede tener avatar privado en `pet-avatars` referenciado por metadata controlada
 - una mascota puede tener multiples documentos y registros de salud
 - los registros de salud base del MVP viven en `pet_vaccines`, `pet_allergies` y `pet_conditions`
 - un reminder pertenece a un hogar y opcionalmente a una mascota
 - `calendar_events` refleja los reminders visibles en agenda para el MVP
 - una organizacion proveedora tiene un perfil publico, multiples servicios, disponibilidades y documentos de aprobacion
+- el perfil publico proveedor puede tener avatar controlado en `provider-avatars`
 - en V2 booking capacity, una organizacion/servicio puede tener reglas de disponibilidad con capacidad y excepciones por fecha
 - admin revisa la organizacion proveedora y decide su aprobacion basica
 - una reserva conecta hogar, mascota, proveedor y servicio

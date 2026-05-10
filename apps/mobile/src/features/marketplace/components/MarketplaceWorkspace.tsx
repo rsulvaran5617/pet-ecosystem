@@ -9,7 +9,7 @@ import type {
   ProviderServiceCategory
 } from "@pet/types";
 import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileBookingsApiClient } from "../../core/services/supabase-mobile";
@@ -57,6 +57,17 @@ function formatSpeciesLabel(value: string) {
 
 function formatTimeRange(startsAt: string, endsAt: string) {
   return `${startsAt.slice(0, 5)} - ${endsAt.slice(0, 5)}`;
+}
+
+function getProviderInitials(name: string) {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.slice(0, 1).toUpperCase())
+      .join("") || "PV"
+  );
 }
 
 function formatDateOnly(date: Date) {
@@ -499,11 +510,22 @@ export function MarketplaceWorkspace({
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Proveedores destacados</Text>
                 {homeSnapshot?.featuredProviders.length ? homeSnapshot.featuredProviders.map((provider) => (
                   <Pressable key={provider.organizationId} onPress={() => void handleOpenProvider(provider.organizationId)} style={inputStyle}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                      <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{provider.name}</Text>
-                      <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
+                    <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                      <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 22, height: 44, justifyContent: "center", width: 44 }}>
+                        {provider.avatarUrl ? (
+                          <Image source={{ uri: provider.avatarUrl }} style={{ borderRadius: 22, height: 44, width: 44 }} />
+                        ) : (
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>{getProviderInitials(provider.name)}</Text>
+                        )}
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                          <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{provider.name}</Text>
+                          <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
+                        </View>
+                        <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
+                      </View>
                     </View>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
                     <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.headline}</Text>
                     <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
                       {provider.categories.map((category) => providerServiceCategoryLabels[category]).join(", ")}
@@ -523,11 +545,22 @@ export function MarketplaceWorkspace({
               <Button label="Modificar busqueda" onPress={() => setCurrentView("home")} tone="secondary" />
               {providers.length ? providers.map((provider) => (
                 <View key={provider.organizationId} style={inputStyle}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                    <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{provider.name}</Text>
-                    <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
+                  <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                    <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 22, height: 44, justifyContent: "center", width: 44 }}>
+                      {provider.avatarUrl ? (
+                        <Image source={{ uri: provider.avatarUrl }} style={{ borderRadius: 22, height: 44, width: 44 }} />
+                      ) : (
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>{getProviderInitials(provider.name)}</Text>
+                      )}
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                        <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{provider.name}</Text>
+                        <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
+                      </View>
+                      <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
+                    </View>
                   </View>
-                  <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
                   <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.headline}</Text>
                   <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
                     Especies: {provider.speciesServed.map((species) => formatSpeciesLabel(species)).join(", ") || "No especificadas"}
@@ -543,7 +576,14 @@ export function MarketplaceWorkspace({
           {currentView === "provider" && selectedProviderDetail ? (
             <>
               <View style={cardStyle}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                  <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 26, height: 52, justifyContent: "center", width: 52 }}>
+                    {selectedProviderDetail.avatarUrl ? (
+                      <Image source={{ uri: selectedProviderDetail.avatarUrl }} style={{ borderRadius: 26, height: 52, width: 52 }} />
+                    ) : (
+                      <Text style={{ color: colorTokens.accentDark, fontSize: 13, fontWeight: "900" }}>{getProviderInitials(selectedProviderDetail.name)}</Text>
+                    )}
+                  </View>
                   <View style={{ gap: 4, flex: 1 }}>
                     <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>{selectedProviderDetail.name}</Text>
                     <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{selectedProviderDetail.city}</Text>

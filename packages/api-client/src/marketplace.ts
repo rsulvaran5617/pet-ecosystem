@@ -20,6 +20,7 @@ type ProviderOrganizationRow = Database["public"]["Tables"]["provider_organizati
 type ProviderPublicProfileRow = Database["public"]["Tables"]["provider_public_profiles"]["Row"];
 type ProviderServiceRow = Database["public"]["Tables"]["provider_services"]["Row"];
 type ProviderAvailabilityRow = Database["public"]["Tables"]["provider_availability"]["Row"];
+const providerAvatarsBucketId = "provider-avatars";
 
 type ProviderCatalogRecord = {
   organization: ProviderOrganization;
@@ -61,12 +62,26 @@ function mapProviderOrganization(row: ProviderOrganizationRow): ProviderOrganiza
   };
 }
 
-function mapProviderPublicProfile(row: ProviderPublicProfileRow): ProviderPublicProfile {
+async function getProviderAvatarSignedUrl(supabase: MarketplaceSupabaseClient, row: ProviderPublicProfileRow) {
+  if (row.avatar_storage_bucket === providerAvatarsBucketId && row.avatar_storage_path) {
+    const { data, error } = await supabase.storage.from(providerAvatarsBucketId).createSignedUrl(row.avatar_storage_path, 60 * 30);
+
+    if (!error) {
+      return data.signedUrl;
+    }
+  }
+
+  return row.avatar_url;
+}
+
+function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: string | null = row.avatar_url): ProviderPublicProfile {
   return {
     organizationId: row.organization_id,
     headline: row.headline,
     bio: row.bio,
-    avatarUrl: row.avatar_url,
+    avatarUrl,
+    avatarStorageBucket: row.avatar_storage_bucket,
+    avatarStoragePath: row.avatar_storage_path,
     isPublic: row.is_public,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -233,10 +248,12 @@ async function loadVisibleCatalog(supabase: MarketplaceSupabaseClient): Promise<
   }
 
   const profilesByOrganizationId = new Map(
-    (profileRows ?? []).map((row) => {
-      const profile = mapProviderPublicProfile(row);
-      return [profile.organizationId, profile] as const;
-    })
+    await Promise.all(
+      (profileRows ?? []).map(async (row) => {
+        const profile = mapProviderPublicProfile(row, await getProviderAvatarSignedUrl(supabase, row));
+        return [profile.organizationId, profile] as const;
+      })
+    )
   );
   const servicesByOrganizationId = new Map<string, ProviderService[]>();
   const availabilityByOrganizationId = new Map<string, ProviderAvailabilitySlot[]>();
@@ -375,7 +392,7 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
 
       return buildProviderDetail({
         organization: mapProviderOrganization(organizationRow),
-        profile: mapProviderPublicProfile(profileRow),
+        profile: mapProviderPublicProfile(profileRow, await getProviderAvatarSignedUrl(supabase, profileRow)),
         services,
         availability: (availabilityRows ?? []).map(mapProviderAvailability)
       });

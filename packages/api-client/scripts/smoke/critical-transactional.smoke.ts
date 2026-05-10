@@ -120,7 +120,6 @@ export async function runCriticalTransactionalSmoke(env: SmokeEnv, mode: Critica
   await providerClients.providers.upsertProviderPublicProfile(organization.id, {
     headline: "Pilot critical provider profile",
     bio: "Provider used for pilot critical web booking, chat, review and support validation.",
-    avatarUrl: null,
     isPublic: true
   });
 

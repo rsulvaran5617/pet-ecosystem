@@ -22,6 +22,7 @@ export interface ProviderOrganization extends TimestampedEntity {
   countryCode: string;
   approvalStatus: ProviderApprovalStatus;
   isPublic: boolean;
+  avatarUrl?: string | null;
 }
 
 export interface ProviderPublicProfile extends TimestampedEntity {
@@ -29,6 +30,8 @@ export interface ProviderPublicProfile extends TimestampedEntity {
   headline: string;
   bio: string;
   avatarUrl: string | null;
+  avatarStorageBucket: string | null;
+  avatarStoragePath: string | null;
   isPublic: boolean;
 }
 

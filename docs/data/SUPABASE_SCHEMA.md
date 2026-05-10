@@ -55,6 +55,8 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `payment_methods` almacena solo metodos guardados del usuario. El MVP queda en modo `payment-ready`; no existe captura real de pago.
 - `provider_organizations` controla ownership, estado de aprobacion y visibilidad base.
 - `provider_public_profiles`, `provider_services` y `provider_availability` alimentan discovery publico.
+- `pet_profiles` puede referenciar avatar privado mediante `avatar_storage_bucket` y `avatar_storage_path` en bucket `pet-avatars`.
+- `provider_public_profiles` puede referenciar avatar publico controlado mediante `avatar_storage_bucket` y `avatar_storage_path` en bucket privado `provider-avatars`; `avatar_url` queda solo como compatibilidad legacy.
 - V2 booking capacity propone reglas de disponibilidad por servicio con capacidad y excepciones por fecha; `provider_availability` actual se conserva para compatibilidad hasta migrar.
 - `bookings` soporta `pending_approval`, `confirmed`, `completed` y `cancelled`.
 - `booking_pricing` congela el snapshot economico al momento de crear la reserva.

@@ -8,6 +8,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - busqueda
 - filtros basicos
 - perfil publico del proveedor
+- avatar/foto publica del proveedor cuando exista en storage controlado
 - seleccion de servicio
 - handoff real hacia booking preview cuando el usuario ya tiene sesion
 
@@ -25,6 +26,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - `provider_public_profiles`
 - `provider_services`
 - `provider_availability`
+- bucket privado con lectura controlada `provider-avatars`
 
 ## Pantallas
 - home marketplace
@@ -37,6 +39,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - marketplace consume perfiles publicos, servicios y disponibilidad publicados por `providers`
 - el discovery publico lista organizaciones con `approval_status = approved` e `is_public = true`
 - los proveedores sin perfil publico o sin al menos un servicio publico no aparecen en discovery
+- si el perfil tiene avatar controlado en `provider-avatars`, marketplace lo muestra mediante URL firmada temporal; si no, usa placeholder visual
 - la seleccion de servicio no crea por si sola el booking
 - la seleccion deja preparado el contexto para `Bookings`
 - en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida

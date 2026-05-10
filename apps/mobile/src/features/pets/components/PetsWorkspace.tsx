@@ -3,7 +3,7 @@ import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetDocumentType, PetSummary, UpdatePetInput, Uuid } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
@@ -662,6 +662,42 @@ export function PetsWorkspace({
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
+  const uploadPetAvatar = (petId: Uuid) => {
+    void DocumentPicker.getDocumentAsync({
+      multiple: false,
+      copyToCacheDirectory: true,
+      type: "image/*"
+    }).then((result) => {
+      if (result.canceled) {
+        return;
+      }
+
+      const asset = result.assets[0];
+
+      if (!asset) {
+        return;
+      }
+
+      clearMessages();
+      void runAction(
+        async () => {
+          const response = await fetch(asset.uri);
+          const fileBytes = await response.arrayBuffer();
+
+          return getMobilePetsApiClient().uploadPetAvatar(petId, {
+            fileName: asset.name,
+            mimeType: asset.mimeType ?? null,
+            fileBytes
+          });
+        },
+        "Foto de mascota actualizada.",
+        false
+      ).then(async () => {
+        await refresh();
+        await selectPet(petId);
+      });
+    });
+  };
   const selectedPetAge = selectedPet ? formatPetAge(selectedPet.birthDate) : "Edad pendiente";
   const selectedPetHome = selectedHousehold?.name ?? "Hogar principal";
   const selectedPetBreed = selectedPet ? getPetDescription(selectedPet) : "Mascota";
@@ -723,9 +759,13 @@ export function PetsWorkspace({
                       justifyContent: "center"
                     }}
                   >
-                    <Text style={{ color: isSelected ? "#0f766e" : "#475569", fontSize: 18, fontWeight: "900" }}>
-                      {getPetInitial(pet.name)}
-                    </Text>
+                    {pet.avatarUrl ? (
+                      <Image source={{ uri: pet.avatarUrl }} style={{ borderRadius: 24, height: 48, width: 48 }} />
+                    ) : (
+                      <Text style={{ color: isSelected ? "#0f766e" : "#475569", fontSize: 18, fontWeight: "900" }}>
+                        {getPetInitial(pet.name)}
+                      </Text>
+                    )}
                   </View>
                   <View style={{ flex: 1, gap: 3 }}>
                     <Text numberOfLines={1} style={{ color: "#111827", fontSize: 14, fontWeight: "900" }}>{pet.name}</Text>
@@ -989,11 +1029,18 @@ export function PetsWorkspace({
                           justifyContent: "center"
                         }}
                       >
-                        <Text style={{ color: "#0f766e", fontSize: 42, fontWeight: "900" }}>{getPetInitial(selectedPetDetail.pet.name)}</Text>
+                        {selectedPetDetail.pet.avatarUrl ? (
+                          <Image
+                            source={{ uri: selectedPetDetail.pet.avatarUrl }}
+                            style={{ borderRadius: 51, height: 102, width: 102 }}
+                          />
+                        ) : (
+                          <Text style={{ color: "#0f766e", fontSize: 42, fontWeight: "900" }}>{getPetInitial(selectedPetDetail.pet.name)}</Text>
+                        )}
                       </View>
                       {canEditSelectedHousehold ? (
                         <Pressable
-                          onPress={() => openEditPet(selectedPetDetail.pet)}
+                          onPress={() => uploadPetAvatar(selectedPetDetail.pet.id)}
                           style={{
                             position: "absolute",
                             right: 0,

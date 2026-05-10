@@ -214,10 +214,26 @@ export function AdminProvidersWorkspace({
 
               <div style={inputStyle}>
                 <strong>Perfil publico</strong>
-                <div style={{ color: "#52525b", marginTop: "6px" }}>
-                  {selectedOrganization.publicProfile
-                    ? `${selectedOrganization.publicProfile.headline} (${selectedOrganization.publicProfile.isPublic ? "publico" : "oculto"})`
-                    : "Aun no hay perfil publico."}
+                <div style={{ alignItems: "center", display: "flex", gap: "10px", marginTop: "8px" }}>
+                  {selectedOrganization.publicProfile?.avatarUrl ? (
+                    <div
+                      aria-label="Avatar publico del proveedor"
+                      style={{
+                        backgroundImage: `url(${selectedOrganization.publicProfile.avatarUrl})`,
+                        backgroundPosition: "center",
+                        backgroundSize: "cover",
+                        border: "1px solid #ccfbf1",
+                        borderRadius: "999px",
+                        height: "44px",
+                        width: "44px"
+                      }}
+                    />
+                  ) : null}
+                  <div style={{ color: "#52525b" }}>
+                    {selectedOrganization.publicProfile
+                      ? `${selectedOrganization.publicProfile.headline} (${selectedOrganization.publicProfile.isPublic ? "publico" : "oculto"})`
+                      : "Aun no hay perfil publico."}
+                  </div>
                 </div>
                 {selectedOrganization.publicProfile ? (
                   <div style={{ color: "#71717a", marginTop: "6px", lineHeight: 1.7 }}>{selectedOrganization.publicProfile.bio}</div>

@@ -13,6 +13,9 @@ export interface PetSummary extends TimestampedEntity {
   sex: PetSex;
   birthDate: string | null;
   notes: string | null;
+  avatarUrl: string | null;
+  avatarStorageBucket: string | null;
+  avatarStoragePath: string | null;
   documentCount: number;
 }
 
@@ -56,6 +59,12 @@ export interface UpdatePetInput {
 export interface UploadPetDocumentInput {
   title: string;
   documentType: PetDocumentType;
+  fileName: string;
+  mimeType?: string | null;
+  fileBytes: ArrayBuffer;
+}
+
+export interface UploadPetAvatarInput {
   fileName: string;
   mimeType?: string | null;
   fileBytes: ArrayBuffer;

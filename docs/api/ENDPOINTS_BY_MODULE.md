@@ -41,6 +41,7 @@
 - `POST /pets`
 - `GET /pets/{id}`
 - `PATCH /pets/{id}`
+- `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`
 - `GET /pets/{id}/health`
@@ -118,6 +119,7 @@ Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, 
 - `GET /provider/organizations/{id}`
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
+- `POST /provider/organizations/{id}/public-profile/avatar`
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`

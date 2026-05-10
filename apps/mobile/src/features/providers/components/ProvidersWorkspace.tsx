@@ -21,7 +21,7 @@ import type {
   Uuid
 } from "@pet/types";
 import { useEffect, useMemo, useRef, useState, type Ref } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -54,7 +54,6 @@ type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
 type PublicProfileFormState = {
   headline: string;
   bio: string;
-  avatarUrl: string;
   isPublic: boolean;
 };
 type ServiceFormState = {
@@ -105,7 +104,6 @@ const emptyOrganizationForm: OrganizationFormState = {
 const emptyPublicProfileForm: PublicProfileFormState = {
   headline: "",
   bio: "",
-  avatarUrl: "",
   isPublic: true
 };
 
@@ -473,7 +471,6 @@ export function ProvidersWorkspace({
     setPublicProfileForm({
       headline: selectedOrganizationDetail.publicProfile?.headline ?? "",
       bio: selectedOrganizationDetail.publicProfile?.bio ?? "",
-      avatarUrl: selectedOrganizationDetail.publicProfile?.avatarUrl ?? "",
       isPublic: selectedOrganizationDetail.publicProfile?.isPublic ?? true
     });
     setIsPublicProfileFormVisible(false);
@@ -490,6 +487,40 @@ export function ProvidersWorkspace({
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
   const selectedServicios = selectedOrganizationDetail?.services ?? [];
+  const uploadProviderAvatar = (organizationId: Uuid) => {
+    void DocumentPicker.getDocumentAsync({
+      multiple: false,
+      copyToCacheDirectory: true,
+      type: "image/*"
+    }).then((result) => {
+      if (result.canceled) {
+        return;
+      }
+
+      const asset = result.assets[0];
+
+      if (!asset) {
+        return;
+      }
+
+      clearMessages();
+      void runAction(
+        async () => {
+          const response = await fetch(asset.uri);
+          const fileBytes = await response.arrayBuffer();
+
+          return getMobileProvidersApiClient().uploadProviderAvatar(organizationId, {
+            fileName: asset.name,
+            mimeType: asset.mimeType ?? null,
+            fileBytes
+          });
+        },
+        "Foto publica actualizada."
+      ).then(async () => {
+        await refresh(organizationId);
+      });
+    });
+  };
   const filteredOrganizations = useMemo(
     () =>
       organizations.filter((organization) => {
@@ -743,9 +774,16 @@ export function ProvidersWorkspace({
                             height: 48,
                             justifyContent: "center",
                             width: 48
-                          }}
-                        >
-                          <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>{getProviderInitials(selectedOrganization.name)}</Text>
+                        }}
+                      >
+                          {(selectedPublicProfile?.avatarUrl ?? selectedOrganization.avatarUrl) ? (
+                            <Image
+                              source={{ uri: selectedPublicProfile?.avatarUrl ?? selectedOrganization.avatarUrl ?? "" }}
+                              style={{ borderRadius: 14, height: 48, width: 48 }}
+                            />
+                          ) : (
+                            <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>{getProviderInitials(selectedOrganization.name)}</Text>
+                          )}
                         </View>
                         <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
                           <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 9, fontWeight: "900", lineHeight: 12 }}>
@@ -843,15 +881,45 @@ export function ProvidersWorkspace({
                             width: 42
                           }}
                         >
-                          <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
-                            {getProviderInitials(publicProfileForm.headline || selectedOrganization.name)}
-                          </Text>
+                          {selectedPublicProfile?.avatarUrl ? (
+                            <Image
+                              source={{ uri: selectedPublicProfile.avatarUrl }}
+                              style={{ borderRadius: 21, height: 42, width: 42 }}
+                            />
+                          ) : (
+                            <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                              {getProviderInitials(publicProfileForm.headline || selectedOrganization.name)}
+                            </Text>
+                          )}
                         </View>
                         <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
                           <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }}>
                             {publicProfileForm.headline || selectedOrganization.name}
                           </Text>
                         </View>
+                        <Pressable
+                          accessibilityLabel={selectedPublicProfile ? "Cambiar foto publica" : "Crear perfil publico antes de cargar foto"}
+                          onPress={() => {
+                            if (selectedPublicProfile) {
+                              uploadProviderAvatar(selectedOrganization.id);
+                              return;
+                            }
+
+                            setIsPublicProfileFormVisible(true);
+                          }}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: selectedPublicProfile ? "rgba(15,118,110,0.12)" : "rgba(120,113,108,0.12)",
+                            borderColor: selectedPublicProfile ? "rgba(15,118,110,0.22)" : "rgba(120,113,108,0.18)",
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            height: 32,
+                            justifyContent: "center",
+                            paddingHorizontal: 10
+                          }}
+                        >
+                          <Text style={{ color: selectedPublicProfile ? "#0f766e" : colorTokens.muted, fontSize: 10, fontWeight: "900" }}>Foto</Text>
+                        </Pressable>
                         <Pressable
                           accessibilityLabel="Editar perfil publico"
                           onPress={() => setIsPublicProfileFormVisible((current) => !current)}
@@ -878,7 +946,12 @@ export function ProvidersWorkspace({
 
                           <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
                             <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Imagen y estado</Text>
-                            <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
+                            <Button
+                              disabled={isSubmitting || !selectedPublicProfile}
+                              label={selectedPublicProfile ? "Cambiar foto publica" : "Guarda el perfil antes de cargar foto"}
+                              onPress={() => uploadProviderAvatar(selectedOrganization.id)}
+                              tone="secondary"
+                            />
                             <ChoiceBar
                               onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value === "public" }))}
                               options={[
@@ -900,7 +973,6 @@ export function ProvidersWorkspace({
                                     getMobileProvidersApiClient().upsertProviderPublicProfile(selectedOrganization.id, {
                                       headline: publicProfileForm.headline.trim(),
                                       bio: publicProfileForm.bio.trim(),
-                                      avatarUrl: publicProfileForm.avatarUrl.trim() || null,
                                       isPublic: publicProfileForm.isPublic
                                     }),
                                   "Perfil publico guardado."
@@ -1023,7 +1095,11 @@ export function ProvidersWorkspace({
                                 width: 40
                               }}
                             >
-                              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>{getProviderInitials(organization.name)}</Text>
+                              {organization.avatarUrl ? (
+                                <Image source={{ uri: organization.avatarUrl }} style={{ borderRadius: 12, height: 40, width: 40 }} />
+                              ) : (
+                                <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>{getProviderInitials(organization.name)}</Text>
+                              )}
                             </View>
                             <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
                               <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }}>
@@ -1531,15 +1607,45 @@ export function ProvidersWorkspace({
                           width: 46
                         }}
                       >
-                        <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>
-                          {getProviderInitials(publicProfileForm.headline || selectedOrganization.name)}
-                        </Text>
+                        {selectedPublicProfile?.avatarUrl ? (
+                          <Image
+                            source={{ uri: selectedPublicProfile.avatarUrl }}
+                            style={{ borderRadius: 23, height: 46, width: 46 }}
+                          />
+                        ) : (
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>
+                            {getProviderInitials(publicProfileForm.headline || selectedOrganization.name)}
+                          </Text>
+                        )}
                       </View>
                       <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
                         <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", lineHeight: 16 }}>
                           {publicProfileForm.headline || selectedOrganization.name}
                         </Text>
                       </View>
+                      <Pressable
+                        accessibilityLabel={selectedPublicProfile ? "Cambiar foto publica" : "Crear perfil publico antes de cargar foto"}
+                        onPress={() => {
+                          if (selectedPublicProfile) {
+                            uploadProviderAvatar(selectedOrganization.id);
+                            return;
+                          }
+
+                          setIsPublicProfileFormVisible(true);
+                        }}
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: selectedPublicProfile ? "rgba(15,118,110,0.12)" : "rgba(120,113,108,0.12)",
+                          borderColor: selectedPublicProfile ? "rgba(15,118,110,0.22)" : "rgba(120,113,108,0.18)",
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          height: 34,
+                          justifyContent: "center",
+                          paddingHorizontal: 11
+                        }}
+                      >
+                        <Text style={{ color: selectedPublicProfile ? "#0f766e" : colorTokens.muted, fontSize: 10, fontWeight: "900" }}>Foto</Text>
+                      </Pressable>
                       <Pressable
                         accessibilityLabel="Editar perfil publico"
                         onPress={() => setIsPublicProfileFormVisible((current) => !current)}
@@ -1567,7 +1673,12 @@ export function ProvidersWorkspace({
 
                       <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
                         <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Imagen y estado</Text>
-                        <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
+                        <Button
+                          disabled={isSubmitting || !selectedPublicProfile}
+                          label={selectedPublicProfile ? "Cambiar foto publica" : "Guarda el perfil antes de cargar foto"}
+                          onPress={() => uploadProviderAvatar(selectedOrganization.id)}
+                          tone="secondary"
+                        />
                         <ChoiceBar
                           onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value === "public" }))}
                           options={[
@@ -1589,7 +1700,6 @@ export function ProvidersWorkspace({
                                 getMobileProvidersApiClient().upsertProviderPublicProfile(selectedOrganization.id, {
                                   headline: publicProfileForm.headline.trim(),
                                   bio: publicProfileForm.bio.trim(),
-                                  avatarUrl: publicProfileForm.avatarUrl.trim() || null,
                                   isPublic: publicProfileForm.isPublic
                                 }),
                               "Perfil publico guardado."

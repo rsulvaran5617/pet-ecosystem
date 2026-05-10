@@ -53,8 +53,13 @@ export interface UpdateProviderOrganizationInput {
 export interface UpsertProviderPublicProfileInput {
   headline: string;
   bio: string;
-  avatarUrl?: string | null;
   isPublic?: boolean;
+}
+
+export interface UploadProviderAvatarInput {
+  fileName: string;
+  mimeType?: string | null;
+  fileBytes: ArrayBuffer;
 }
 
 export interface CreateProviderServiceInput {

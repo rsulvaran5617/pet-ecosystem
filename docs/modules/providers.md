@@ -7,6 +7,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - onboarding basico de organizacion
 - crear y editar perfil de negocio
 - configurar perfil publico
+- cargar foto/avatar publico controlado del proveedor
 - configurar servicios
 - definir disponibilidad base
 - cargar documentos de aprobacion
@@ -67,6 +68,7 @@ Modelo recomendado CAP-0:
 - `provider_services`
 - `provider_availability`
 - `provider_documents`
+- bucket privado con lectura controlada `provider-avatars`
 - `bookings`
 - `booking_operations`
 - `booking_operation_evidence`
@@ -95,6 +97,8 @@ Modelo recomendado CAP-0:
 - el perfil publico debe tener `is_public = true`
 - marketplace solo expone servicios con `is_public = true` e `is_active = true`
 - marketplace solo expone disponibilidad activa de organizaciones publicas ya aprobadas
+- la foto/avatar del perfil publico vive en `provider-avatars`; no se aceptan nuevas URLs externas arbitrarias para el avatar
+- el avatar de proveedor se entrega mediante URL firmada temporal y puede mostrarse en provider mobile, marketplace y admin cuando la organizacion/perfil cumplen visibilidad publica o ownership
 - en V2 capacity, marketplace/booking expone slots calculados desde reglas activas con cupos disponibles
 - el owner proveedor ve y gestiona solo su propia organizacion
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
@@ -122,6 +126,7 @@ Modelo recomendado CAP-0:
 - `GET /provider/organizations/{id}`
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
+- `POST /provider/organizations/{id}/public-profile/avatar`
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`

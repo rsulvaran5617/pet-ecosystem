@@ -17,6 +17,7 @@ import type {
   UpdateProviderOrganizationInput,
   UpdateProviderServiceInput,
   UploadProviderApprovalDocumentInput,
+  UploadProviderAvatarInput,
   UpsertProviderPublicProfileInput,
   Uuid
 } from "@pet/types";
@@ -31,6 +32,7 @@ type ProviderAvailabilityRuleRow = Database["public"]["Tables"]["provider_availa
 type ProviderDocumentRow = Database["public"]["Tables"]["provider_documents"]["Row"];
 
 const providerDocumentsBucketId = "provider-documents";
+const providerAvatarsBucketId = "provider-avatars";
 
 export interface ProvidersApiClient {
   listMyProviderOrganizations(): Promise<ProviderOrganization[]>;
@@ -46,6 +48,7 @@ export interface ProvidersApiClient {
   createProviderAvailabilityRule(input: CreateProviderAvailabilityRuleInput): Promise<ProviderAvailabilityRule>;
   updateProviderAvailabilityRule(ruleId: Uuid, input: UpdateProviderAvailabilityRuleInput): Promise<ProviderAvailabilityRule>;
   setProviderAvailabilityRuleActive(ruleId: Uuid, isActive: boolean): Promise<ProviderAvailabilityRule>;
+  uploadProviderAvatar(organizationId: Uuid, input: UploadProviderAvatarInput): Promise<ProviderPublicProfile>;
   listProviderApprovalDocuments(organizationId: Uuid): Promise<ProviderApprovalDocument[]>;
   uploadProviderApprovalDocument(organizationId: Uuid, input: UploadProviderApprovalDocumentInput): Promise<ProviderApprovalDocument>;
   getProviderApprovalStatus(organizationId: Uuid): Promise<ProviderApprovalStatusSnapshot>;
@@ -101,7 +104,11 @@ function buildDocumentStoragePath(organizationId: string, fileName: string) {
   return `${organizationId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${sanitizeFileName(fileName)}`;
 }
 
-function mapProviderOrganization(row: ProviderOrganizationRow): ProviderOrganization {
+function buildAvatarStoragePath(organizationId: string, fileName: string) {
+  return `${organizationId}/avatar-${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${sanitizeFileName(fileName)}`;
+}
+
+function mapProviderOrganization(row: ProviderOrganizationRow, avatarUrl?: string | null): ProviderOrganization {
   return {
     id: row.id,
     ownerUserId: row.owner_user_id,
@@ -111,17 +118,32 @@ function mapProviderOrganization(row: ProviderOrganizationRow): ProviderOrganiza
     countryCode: row.country_code,
     approvalStatus: row.approval_status,
     isPublic: row.is_public,
+    avatarUrl,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
 }
 
-function mapProviderPublicProfile(row: ProviderPublicProfileRow): ProviderPublicProfile {
+async function getProviderAvatarSignedUrl(supabase: ProvidersSupabaseClient, row: ProviderPublicProfileRow) {
+  if (row.avatar_storage_bucket === providerAvatarsBucketId && row.avatar_storage_path) {
+    const { data, error } = await supabase.storage.from(providerAvatarsBucketId).createSignedUrl(row.avatar_storage_path, 60 * 30);
+
+    if (!error) {
+      return data.signedUrl;
+    }
+  }
+
+  return row.avatar_url;
+}
+
+function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: string | null = row.avatar_url): ProviderPublicProfile {
   return {
     organizationId: row.organization_id,
     headline: row.headline,
     bio: row.bio,
-    avatarUrl: row.avatar_url,
+    avatarUrl,
+    avatarStorageBucket: row.avatar_storage_bucket,
+    avatarStoragePath: row.avatar_storage_path,
     isPublic: row.is_public,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -259,7 +281,7 @@ async function getProviderOrganizationDetailById(
 
   return {
     organization: mapProviderOrganization(organizationRow),
-    publicProfile: publicProfileRow ? mapProviderPublicProfile(publicProfileRow) : null,
+    publicProfile: publicProfileRow ? mapProviderPublicProfile(publicProfileRow, await getProviderAvatarSignedUrl(supabase, publicProfileRow)) : null,
     services: (serviceRows ?? []).map(mapProviderService),
     availability: (availabilityRows ?? []).map(mapProviderAvailability),
     availabilityRules: (availabilityRuleRows ?? []).map(mapProviderAvailabilityRule),
@@ -281,7 +303,28 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         fail(error, "Unable to load the provider organizations.");
       }
 
-      return (data ?? []).map(mapProviderOrganization);
+      const organizations = data ?? [];
+      const organizationIds = organizations.map((organization) => organization.id);
+      const avatarUrlByOrganizationId = new Map<string, string | null>();
+
+      if (organizationIds.length) {
+        const { data: profileRows, error: profilesError } = await supabase
+          .from("provider_public_profiles")
+          .select("*")
+          .in("organization_id", organizationIds);
+
+        if (profilesError) {
+          fail(profilesError, "Unable to load the provider public profiles.");
+        }
+
+        await Promise.all(
+          (profileRows ?? []).map(async (profileRow) => {
+            avatarUrlByOrganizationId.set(profileRow.organization_id, await getProviderAvatarSignedUrl(supabase, profileRow));
+          })
+        );
+      }
+
+      return organizations.map((organization) => mapProviderOrganization(organization, avatarUrlByOrganizationId.get(organization.id) ?? null));
     },
     async getProviderOrganizationDetail(organizationId) {
       const user = await requireCurrentUser(supabase);
@@ -324,7 +367,7 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         target_organization_id: organizationId,
         next_headline: input.headline,
         next_bio: input.bio,
-        next_avatar_url: input.avatarUrl ?? null,
+        next_avatar_url: null,
         next_is_public: input.isPublic ?? true
       });
 
@@ -332,7 +375,7 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         fail(error, "Unable to save the provider public profile.");
       }
 
-      return mapProviderPublicProfile(data);
+      return mapProviderPublicProfile(data, await getProviderAvatarSignedUrl(supabase, data));
     },
     async createProviderService(input) {
       const { data, error } = await supabase.rpc("create_provider_service", {
@@ -521,6 +564,41 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
 
       return (data ?? []).map(mapProviderDocument);
     },
+    async uploadProviderAvatar(organizationId, input) {
+      await requireCurrentUser(supabase);
+
+      if (input.fileBytes.byteLength === 0) {
+        throw new Error("Provider avatar image file is empty.");
+      }
+
+      if (!input.mimeType?.startsWith("image/")) {
+        throw new Error("El avatar del proveedor debe ser una imagen.");
+      }
+
+      const storagePath = buildAvatarStoragePath(organizationId, input.fileName);
+      const uploadPayload = new Uint8Array(input.fileBytes);
+      const { error: uploadError } = await supabase.storage.from(providerAvatarsBucketId).upload(storagePath, uploadPayload, {
+        contentType: input.mimeType,
+        upsert: false
+      });
+
+      if (uploadError) {
+        fail(uploadError, "Unable to upload the provider avatar.");
+      }
+
+      const { data, error } = await supabase.rpc("set_provider_public_profile_avatar", {
+        target_organization_id: organizationId,
+        next_avatar_storage_bucket: providerAvatarsBucketId,
+        next_avatar_storage_path: storagePath
+      });
+
+      if (error) {
+        await supabase.storage.from(providerAvatarsBucketId).remove([storagePath]).catch(() => undefined);
+        fail(error, "Unable to save the provider avatar record.");
+      }
+
+      return mapProviderPublicProfile(data, await getProviderAvatarSignedUrl(supabase, data));
+    },
     async uploadProviderApprovalDocument(organizationId, input) {
       const user = await requireCurrentUser(supabase);
 
@@ -592,7 +670,7 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         fail(error, "Unable to load pending provider organizations.");
       }
 
-      return (data ?? []).map(mapProviderOrganization);
+      return (data ?? []).map((row) => mapProviderOrganization(row));
     },
     async getAdminProviderOrganizationDetail(organizationId) {
       return getProviderOrganizationDetailById(supabase, organizationId);

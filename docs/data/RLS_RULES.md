@@ -43,6 +43,11 @@ Crear o editar mascota requiere permisos derivados de `edit` o `admin`.
 Visible para miembros autorizados del hogar.
 Carga de documentos requiere permisos derivados de `edit` o `admin`.
 
+### pet-avatars storage
+Bucket privado para fotos de mascotas.
+Lectura requiere `can_view_pet` derivado del hogar; carga o reemplazo requiere `can_edit_pet`.
+El path debe iniciar con el `pet_id` y la app solo debe exponer URLs firmadas temporales.
+
 ### health tables
 Visibles para miembros autorizados del hogar.
 Registrar o editar requiere permisos derivados de `edit` o `admin` sobre la mascota.
@@ -57,6 +62,12 @@ Las lecturas publicas de marketplace solo pueden ver organizaciones con `approva
 Servicios y disponibilidad requieren ademas flags publicos y `is_active` cuando aplica.
 Los documentos de aprobacion no son publicos.
 La gestion privada de estos registros pertenece al owner de la organizacion o a admin en el slice de revision.
+
+### provider-avatars storage
+Bucket privado con lectura controlada para la foto/avatar del perfil publico del proveedor.
+La lectura publica/anonima solo debe permitir imagenes de organizaciones visibles mediante `is_provider_organization_visible`.
+La carga o reemplazo requiere `can_manage_provider_organization` y path con prefijo `organization_id`.
+No se deben agregar nuevas URLs externas arbitrarias para avatar de proveedor; usar `storage_bucket` + `storage_path` y URL firmada temporal.
 
 ### bookings / booking_pricing / booking_status_history
 Visible a miembros del hogar via funciones de acceso y al owner de la organizacion proveedora involucrada via `can_view_booking`.

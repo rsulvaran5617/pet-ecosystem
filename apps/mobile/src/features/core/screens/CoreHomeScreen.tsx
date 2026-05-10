@@ -18,6 +18,7 @@ import type {
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -83,7 +84,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
 type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
-type OwnerHomePet = Pick<PetSummary, "birthDate" | "breed" | "id" | "name" | "species">;
+type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
 type OwnerHomePaymentMethod = Pick<UserPaymentMethod, "brand" | "isDefault" | "last4" | "status">;
@@ -743,7 +744,11 @@ function OwnerHome({
                         width: 46
                       }}
                     >
-                      <Text style={{ color: toneStyle.color, fontSize: 18, fontWeight: "900" }}>{petInitial}</Text>
+                      {pet.avatarUrl ? (
+                        <Image source={{ uri: pet.avatarUrl }} style={{ borderRadius: 23, height: 46, width: 46 }} />
+                      ) : (
+                        <Text style={{ color: toneStyle.color, fontSize: 18, fontWeight: "900" }}>{petInitial}</Text>
+                      )}
                     </View>
                     <View style={{ flex: 1, gap: 1, minWidth: 0 }}>
                       <Text

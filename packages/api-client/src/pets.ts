@@ -5,6 +5,7 @@ import type {
   PetDocument,
   PetSummary,
   UpdatePetInput,
+  UploadPetAvatarInput,
   UploadPetDocumentInput,
   Uuid
 } from "@pet/types";
@@ -16,6 +17,7 @@ type PetProfileRow = Database["public"]["Tables"]["pet_profiles"]["Row"];
 type PetDocumentRow = Database["public"]["Tables"]["pet_documents"]["Row"];
 
 const petDocumentsBucketId = "pet-documents";
+const petAvatarsBucketId = "pet-avatars";
 
 export interface PetsApiClient {
   listHouseholdPets(householdId: Uuid): Promise<PetSummary[]>;
@@ -23,6 +25,7 @@ export interface PetsApiClient {
   updatePet(petId: Uuid, input: UpdatePetInput): Promise<PetSummary>;
   getPetDetail(petId: Uuid): Promise<PetDetail>;
   listPetDocuments(petId: Uuid): Promise<PetDocument[]>;
+  uploadPetAvatar(petId: Uuid, input: UploadPetAvatarInput): Promise<PetSummary>;
   uploadPetDocument(petId: Uuid, input: UploadPetDocumentInput): Promise<PetDocument>;
 }
 
@@ -82,7 +85,8 @@ function mapPetDocument(row: PetDocumentRow): PetDocument {
 function mapPetSummary(
   petRow: PetRow,
   profileMap: Map<string, PetProfileRow>,
-  documentCountByPetId: Map<string, number>
+  documentCountByPetId: Map<string, number>,
+  avatarUrlByPetId: Map<string, string | null> = new Map()
 ): PetSummary {
   const petProfile = profileMap.get(petRow.id);
 
@@ -96,6 +100,9 @@ function mapPetSummary(
     sex: petProfile?.sex ?? "unknown",
     birthDate: petProfile?.birth_date ?? null,
     notes: petProfile?.notes ?? null,
+    avatarUrl: avatarUrlByPetId.get(petRow.id) ?? null,
+    avatarStorageBucket: petProfile?.avatar_storage_bucket ?? null,
+    avatarStoragePath: petProfile?.avatar_storage_path ?? null,
     documentCount: documentCountByPetId.get(petRow.id) ?? 0,
     createdAt: petRow.created_at,
     updatedAt: petRow.updated_at
@@ -174,9 +181,10 @@ async function getPetSummaryById(supabase: PetsSupabaseClient, petId: string) {
     listPetProfiles(supabase, [petId]),
     listPetDocumentsRows(supabase, [petId])
   ]);
+  const avatarUrlByPetId = await buildPetAvatarUrlMap(supabase, profileMap);
   const documentCountByPetId = new Map<string, number>([[petId, documentRows.length]]);
 
-  return mapPetSummary(petRow, profileMap, documentCountByPetId);
+  return mapPetSummary(petRow, profileMap, documentCountByPetId, avatarUrlByPetId);
 }
 
 function sanitizeFileName(fileName: string) {
@@ -189,6 +197,26 @@ function buildDocumentStoragePath(petId: string, fileName: string) {
   return `${petId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${sanitizeFileName(fileName)}`;
 }
 
+function buildAvatarStoragePath(petId: string, fileName: string) {
+  return `${petId}/avatar-${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${sanitizeFileName(fileName)}`;
+}
+
+async function buildPetAvatarUrlMap(supabase: PetsSupabaseClient, profileMap: Map<string, PetProfileRow>) {
+  const entries = await Promise.all(
+    Array.from(profileMap.entries()).map(async ([petId, profile]) => {
+      if (profile.avatar_storage_bucket !== petAvatarsBucketId || !profile.avatar_storage_path) {
+        return [petId, null] as const;
+      }
+
+      const { data, error } = await supabase.storage.from(petAvatarsBucketId).createSignedUrl(profile.avatar_storage_path, 60 * 30);
+
+      return [petId, error ? null : data.signedUrl] as const;
+    })
+  );
+
+  return new Map(entries);
+}
+
 export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient {
   return {
     async listHouseholdPets(householdId) {
@@ -198,12 +226,13 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         listPetProfiles(supabase, petIds),
         listPetDocumentsRows(supabase, petIds)
       ]);
+      const avatarUrlByPetId = await buildPetAvatarUrlMap(supabase, profileMap);
       const documentCountByPetId = documentRows.reduce((countMap, row) => {
         countMap.set(row.pet_id, (countMap.get(row.pet_id) ?? 0) + 1);
         return countMap;
       }, new Map<string, number>());
 
-      return petRows.map((petRow) => mapPetSummary(petRow, profileMap, documentCountByPetId));
+      return petRows.map((petRow) => mapPetSummary(petRow, profileMap, documentCountByPetId, avatarUrlByPetId));
     },
     async createPet(input) {
       const { data, error } = await supabase.rpc("create_pet", {
@@ -252,6 +281,41 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
       const documentRows = await listPetDocumentsRows(supabase, [petId]);
 
       return documentRows.map(mapPetDocument);
+    },
+    async uploadPetAvatar(petId, input) {
+      await requireCurrentUser(supabase);
+
+      if (input.fileBytes.byteLength === 0) {
+        throw new Error("Avatar image file is empty.");
+      }
+
+      if (!input.mimeType?.startsWith("image/")) {
+        throw new Error("El avatar debe ser una imagen.");
+      }
+
+      const storagePath = buildAvatarStoragePath(petId, input.fileName);
+      const uploadPayload = new Uint8Array(input.fileBytes);
+      const { error: uploadError } = await supabase.storage.from(petAvatarsBucketId).upload(storagePath, uploadPayload, {
+        contentType: input.mimeType,
+        upsert: false
+      });
+
+      if (uploadError) {
+        fail(uploadError, "Unable to upload the pet avatar.");
+      }
+
+      const { error } = await supabase.rpc("set_pet_avatar", {
+        target_pet_id: petId,
+        next_avatar_storage_bucket: petAvatarsBucketId,
+        next_avatar_storage_path: storagePath
+      });
+
+      if (error) {
+        await supabase.storage.from(petAvatarsBucketId).remove([storagePath]).catch(() => undefined);
+        fail(error, "Unable to save the pet avatar record.");
+      }
+
+      return getPetSummaryById(supabase, petId);
     },
     async uploadPetDocument(petId, input) {
       const user = await requireCurrentUser(supabase);

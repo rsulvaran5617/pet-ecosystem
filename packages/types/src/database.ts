@@ -865,6 +865,8 @@ export interface Database {
           sex: PetSex;
           birth_date: string | null;
           notes: string | null;
+          avatar_storage_bucket: string | null;
+          avatar_storage_path: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -874,6 +876,8 @@ export interface Database {
           sex?: PetSex;
           birth_date?: string | null;
           notes?: string | null;
+          avatar_storage_bucket?: string | null;
+          avatar_storage_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -883,6 +887,8 @@ export interface Database {
           sex?: PetSex;
           birth_date?: string | null;
           notes?: string | null;
+          avatar_storage_bucket?: string | null;
+          avatar_storage_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1179,6 +1185,8 @@ export interface Database {
           headline: string;
           bio: string;
           avatar_url: string | null;
+          avatar_storage_bucket: string | null;
+          avatar_storage_path: string | null;
           is_public: boolean;
           created_at: string;
           updated_at: string;
@@ -1188,6 +1196,8 @@ export interface Database {
           headline: string;
           bio: string;
           avatar_url?: string | null;
+          avatar_storage_bucket?: string | null;
+          avatar_storage_path?: string | null;
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -1197,6 +1207,8 @@ export interface Database {
           headline?: string;
           bio?: string;
           avatar_url?: string | null;
+          avatar_storage_bucket?: string | null;
+          avatar_storage_path?: string | null;
           is_public?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -1515,6 +1527,14 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["pets"]["Row"];
       };
+      set_pet_avatar: {
+        Args: {
+          target_pet_id: string;
+          next_avatar_storage_bucket: string;
+          next_avatar_storage_path: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_profiles"]["Row"];
+      };
       create_pet_vaccine: {
         Args: {
           target_pet_id: string;
@@ -1658,6 +1678,14 @@ export interface Database {
           next_bio: string;
           next_avatar_url?: string | null;
           next_is_public?: boolean;
+        };
+        Returns: Database["public"]["Tables"]["provider_public_profiles"]["Row"];
+      };
+      set_provider_public_profile_avatar: {
+        Args: {
+          target_organization_id: string;
+          next_avatar_storage_bucket: string;
+          next_avatar_storage_path: string;
         };
         Returns: Database["public"]["Tables"]["provider_public_profiles"]["Row"];
       };

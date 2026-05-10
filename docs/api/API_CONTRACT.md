@@ -55,6 +55,7 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `POST /pets`
 - `GET /pets/{id}`
 - `PATCH /pets/{id}`
+- `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`
 - `GET /pets/{id}/health`
@@ -106,6 +107,10 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 
 Notas:
 
+- los avatares de mascotas y proveedores usan storage controlado con `storage_bucket` y `storage_path`
+- mascotas exponen avatar privado mediante URL firmada temporal
+- proveedores exponen avatar publico desde `provider-avatars` mediante URL firmada temporal solo para perfiles/organizaciones visibles
+- no se agregan nuevas URLs externas arbitrarias para avatares
 - `approve/reject` aplican solo a `pending_approval`
 - `complete` aplica al owner proveedor sobre `confirmed`
 - el booking puede referenciar un `payment_method` guardado, pero no captura pago real
@@ -163,6 +168,7 @@ Contratos QR propuestos:
 - `GET /provider/organizations/{id}`
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
+- `POST /provider/organizations/{id}/public-profile/avatar`
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`
