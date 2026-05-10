@@ -92,6 +92,7 @@ type DocumentFormState = {
 };
 export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "disponibilidad" | "reservas" | "estado";
 type OrganizationView = "lista" | "crear" | "editar";
+type OrganizationListFilter = "all" | "active" | "approved" | "ready";
 
 const emptyOrganizationForm: OrganizationFormState = {
   name: "",
@@ -442,8 +443,10 @@ export function ProvidersWorkspace({
     runAction
   } = useProvidersWorkspace(enabled && hasProviderRole);
   const [organizationView, setOrganizationView] = useState<OrganizationView>("lista");
+  const [organizationListFilter, setOrganizationListFilter] = useState<OrganizationListFilter>("all");
   const [organizationForm, setOrganizationForm] = useState(emptyOrganizationForm);
   const [publicProfileForm, setPublicProfileForm] = useState(emptyPublicProfileForm);
+  const [isPublicProfileFormVisible, setIsPublicProfileFormVisible] = useState(false);
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
   const [isServiceFormVisible, setIsServiceFormVisible] = useState(false);
   const serviceNameInputRef = useRef<TextInput>(null);
@@ -473,6 +476,7 @@ export function ProvidersWorkspace({
       avatarUrl: selectedOrganizationDetail.publicProfile?.avatarUrl ?? "",
       isPublic: selectedOrganizationDetail.publicProfile?.isPublic ?? true
     });
+    setIsPublicProfileFormVisible(false);
     setServiceForm(emptyServiceForm);
     setIsServiceFormVisible(false);
     setDisponibilidadForm({
@@ -486,6 +490,25 @@ export function ProvidersWorkspace({
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
   const selectedServicios = selectedOrganizationDetail?.services ?? [];
+  const filteredOrganizations = useMemo(
+    () =>
+      organizations.filter((organization) => {
+        if (organizationListFilter === "active") {
+          return organization.isPublic;
+        }
+
+        if (organizationListFilter === "approved") {
+          return organization.approvalStatus === "approved";
+        }
+
+        if (organizationListFilter === "ready") {
+          return organization.isPublic && organization.approvalStatus === "approved";
+        }
+
+        return true;
+      }),
+    [organizationListFilter, organizations]
+  );
   const emptyAvailabilityFormForSelectedService = useMemo(
     () => ({
       ...emptyDisponibilidadForm,
@@ -577,7 +600,7 @@ export function ProvidersWorkspace({
   const showOrganization = activeSection === "negocio";
   const showApproval = activeSection === "inicio" || activeSection === "estado";
   const showBookings = activeSection === "inicio" || activeSection === "reservas";
-  const showProfile = activeSection === "negocio";
+  const showProfile = false;
   const showServices = activeSection === "servicios";
   const showAvailability = activeSection === "disponibilidad";
   const showDocuments = activeSection === "estado";
@@ -708,13 +731,13 @@ export function ProvidersWorkspace({
                   {isLoading && !organizations.length && !selectedOrganizationDetail ? (
                     <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>Preparando tus negocios de proveedor...</Text>
                   ) : selectedOrganization ? (
-                    <View style={{ borderRadius: 18, backgroundColor: colorTokens.accentDark, padding: 12, gap: 10, ...visualTokens.mobile.shadow }}>
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.74)", padding: 12, gap: 10 }}>
                       <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
                         <View
                           style={{
                             alignItems: "center",
-                            backgroundColor: "rgba(255,255,255,0.16)",
-                            borderColor: "rgba(255,255,255,0.24)",
+                            backgroundColor: "rgba(0,122,107,0.1)",
+                            borderColor: "rgba(0,122,107,0.18)",
                             borderRadius: 14,
                             borderWidth: 1,
                             height: 48,
@@ -722,13 +745,13 @@ export function ProvidersWorkspace({
                             width: 48
                           }}
                         >
-                          <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>{getProviderInitials(selectedOrganization.name)}</Text>
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>{getProviderInitials(selectedOrganization.name)}</Text>
                         </View>
                         <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
-                          <Text numberOfLines={2} style={{ color: "#ffffff", fontSize: 9, fontWeight: "900", lineHeight: 12 }}>
+                          <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 9, fontWeight: "900", lineHeight: 12 }}>
                             {selectedOrganization.name}
                           </Text>
-                          <Text numberOfLines={1} style={{ color: "rgba(255,255,255,0.84)", fontSize: 9, lineHeight: 12 }}>
+                          <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>
                             {selectedOrganization.city} · {selectedOrganization.slug}
                           </Text>
                           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
@@ -744,8 +767,8 @@ export function ProvidersWorkspace({
                             />
                             <View
                               style={{
-                                backgroundColor: "rgba(255,255,255,0.92)",
-                                borderColor: "rgba(255,255,255,0.36)",
+                                backgroundColor: "rgba(255,255,255,0.88)",
+                                borderColor: "rgba(28,25,23,0.08)",
                                 borderWidth: 1,
                                 borderRadius: 999,
                                 paddingHorizontal: 10,
@@ -758,16 +781,26 @@ export function ProvidersWorkspace({
                             </View>
                           </View>
                         </View>
-                      </View>
-                      <View style={{ alignItems: "flex-start" }}>
-                        <Button
+                        <Pressable
+                          accessibilityLabel="Editar negocio"
                           disabled={isSubmitting}
-                          label="Editar"
                           onPress={() => {
                             setOrganizationView("editar");
                           }}
-                          tone="secondary"
-                        />
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: colorTokens.accentDark,
+                            borderColor: colorTokens.accentDark,
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            height: 34,
+                            justifyContent: "center",
+                            opacity: isSubmitting ? 0.65 : 1,
+                            width: 34
+                          }}
+                        >
+                          <Text style={{ color: "#ffffff", fontSize: 14, fontWeight: "900" }}>✎</Text>
+                        </Pressable>
                       </View>
                     </View>
                   ) : (
@@ -787,6 +820,102 @@ export function ProvidersWorkspace({
                       />
                     </View>
                   )}
+
+                  {selectedOrganization ? (
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.74)", padding: 12, gap: 10 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", lineHeight: 16 }}>Perfil publico</Text>
+                          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>Como aparece en marketplace.</Text>
+                        </View>
+                        <StatusChip label={publicProfileForm.isPublic ? "Publico" : "Oculto"} tone={publicProfileForm.isPublic ? "active" : "neutral"} />
+                      </View>
+                      <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: "rgba(0,122,107,0.1)",
+                            borderColor: "rgba(0,122,107,0.18)",
+                            borderRadius: 14,
+                            borderWidth: 1,
+                            height: 42,
+                            justifyContent: "center",
+                            width: 42
+                          }}
+                        >
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                            {getProviderInitials(publicProfileForm.headline || selectedOrganization.name)}
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                          <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }}>
+                            {publicProfileForm.headline || selectedOrganization.name}
+                          </Text>
+                        </View>
+                        <Pressable
+                          accessibilityLabel="Editar perfil publico"
+                          onPress={() => setIsPublicProfileFormVisible((current) => !current)}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: colorTokens.accentDark,
+                            borderRadius: 999,
+                            height: 32,
+                            justifyContent: "center",
+                            width: 32
+                          }}
+                        >
+                          <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "900" }}>✎</Text>
+                        </Pressable>
+                      </View>
+
+                      {isPublicProfileFormVisible ? (
+                        <>
+                          <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
+                            <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Contenido</Text>
+                            <Field label="Titular" onChange={(value) => setPublicProfileForm((current) => ({ ...current, headline: value }))} value={publicProfileForm.headline} />
+                            <MultilineField label="Descripcion" onChange={(value) => setPublicProfileForm((current) => ({ ...current, bio: value }))} value={publicProfileForm.bio} />
+                          </View>
+
+                          <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
+                            <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Imagen y estado</Text>
+                            <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
+                            <ChoiceBar
+                              onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value === "public" }))}
+                              options={[
+                                { label: "Publico", value: "public" },
+                                { label: "Oculto", value: "hidden" }
+                              ]}
+                              value={publicProfileForm.isPublic ? "public" : "hidden"}
+                            />
+                          </View>
+
+                          <View style={{ alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                            <Button
+                              disabled={isSubmitting}
+                              label="Guardar"
+                              onPress={() => {
+                                clearMessages();
+                                void runAction(
+                                  () =>
+                                    getMobileProvidersApiClient().upsertProviderPublicProfile(selectedOrganization.id, {
+                                      headline: publicProfileForm.headline.trim(),
+                                      bio: publicProfileForm.bio.trim(),
+                                      avatarUrl: publicProfileForm.avatarUrl.trim() || null,
+                                      isPublic: publicProfileForm.isPublic
+                                    }),
+                                  "Perfil publico guardado."
+                                ).then(async () => {
+                                  await refresh(selectedOrganization.id);
+                                  setIsPublicProfileFormVisible(false);
+                                });
+                              }}
+                            />
+                            <Button disabled={isSubmitting} label="Cerrar" onPress={() => setIsPublicProfileFormVisible(false)} tone="secondary" />
+                          </View>
+                        </>
+                      ) : null}
+                    </View>
+                  ) : null}
 
                   {selectedOrganization ? (
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.74)", padding: 12, gap: 10 }}>
@@ -824,10 +953,54 @@ export function ProvidersWorkspace({
 
                   {organizations.length > 1 ? (
                     <View style={{ gap: 8 }}>
-                      <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Cambiar negocio</Text>
-                      {organizations.map((organization) => (
-                        <View
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Cambiar negocio</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800" }}>{filteredOrganizations.length}/{organizations.length}</Text>
+                      </View>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                        {[
+                          { icon: "◎", label: "Todos", value: "all" as const },
+                          { icon: "◉", label: "Activos", value: "active" as const },
+                          { icon: "✓", label: "Aprobados", value: "approved" as const },
+                          { icon: "★", label: "Listos", value: "ready" as const }
+                        ].map((filter) => {
+                          const isSelected = organizationListFilter === filter.value;
+
+                          return (
+                            <Pressable
+                              key={filter.value}
+                              onPress={() => setOrganizationListFilter(filter.value)}
+                              style={{
+                                alignItems: "center",
+                                backgroundColor: isSelected ? colorTokens.accentDark : "rgba(248,250,252,0.92)",
+                                borderColor: isSelected ? colorTokens.accentDark : "rgba(28,25,23,0.08)",
+                                borderRadius: 999,
+                                borderWidth: 1,
+                                flexDirection: "row",
+                                gap: 4,
+                                paddingHorizontal: 9,
+                                paddingVertical: 7
+                              }}
+                            >
+                              <Text style={{ color: isSelected ? "#ffffff" : colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                                {filter.icon}
+                              </Text>
+                              <Text style={{ color: isSelected ? "#ffffff" : "#1c1917", fontSize: 9, fontWeight: "900" }}>
+                                {filter.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      {filteredOrganizations.length ? (
+                        filteredOrganizations.map((organization) => (
+                        <Pressable
                           key={organization.id}
+                          onPress={() => {
+                            if (organization.id !== selectedOrganizationId) {
+                              void selectOrganization(organization.id);
+                            }
+                          }}
                           style={{
                             borderRadius: 14,
                             backgroundColor:
@@ -857,19 +1030,23 @@ export function ProvidersWorkspace({
                                 {organization.name}
                               </Text>
                               <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>{organization.city}</Text>
+                              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "700", lineHeight: 12 }}>
+                                {organization.isPublic ? "Activo" : "Privado"} · {providerApprovalStatusLabels[organization.approvalStatus]}
+                              </Text>
                             </View>
-                            <StatusChip
-                              label={organization.id === selectedOrganizationId ? "Activo" : providerApprovalStatusLabels[organization.approvalStatus]}
-                              tone={organization.id === selectedOrganizationId || organization.approvalStatus === "approved" ? "active" : "pending"}
-                            />
+                            <Text style={{ color: organization.id === selectedOrganizationId ? colorTokens.accentDark : colorTokens.muted, fontSize: 16, fontWeight: "900" }}>
+                              {organization.id === selectedOrganizationId ? "✓" : "›"}
+                            </Text>
                           </View>
-                          {organization.id !== selectedOrganizationId ? (
-                            <View style={{ alignItems: "flex-start" }}>
-                              <Button disabled={isSubmitting} label="Seleccionar" onPress={() => void selectOrganization(organization.id)} tone="secondary" />
-                            </View>
-                          ) : null}
+                        </Pressable>
+                        ))
+                      ) : (
+                        <View style={{ borderRadius: 14, backgroundColor: "rgba(248,250,252,0.92)", borderColor: "rgba(28,25,23,0.08)", borderWidth: 1, padding: 10 }}>
+                          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                            No hay negocios para este filtro.
+                          </Text>
                         </View>
-                      ))}
+                      )}
                     </View>
                   ) : null}
 
@@ -1362,53 +1539,70 @@ export function ProvidersWorkspace({
                         <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", lineHeight: 16 }}>
                           {publicProfileForm.headline || selectedOrganization.name}
                         </Text>
-                        <Text numberOfLines={2} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                          {publicProfileForm.bio || "Agrega una descripcion breve y clara del negocio."}
-                        </Text>
                       </View>
+                      <Pressable
+                        accessibilityLabel="Editar perfil publico"
+                        onPress={() => setIsPublicProfileFormVisible((current) => !current)}
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: colorTokens.accentDark,
+                          borderRadius: 999,
+                          height: 34,
+                          justifyContent: "center",
+                          width: 34
+                        }}
+                      >
+                        <Text style={{ color: "#ffffff", fontSize: 14, fontWeight: "900" }}>✎</Text>
+                      </Pressable>
                     </View>
                   </View>
 
-                  <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
-                    <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Contenido</Text>
-                    <Field label="Titular" onChange={(value) => setPublicProfileForm((current) => ({ ...current, headline: value }))} value={publicProfileForm.headline} />
-                    <MultilineField label="Descripcion" onChange={(value) => setPublicProfileForm((current) => ({ ...current, bio: value }))} value={publicProfileForm.bio} />
-                  </View>
+                  {isPublicProfileFormVisible ? (
+                    <>
+                      <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Contenido</Text>
+                        <Field label="Titular" onChange={(value) => setPublicProfileForm((current) => ({ ...current, headline: value }))} value={publicProfileForm.headline} />
+                        <MultilineField label="Descripcion" onChange={(value) => setPublicProfileForm((current) => ({ ...current, bio: value }))} value={publicProfileForm.bio} />
+                      </View>
 
-                  <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
-                    <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Imagen y estado</Text>
-                    <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
-                    <ChoiceBar
-                      onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value === "public" }))}
-                      options={[
-                        { label: "Publico", value: "public" },
-                        { label: "Oculto", value: "hidden" }
-                      ]}
-                      value={publicProfileForm.isPublic ? "public" : "hidden"}
-                    />
-                  </View>
+                      <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.86)", padding: 12, gap: 9, borderColor: "rgba(28,25,23,0.08)", borderWidth: 1 }}>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Imagen y estado</Text>
+                        <Field label="URL del avatar" onChange={(value) => setPublicProfileForm((current) => ({ ...current, avatarUrl: value }))} value={publicProfileForm.avatarUrl} />
+                        <ChoiceBar
+                          onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value === "public" }))}
+                          options={[
+                            { label: "Publico", value: "public" },
+                            { label: "Oculto", value: "hidden" }
+                          ]}
+                          value={publicProfileForm.isPublic ? "public" : "hidden"}
+                        />
+                      </View>
 
-                  <View style={{ alignItems: "flex-start" }}>
-                    <Button
-                      disabled={isSubmitting}
-                      label="Guardar"
-                      onPress={() => {
-                        clearMessages();
-                        void runAction(
-                          () =>
-                            getMobileProvidersApiClient().upsertProviderPublicProfile(selectedOrganization.id, {
-                              headline: publicProfileForm.headline.trim(),
-                              bio: publicProfileForm.bio.trim(),
-                              avatarUrl: publicProfileForm.avatarUrl.trim() || null,
-                              isPublic: publicProfileForm.isPublic
-                            }),
-                          "Perfil publico guardado."
-                        ).then(async () => {
-                          await refresh(selectedOrganization.id);
-                        });
-                      }}
-                    />
-                  </View>
+                      <View style={{ alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        <Button
+                          disabled={isSubmitting}
+                          label="Guardar"
+                          onPress={() => {
+                            clearMessages();
+                            void runAction(
+                              () =>
+                                getMobileProvidersApiClient().upsertProviderPublicProfile(selectedOrganization.id, {
+                                  headline: publicProfileForm.headline.trim(),
+                                  bio: publicProfileForm.bio.trim(),
+                                  avatarUrl: publicProfileForm.avatarUrl.trim() || null,
+                                  isPublic: publicProfileForm.isPublic
+                                }),
+                              "Perfil publico guardado."
+                            ).then(async () => {
+                              await refresh(selectedOrganization.id);
+                              setIsPublicProfileFormVisible(false);
+                            });
+                          }}
+                        />
+                        <Button disabled={isSubmitting} label="Cerrar" onPress={() => setIsPublicProfileFormVisible(false)} tone="secondary" />
+                      </View>
+                    </>
+                  ) : null}
                 </>
               ) : (
                 <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>Selecciona primero una organizacion.</Text>

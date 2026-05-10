@@ -350,7 +350,7 @@ export function MessagingWorkspace({
             </View>
             <Button label="Volver a la bandeja" onPress={() => setMessagingView("bandeja")} tone="secondary" />
 
-            {selectedThreadDetail ? (
+            {selectedThreadDetail && (!focusedBookingId || selectedThreadDetail.thread.bookingId === focusedBookingId) ? (
               <>
                 <View style={[inputStyle, { backgroundColor: "rgba(15,118,110,0.08)", gap: 6 }]}>
                   <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Reserva vinculada</Text>
@@ -409,7 +409,9 @@ export function MessagingWorkspace({
               </>
             ) : (
               <Text style={bodyTextStyle}>
-                Selecciona un hilo desde la bandeja o abre mensajes desde el detalle de una reserva. En este MVP, cada conversacion queda ligada a una reserva.
+                {focusedBookingId && focusVersion > 0
+                  ? "Cargando la conversacion vinculada a esta reserva..."
+                  : "Selecciona un hilo desde la bandeja o abre mensajes desde el detalle de una reserva. En este MVP, cada conversacion queda ligada a una reserva."}
               </Text>
             )}
           </View>

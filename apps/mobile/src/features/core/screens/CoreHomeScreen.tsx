@@ -592,6 +592,7 @@ function OwnerHome({
   bookings,
   householdName,
   onNavigate,
+  onSelectPet,
   pets,
   paymentMethods,
   reminders,
@@ -601,6 +602,7 @@ function OwnerHome({
   bookings: OwnerHomeBooking[];
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
+  onSelectPet: (petId: Uuid) => void;
   pets: OwnerHomePet[];
   paymentMethods: OwnerHomePaymentMethod[];
   reminders: OwnerHomeReminder[];
@@ -717,7 +719,7 @@ function OwnerHome({
                 return (
                   <Pressable
                     key={pet.id}
-                    onPress={() => onNavigate("mascotas")}
+                    onPress={() => onSelectPet(pet.id)}
                     style={{
                       alignItems: "center",
                       backgroundColor: colorTokens.surface,
@@ -1063,6 +1065,7 @@ export function CoreHomeScreen() {
     householdId: null,
     petId: null
   });
+  const [pendingPetHubPetId, setPendingPetHubPetId] = useState<Uuid | null>(null);
   const [activeBookingHubPanel, setActiveBookingHubPanel] = useState<BookingHubPanel>("detalle");
   const [bookingHubContext, setBookingHubContext] = useState<{ bookingId: Uuid | null }>({
     bookingId: null
@@ -1904,6 +1907,12 @@ export function CoreHomeScreen() {
             bookings={bookingsWorkspace.bookings}
             householdName={defaultHouseholdName}
             onNavigate={setActiveOwnerSection}
+            onSelectPet={(petId) => {
+              setPendingPetHubPetId(petId);
+              setPetHubContext({ householdId: petsWorkspace.selectedHouseholdId, petId });
+              setActivePetHubPanel("detalle");
+              setActiveOwnerSection("mascotas");
+            }}
             pets={petsWorkspace.pets}
             paymentMethods={snapshot.paymentMethods}
             reminders={remindersWorkspace.reminders}
@@ -1915,8 +1924,15 @@ export function CoreHomeScreen() {
           <>
             <PetsWorkspace
               activePanel={activePetHubPanel}
+              contextPetId={pendingPetHubPetId}
               enabled
-              onContextChange={setPetHubContext}
+              onContextChange={(context) => {
+                setPetHubContext(context);
+
+                if (pendingPetHubPetId && context.petId === pendingPetHubPetId) {
+                  setPendingPetHubPetId(null);
+                }
+              }}
               onPanelChange={setActivePetHubPanel}
             />
             {activePetHubPanel === "salud" ? (

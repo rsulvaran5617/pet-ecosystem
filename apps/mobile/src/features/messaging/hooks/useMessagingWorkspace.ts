@@ -66,6 +66,12 @@ export function useMessagingWorkspace(
     }
 
     setIsLoading(true);
+    if (preferredBookingId && mountedRef.current) {
+      setSelectedThreadDetail(null);
+      setSelectedThreadId(null);
+      selectedThreadIdRef.current = null;
+      setMessageDraft("");
+    }
 
     try {
       const nextThreads = await getMobileMessagingApiClient().listThreads();
@@ -86,6 +92,7 @@ export function useMessagingWorkspace(
         setSelectedThreadDetail(null);
         setSelectedThreadId(null);
         selectedThreadIdRef.current = null;
+        focusedBookingIdRef.current = preferredBookingId;
         setErrorMessage("No fue posible ubicar el hilo de chat de la reserva seleccionada.");
         return;
       }

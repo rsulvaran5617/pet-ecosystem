@@ -2,7 +2,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetDocumentType, PetSummary, UpdatePetInput, Uuid } from "@pet/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
@@ -520,11 +520,13 @@ function getDocumentStatus(documentType: PetDocumentType, index: number) {
 
 export function PetsWorkspace({
   activePanel = "detalle",
+  contextPetId,
   enabled,
   onContextChange,
   onPanelChange
 }: {
   activePanel?: PetHubPanel;
+  contextPetId?: Uuid | null;
   enabled: boolean;
   onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
   onPanelChange?: (panel: PetHubPanel) => void;
@@ -552,6 +554,9 @@ export function PetsWorkspace({
   const [activeDocumentType, setActiveDocumentType] = useState<PetDocumentType>(petDocumentTypeOrder[0]);
   const [isDocumentFormOpen, setIsDocumentFormOpen] = useState(false);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
+  const pendingContextPetIdRef = useRef<Uuid | null>(null);
+  const onContextChangeRef = useRef(onContextChange);
+  const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
@@ -571,8 +576,49 @@ export function PetsWorkspace({
   );
 
   useEffect(() => {
-    onContextChange?.({ householdId: selectedHouseholdId, petId: selectedPetId });
-  }, [onContextChange, selectedHouseholdId, selectedPetId]);
+    onContextChangeRef.current = onContextChange;
+  }, [onContextChange]);
+
+  useEffect(() => {
+    const lastReportedContext = lastReportedContextRef.current;
+
+    if (lastReportedContext.householdId === selectedHouseholdId && lastReportedContext.petId === selectedPetId) {
+      return;
+    }
+
+    lastReportedContextRef.current = { householdId: selectedHouseholdId, petId: selectedPetId };
+    onContextChangeRef.current?.({ householdId: selectedHouseholdId, petId: selectedPetId });
+  }, [selectedHouseholdId, selectedPetId]);
+
+  useEffect(() => {
+    if (!enabled || !contextPetId || !pets.some((pet) => pet.id === contextPetId)) {
+      pendingContextPetIdRef.current = null;
+      return;
+    }
+
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setIsBirthDatePickerOpen(false);
+    setIsDocumentFormOpen(false);
+    setPetView("detalle");
+    onPanelChange?.("detalle");
+
+    const isSelectedContextLoaded = selectedPetId === contextPetId && selectedPetDetail?.pet.id === contextPetId;
+
+    if (isSelectedContextLoaded) {
+      pendingContextPetIdRef.current = null;
+      return;
+    }
+
+    if (pendingContextPetIdRef.current !== contextPetId) {
+      pendingContextPetIdRef.current = contextPetId;
+      void selectPet(contextPetId).finally(() => {
+        if (pendingContextPetIdRef.current === contextPetId) {
+          pendingContextPetIdRef.current = null;
+        }
+      });
+    }
+  }, [contextPetId, enabled, pets, selectedPetDetail?.pet.id, selectedPetId]);
 
   const openCreatePet = () => {
     setEditingPetId(null);

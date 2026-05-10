@@ -749,22 +749,16 @@ export function BookingsWorkspace({
                     </View>
                   </View>
                 </View>
-                <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "800" }}>Estado de la reserva</Text>
+                <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 7, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                  <Text style={{ color: colorTokens.muted, fontSize: 8, fontWeight: "800", lineHeight: 11, textTransform: "uppercase" }}>Estado</Text>
                   <StatusChip label={bookingStatusLabels[selectedBookingDetail.booking.status]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
                 </View>
               </View>
               <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
                 <PanelButton isActive={false} label="Volver a reservas" onPress={() => showBookingView("historial")} />
                 <PanelButton isActive={activePanel === "detalle"} label="Resumen" onPress={() => onPanelChange?.("detalle")} />
-                {onOpenChatForBooking ? (
-                  <PanelButton isActive={activePanel === "chat"} label="Chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} />
-                ) : null}
                 {onOpenReviewForBooking && selectedBookingDetail.booking.status === "completed" ? (
                   <PanelButton isActive={activePanel === "review"} label="Reseña" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} />
-                ) : null}
-                {onOpenSupportForBooking ? (
-                  <PanelButton isActive={activePanel === "soporte"} label="Soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} />
                 ) : null}
               </View>
               <View style={[inputStyle, { gap: 8 }]}>
@@ -808,7 +802,18 @@ export function BookingsWorkspace({
               ) : null}
               {selectedBookingDetail.booking.status !== "cancelled" ? (
                 <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
-                  <DetailFooterButton disabled={isSubmitting} label="Cancelar reserva" onPress={() => void cancelBooking(selectedBookingDetail.booking.id)} tone="danger" />
+                  <DetailFooterButton
+                    disabled={isSubmitting}
+                    label="Cancelar reserva"
+                    onPress={() => {
+                      void cancelBooking(selectedBookingDetail.booking.id).then(() => {
+                        if (activePanel === "chat") {
+                          onOpenChatForBooking?.(selectedBookingDetail.booking.id);
+                        }
+                      });
+                    }}
+                    tone="danger"
+                  />
                   {onOpenChatForBooking ? (
                     <DetailFooterButton disabled={isSubmitting} label="Abrir chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} />
                   ) : null}
