@@ -1,48 +1,91 @@
 import { formatDateTimeLabel } from "@pet/config";
 import type { BookingCheckIn, BookingCheckOut, BookingEvidence, BookingOperationNote, BookingReportCard } from "@pet/types";
 import { Text, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 
 const timelineItemStyle = {
   flexDirection: "row" as const,
-  gap: 12,
-  paddingVertical: 12
+  gap: 10,
+  paddingVertical: 6
 };
 
 const timelineDotStyle = {
-  width: 12,
-  height: 12,
-  borderRadius: 6,
-  marginTop: 6
+  alignItems: "center" as const,
+  justifyContent: "center" as const,
+  width: 28,
+  height: 28,
+  borderRadius: 14,
+  marginLeft: -31,
+  marginTop: 15,
+  borderWidth: 2,
+  borderColor: "#ffffff"
 };
 
 const contentStyle = {
   flex: 1,
-  gap: 4
+  gap: 4,
+  backgroundColor: "#ffffff",
+  borderColor: "rgba(28,25,23,0.08)",
+  borderRadius: 10,
+  borderWidth: 1,
+  paddingHorizontal: 10,
+  paddingVertical: 8,
+  shadowColor: "#0f172a",
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 1
 };
 
 const labelStyle = {
-  fontSize: 12,
-  fontWeight: "600" as const,
-  color: "#64748b",
+  fontSize: 10,
+  fontWeight: "900" as const,
+  color: "#0f766e",
   textTransform: "uppercase" as const
 };
 
 const titleStyle = {
-  fontSize: 14,
-  fontWeight: "700" as const,
+  fontSize: 13,
+  fontWeight: "900" as const,
   color: "#1c1917"
 };
 
 const detailStyle = {
-  fontSize: 13,
+  fontSize: 11,
   color: "#57534e",
-  lineHeight: 18
+  lineHeight: 16
 };
 
 const timeStyle = {
-  fontSize: 12,
+  fontSize: 11,
   color: "#a8a29e"
 };
+
+function CheckIcon({ color = "#ffffff", size = 15 }: { color?: string; size?: number }) {
+  return (
+    <Svg height={size} viewBox="0 0 24 24" width={size}>
+      <Path d="M20 6 9 17l-5-5" fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} />
+    </Svg>
+  );
+}
+
+function DocumentIcon({ color = "#ffffff", size = 15 }: { color?: string; size?: number }) {
+  return (
+    <Svg height={size} viewBox="0 0 24 24" width={size}>
+      <Path d="M7 3h7l5 5v13H7z" fill="none" stroke={color} strokeLinejoin="round" strokeWidth={2.4} />
+      <Path d="M14 3v5h5M9 13h6M9 17h5" fill="none" stroke={color} strokeLinecap="round" strokeWidth={2.4} />
+    </Svg>
+  );
+}
+
+function NoteIcon({ color = "#ffffff", size = 15 }: { color?: string; size?: number }) {
+  return (
+    <Svg height={size} viewBox="0 0 24 24" width={size}>
+      <Circle cx={12} cy={12} fill="none" r={8} stroke={color} strokeWidth={2.4} />
+      <Path d="M8 10h8M8 14h5" fill="none" stroke={color} strokeLinecap="round" strokeWidth={2.4} />
+    </Svg>
+  );
+}
 
 export function BookingCheckInCard({ checkIn }: { checkIn: BookingCheckIn | null }) {
   if (!checkIn) {
@@ -51,7 +94,9 @@ export function BookingCheckInCard({ checkIn }: { checkIn: BookingCheckIn | null
 
   return (
     <View style={timelineItemStyle}>
-      <View style={{ ...timelineDotStyle, backgroundColor: "#0f766e" }} />
+      <View style={{ ...timelineDotStyle, backgroundColor: "#0f766e" }}>
+        <CheckIcon />
+      </View>
       <View style={contentStyle}>
         <Text style={labelStyle}>Llegada</Text>
         <Text style={titleStyle}>Check-in registrado</Text>
@@ -76,7 +121,9 @@ export function BookingCheckOutCard({ checkOut }: { checkOut: BookingCheckOut | 
 
   return (
     <View style={timelineItemStyle}>
-      <View style={{ ...timelineDotStyle, backgroundColor: "#ea580c" }} />
+      <View style={{ ...timelineDotStyle, backgroundColor: "#0f766e" }}>
+        <CheckIcon />
+      </View>
       <View style={contentStyle}>
         <Text style={labelStyle}>Salida</Text>
         <Text style={titleStyle}>Check-out registrado</Text>
@@ -93,7 +140,9 @@ export function BookingEvidenceCard({ evidences }: { evidences: BookingEvidence[
 
   return (
     <View style={timelineItemStyle}>
-      <View style={{ ...timelineDotStyle, backgroundColor: "#7c2d12" }} />
+      <View style={{ ...timelineDotStyle, backgroundColor: "#0f766e" }}>
+        <CheckIcon />
+      </View>
       <View style={contentStyle}>
         <Text style={labelStyle}>Evidencia documental</Text>
         <Text style={titleStyle}>Documento registrado</Text>
@@ -117,7 +166,9 @@ export function BookingReportCardComponent({ reportCard }: { reportCard: Booking
 
   return (
     <View style={timelineItemStyle}>
-      <View style={{ ...timelineDotStyle, backgroundColor: "#1e40af" }} />
+      <View style={{ ...timelineDotStyle, backgroundColor: "#64748b" }}>
+        <DocumentIcon />
+      </View>
       <View style={contentStyle}>
         <Text style={labelStyle}>Reporte</Text>
         <Text style={titleStyle}>Reporte completado</Text>
@@ -135,7 +186,9 @@ export function BookingOperationNotesCard({ notes }: { notes: BookingOperationNo
 
   return (
     <View style={timelineItemStyle}>
-      <View style={{ ...timelineDotStyle, backgroundColor: "#6b21a8" }} />
+      <View style={{ ...timelineDotStyle, backgroundColor: "#64748b" }}>
+        <NoteIcon />
+      </View>
       <View style={contentStyle}>
         <Text style={labelStyle}>Notas</Text>
         <Text style={titleStyle}>{notes.length} nota(s)</Text>

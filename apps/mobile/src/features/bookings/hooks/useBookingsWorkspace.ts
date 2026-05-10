@@ -61,7 +61,7 @@ export function useBookingsWorkspace(
   const selectedHouseholdIdRef = useRef<Uuid | null>(incomingSelection?.householdId ?? null);
   const selectedPetIdRef = useRef<Uuid | null>(incomingSelection?.petId ?? null);
   const selectedPaymentMethodIdRef = useRef<Uuid | null>(null);
-  const selectedBookingSlotRef = useRef<BookingSlot | null>(null);
+  const selectedBookingSlotRef = useRef<BookingSlot | null>(incomingSelection?.selectedBookingSlot ?? null);
   const [householdSnapshot, setHouseholdSnapshot] = useState<HouseholdsSnapshot | null>(null);
   const [pets, setPets] = useState<PetSummary[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<UserPaymentMethod[]>([]);
@@ -72,9 +72,9 @@ export function useBookingsWorkspace(
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(incomingSelection?.householdId ?? null);
   const [selectedPetId, setSelectedPetId] = useState<Uuid | null>(incomingSelection?.petId ?? null);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<Uuid | null>(null);
-  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([]);
-  const [selectedBookingSlot, setSelectedBookingSlot] = useState<BookingSlot | null>(null);
-  const [selectedSlotDate, setSelectedSlotDate] = useState<string | null>(null);
+  const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>(incomingSelection?.selectedBookingSlot ? [incomingSelection.selectedBookingSlot] : []);
+  const [selectedBookingSlot, setSelectedBookingSlot] = useState<BookingSlot | null>(incomingSelection?.selectedBookingSlot ?? null);
+  const [selectedSlotDate, setSelectedSlotDate] = useState<string | null>(incomingSelection?.selectedBookingSlot?.slotDate ?? null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(enabled);
@@ -343,9 +343,10 @@ export function useBookingsWorkspace(
     setActiveSelection(incomingSelection);
     setPreview(null);
     setSelectedBookingDetail(null);
-    setBookingSlots([]);
-    setSelectedSlotDate(null);
-    resetSlotSelection();
+    setBookingSlots(incomingSelection.selectedBookingSlot ? [incomingSelection.selectedBookingSlot] : []);
+    setSelectedSlotDate(incomingSelection.selectedBookingSlot?.slotDate ?? null);
+    selectedBookingSlotRef.current = incomingSelection.selectedBookingSlot ?? null;
+    setSelectedBookingSlot(incomingSelection.selectedBookingSlot ?? null);
     setInfoMessage("Seleccion de servicio importada desde Servicios. Revisa hogar, mascota y metodo de pago antes de generar la vista previa.");
     setErrorMessage(null);
     void refresh(incomingSelection);

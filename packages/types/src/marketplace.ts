@@ -1,5 +1,5 @@
 import type { IsoDateString, TimestampedEntity, Uuid } from "./base";
-import type { BookingMode } from "./bookings";
+import type { BookingMode, BookingSlot } from "./bookings";
 
 export type ProviderApprovalStatus = "pending" | "approved" | "rejected";
 export type ProviderServiceCategory =
@@ -109,5 +109,6 @@ export interface MarketplaceServiceSelection {
   serviceBasePriceCents?: number;
   serviceCurrencyCode?: string;
   serviceCancellationWindowHours?: number;
+  selectedBookingSlot?: BookingSlot | null;
   selectedAt: IsoDateString;
 }

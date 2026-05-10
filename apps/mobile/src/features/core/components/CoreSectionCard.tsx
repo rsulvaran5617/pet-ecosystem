@@ -17,25 +17,25 @@ export function CoreSectionCard({ eyebrow, title, description, children }: CoreS
         borderWidth: 1,
         borderColor: colorTokens.line,
         backgroundColor: "rgba(255,255,255,0.96)",
-        padding: 20,
-        gap: 16,
+        padding: 14,
+        gap: 9,
         ...visualTokens.mobile.shadow
       }}
     >
-      <View style={{ gap: 6 }}>
+      <View style={{ gap: 3 }}>
         <Text
           style={{
-            fontSize: 11,
-            fontWeight: "700",
-            letterSpacing: 1.2,
+            fontSize: 10,
+            fontWeight: "900",
+            letterSpacing: 0,
             textTransform: "uppercase",
             color: colorTokens.accent
           }}
         >
           {eyebrow}
         </Text>
-        <Text style={{ fontSize: 24, fontWeight: "800", color: colorTokens.ink }}>{title}</Text>
-        <Text style={{ fontSize: 15, lineHeight: 22, color: colorTokens.muted }}>{description}</Text>
+        <Text style={{ fontSize: 17, fontWeight: "900", lineHeight: 21, color: colorTokens.ink }}>{title}</Text>
+        <Text style={{ fontSize: 11, fontWeight: "600", lineHeight: 16, color: colorTokens.muted }}>{description}</Text>
       </View>
       {children}
     </View>
