@@ -115,6 +115,7 @@ Notas:
 - no se agregan nuevas URLs externas arbitrarias para avatares
 - ubicacion publica de proveedor usa `provider_public_locations`, PostGIS y precision `exact | approximate | city`
 - Geo-0 no pide permisos de ubicacion, no guarda ubicacion actual del owner y no habilita tracking
+- `GET /marketplace/providers` puede recibir `nearLatitude`, `nearLongitude` y `maxDistanceKm` como filtros opcionales tipados; Geo-2 calcula `distanceKm` aproximado en cliente/API solo cuando llegan coordenadas de origen ya disponibles, sin pedir permisos ni exponer direcciones privadas del owner
 - `memory-status` permite alternar `active` / `in_memory` sin borrar mascotas ni historiales
 - reservas nuevas deben rechazar mascotas `in_memory`
 - `approve/reject` aplican solo a `pending_approval`

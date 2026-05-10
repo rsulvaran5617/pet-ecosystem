@@ -2,10 +2,12 @@
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingSlot,
+  MarketplaceProviderSummary,
   MarketplaceSearchFilters,
   MarketplaceServiceSelection,
   ProviderAvailabilitySlot,
   ProviderDayOfWeek,
+  ProviderLocationPrecision,
   ProviderServiceCategory
 } from "@pet/types";
 import { useMemo, useState } from "react";
@@ -141,6 +143,50 @@ function formatMoney(priceCents: number, currencyCode: string) {
     style: "currency",
     currency: currencyCode
   }).format(priceCents / 100);
+}
+
+const providerLocationPrecisionLabels: Record<ProviderLocationPrecision, string> = {
+  exact: "Ubicacion exacta",
+  approximate: "Ubicacion aproximada",
+  city: "Zona declarada por ciudad"
+};
+
+function formatProviderDistance(distanceKm: number | null | undefined) {
+  if (typeof distanceKm !== "number") {
+    return null;
+  }
+
+  return `Aprox. ${distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)} km`;
+}
+
+function ProviderLocationSummary({ provider }: { provider: MarketplaceProviderSummary }) {
+  const publicLocation = provider.publicLocation;
+
+  if (!publicLocation) {
+    return (
+      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14, marginTop: 4 }}>
+        Ubicacion publica no configurada
+      </Text>
+    );
+  }
+
+  const distanceLabel = formatProviderDistance(provider.distanceKm);
+
+  return (
+    <View style={{ marginTop: 6, gap: 4 }}>
+      <Text style={{ color: "#1c1917", fontSize: 10, fontWeight: "900", lineHeight: 14 }} numberOfLines={1}>
+        {publicLocation.displayLabel || `Ubicacion publica: ${publicLocation.city}, ${publicLocation.countryCode}`}
+      </Text>
+      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }} numberOfLines={1}>
+        {distanceLabel
+          ? `${distanceLabel} - ${publicLocation.city}, ${publicLocation.countryCode}`
+          : `Ubicacion publica: ${publicLocation.city}, ${publicLocation.countryCode}`}
+      </Text>
+      <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 13 }}>
+        {providerLocationPrecisionLabels[publicLocation.locationPrecision]}
+      </Text>
+    </View>
+  );
 }
 
 export function MarketplaceWorkspace({
@@ -526,6 +572,7 @@ export function MarketplaceWorkspace({
                         <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
                       </View>
                     </View>
+                    <ProviderLocationSummary provider={provider} />
                     <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.headline}</Text>
                     <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
                       {provider.categories.map((category) => providerServiceCategoryLabels[category]).join(", ")}
@@ -561,6 +608,7 @@ export function MarketplaceWorkspace({
                       <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.city}</Text>
                     </View>
                   </View>
+                  <ProviderLocationSummary provider={provider} />
                   <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{provider.headline}</Text>
                   <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
                     Especies: {provider.speciesServed.map((species) => formatSpeciesLabel(species)).join(", ") || "No especificadas"}
@@ -590,6 +638,7 @@ export function MarketplaceWorkspace({
                   </View>
                   <StatusChip label={selectedProviderSource ? "desde resultados" : "destacados"} tone="active" />
                 </View>
+                <ProviderLocationSummary provider={selectedProviderDetail} />
                 <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.headline}</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.bio}</Text>
                 <Button label="Volver a resultados" onPress={() => setCurrentView("results")} tone="secondary" />

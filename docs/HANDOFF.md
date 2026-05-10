@@ -80,6 +80,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Marketplace geolocalizado futuro solo debe listar ubicaciones publicas de proveedores aprobados, publicos, con perfil publico y servicios activos.
 - Geo-1 implementa UI minima en mobile provider > `Negocio` para capturar/editar ubicacion publica del negocio, precision `exact | approximate | city` y estado publico/privado. El formulario prioriza direccion/datos del negocio y deja latitud/longitud como ajuste avanzado; puede precargar coordenadas aproximadas de ciudades soportadas sin pedir permisos.
 - Geo-1 no habilita mapa, permisos mobile, ubicacion actual del usuario ni tracking; queda como preparacion controlada antes de abrir marketplace geolocalizado visual.
+- Geo-2 muestra en mobile owner > `Buscar` la ubicacion publica declarada por proveedores visibles: nombre visible, ciudad/pais, precision publica y distancia aproximada solo si el API recibe coordenadas de origen opcionales. No pide permisos, no guarda ubicacion actual y no expone direcciones privadas de owners.
 
 ## Ajustes QA visual de Cuenta provider
 

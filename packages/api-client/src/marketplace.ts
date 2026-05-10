@@ -173,7 +173,40 @@ function uniqueDays(values: ProviderDayOfWeek[]) {
   return Array.from(new Set(values)).sort((left, right) => left - right);
 }
 
-function buildProviderSummary(record: ProviderCatalogRecord): MarketplaceProviderSummary {
+function calculateDistanceKm(originLatitude: number, originLongitude: number, targetLatitude: number, targetLongitude: number) {
+  const earthRadiusKm = 6371;
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const deltaLatitude = toRadians(targetLatitude - originLatitude);
+  const deltaLongitude = toRadians(targetLongitude - originLongitude);
+  const originLatitudeRadians = toRadians(originLatitude);
+  const targetLatitudeRadians = toRadians(targetLatitude);
+  const halfChordLength =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(originLatitudeRadians) * Math.cos(targetLatitudeRadians) * Math.sin(deltaLongitude / 2) ** 2;
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(halfChordLength), Math.sqrt(1 - halfChordLength));
+}
+
+function getProviderDistanceKm(record: ProviderCatalogRecord, filters?: MarketplaceSearchFilters) {
+  if (
+    typeof filters?.nearLatitude !== "number" ||
+    typeof filters.nearLongitude !== "number" ||
+    !record.publicLocation
+  ) {
+    return null;
+  }
+
+  return calculateDistanceKm(
+    filters.nearLatitude,
+    filters.nearLongitude,
+    record.publicLocation.latitude,
+    record.publicLocation.longitude
+  );
+}
+
+function buildProviderSummary(record: ProviderCatalogRecord, filters?: MarketplaceSearchFilters): MarketplaceProviderSummary {
+  const distanceKm = getProviderDistanceKm(record, filters);
+
   return {
     organizationId: record.organization.id,
     slug: record.organization.slug,
@@ -187,13 +220,13 @@ function buildProviderSummary(record: ProviderCatalogRecord): MarketplaceProvide
     serviceCount: record.services.length,
     availableDays: uniqueDays(record.availability.map((slot) => slot.dayOfWeek)),
     publicLocation: record.publicLocation,
-    distanceKm: null
+    distanceKm
   };
 }
 
-function buildProviderDetail(record: ProviderCatalogRecord): MarketplaceProviderDetail {
+function buildProviderDetail(record: ProviderCatalogRecord, filters?: MarketplaceSearchFilters): MarketplaceProviderDetail {
   return {
-    ...buildProviderSummary(record),
+    ...buildProviderSummary(record, filters),
     bio: record.profile.bio,
     services: [...record.services].sort((left, right) => left.name.localeCompare(right.name)),
     availability: [...record.availability].sort(
@@ -208,6 +241,27 @@ function compareProviderRecords(left: ProviderCatalogRecord, right: ProviderCata
     right.availability.length - left.availability.length ||
     left.organization.name.localeCompare(right.organization.name)
   );
+}
+
+function compareProviderRecordsByDistance(filters: MarketplaceSearchFilters) {
+  return (left: ProviderCatalogRecord, right: ProviderCatalogRecord) => {
+    const leftDistance = getProviderDistanceKm(left, filters);
+    const rightDistance = getProviderDistanceKm(right, filters);
+
+    if (leftDistance !== null && rightDistance !== null && leftDistance !== rightDistance) {
+      return leftDistance - rightDistance;
+    }
+
+    if (leftDistance !== null && rightDistance === null) {
+      return -1;
+    }
+
+    if (leftDistance === null && rightDistance !== null) {
+      return 1;
+    }
+
+    return compareProviderRecords(left, right);
+  };
 }
 
 function matchesMarketplaceFilters(record: ProviderCatalogRecord, filters: MarketplaceSearchFilters) {
@@ -228,6 +282,14 @@ function matchesMarketplaceFilters(record: ProviderCatalogRecord, filters: Marke
     !record.services.some((service) => service.speciesServed.some((species) => normalizeText(species) === normalizedSpecies))
   ) {
     return false;
+  }
+
+  if (typeof filters.maxDistanceKm === "number") {
+    const distanceKm = getProviderDistanceKm(record, filters);
+
+    if (distanceKm === null || distanceKm > filters.maxDistanceKm) {
+      return false;
+    }
   }
 
   if (!normalizedQuery) {
@@ -370,7 +432,7 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
         featuredProviders: [...records]
           .sort(compareProviderRecords)
           .slice(0, 6)
-          .map(buildProviderSummary),
+          .map((record) => buildProviderSummary(record)),
         categoryHighlights,
         cityHighlights: uniqueStrings(records.map((record) => record.organization.city)).slice(0, 8),
         speciesHighlights: uniqueStrings(records.flatMap((record) => record.services.flatMap((service) => service.speciesServed))).slice(0, 8)
@@ -381,8 +443,12 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
 
       return records
         .filter((record) => matchesMarketplaceFilters(record, filters))
-        .sort(compareProviderRecords)
-        .map(buildProviderSummary);
+        .sort(
+          typeof filters.nearLatitude === "number" && typeof filters.nearLongitude === "number"
+            ? compareProviderRecordsByDistance(filters)
+            : compareProviderRecords
+        )
+        .map((record) => buildProviderSummary(record, filters));
     },
     async getMarketplaceProvider(providerId) {
       const { data: organizationRow, error: organizationError } = await supabase

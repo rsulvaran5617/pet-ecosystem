@@ -9,6 +9,8 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - filtros basicos
 - perfil publico del proveedor
 - avatar/foto publica del proveedor cuando exista en storage controlado
+- ubicacion publica del proveedor en modo lista cuando el proveedor la publico
+- distancia aproximada solo cuando el cliente recibe coordenadas de origen opcionales ya disponibles
 - seleccion de servicio
 - handoff real hacia booking preview cuando el usuario ya tiene sesion
 
@@ -21,6 +23,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - mapa de proveedores aprobados
 - ordenamiento por distancia desde hogar, direccion seleccionada o ubicacion actual
 - Geo-0 prepara `provider_public_locations` y PostGIS; no habilita mapa, permisos de ubicacion ni tracking todavia
+- Geo-2 muestra ubicacion publica en cards/listas y deja preparada distancia aproximada sin mapa, permisos mobile ni tracking
 
 ## Entidades
 - `provider_organizations`
@@ -44,8 +47,9 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - si el perfil tiene avatar controlado en `provider-avatars`, marketplace lo muestra mediante URL firmada temporal; si no, usa placeholder visual
 - ubicacion geolocalizada solo puede exponerse desde `provider_public_locations` cuando la organizacion/perfil/servicios son publicos y aprobados
 - el proveedor decide precision publica: `exact`, `approximate` o `city`
+- Geo-2 muestra nombre visible, ciudad/pais y precision publica en marketplace; `distanceKm` solo se calcula si el filtro incluye `nearLatitude`/`nearLongitude`
 - marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
-- no hay tracking en tiempo real dentro de Geo-0
+- no hay tracking en tiempo real dentro de Geo-0/Geo-2
 - la seleccion de servicio no crea por si sola el booking
 - la seleccion deja preparado el contexto para `Bookings`
 - en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida

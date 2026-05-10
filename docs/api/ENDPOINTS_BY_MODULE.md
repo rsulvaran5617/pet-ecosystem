@@ -62,7 +62,7 @@
 ## Marketplace
 
 - `GET /marketplace/home`
-- `GET /marketplace/providers`
+- `GET /marketplace/providers` (admite filtros opcionales `nearLatitude`, `nearLongitude`, `maxDistanceKm` para distancia aproximada sin tracking)
 - `GET /marketplace/providers/{id}`
 - `GET /marketplace/provider-locations` (V2 Geo-0)
 
