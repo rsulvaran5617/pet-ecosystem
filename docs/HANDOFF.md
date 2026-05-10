@@ -78,7 +78,8 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Modelo propuesto/implementado localmente: `provider_public_locations` con PostGIS `geography(Point, 4326)`, precision publica `exact | approximate | city`, publicacion controlada y timestamp de verificacion.
 - Privacidad: no se exponen direcciones privadas de owners, no se guarda ubicacion actual sin consentimiento y no hay tracking en tiempo real.
 - Marketplace geolocalizado futuro solo debe listar ubicaciones publicas de proveedores aprobados, publicos, con perfil publico y servicios activos.
-- Geo-1 recomendado: UI provider para capturar/editar ubicacion publica del negocio y precision visible antes de abrir mapa o permisos mobile.
+- Geo-1 implementa UI minima en mobile provider > `Negocio` para capturar/editar ubicacion publica del negocio, precision `exact | approximate | city` y estado publico/privado. El formulario prioriza direccion/datos del negocio y deja latitud/longitud como ajuste avanzado; puede precargar coordenadas aproximadas de ciudades soportadas sin pedir permisos.
+- Geo-1 no habilita mapa, permisos mobile, ubicacion actual del usuario ni tracking; queda como preparacion controlada antes de abrir marketplace geolocalizado visual.
 
 ## Ajustes QA visual de Cuenta provider
 

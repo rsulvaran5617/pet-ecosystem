@@ -9,6 +9,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - configurar perfil publico
 - cargar foto/avatar publico controlado del proveedor
 - configurar ubicacion publica controlada del proveedor para marketplace geolocalizado V2
+- editar desde mobile provider la ubicacion publica del negocio, precision visible y estado publico/privado sin mapa ni permisos de ubicacion
 - configurar servicios
 - definir disponibilidad base
 - cargar documentos de aprobacion
@@ -102,6 +103,7 @@ Modelo recomendado CAP-0:
 - la foto/avatar del perfil publico vive en `provider-avatars`; no se aceptan nuevas URLs externas arbitrarias para el avatar
 - el avatar de proveedor se entrega mediante URL firmada temporal y puede mostrarse en provider mobile, marketplace y admin cuando la organizacion/perfil cumplen visibilidad publica o ownership
 - la ubicacion publica del proveedor vive en `provider_public_locations`; el provider owner decide si es publica y con precision `exact`, `approximate` o `city`
+- Geo-1 agrega UI minima en `Negocio` para capturar/editar nombre visible, direccion publica opcional, ciudad, region, pais, precision y publicacion. Las coordenadas quedan como ajuste avanzado; `Usar datos del negocio` puede precargar ciudad/pais y coordenadas aproximadas para ciudades soportadas sin pedir permisos de ubicacion.
 - no se debe usar la direccion privada del owner ni tracking de ubicacion para publicar un proveedor
 - en V2 capacity, marketplace/booking expone slots calculados desde reglas activas con cupos disponibles
 - el owner proveedor ve y gestiona solo su propia organizacion

@@ -81,6 +81,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - organizaciones
 - perfil de negocio
 - perfil publico
+- ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
 - servicios
 - disponibilidad
 - horarios y capacidad
