@@ -64,6 +64,7 @@
 - `GET /marketplace/home`
 - `GET /marketplace/providers`
 - `GET /marketplace/providers/{id}`
+- `GET /marketplace/provider-locations` (V2 Geo-0)
 
 ## Bookings
 
@@ -120,6 +121,7 @@ Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, 
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
 - `POST /provider/organizations/{id}/public-profile/avatar`
+- `PUT /provider/organizations/{id}/public-location` (V2 Geo-0)
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`

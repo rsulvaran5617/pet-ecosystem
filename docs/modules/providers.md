@@ -8,6 +8,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - crear y editar perfil de negocio
 - configurar perfil publico
 - cargar foto/avatar publico controlado del proveedor
+- configurar ubicacion publica controlada del proveedor para marketplace geolocalizado V2
 - configurar servicios
 - definir disponibilidad base
 - cargar documentos de aprobacion
@@ -69,6 +70,7 @@ Modelo recomendado CAP-0:
 - `provider_availability`
 - `provider_documents`
 - bucket privado con lectura controlada `provider-avatars`
+- `provider_public_locations` (V2 Geo-0)
 - `bookings`
 - `booking_operations`
 - `booking_operation_evidence`
@@ -99,6 +101,8 @@ Modelo recomendado CAP-0:
 - marketplace solo expone disponibilidad activa de organizaciones publicas ya aprobadas
 - la foto/avatar del perfil publico vive en `provider-avatars`; no se aceptan nuevas URLs externas arbitrarias para el avatar
 - el avatar de proveedor se entrega mediante URL firmada temporal y puede mostrarse en provider mobile, marketplace y admin cuando la organizacion/perfil cumplen visibilidad publica o ownership
+- la ubicacion publica del proveedor vive en `provider_public_locations`; el provider owner decide si es publica y con precision `exact`, `approximate` o `city`
+- no se debe usar la direccion privada del owner ni tracking de ubicacion para publicar un proveedor
 - en V2 capacity, marketplace/booking expone slots calculados desde reglas activas con cupos disponibles
 - el owner proveedor ve y gestiona solo su propia organizacion
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
@@ -127,6 +131,7 @@ Modelo recomendado CAP-0:
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
 - `POST /provider/organizations/{id}/public-profile/avatar`
+- `PUT /provider/organizations/{id}/public-location` (V2 Geo-0)
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`

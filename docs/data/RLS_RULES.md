@@ -65,6 +65,18 @@ Servicios y disponibilidad requieren ademas flags publicos y `is_active` cuando 
 Los documentos de aprobacion no son publicos.
 La gestion privada de estos registros pertenece al owner de la organizacion o a admin en el slice de revision.
 
+### provider_public_locations (V2 Geo-0)
+La ubicacion publica de proveedor solo puede leerse en marketplace si:
+- `provider_public_locations.is_public = true`
+- la organizacion esta aprobada y publica
+- el perfil publico esta publicado
+- existe al menos un servicio publico y activo
+
+El provider owner/manager puede crear y editar la ubicacion de su organizacion.
+Admin puede leer y moderar ubicaciones.
+Owners no exponen `user_addresses`; la direccion del hogar nunca se publica ni se devuelve a proveedores desde marketplace.
+No se guarda ubicacion actual del owner sin consentimiento explicito y Geo-0 no habilita tracking en tiempo real.
+
 ### provider-avatars storage
 Bucket privado con lectura controlada para la foto/avatar del perfil publico del proveedor.
 La lectura publica/anonima solo debe permitir imagenes de organizaciones visibles mediante `is_provider_organization_visible`.

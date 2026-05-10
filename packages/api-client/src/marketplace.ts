@@ -8,6 +8,7 @@ import type {
   ProviderAvailabilitySlot,
   ProviderDayOfWeek,
   ProviderOrganization,
+  ProviderPublicLocation,
   ProviderPublicProfile,
   ProviderService,
   ProviderServiceCategory,
@@ -18,6 +19,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type MarketplaceSupabaseClient = SupabaseClient<Database>;
 type ProviderOrganizationRow = Database["public"]["Tables"]["provider_organizations"]["Row"];
 type ProviderPublicProfileRow = Database["public"]["Tables"]["provider_public_profiles"]["Row"];
+type ProviderPublicLocationRow = Database["public"]["Tables"]["provider_public_locations"]["Row"];
 type ProviderServiceRow = Database["public"]["Tables"]["provider_services"]["Row"];
 type ProviderAvailabilityRow = Database["public"]["Tables"]["provider_availability"]["Row"];
 const providerAvatarsBucketId = "provider-avatars";
@@ -25,6 +27,7 @@ const providerAvatarsBucketId = "provider-avatars";
 type ProviderCatalogRecord = {
   organization: ProviderOrganization;
   profile: ProviderPublicProfile;
+  publicLocation: ProviderPublicLocation | null;
   services: ProviderService[];
   availability: ProviderAvailabilitySlot[];
 };
@@ -33,6 +36,7 @@ export interface MarketplaceApiClient {
   getMarketplaceHome(): Promise<MarketplaceHomeSnapshot>;
   listMarketplaceProviders(filters?: MarketplaceSearchFilters): Promise<MarketplaceProviderSummary[]>;
   getMarketplaceProvider(providerId: Uuid): Promise<MarketplaceProviderDetail>;
+  listMarketplaceProviderLocations(): Promise<ProviderPublicLocation[]>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -41,6 +45,17 @@ function fail(error: { message: string } | null, fallbackMessage: string): never
   }
 
   throw new Error(fallbackMessage);
+}
+
+function isMissingProviderPublicLocationsError(error: { code?: string; message: string } | null) {
+  return (
+    error?.code === "PGRST205" ||
+    error?.code === "42P01" ||
+    error?.code === "PGRST202" ||
+    ((error?.message.toLowerCase().includes("provider_public_locations") ||
+      error?.message.toLowerCase().includes("list_marketplace_provider_locations")) &&
+      error.message.toLowerCase().includes("schema cache"))
+  );
 }
 
 function normalizeText(value: string | null | undefined) {
@@ -74,7 +89,10 @@ async function getProviderAvatarSignedUrl(supabase: MarketplaceSupabaseClient, r
   return row.avatar_url;
 }
 
-function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: string | null = row.avatar_url): ProviderPublicProfile {
+function mapProviderPublicProfile(
+  row: ProviderPublicProfileRow,
+  avatarUrl: string | null = row.avatar_url
+): ProviderPublicProfile {
   return {
     organizationId: row.organization_id,
     headline: row.headline,
@@ -83,6 +101,24 @@ function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: stri
     avatarStorageBucket: row.avatar_storage_bucket,
     avatarStoragePath: row.avatar_storage_path,
     isPublic: row.is_public,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapProviderPublicLocation(row: ProviderPublicLocationRow): ProviderPublicLocation {
+  return {
+    organizationId: row.organization_id,
+    displayLabel: row.display_label,
+    addressLinePublic: row.address_line_public,
+    city: row.city,
+    stateRegion: row.state_region,
+    countryCode: row.country_code,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    locationPrecision: row.location_precision,
+    isPublic: row.is_public,
+    verifiedAt: row.verified_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -149,7 +185,9 @@ function buildProviderSummary(record: ProviderCatalogRecord): MarketplaceProvide
     categories: uniqueCategories(record.services.map((service) => service.category)),
     speciesServed: uniqueStrings(record.services.flatMap((service) => service.speciesServed)),
     serviceCount: record.services.length,
-    availableDays: uniqueDays(record.availability.map((slot) => slot.dayOfWeek))
+    availableDays: uniqueDays(record.availability.map((slot) => slot.dayOfWeek)),
+    publicLocation: record.publicLocation,
+    distanceKm: null
   };
 }
 
@@ -228,15 +266,25 @@ async function loadVisibleCatalog(supabase: MarketplaceSupabaseClient): Promise<
   }
 
   const organizationIds = organizations.map((organization) => organization.id);
-  const [{ data: profileRows, error: profilesError }, { data: serviceRows, error: servicesError }, { data: availabilityRows, error: availabilityError }] =
+  const [
+    { data: profileRows, error: profilesError },
+    { data: locationRows, error: locationsError },
+    { data: serviceRows, error: servicesError },
+    { data: availabilityRows, error: availabilityError }
+  ] =
     await Promise.all([
       supabase.from("provider_public_profiles").select("*").in("organization_id", organizationIds).eq("is_public", true),
+      supabase.from("provider_public_locations").select("*").in("organization_id", organizationIds).eq("is_public", true),
       supabase.from("provider_services").select("*").in("organization_id", organizationIds).eq("is_public", true).eq("is_active", true),
       supabase.from("provider_availability").select("*").in("organization_id", organizationIds).eq("is_active", true)
     ]);
 
   if (profilesError) {
     fail(profilesError, "Unable to load marketplace provider profiles.");
+  }
+
+  if (locationsError && !isMissingProviderPublicLocationsError(locationsError)) {
+    fail(locationsError, "Unable to load marketplace provider locations.");
   }
 
   if (servicesError) {
@@ -257,6 +305,9 @@ async function loadVisibleCatalog(supabase: MarketplaceSupabaseClient): Promise<
   );
   const servicesByOrganizationId = new Map<string, ProviderService[]>();
   const availabilityByOrganizationId = new Map<string, ProviderAvailabilitySlot[]>();
+  const locationByOrganizationId = new Map(
+    locationsError ? [] : (locationRows ?? []).map((row) => [row.organization_id, mapProviderPublicLocation(row)] as const)
+  );
 
   for (const row of serviceRows ?? []) {
     const service = mapProviderService(row);
@@ -285,6 +336,7 @@ async function loadVisibleCatalog(supabase: MarketplaceSupabaseClient): Promise<
       return {
         organization,
         profile,
+        publicLocation: locationByOrganizationId.get(organization.id) ?? null,
         services,
         availability
       } satisfies ProviderCatalogRecord;
@@ -349,9 +401,15 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
         throw new Error("Provider not found or not publicly available.");
       }
 
-      const [{ data: profileRow, error: profileError }, { data: serviceRows, error: servicesError }, { data: availabilityRows, error: availabilityError }] =
+      const [
+        { data: profileRow, error: profileError },
+        { data: locationRow, error: locationError },
+        { data: serviceRows, error: servicesError },
+        { data: availabilityRows, error: availabilityError }
+      ] =
         await Promise.all([
           supabase.from("provider_public_profiles").select("*").eq("organization_id", providerId).eq("is_public", true).maybeSingle(),
+          supabase.from("provider_public_locations").select("*").eq("organization_id", providerId).eq("is_public", true).maybeSingle(),
           supabase
             .from("provider_services")
             .select("*")
@@ -370,6 +428,10 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
 
       if (profileError) {
         fail(profileError, "Unable to load the provider public profile.");
+      }
+
+      if (locationError && !isMissingProviderPublicLocationsError(locationError)) {
+        fail(locationError, "Unable to load the provider public location.");
       }
 
       if (servicesError) {
@@ -393,9 +455,23 @@ export function createMarketplaceApiClient(supabase: MarketplaceSupabaseClient):
       return buildProviderDetail({
         organization: mapProviderOrganization(organizationRow),
         profile: mapProviderPublicProfile(profileRow, await getProviderAvatarSignedUrl(supabase, profileRow)),
+        publicLocation: locationError ? null : locationRow ? mapProviderPublicLocation(locationRow) : null,
         services,
         availability: (availabilityRows ?? []).map(mapProviderAvailability)
       });
+    },
+    async listMarketplaceProviderLocations() {
+      const { data, error } = await supabase.rpc("list_marketplace_provider_locations");
+
+      if (error) {
+        if (isMissingProviderPublicLocationsError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load marketplace provider locations.");
+      }
+
+      return (data ?? []).map(mapProviderPublicLocation);
     }
   };
 }

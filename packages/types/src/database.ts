@@ -14,6 +14,7 @@ import type {
 } from "./bookings";
 import type {
   ProviderApprovalStatus,
+  ProviderLocationPrecision,
   ProviderServiceCategory
 } from "./marketplace";
 import type { PetDocumentType, PetSex, PetStatus } from "./pets";
@@ -1221,6 +1222,57 @@ export interface Database {
         };
         Relationships: [];
       };
+      provider_public_locations: {
+        Row: {
+          organization_id: string;
+          display_label: string;
+          address_line_public: string | null;
+          city: string;
+          state_region: string | null;
+          country_code: string;
+          latitude: number;
+          longitude: number;
+          geo_point: unknown;
+          location_precision: ProviderLocationPrecision;
+          is_public: boolean;
+          verified_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          organization_id: string;
+          display_label: string;
+          address_line_public?: string | null;
+          city: string;
+          state_region?: string | null;
+          country_code?: string;
+          latitude: number;
+          longitude: number;
+          geo_point?: unknown;
+          location_precision?: ProviderLocationPrecision;
+          is_public?: boolean;
+          verified_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          display_label?: string;
+          address_line_public?: string | null;
+          city?: string;
+          state_region?: string | null;
+          country_code?: string;
+          latitude?: number;
+          longitude?: number;
+          geo_point?: unknown;
+          location_precision?: ProviderLocationPrecision;
+          is_public?: boolean;
+          verified_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       provider_services: {
         Row: {
           id: string;
@@ -1707,6 +1759,25 @@ export interface Database {
           next_avatar_storage_path: string;
         };
         Returns: Database["public"]["Tables"]["provider_public_profiles"]["Row"];
+      };
+      upsert_provider_public_location: {
+        Args: {
+          target_organization_id: string;
+          next_display_label: string;
+          next_address_line_public?: string | null;
+          next_city?: string | null;
+          next_state_region?: string | null;
+          next_country_code?: string;
+          next_latitude?: number | null;
+          next_longitude?: number | null;
+          next_location_precision?: ProviderLocationPrecision;
+          next_is_public?: boolean;
+        };
+        Returns: Database["public"]["Tables"]["provider_public_locations"]["Row"];
+      };
+      list_marketplace_provider_locations: {
+        Args: Record<string, never>;
+        Returns: Array<Database["public"]["Tables"]["provider_public_locations"]["Row"]>;
       };
       create_provider_service: {
         Args: {

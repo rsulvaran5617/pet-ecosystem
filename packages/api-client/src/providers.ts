@@ -10,6 +10,7 @@ import type {
   ProviderAvailabilitySlot,
   ProviderOrganization,
   ProviderOrganizationDetail,
+  ProviderPublicLocation,
   ProviderPublicProfile,
   ProviderService,
   UpdateProviderAvailabilityInput,
@@ -18,6 +19,7 @@ import type {
   UpdateProviderServiceInput,
   UploadProviderApprovalDocumentInput,
   UploadProviderAvatarInput,
+  UpsertProviderPublicLocationInput,
   UpsertProviderPublicProfileInput,
   Uuid
 } from "@pet/types";
@@ -26,6 +28,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type ProvidersSupabaseClient = SupabaseClient<Database>;
 type ProviderOrganizationRow = Database["public"]["Tables"]["provider_organizations"]["Row"];
 type ProviderPublicProfileRow = Database["public"]["Tables"]["provider_public_profiles"]["Row"];
+type ProviderPublicLocationRow = Database["public"]["Tables"]["provider_public_locations"]["Row"];
 type ProviderServiceRow = Database["public"]["Tables"]["provider_services"]["Row"];
 type ProviderAvailabilityRow = Database["public"]["Tables"]["provider_availability"]["Row"];
 type ProviderAvailabilityRuleRow = Database["public"]["Tables"]["provider_availability_rules"]["Row"];
@@ -40,6 +43,7 @@ export interface ProvidersApiClient {
   createProviderOrganization(input: CreateProviderOrganizationInput): Promise<ProviderOrganization>;
   updateProviderOrganization(organizationId: Uuid, input: UpdateProviderOrganizationInput): Promise<ProviderOrganization>;
   upsertProviderPublicProfile(organizationId: Uuid, input: UpsertProviderPublicProfileInput): Promise<ProviderPublicProfile>;
+  upsertProviderPublicLocation(organizationId: Uuid, input: UpsertProviderPublicLocationInput): Promise<ProviderPublicLocation>;
   createProviderService(input: CreateProviderServiceInput): Promise<ProviderService>;
   updateProviderService(serviceId: Uuid, input: UpdateProviderServiceInput): Promise<ProviderService>;
   addProviderAvailabilitySlot(input: CreateProviderAvailabilityInput): Promise<ProviderAvailabilitySlot>;
@@ -68,6 +72,14 @@ function fail(error: { message: string } | null, fallbackMessage: string): never
 
 function isMissingSessionError(error: { message: string } | null) {
   return error?.message.toLowerCase().includes("auth session missing") ?? false;
+}
+
+function isMissingProviderPublicLocationsError(error: { code?: string; message: string } | null) {
+  return (
+    error?.code === "PGRST205" ||
+    error?.code === "42P01" ||
+    error?.message.toLowerCase().includes("provider_public_locations") && error.message.toLowerCase().includes("schema cache")
+  );
 }
 
 async function getCurrentUser(supabase: ProvidersSupabaseClient) {
@@ -136,7 +148,10 @@ async function getProviderAvatarSignedUrl(supabase: ProvidersSupabaseClient, row
   return row.avatar_url;
 }
 
-function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: string | null = row.avatar_url): ProviderPublicProfile {
+function mapProviderPublicProfile(
+  row: ProviderPublicProfileRow,
+  avatarUrl: string | null = row.avatar_url
+): ProviderPublicProfile {
   return {
     organizationId: row.organization_id,
     headline: row.headline,
@@ -145,6 +160,24 @@ function mapProviderPublicProfile(row: ProviderPublicProfileRow, avatarUrl: stri
     avatarStorageBucket: row.avatar_storage_bucket,
     avatarStoragePath: row.avatar_storage_path,
     isPublic: row.is_public,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapProviderPublicLocation(row: ProviderPublicLocationRow): ProviderPublicLocation {
+  return {
+    organizationId: row.organization_id,
+    displayLabel: row.display_label,
+    addressLinePublic: row.address_line_public,
+    city: row.city,
+    stateRegion: row.state_region,
+    countryCode: row.country_code,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    locationPrecision: row.location_precision,
+    isPublic: row.is_public,
+    verifiedAt: row.verified_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -236,6 +269,7 @@ async function getProviderOrganizationDetailById(
 
   const [
     { data: publicProfileRow, error: publicProfileError },
+    { data: publicLocationRow, error: publicLocationError },
     { data: serviceRows, error: servicesError },
     { data: availabilityRows, error: availabilityError },
     { data: availabilityRuleRows, error: availabilityRulesError },
@@ -243,6 +277,7 @@ async function getProviderOrganizationDetailById(
   ] =
     await Promise.all([
       supabase.from("provider_public_profiles").select("*").eq("organization_id", organizationId).maybeSingle(),
+      supabase.from("provider_public_locations").select("*").eq("organization_id", organizationId).maybeSingle(),
       supabase.from("provider_services").select("*").eq("organization_id", organizationId).order("created_at", { ascending: true }),
       supabase
         .from("provider_availability")
@@ -261,6 +296,10 @@ async function getProviderOrganizationDetailById(
 
   if (publicProfileError) {
     fail(publicProfileError, "Unable to load the provider public profile.");
+  }
+
+  if (publicLocationError && !isMissingProviderPublicLocationsError(publicLocationError)) {
+    fail(publicLocationError, "Unable to load the provider public location.");
   }
 
   if (servicesError) {
@@ -282,6 +321,7 @@ async function getProviderOrganizationDetailById(
   return {
     organization: mapProviderOrganization(organizationRow),
     publicProfile: publicProfileRow ? mapProviderPublicProfile(publicProfileRow, await getProviderAvatarSignedUrl(supabase, publicProfileRow)) : null,
+    publicLocation: publicLocationError ? null : publicLocationRow ? mapProviderPublicLocation(publicLocationRow) : null,
     services: (serviceRows ?? []).map(mapProviderService),
     availability: (availabilityRows ?? []).map(mapProviderAvailability),
     availabilityRules: (availabilityRuleRows ?? []).map(mapProviderAvailabilityRule),
@@ -376,6 +416,61 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       }
 
       return mapProviderPublicProfile(data, await getProviderAvatarSignedUrl(supabase, data));
+    },
+    async uploadProviderAvatar(organizationId, input) {
+      await requireCurrentUser(supabase);
+
+      if (input.fileBytes.byteLength === 0) {
+        throw new Error("Provider avatar image file is empty.");
+      }
+
+      if (!input.mimeType?.startsWith("image/")) {
+        throw new Error("El avatar del proveedor debe ser una imagen.");
+      }
+
+      const storagePath = buildAvatarStoragePath(organizationId, input.fileName);
+      const uploadPayload = new Uint8Array(input.fileBytes);
+      const { error: uploadError } = await supabase.storage.from(providerAvatarsBucketId).upload(storagePath, uploadPayload, {
+        contentType: input.mimeType,
+        upsert: false
+      });
+
+      if (uploadError) {
+        fail(uploadError, "Unable to upload the provider avatar.");
+      }
+
+      const { data, error } = await supabase.rpc("set_provider_public_profile_avatar", {
+        target_organization_id: organizationId,
+        next_avatar_storage_bucket: providerAvatarsBucketId,
+        next_avatar_storage_path: storagePath
+      });
+
+      if (error) {
+        await supabase.storage.from(providerAvatarsBucketId).remove([storagePath]).catch(() => undefined);
+        fail(error, "Unable to save the provider avatar record.");
+      }
+
+      return mapProviderPublicProfile(data, await getProviderAvatarSignedUrl(supabase, data));
+    },
+    async upsertProviderPublicLocation(organizationId, input) {
+      const { data, error } = await supabase.rpc("upsert_provider_public_location", {
+        target_organization_id: organizationId,
+        next_display_label: input.displayLabel,
+        next_address_line_public: input.addressLinePublic ?? null,
+        next_city: input.city,
+        next_state_region: input.stateRegion ?? null,
+        next_country_code: input.countryCode ?? "PA",
+        next_latitude: input.latitude,
+        next_longitude: input.longitude,
+        next_location_precision: input.locationPrecision ?? "approximate",
+        next_is_public: input.isPublic ?? false
+      });
+
+      if (error) {
+        fail(error, "Unable to save the provider public location.");
+      }
+
+      return mapProviderPublicLocation(data);
     },
     async createProviderService(input) {
       const { data, error } = await supabase.rpc("create_provider_service", {
@@ -563,41 +658,6 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       }
 
       return (data ?? []).map(mapProviderDocument);
-    },
-    async uploadProviderAvatar(organizationId, input) {
-      await requireCurrentUser(supabase);
-
-      if (input.fileBytes.byteLength === 0) {
-        throw new Error("Provider avatar image file is empty.");
-      }
-
-      if (!input.mimeType?.startsWith("image/")) {
-        throw new Error("El avatar del proveedor debe ser una imagen.");
-      }
-
-      const storagePath = buildAvatarStoragePath(organizationId, input.fileName);
-      const uploadPayload = new Uint8Array(input.fileBytes);
-      const { error: uploadError } = await supabase.storage.from(providerAvatarsBucketId).upload(storagePath, uploadPayload, {
-        contentType: input.mimeType,
-        upsert: false
-      });
-
-      if (uploadError) {
-        fail(uploadError, "Unable to upload the provider avatar.");
-      }
-
-      const { data, error } = await supabase.rpc("set_provider_public_profile_avatar", {
-        target_organization_id: organizationId,
-        next_avatar_storage_bucket: providerAvatarsBucketId,
-        next_avatar_storage_path: storagePath
-      });
-
-      if (error) {
-        await supabase.storage.from(providerAvatarsBucketId).remove([storagePath]).catch(() => undefined);
-        fail(error, "Unable to save the provider avatar record.");
-      }
-
-      return mapProviderPublicProfile(data, await getProviderAvatarSignedUrl(supabase, data));
     },
     async uploadProviderApprovalDocument(organizationId, input) {
       const user = await requireCurrentUser(supabase);

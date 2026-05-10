@@ -22,6 +22,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - `calendar_events` refleja los reminders visibles en agenda para el MVP
 - una organizacion proveedora tiene un perfil publico, multiples servicios, disponibilidades y documentos de aprobacion
 - el perfil publico proveedor puede tener avatar controlado en `provider-avatars`
+- en V2 Geo-0, una organizacion proveedora puede tener una ubicacion publica controlada en `provider_public_locations`
 - en V2 booking capacity, una organizacion/servicio puede tener reglas de disponibilidad con capacidad y excepciones por fecha
 - admin revisa la organizacion proveedora y decide su aprobacion basica
 - una reserva conecta hogar, mascota, proveedor y servicio
@@ -79,6 +80,8 @@ Consistencia:
 - `payment_methods` almacena metodos guardados del usuario; la captura real de pago queda diferida
 - no mezclar ownership de dueno con ownership de proveedor
 - la visibilidad publica del proveedor depende de `approval_status = approved` y de flags publicos
+- la ubicacion publica del proveedor depende tambien de `provider_public_locations.is_public`, perfil publico, servicios activos y precision elegida por el proveedor
+- `user_addresses` pertenece al usuario y no debe exponerse en marketplace; la ubicacion actual del owner no se guarda sin consentimiento ni se usa para tracking
 - la visibilidad de slots depende de provider aprobado, organizacion publica, perfil publico, servicio publico/activo y regla activa
 - la visibilidad de datos depende de household membership y organization scoping
 - las mascotas heredan visibilidad y capacidad de edicion desde los permisos del hogar

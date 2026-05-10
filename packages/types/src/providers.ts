@@ -5,6 +5,8 @@ import type {
   ProviderApprovalStatus,
   ProviderAvailabilitySlot,
   ProviderOrganization,
+  ProviderPublicLocation,
+  ProviderLocationPrecision,
   ProviderPublicProfile,
   ProviderService,
   ProviderServiceCategory
@@ -28,6 +30,7 @@ export interface ProviderApprovalDocument extends TimestampedEntity {
 export interface ProviderOrganizationDetail {
   organization: ProviderOrganization;
   publicProfile: ProviderPublicProfile | null;
+  publicLocation: ProviderPublicLocation | null;
   services: ProviderService[];
   availability: ProviderAvailabilitySlot[];
   availabilityRules: ProviderAvailabilityRule[];
@@ -60,6 +63,18 @@ export interface UploadProviderAvatarInput {
   fileName: string;
   mimeType?: string | null;
   fileBytes: ArrayBuffer;
+}
+
+export interface UpsertProviderPublicLocationInput {
+  displayLabel: string;
+  addressLinePublic?: string | null;
+  city: string;
+  stateRegion?: string | null;
+  countryCode?: string;
+  latitude: number;
+  longitude: number;
+  locationPrecision?: ProviderLocationPrecision;
+  isPublic?: boolean;
 }
 
 export interface CreateProviderServiceInput {

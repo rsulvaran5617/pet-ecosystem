@@ -12,6 +12,7 @@ export type ProviderServiceCategory =
   | "sitting"
   | "other";
 export type ProviderDayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type ProviderLocationPrecision = "exact" | "approximate" | "city";
 
 export interface ProviderOrganization extends TimestampedEntity {
   id: Uuid;
@@ -33,6 +34,20 @@ export interface ProviderPublicProfile extends TimestampedEntity {
   avatarStorageBucket: string | null;
   avatarStoragePath: string | null;
   isPublic: boolean;
+}
+
+export interface ProviderPublicLocation extends TimestampedEntity {
+  organizationId: Uuid;
+  displayLabel: string;
+  addressLinePublic: string | null;
+  city: string;
+  stateRegion: string | null;
+  countryCode: string;
+  latitude: number;
+  longitude: number;
+  locationPrecision: ProviderLocationPrecision;
+  isPublic: boolean;
+  verifiedAt: IsoDateString | null;
 }
 
 export interface ProviderService extends TimestampedEntity {
@@ -72,6 +87,8 @@ export interface MarketplaceProviderSummary {
   speciesServed: string[];
   serviceCount: number;
   availableDays: ProviderDayOfWeek[];
+  publicLocation?: ProviderPublicLocation | null;
+  distanceKm?: number | null;
 }
 
 export interface MarketplaceProviderDetail extends MarketplaceProviderSummary {
@@ -98,6 +115,9 @@ export interface MarketplaceSearchFilters {
   category?: ProviderServiceCategory | null;
   city?: string | null;
   species?: string | null;
+  nearLatitude?: number | null;
+  nearLongitude?: number | null;
+  maxDistanceKm?: number | null;
 }
 
 export interface MarketplaceServiceSelection {

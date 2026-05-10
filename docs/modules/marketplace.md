@@ -20,10 +20,12 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - discovery geolocalizado por cercania
 - mapa de proveedores aprobados
 - ordenamiento por distancia desde hogar, direccion seleccionada o ubicacion actual
+- Geo-0 prepara `provider_public_locations` y PostGIS; no habilita mapa, permisos de ubicacion ni tracking todavia
 
 ## Entidades
 - `provider_organizations`
 - `provider_public_profiles`
+- `provider_public_locations` (V2 Geo-0)
 - `provider_services`
 - `provider_availability`
 - bucket privado con lectura controlada `provider-avatars`
@@ -40,6 +42,10 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - el discovery publico lista organizaciones con `approval_status = approved` e `is_public = true`
 - los proveedores sin perfil publico o sin al menos un servicio publico no aparecen en discovery
 - si el perfil tiene avatar controlado en `provider-avatars`, marketplace lo muestra mediante URL firmada temporal; si no, usa placeholder visual
+- ubicacion geolocalizada solo puede exponerse desde `provider_public_locations` cuando la organizacion/perfil/servicios son publicos y aprobados
+- el proveedor decide precision publica: `exact`, `approximate` o `city`
+- marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
+- no hay tracking en tiempo real dentro de Geo-0
 - la seleccion de servicio no crea por si sola el booking
 - la seleccion deja preparado el contexto para `Bookings`
 - en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida
@@ -54,6 +60,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - `GET /marketplace/home`
 - `GET /marketplace/providers`
 - `GET /marketplace/providers/{id}`
+- `GET /marketplace/provider-locations` (V2 Geo-0, base para mapa/filtros por distancia)
 
 ## Criterio de done del modulo MVP
 - el usuario descubre proveedores aprobados

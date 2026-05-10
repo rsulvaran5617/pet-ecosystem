@@ -79,6 +79,7 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `GET /marketplace/home`
 - `GET /marketplace/providers`
 - `GET /marketplace/providers/{id}`
+- `GET /marketplace/provider-locations` (V2 Geo-0)
 
 ### Bookings
 
@@ -112,6 +113,8 @@ Notas:
 - mascotas exponen avatar privado mediante URL firmada temporal
 - proveedores exponen avatar publico desde `provider-avatars` mediante URL firmada temporal solo para perfiles/organizaciones visibles
 - no se agregan nuevas URLs externas arbitrarias para avatares
+- ubicacion publica de proveedor usa `provider_public_locations`, PostGIS y precision `exact | approximate | city`
+- Geo-0 no pide permisos de ubicacion, no guarda ubicacion actual del owner y no habilita tracking
 - `memory-status` permite alternar `active` / `in_memory` sin borrar mascotas ni historiales
 - reservas nuevas deben rechazar mascotas `in_memory`
 - `approve/reject` aplican solo a `pending_approval`
@@ -172,6 +175,7 @@ Contratos QR propuestos:
 - `PATCH /provider/organizations/{id}`
 - `PUT /provider/organizations/{id}/public-profile`
 - `POST /provider/organizations/{id}/public-profile/avatar`
+- `PUT /provider/organizations/{id}/public-location` (V2 Geo-0)
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
 - `POST /provider/organizations/{id}/availability`
