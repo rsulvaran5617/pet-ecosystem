@@ -519,28 +519,31 @@ export function BookingOperationsTimeline({
                 borderColor: "rgba(0,151,143,0.18)",
                 borderRadius: 10,
                 borderWidth: 1,
-                flexDirection: "row",
-                gap: 10,
+                gap: 9,
                 padding: 10
               }}
             >
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 46,
-                  height: 46,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(0,151,143,0.1)"
-                }}
-              >
-                <QrIcon />
-              </View>
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Escanear QR operacional</Text>
-                <Text style={{ color: "#64748b", fontSize: 11, lineHeight: 15 }}>
-                  Escanea el codigo QR del owner para registrar entradas y salidas.
-                </Text>
+              <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 42,
+                    height: 42,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(0,151,143,0.1)"
+                  }}
+                >
+                  <QrIcon size={20} />
+                </View>
+                <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.82} style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>
+                    Escanear QR operacional
+                  </Text>
+                  <Text style={{ color: "#64748b", fontSize: 10, lineHeight: 14 }}>
+                    Escanea el QR del owner para registrar entrada o salida.
+                  </Text>
+                </View>
               </View>
               <Pressable
                 accessibilityRole="button"
@@ -550,15 +553,19 @@ export function BookingOperationsTimeline({
                 }}
                 style={{
                   alignItems: "center",
+                  flexDirection: "row",
+                  gap: 7,
                   justifyContent: "center",
                   backgroundColor: providerCanScanQr ? "#0f766e" : "#99f6e4",
                   borderRadius: 10,
+                  minHeight: 42,
                   paddingHorizontal: 12,
-                  minWidth: 76
+                  paddingVertical: 9,
+                  width: "100%"
                 }}
               >
                 <QrIcon color="#ffffff" size={18} />
-                <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900", marginTop: 3 }}>
+                <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>
                   {isConsumingOperationQr ? "Validando" : "Escanear"}
                 </Text>
               </Pressable>
