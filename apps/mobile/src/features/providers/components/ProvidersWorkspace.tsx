@@ -515,11 +515,13 @@ export function ProvidersWorkspace({
   activeSection = "inicio",
   enabled,
   hasProviderRole,
+  onNavigateSection,
   providerRoleActive
 }: {
   activeSection?: ProviderWorkspaceSection;
   enabled: boolean;
   hasProviderRole: boolean;
+  onNavigateSection?: (section: ProviderWorkspaceSection) => void;
   providerRoleActive: boolean;
 }) {
   const {
@@ -735,6 +737,37 @@ export function ProvidersWorkspace({
   );
   const missingPublicationSteps = publicationSteps.filter((step) => !step.done).length;
   const recommendedProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? dashboardProviderBookings[0] ?? null;
+  const navigateProviderSection = (section: ProviderWorkspaceSection) => {
+    onNavigateSection?.(section);
+  };
+  const openProviderBookingFromDashboard = (bookingId?: Uuid) => {
+    navigateProviderSection("reservas");
+
+    if (bookingId) {
+      void openProviderBookingDetail(bookingId);
+    }
+  };
+  const openPublicationNextStep = () => {
+    if (!selectedOrganization || !selectedPublicProfile) {
+      navigateProviderSection("negocio");
+      return;
+    }
+
+    if (!selectedServicios.length) {
+      navigateProviderSection("servicios");
+      return;
+    }
+
+    if (!selectedAvailabilityRules.length) {
+      navigateProviderSection("disponibilidad");
+      return;
+    }
+
+    if (!selectedDocuments.length || selectedOrganization.approvalStatus !== "approved") {
+      navigateProviderSection("estado");
+      return;
+    }
+  };
   const showHome = activeSection === "inicio";
   const showOrganization = activeSection === "negocio";
   const showApproval = activeSection === "inicio" || activeSection === "estado";
@@ -789,14 +822,41 @@ export function ProvidersWorkspace({
 
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   {[
-                    { label: "Hoy", value: todayProviderBookings.length, tone: todayProviderBookings.length ? "#007a6b" : "#78716c" },
-                    { label: "Pendientes", value: pendingProviderBookings.length, tone: pendingProviderBookings.length ? "#f97316" : "#78716c" },
-                    { label: "En curso", value: confirmedProviderBookings.length, tone: confirmedProviderBookings.length ? "#007a6b" : "#78716c" },
-                    { label: "Servicios", value: selectedServicios.length, tone: selectedServicios.length ? "#007a6b" : "#78716c" }
+                    {
+                      accessibilityLabel: "Ver reservas de hoy",
+                      label: "Hoy",
+                      onPress: () => openProviderBookingFromDashboard(todayProviderBookings[0]?.id),
+                      value: todayProviderBookings.length,
+                      tone: todayProviderBookings.length ? "#007a6b" : "#78716c"
+                    },
+                    {
+                      accessibilityLabel: "Ver solicitudes pendientes",
+                      label: "Pendientes",
+                      onPress: () => openProviderBookingFromDashboard(pendingProviderBookings[0]?.id),
+                      value: pendingProviderBookings.length,
+                      tone: pendingProviderBookings.length ? "#f97316" : "#78716c"
+                    },
+                    {
+                      accessibilityLabel: "Ver reservas en curso",
+                      label: "En curso",
+                      onPress: () => openProviderBookingFromDashboard(confirmedProviderBookings[0]?.id),
+                      value: confirmedProviderBookings.length,
+                      tone: confirmedProviderBookings.length ? "#007a6b" : "#78716c"
+                    },
+                    {
+                      accessibilityLabel: "Ver servicios del proveedor",
+                      label: "Servicios",
+                      onPress: () => navigateProviderSection("servicios"),
+                      value: selectedServicios.length,
+                      tone: selectedServicios.length ? "#007a6b" : "#78716c"
+                    }
                   ].map((metric) => (
-                    <View
+                    <Pressable
+                      accessibilityLabel={metric.accessibilityLabel}
+                      accessibilityRole="button"
                       key={metric.label}
-                      style={{
+                      onPress={metric.onPress}
+                      style={({ pressed }) => ({
                         width: "48%",
                         minWidth: 124,
                         flexGrow: 1,
@@ -804,13 +864,17 @@ export function ProvidersWorkspace({
                         borderWidth: 1,
                         borderColor: "rgba(148,163,184,0.18)",
                         backgroundColor: "rgba(248,250,252,0.92)",
+                        opacity: pressed ? 0.76 : 1,
                         padding: 10,
                         gap: 5
-                      }}
+                      })}
                     >
-                      <Text style={{ color: metric.tone, fontSize: 20, fontWeight: "900", lineHeight: 22 }}>{metric.value}</Text>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                        <Text style={{ color: metric.tone, fontSize: 20, fontWeight: "900", lineHeight: 22 }}>{metric.value}</Text>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Ver</Text>
+                      </View>
                       <Text style={{ color: "#1c1917", fontSize: 10, fontWeight: "800", lineHeight: 13 }}>{metric.label}</Text>
-                    </View>
+                    </Pressable>
                   ))}
                 </View>
 
@@ -844,7 +908,11 @@ export function ProvidersWorkspace({
                   </Text>
                   {recommendedProviderBooking ? (
                     <View style={{ alignItems: "flex-start" }}>
-                      <Button disabled={isSubmitting} label="Ver siguiente detalle" onPress={() => void openProviderBookingDetail(recommendedProviderBooking.id)} />
+                      <Button disabled={isSubmitting} label="Ver siguiente detalle" onPress={() => openProviderBookingFromDashboard(recommendedProviderBooking.id)} />
+                    </View>
+                  ) : !isMarketplaceVisible && missingPublicationSteps ? (
+                    <View style={{ alignItems: "flex-start" }}>
+                      <Button disabled={isSubmitting} label="Completar siguiente paso" onPress={openPublicationNextStep} />
                     </View>
                   ) : null}
                 </View>

@@ -2032,6 +2032,7 @@ export function CoreHomeScreen() {
             activeSection={activeProviderSection}
             enabled
             hasProviderRole={hasProviderRole}
+            onNavigateSection={setActiveProviderSection}
             providerRoleActive={activeRole === "provider"}
           />
         ) : null}
