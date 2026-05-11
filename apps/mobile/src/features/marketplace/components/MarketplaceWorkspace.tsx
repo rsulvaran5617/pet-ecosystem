@@ -49,6 +49,29 @@ const weekDayShortLabels: Record<ProviderDayOfWeek, string> = {
   6: "SAB"
 };
 
+type DistanceOrigin =
+  | { type: "none"; id: "none"; label: string; detail: string; latitude: null; longitude: null }
+  | { type: "address"; id: string; label: string; detail: string; latitude: number; longitude: number }
+  | { type: "zone"; id: string; label: string; detail: string; latitude: number; longitude: number };
+
+const noDistanceOrigin: DistanceOrigin = {
+  type: "none",
+  id: "none",
+  label: "Sin distancia",
+  detail: "Mostrar solo ubicacion publica",
+  latitude: null,
+  longitude: null
+};
+
+const controlledDistanceZones: DistanceOrigin[] = [
+  { type: "zone", id: "panama", label: "Panama", detail: "Zona aproximada", latitude: 8.9824, longitude: -79.5199 },
+  { type: "zone", id: "san-miguelito", label: "San Miguelito", detail: "Zona aproximada", latitude: 9.033, longitude: -79.5 },
+  { type: "zone", id: "arraijan", label: "Arraijan", detail: "Zona aproximada", latitude: 8.95, longitude: -79.65 },
+  { type: "zone", id: "la-chorrera", label: "La Chorrera", detail: "Zona aproximada", latitude: 8.8803, longitude: -79.7833 },
+  { type: "zone", id: "colon", label: "Colon", detail: "Zona aproximada", latitude: 9.3592, longitude: -79.9014 },
+  { type: "zone", id: "david", label: "David", detail: "Zona aproximada", latitude: 8.4273, longitude: -82.4308 }
+];
+
 function formatSpeciesLabel(value: string) {
   return value
     .split(/[\s_-]+/)
@@ -221,6 +244,7 @@ export function MarketplaceWorkspace({
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<ProviderDayOfWeek>(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedDistanceOrigin, setSelectedDistanceOrigin] = useState<DistanceOrigin>(noDistanceOrigin);
   const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([]);
   const [selectedBookingSlot, setSelectedBookingSlot] = useState<BookingSlot | null>(null);
   const [selectedSlotDate, setSelectedSlotDate] = useState<string | null>(null);
@@ -234,10 +258,18 @@ export function MarketplaceWorkspace({
     () => providers.find((provider) => provider.organizationId === selectedProviderDetail?.organizationId) ?? null,
     [providers, selectedProviderDetail]
   );
+  const distanceOriginOptions = useMemo(
+    () => [
+      noDistanceOrigin,
+      ...controlledDistanceZones
+    ],
+    []
+  );
   const activeFilterLabels = [
     selectedCategory ? providerServiceCategoryLabels[selectedCategory] : null,
     selectedCity || null,
-    selectedSpecies ? formatSpeciesLabel(selectedSpecies) : null
+    selectedSpecies ? formatSpeciesLabel(selectedSpecies) : null,
+    selectedDistanceOrigin.type === "none" ? null : `Distancia desde ${selectedDistanceOrigin.label}`
   ].filter((label): label is string => Boolean(label));
   const availabilityByDay = useMemo(
     () =>
@@ -266,7 +298,20 @@ export function MarketplaceWorkspace({
     category:
       overrides.category !== undefined ? overrides.category : selectedCategory ? selectedCategory : null,
     city: overrides.city !== undefined ? overrides.city : selectedCity || null,
-    species: overrides.species !== undefined ? overrides.species : selectedSpecies || null
+    species: overrides.species !== undefined ? overrides.species : selectedSpecies || null,
+    nearLatitude:
+      overrides.nearLatitude !== undefined
+        ? overrides.nearLatitude
+        : selectedDistanceOrigin.type === "none"
+          ? null
+          : selectedDistanceOrigin.latitude,
+    nearLongitude:
+      overrides.nearLongitude !== undefined
+        ? overrides.nearLongitude
+        : selectedDistanceOrigin.type === "none"
+          ? null
+          : selectedDistanceOrigin.longitude,
+    maxDistanceKm: overrides.maxDistanceKm !== undefined ? overrides.maxDistanceKm : null
   });
 
   async function runSearch(overrides: Partial<MarketplaceSearchFilters> = {}) {
@@ -284,11 +329,23 @@ export function MarketplaceWorkspace({
     if (overrides.species !== undefined) {
       setSelectedSpecies(overrides.species ?? "");
     }
+    if (overrides.nearLatitude === null || overrides.nearLongitude === null) {
+      setSelectedDistanceOrigin(noDistanceOrigin);
+    }
 
     clearMessages();
     setSelectedServiceId(null);
     await search(nextFilters);
     setCurrentView("results");
+  }
+
+  async function selectDistanceOrigin(origin: DistanceOrigin) {
+    setSelectedDistanceOrigin(origin);
+    await runSearch({
+      nearLatitude: origin.type === "none" ? null : origin.latitude,
+      nearLongitude: origin.type === "none" ? null : origin.longitude,
+      maxDistanceKm: null
+    });
   }
 
   async function handleOpenProvider(providerId: string) {
@@ -476,6 +533,35 @@ export function MarketplaceWorkspace({
                     </View>
                   ))}
                 </View>
+                <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Origen para distancia</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                        {selectedDistanceOrigin.detail}. No usamos GPS ni publicamos tu direccion.
+                      </Text>
+                    </View>
+                    <StatusChip label={selectedDistanceOrigin.type === "none" ? "sin distancia" : "aprox."} tone={selectedDistanceOrigin.type === "none" ? "neutral" : "active"} />
+                  </View>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                    {distanceOriginOptions.map((origin) => {
+                      const isSelected = selectedDistanceOrigin.type === origin.type && selectedDistanceOrigin.id === origin.id;
+
+                      return (
+                        <Button
+                          key={`${origin.type}-${origin.id}`}
+                          disabled={isLoading}
+                          label={origin.label}
+                          onPress={() => void selectDistanceOrigin(origin)}
+                          tone={isSelected ? "primary" : "secondary"}
+                        />
+                      );
+                    })}
+                  </View>
+                  <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                    Las direcciones guardadas se agregaran como origen cuando el modelo exponga coordenadas; por ahora usa zonas aproximadas controladas.
+                  </Text>
+                </View>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   <Button label={filtersOpen ? "Ocultar filtros" : "Ajustar filtros"} onPress={() => setFiltersOpen((currentValue) => !currentValue)} tone="secondary" />
                   {activeFilterLabels.length ? (
@@ -638,7 +724,7 @@ export function MarketplaceWorkspace({
                   </View>
                   <StatusChip label={selectedProviderSource ? "desde resultados" : "destacados"} tone="active" />
                 </View>
-                <ProviderLocationSummary provider={selectedProviderDetail} />
+                <ProviderLocationSummary provider={selectedProviderSource ?? selectedProviderDetail} />
                 <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.headline}</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.bio}</Text>
                 <Button label="Volver a resultados" onPress={() => setCurrentView("results")} tone="secondary" />

@@ -116,6 +116,7 @@ Notas:
 - ubicacion publica de proveedor usa `provider_public_locations`, PostGIS y precision `exact | approximate | city`
 - Geo-0 no pide permisos de ubicacion, no guarda ubicacion actual del owner y no habilita tracking
 - `GET /marketplace/providers` puede recibir `nearLatitude`, `nearLongitude` y `maxDistanceKm` como filtros opcionales tipados; Geo-2 calcula `distanceKm` aproximado en cliente/API solo cuando llegan coordenadas de origen ya disponibles, sin pedir permisos ni exponer direcciones privadas del owner
+- Geo-3 construye esos filtros desde una zona aproximada controlada; direcciones privadas del owner quedan diferidas porque el contrato actual de `user_addresses` no expone coordenadas. El contrato no devuelve ni publica `user_addresses`
 - `memory-status` permite alternar `active` / `in_memory` sin borrar mascotas ni historiales
 - reservas nuevas deben rechazar mascotas `in_memory`
 - `approve/reject` aplican solo a `pending_approval`

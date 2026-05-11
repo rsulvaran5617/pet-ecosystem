@@ -24,6 +24,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - ordenamiento por distancia desde hogar, direccion seleccionada o ubicacion actual
 - Geo-0 prepara `provider_public_locations` y PostGIS; no habilita mapa, permisos de ubicacion ni tracking todavia
 - Geo-2 muestra ubicacion publica en cards/listas y deja preparada distancia aproximada sin mapa, permisos mobile ni tracking
+- Geo-3 permite seleccionar un origen controlado por zonas/ciudades aproximadas; direcciones guardadas quedan diferidas hasta que el contrato de `user_addresses` exponga coordenadas de forma trazable. No usa GPS ni geocoding externo
 
 ## Entidades
 - `provider_organizations`
@@ -48,8 +49,9 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - ubicacion geolocalizada solo puede exponerse desde `provider_public_locations` cuando la organizacion/perfil/servicios son publicos y aprobados
 - el proveedor decide precision publica: `exact`, `approximate` o `city`
 - Geo-2 muestra nombre visible, ciudad/pais y precision publica en marketplace; `distanceKm` solo se calcula si el filtro incluye `nearLatitude`/`nearLongitude`
+- Geo-3 no expone `user_addresses`: marketplace solo recibe coordenadas de filtro desde zonas controladas y muestra distancia aproximada
 - marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
-- no hay tracking en tiempo real dentro de Geo-0/Geo-2
+- no hay tracking en tiempo real dentro de Geo-0/Geo-3
 - la seleccion de servicio no crea por si sola el booking
 - la seleccion deja preparado el contexto para `Bookings`
 - en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida

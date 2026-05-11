@@ -75,6 +75,7 @@ La ubicacion publica de proveedor solo puede leerse en marketplace si:
 El provider owner/manager puede crear y editar la ubicacion de su organizacion.
 Admin puede leer y moderar ubicaciones.
 Owners no exponen `user_addresses`; la direccion del hogar nunca se publica ni se devuelve a proveedores desde marketplace.
+Geo-3 no usa `user_addresses` como origen mientras el contrato no exponga coordenadas; no devuelve la direccion a proveedores ni la publica en cards/listas.
 No se guarda ubicacion actual del owner sin consentimiento explicito y Geo-0 no habilita tracking en tiempo real.
 
 ### provider-avatars storage
