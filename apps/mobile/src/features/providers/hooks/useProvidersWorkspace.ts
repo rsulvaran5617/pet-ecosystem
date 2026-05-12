@@ -14,6 +14,7 @@ interface UseProvidersWorkspaceResult {
   isLoading: boolean;
   isSubmitting: boolean;
   clearMessages: () => void;
+  closeProviderBookingDetail: () => void;
   selectOrganization: (organizationId: Uuid) => Promise<void>;
   openProviderBookingDetail: (bookingId: Uuid) => Promise<void>;
   approveProviderBooking: (bookingId: Uuid) => Promise<void>;
@@ -66,11 +67,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     setSelectedOrganizationDetail(detail);
     setProviderBookings(bookings);
 
-    const persistedBookingId =
-      bookings.find((booking) => booking.id === selectedBookingIdRef.current)?.id ??
-      bookings.find((booking) => booking.status === "pending_approval")?.id ??
-      bookings[0]?.id ??
-      null;
+    const persistedBookingId = bookings.find((booking) => booking.id === selectedBookingIdRef.current)?.id ?? null;
 
     if (!persistedBookingId) {
       selectedBookingIdRef.current = null;
@@ -175,6 +172,11 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     isSubmitting,
     clearMessages() {
       setErrorMessage(null);
+      setInfoMessage(null);
+    },
+    closeProviderBookingDetail() {
+      selectedBookingIdRef.current = null;
+      setSelectedProviderBookingDetail(null);
       setInfoMessage(null);
     },
     async selectOrganization(organizationId) {

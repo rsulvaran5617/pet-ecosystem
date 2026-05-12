@@ -104,6 +104,7 @@ type DocumentFormState = {
 export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "disponibilidad" | "reservas" | "estado";
 type OrganizationView = "lista" | "crear" | "editar";
 type OrganizationListFilter = "all" | "active" | "approved" | "ready";
+type ProviderBookingStatusFilter = "all" | "pending_approval" | "confirmed" | "completed" | "cancelled";
 
 const emptyOrganizationForm: OrganizationFormState = {
   name: "",
@@ -298,6 +299,10 @@ function getApproximateProviderCityCoordinates(city: string) {
   return approximateProviderCityCoordinates[normalizeLocationKey(city)] ?? null;
 }
 
+function hasUsablePublicCoordinates(latitude: number, longitude: number) {
+  return Number.isFinite(latitude) && Number.isFinite(longitude) && !(latitude === 0 && longitude === 0);
+}
+
 function validateAvailabilityRuleForm(form: DisponibilidadFormState) {
   const capacity = Number(form.capacity);
 
@@ -337,16 +342,18 @@ function buildPublicLocationFormState(
   detail: NonNullable<ReturnType<typeof useProvidersWorkspace>["selectedOrganizationDetail"]>
 ): PublicLocationFormState {
   const publicLocation = detail.publicLocation;
+  const fallbackCoordinates = getApproximateProviderCityCoordinates(publicLocation?.city ?? detail.organization.city);
+  const hasStoredCoordinates = publicLocation ? hasUsablePublicCoordinates(publicLocation.latitude, publicLocation.longitude) : false;
 
   return {
     displayLabel: publicLocation?.displayLabel ?? detail.organization.name,
     addressLinePublic: publicLocation?.addressLinePublic ?? "",
     city: publicLocation?.city ?? detail.organization.city,
-    stateRegion: publicLocation?.stateRegion ?? "",
+    stateRegion: publicLocation?.stateRegion ?? fallbackCoordinates?.stateRegion ?? "",
     countryCode: publicLocation?.countryCode ?? detail.organization.countryCode,
-    latitude: publicLocation ? String(publicLocation.latitude) : "",
-    longitude: publicLocation ? String(publicLocation.longitude) : "",
-    locationPrecision: publicLocation?.locationPrecision ?? "approximate",
+    latitude: hasStoredCoordinates ? String(publicLocation?.latitude) : fallbackCoordinates?.latitude ?? "",
+    longitude: hasStoredCoordinates ? String(publicLocation?.longitude) : fallbackCoordinates?.longitude ?? "",
+    locationPrecision: publicLocation?.locationPrecision ?? (fallbackCoordinates ? "city" : "approximate"),
     isPublic: publicLocation?.isPublic ?? false
   };
 }
@@ -535,6 +542,7 @@ export function ProvidersWorkspace({
     providerBookings,
     selectedProviderBookingDetail,
     clearMessages,
+    closeProviderBookingDetail,
     selectOrganization,
     openProviderBookingDetail,
     approveProviderBooking,
@@ -560,6 +568,7 @@ export function ProvidersWorkspace({
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<DisponibilidadFormState["dayOfWeek"]>(
     getDayOfWeekFromDateKey(toDateKey(new Date()))
   );
+  const [providerBookingStatusFilter, setProviderBookingStatusFilter] = useState<ProviderBookingStatusFilter>("all");
   const [documentForm, setDocumentForm] = useState(emptyDocumentForm);
 
   useEffect(() => {
@@ -713,13 +722,41 @@ export function ProvidersWorkspace({
       scheduledAt.getDate() === today.getDate()
     );
   });
-  const dashboardProviderBookings = useMemo(
+  const sortedProviderBookings = useMemo(
     () =>
       [...providerBookings]
-        .sort((first, second) => new Date(first.scheduledStartAt).getTime() - new Date(second.scheduledStartAt).getTime())
-        .slice(0, activeSection === "inicio" ? 3 : 6),
-    [activeSection, providerBookings]
+        .sort((first, second) => new Date(first.scheduledStartAt).getTime() - new Date(second.scheduledStartAt).getTime()),
+    [providerBookings]
   );
+  const dashboardProviderBookings = useMemo(
+    () => sortedProviderBookings.slice(0, activeSection === "inicio" ? 3 : 6),
+    [activeSection, sortedProviderBookings]
+  );
+  const filteredProviderBookings = useMemo(
+    () =>
+      providerBookingStatusFilter === "all"
+        ? sortedProviderBookings
+        : sortedProviderBookings.filter((booking) => booking.status === providerBookingStatusFilter),
+    [providerBookingStatusFilter, sortedProviderBookings]
+  );
+  const displayedProviderBookings =
+    activeSection === "inicio" && providerBookingStatusFilter === "all"
+      ? dashboardProviderBookings
+      : filteredProviderBookings.slice(0, activeSection === "inicio" ? 3 : filteredProviderBookings.length);
+  const providerBookingFilterOptions: Array<{
+    label: string;
+    value: ProviderBookingStatusFilter;
+    count: number;
+    tone: "active" | "pending" | "neutral";
+  }> = [
+    { label: "Todas", value: "all", count: providerBookings.length, tone: providerBookings.length ? "active" : "neutral" },
+    { label: "Pendientes", value: "pending_approval", count: pendingProviderBookings.length, tone: pendingProviderBookings.length ? "pending" : "neutral" },
+    { label: "Confirmadas", value: "confirmed", count: confirmedProviderBookings.length, tone: confirmedProviderBookings.length ? "active" : "neutral" },
+    { label: "Completadas", value: "completed", count: completedProviderBookings.length, tone: completedProviderBookings.length ? "active" : "neutral" },
+    { label: "Canceladas", value: "cancelled", count: cancelledProviderBookings.length, tone: "neutral" }
+  ];
+  const activeProviderBookingFilterLabel =
+    providerBookingFilterOptions.find((option) => option.value === providerBookingStatusFilter)?.label ?? "Todas";
   const hasPublishedService = selectedServicios.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
     selectedOrganization?.approvalStatus === "approved" &&
@@ -776,6 +813,90 @@ export function ProvidersWorkspace({
   const showServices = activeSection === "servicios";
   const showAvailability = activeSection === "disponibilidad";
   const showDocuments = activeSection === "estado";
+  const renderSelectedProviderBookingDetail = () => {
+    if (!selectedProviderBookingDetail) {
+      return null;
+    }
+
+    return (
+      <View style={{ borderRadius: 15, backgroundColor: "rgba(247,242,231,0.58)", padding: 12, gap: 12, width: "100%" }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10, width: "100%" }}>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", lineHeight: 16 }}>Detalle abierto</Text>
+            <Text style={{ fontSize: 10, color: colorTokens.muted, lineHeight: 14 }} numberOfLines={2}>
+              {displayBookingValue(selectedProviderBookingDetail.booking.serviceName, "Servicio no disponible")} -{" "}
+              {displayBookingValue(selectedProviderBookingDetail.booking.petName, "Mascota no disponible")}
+            </Text>
+          </View>
+          <StatusChip
+            label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
+            tone={
+              selectedProviderBookingDetail.booking.status === "pending_approval"
+                ? "pending"
+                : selectedProviderBookingDetail.booking.status === "cancelled"
+                  ? "neutral"
+                  : "active"
+            }
+          />
+        </View>
+        <View style={{ gap: 10, width: "100%" }}>
+          <BookingInfoRow label="Hogar" value={displayBookingValue(selectedProviderBookingDetail.booking.householdName, "Hogar no disponible")} />
+          <BookingInfoRow label="Cliente" value={displayBookingValue(selectedProviderBookingDetail.booking.customerDisplayName, "Cliente no disponible")} />
+          <BookingInfoRow
+            label="Mascota y horario"
+            value={`${displayBookingValue(selectedProviderBookingDetail.booking.petName, "Mascota no disponible")} - ${formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}`}
+          />
+          <BookingInfoRow
+            label="Metodo de pago"
+            value={
+              selectedProviderBookingDetail.paymentMethodSummary
+                ? `${selectedProviderBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedProviderBookingDetail.paymentMethodSummary.last4}`
+                : "Sin metodo de pago guardado vinculado"
+            }
+          />
+        </View>
+        {selectedProviderBookingDetail.booking.status === "pending_approval" || selectedProviderBookingDetail.booking.status === "confirmed" ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, width: "100%" }}>
+            {selectedProviderBookingDetail.booking.status === "pending_approval" ? (
+              <>
+                <Button disabled={isSubmitting} label="Aprobar" onPress={() => void approveProviderBooking(selectedProviderBookingDetail.booking.id)} />
+                <Button
+                  disabled={isSubmitting}
+                  label="Rechazar"
+                  onPress={() => void rejectProviderBooking(selectedProviderBookingDetail.booking.id, "Solicitud de reserva rechazada por el proveedor")}
+                  tone="secondary"
+                />
+              </>
+            ) : null}
+            {selectedProviderBookingDetail.booking.status === "confirmed" ? (
+              <Button disabled={isSubmitting} label="Marcar completada" onPress={() => void completeProviderBooking(selectedProviderBookingDetail.booking.id)} />
+            ) : null}
+            <Button disabled={isSubmitting} label="Cerrar" onPress={closeProviderBookingDetail} tone="secondary" />
+          </View>
+        ) : (
+          <View style={{ alignSelf: "flex-start" }}>
+            <Button disabled={isSubmitting} label="Cerrar" onPress={closeProviderBookingDetail} tone="secondary" />
+          </View>
+        )}
+        <View style={{ gap: 8, width: "100%" }}>
+          <Text style={{ color: "#78716c", fontSize: 11, fontWeight: "800", textTransform: "uppercase" }}>Historial</Text>
+          {selectedProviderBookingDetail.statusHistory.map((change) => (
+            <View key={change.id} style={{ borderRadius: 14, backgroundColor: "#fffdf8", borderColor: "rgba(28,25,23,0.1)", borderWidth: 1, padding: 12, gap: 6, width: "100%" }}>
+              <Text style={{ fontWeight: "700", color: "#1c1917", lineHeight: 20 }}>{bookingStatusLabels[change.toStatus]}</Text>
+              <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{formatDateTime(change.createdAt)}</Text>
+              <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
+            </View>
+          ))}
+        </View>
+        <BookingOperationsTimeline
+          bookingId={selectedProviderBookingDetail.booking.id}
+          bookingStatus={selectedProviderBookingDetail.booking.status}
+          context="provider"
+          enabled={selectedProviderBookingDetail.booking.status === "confirmed"}
+        />
+      </View>
+    );
+  };
 
   if (!enabled) {
     return null;
@@ -1240,14 +1361,15 @@ export function ProvidersWorkspace({
                             />
                             <Button
                               disabled={isSubmitting}
-                              label="Usar datos del negocio"
+                              label="Usar ciudad del negocio"
                               onPress={() => {
-                                const approximateCoordinates = getApproximateProviderCityCoordinates(selectedOrganization.city);
+                                const cityForCoordinates = publicLocationForm.city.trim() || selectedOrganization.city;
+                                const approximateCoordinates = getApproximateProviderCityCoordinates(cityForCoordinates);
 
                                 setPublicLocationForm((current) => ({
                                   ...current,
                                   displayLabel: current.displayLabel.trim() || selectedOrganization.name,
-                                  city: selectedOrganization.city,
+                                  city: cityForCoordinates,
                                   stateRegion: current.stateRegion.trim() || approximateCoordinates?.stateRegion || "",
                                   countryCode: selectedOrganization.countryCode,
                                   latitude: approximateCoordinates?.latitude ?? current.latitude,
@@ -1257,6 +1379,9 @@ export function ProvidersWorkspace({
                               }}
                               tone="secondary"
                             />
+                            <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                              Si la ciudad esta soportada, se rellenan latitud y longitud aproximadas sin pedir GPS.
+                            </Text>
                             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
                               <View style={{ flex: 1, minWidth: 150 }}>
                                 <Field label="Ciudad" onChange={(value) => setPublicLocationForm((current) => ({ ...current, city: value }))} value={publicLocationForm.city} />
@@ -1833,40 +1958,51 @@ export function ProvidersWorkspace({
                   </View>
 
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    {[
-                      { label: "Pendientes", value: pendingProviderBookings.length, tone: pendingProviderBookings.length ? "pending" : "neutral" },
-                      { label: "Confirmadas", value: confirmedProviderBookings.length, tone: confirmedProviderBookings.length ? "active" : "neutral" },
-                      { label: "Completadas", value: completedProviderBookings.length, tone: completedProviderBookings.length ? "active" : "neutral" },
-                      { label: "Canceladas", value: cancelledProviderBookings.length, tone: "neutral" }
-                    ].map((metric) => (
-                      <View
-                        key={metric.label}
-                        style={{
-                          width: "48%",
-                          minWidth: 124,
-                          flexGrow: 1,
-                          borderRadius: 14,
-                          borderWidth: 1,
-                          borderColor: "rgba(148,163,184,0.18)",
-                          backgroundColor: "rgba(248,250,252,0.9)",
-                          padding: 10,
-                          gap: 6
-                        }}
-                      >
-                        <Text style={{ fontSize: 18, fontWeight: "900", color: metric.value ? "#007a6b" : "#78716c", lineHeight: 21 }}>
-                          {metric.value}
-                        </Text>
-                        <Text style={{ fontSize: 10, fontWeight: "800", color: "#1c1917", lineHeight: 13 }}>{metric.label}</Text>
-                      </View>
-                    ))}
+                    {providerBookingFilterOptions.map((metric) => {
+                      const isSelected = providerBookingStatusFilter === metric.value;
+
+                      return (
+                        <Pressable
+                          key={metric.value}
+                          accessibilityLabel={`Filtrar reservas por ${metric.label}`}
+                          accessibilityRole="button"
+                          onPress={() => setProviderBookingStatusFilter(metric.value)}
+                          style={({ pressed }) => ({
+                            width: activeSection === "inicio" ? "48%" : "31%",
+                            minWidth: activeSection === "inicio" ? 124 : 96,
+                            flexGrow: 1,
+                            borderRadius: 14,
+                            borderWidth: 1,
+                            borderColor: isSelected ? "rgba(0,122,107,0.44)" : "rgba(148,163,184,0.18)",
+                            backgroundColor: isSelected ? "rgba(0,122,107,0.1)" : "rgba(248,250,252,0.9)",
+                            padding: 10,
+                            gap: 5,
+                            opacity: pressed ? 0.82 : 1
+                          })}
+                        >
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+                            <Text style={{ fontSize: 17, fontWeight: "900", color: metric.count ? "#007a6b" : "#78716c", lineHeight: 20 }}>
+                              {metric.count}
+                            </Text>
+                            <Text style={{ fontSize: 11, fontWeight: "900", color: isSelected ? "#007a6b" : colorTokens.muted }}>
+                              {isSelected ? "Sel" : "Ver"}
+                            </Text>
+                          </View>
+                          <Text style={{ fontSize: 9, fontWeight: "800", color: "#1c1917", lineHeight: 12 }}>{metric.label}</Text>
+                        </Pressable>
+                      );
+                    })}
+                    <Text style={{ width: "100%", fontSize: 10, color: colorTokens.muted, lineHeight: 14 }}>
+                      Filtro activo: {activeProviderBookingFilterLabel}
+                    </Text>
                   </View>
 
-                  {dashboardProviderBookings.length ? (
+                  {displayedProviderBookings.length ? (
                     <View style={{ gap: 8 }}>
                       <Text style={{ fontSize: 11, fontWeight: "800", color: colorTokens.muted, textTransform: "uppercase" }}>
-                        Proximas reservas
+                        {providerBookingStatusFilter === "all" ? "Proximas reservas" : `Reservas ${activeProviderBookingFilterLabel.toLowerCase()}`}
                       </Text>
-                      {dashboardProviderBookings.map((booking) => (
+                      {displayedProviderBookings.map((booking) => (
                         <View
                           key={booking.id}
                           style={{
@@ -1900,85 +2036,53 @@ export function ProvidersWorkspace({
                                 {formatMoney(booking.totalPriceCents, booking.currencyCode)}
                               </Text>
                             </View>
-                            <Button disabled={isSubmitting} label="Detalle" onPress={() => void openProviderBookingDetail(booking.id)} tone="secondary" />
+                            <Pressable
+                              accessibilityLabel={selectedProviderBookingDetail?.booking.id === booking.id ? "Ocultar detalle de reserva" : "Ver detalle de reserva"}
+                              accessibilityRole="button"
+                              disabled={isSubmitting}
+                              onPress={() => {
+                                if (selectedProviderBookingDetail?.booking.id === booking.id) {
+                                  closeProviderBookingDetail();
+                                  return;
+                                }
+
+                                void openProviderBookingDetail(booking.id);
+                              }}
+                              style={({ pressed }) => ({
+                                width: 34,
+                                height: 34,
+                                borderRadius: 17,
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderWidth: 1,
+                                borderColor: selectedProviderBookingDetail?.booking.id === booking.id ? "rgba(0,122,107,0.36)" : "rgba(148,163,184,0.28)",
+                                backgroundColor: selectedProviderBookingDetail?.booking.id === booking.id ? "rgba(0,122,107,0.12)" : "rgba(255,255,255,0.92)",
+                                opacity: isSubmitting ? 0.56 : pressed ? 0.78 : 1
+                              })}
+                            >
+                              <Text
+                                style={{
+                                  color: selectedProviderBookingDetail?.booking.id === booking.id ? "#007a6b" : "#57534e",
+                                  fontSize: 15,
+                                  fontWeight: "900",
+                                  lineHeight: 18
+                                }}
+                              >
+                                {selectedProviderBookingDetail?.booking.id === booking.id ? "x" : "i"}
+                              </Text>
+                            </Pressable>
                           </View>
+                          {selectedProviderBookingDetail?.booking.id === booking.id ? renderSelectedProviderBookingDetail() : null}
                         </View>
                       ))}
                     </View>
                   ) : (
                     <Text style={{ fontSize: 11, color: colorTokens.muted, lineHeight: 16 }}>
-                      Todavia no existen reservas para esta organizacion. Cuando se reserve un servicio publico aprobado, aqui apareceran solicitudes y reservas confirmadas.
+                      {providerBookingStatusFilter === "all"
+                        ? "Todavia no existen reservas para esta organizacion. Cuando se reserve un servicio publico aprobado, aqui apareceran solicitudes y reservas confirmadas."
+                        : `No hay reservas ${activeProviderBookingFilterLabel.toLowerCase()} para esta organizacion por ahora.`}
                     </Text>
                   )}
-
-                  {selectedProviderBookingDetail ? (
-                    <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.82)", padding: 14, gap: 12, width: "100%" }}>
-                      <View style={{ gap: 8, width: "100%" }}>
-                        <Text style={{ fontSize: 17, fontWeight: "700", color: "#1c1917", lineHeight: 22 }}>Detalle de la reserva</Text>
-                        <StatusChip
-                          label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
-                          tone={
-                            selectedProviderBookingDetail.booking.status === "pending_approval"
-                              ? "pending"
-                              : selectedProviderBookingDetail.booking.status === "cancelled"
-                                ? "neutral"
-                                : "active"
-                          }
-                        />
-                      </View>
-                      <View style={{ gap: 10, width: "100%" }}>
-                        <BookingInfoRow label="Hogar" value={displayBookingValue(selectedProviderBookingDetail.booking.householdName, "Hogar no disponible")} />
-                        <BookingInfoRow label="Cliente" value={displayBookingValue(selectedProviderBookingDetail.booking.customerDisplayName, "Cliente no disponible")} />
-                        <BookingInfoRow
-                          label="Mascota y horario"
-                          value={`${displayBookingValue(selectedProviderBookingDetail.booking.petName, "Mascota no disponible")} - ${formatDateTime(selectedProviderBookingDetail.booking.scheduledStartAt)}`}
-                        />
-                        <BookingInfoRow
-                          label="Metodo de pago"
-                          value={
-                            selectedProviderBookingDetail.paymentMethodSummary
-                              ? `${selectedProviderBookingDetail.paymentMethodSummary.brand.toUpperCase()} ${selectedProviderBookingDetail.paymentMethodSummary.last4}`
-                              : "Sin metodo de pago guardado vinculado"
-                          }
-                        />
-                      </View>
-                      {selectedProviderBookingDetail.booking.status === "pending_approval" ||
-                      selectedProviderBookingDetail.booking.status === "confirmed" ? (
-                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, width: "100%" }}>
-                          {selectedProviderBookingDetail.booking.status === "pending_approval" ? (
-                            <>
-                              <Button disabled={isSubmitting} label="Aprobar" onPress={() => void approveProviderBooking(selectedProviderBookingDetail.booking.id)} />
-                              <Button
-                                disabled={isSubmitting}
-                                label="Rechazar"
-                                onPress={() => void rejectProviderBooking(selectedProviderBookingDetail.booking.id, "Solicitud de reserva rechazada por el proveedor")}
-                                tone="secondary"
-                              />
-                            </>
-                          ) : null}
-                          {selectedProviderBookingDetail.booking.status === "confirmed" ? (
-                            <Button disabled={isSubmitting} label="Marcar completada" onPress={() => void completeProviderBooking(selectedProviderBookingDetail.booking.id)} />
-                          ) : null}
-                        </View>
-                      ) : null}
-                      <View style={{ gap: 8, width: "100%" }}>
-                        <Text style={{ color: "#78716c", fontSize: 12, fontWeight: "700", textTransform: "uppercase" }}>Historial</Text>
-                        {selectedProviderBookingDetail.statusHistory.map((change) => (
-                          <View key={change.id} style={{ borderRadius: 14, backgroundColor: "#fffdf8", borderColor: "rgba(28,25,23,0.1)", borderWidth: 1, padding: 12, gap: 6, width: "100%" }}>
-                            <Text style={{ fontWeight: "700", color: "#1c1917", lineHeight: 20 }}>{bookingStatusLabels[change.toStatus]}</Text>
-                            <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{formatDateTime(change.createdAt)}</Text>
-                            <Text style={{ color: colorTokens.muted, lineHeight: 20 }}>{change.changeReason ?? "Sin razon adicional registrada."}</Text>
-                          </View>
-                        ))}
-                      </View>
-                      <BookingOperationsTimeline
-                        bookingId={selectedProviderBookingDetail.booking.id}
-                        bookingStatus={selectedProviderBookingDetail.booking.status}
-                        context="provider"
-                        enabled={selectedProviderBookingDetail.booking.status === "confirmed"}
-                      />
-                    </View>
-                  ) : null}
                 </>
               ) : (
                 <Text style={{ color: colorTokens.muted }}>Selecciona primero una organizacion.</Text>

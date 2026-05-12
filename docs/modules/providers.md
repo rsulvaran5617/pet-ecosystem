@@ -104,11 +104,13 @@ Modelo recomendado CAP-0:
 - el avatar de proveedor se entrega mediante URL firmada temporal y puede mostrarse en provider mobile, marketplace y admin cuando la organizacion/perfil cumplen visibilidad publica o ownership
 - la ubicacion publica del proveedor vive en `provider_public_locations`; el provider owner decide si es publica y con precision `exact`, `approximate` o `city`
 - Geo-1 agrega UI minima en `Negocio` para capturar/editar nombre visible, direccion publica opcional, ciudad, region, pais, precision y publicacion. Las coordenadas quedan como ajuste avanzado; `Usar datos del negocio` puede precargar ciudad/pais y coordenadas aproximadas para ciudades soportadas sin pedir permisos de ubicacion.
+- al editar ubicacion publica, si existen coordenadas legacy `0,0`, la UI intenta heredar coordenadas aproximadas desde la ciudad publica o la ciudad del negocio cuando esta dentro del catalogo controlado.
 - no se debe usar la direccion privada del owner ni tracking de ubicacion para publicar un proveedor
 - en V2 capacity, marketplace/booking expone slots calculados desde reglas activas con cupos disponibles
 - el owner proveedor ve y gestiona solo su propia organizacion
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
+- la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

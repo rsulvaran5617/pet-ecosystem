@@ -92,6 +92,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - incoming bookings
 - detalle operativo del booking con acciones `approve`, `reject` y `complete`
 - V2 provider booking operations: scanner QR en detalle de reserva confirmada para check-in/check-out; botones manuales quedan fallback piloto
+- provider reservas: los contadores Pendientes, Confirmadas, Completadas y Canceladas actuan como filtros tactiles; el detalle de una reserva se muestra como acordeon debajo de la card seleccionada
+- provider negocio: la ubicacion publica puede heredar coordenadas aproximadas desde ciudad/zona soportada sin solicitar GPS ni publicar direccion privada.
 - V2 booking capacity: provider configura capacidad por franja asociada a servicio
 
 ### Booking operations QR V2
