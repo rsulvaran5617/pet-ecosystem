@@ -10,7 +10,7 @@ import type {
   ProviderLocationPrecision,
   ProviderServiceCategory
 } from "@pet/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
@@ -71,6 +71,16 @@ const controlledDistanceZones: DistanceOrigin[] = [
   { type: "zone", id: "colon", label: "Colon", detail: "Zona aproximada", latitude: 9.3592, longitude: -79.9014 },
   { type: "zone", id: "david", label: "David", detail: "Zona aproximada", latitude: 8.4273, longitude: -82.4308 }
 ];
+
+const marketplaceMapStyleUrl = "https://demotiles.maplibre.org/style.json";
+const defaultMarketplaceMapCenter: [number, number] = [-79.5199, 8.9824];
+
+type MapLibreComponentProps = Record<string, unknown> & { children?: ReactNode };
+type MapLibreComponents = {
+  Camera: ComponentType<MapLibreComponentProps>;
+  MapView: ComponentType<MapLibreComponentProps>;
+  PointAnnotation: ComponentType<MapLibreComponentProps>;
+};
 
 function formatSpeciesLabel(value: string) {
   return value
@@ -182,6 +192,41 @@ function formatProviderDistance(distanceKm: number | null | undefined) {
   return `Aprox. ${distanceKm < 10 ? distanceKm.toFixed(1) : Math.round(distanceKm)} km`;
 }
 
+function hasProviderMapLocation(provider: MarketplaceProviderSummary) {
+  return (
+    Boolean(provider.publicLocation) &&
+    Number.isFinite(provider.publicLocation?.latitude) &&
+    Number.isFinite(provider.publicLocation?.longitude) &&
+    !(provider.publicLocation?.latitude === 0 && provider.publicLocation?.longitude === 0)
+  );
+}
+
+function getProviderMapCoordinate(provider: MarketplaceProviderSummary): [number, number] {
+  return [provider.publicLocation?.longitude ?? defaultMarketplaceMapCenter[0], provider.publicLocation?.latitude ?? defaultMarketplaceMapCenter[1]];
+}
+
+function getMarketplaceMapCenter(providers: MarketplaceProviderSummary[], origin: DistanceOrigin): [number, number] {
+  if (origin.type !== "none") {
+    return [origin.longitude, origin.latitude];
+  }
+
+  const providersWithLocation = providers.filter(hasProviderMapLocation);
+
+  if (!providersWithLocation.length) {
+    return defaultMarketplaceMapCenter;
+  }
+
+  const totals = providersWithLocation.reduce(
+    (accumulator, provider) => ({
+      latitude: accumulator.latitude + (provider.publicLocation?.latitude ?? 0),
+      longitude: accumulator.longitude + (provider.publicLocation?.longitude ?? 0)
+    }),
+    { latitude: 0, longitude: 0 }
+  );
+
+  return [totals.longitude / providersWithLocation.length, totals.latitude / providersWithLocation.length];
+}
+
 function ProviderLocationSummary({ provider }: { provider: MarketplaceProviderSummary }) {
   const publicLocation = provider.publicLocation;
 
@@ -208,6 +253,58 @@ function ProviderLocationSummary({ provider }: { provider: MarketplaceProviderSu
       <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 13 }}>
         {providerLocationPrecisionLabels[publicLocation.locationPrecision]}
       </Text>
+    </View>
+  );
+}
+
+function MarketplaceProviderMiniCard({
+  onOpenProvider,
+  provider
+}: {
+  onOpenProvider: (providerId: string) => void;
+  provider: MarketplaceProviderSummary;
+}) {
+  const distanceLabel = formatProviderDistance(provider.distanceKm);
+  const publicLocation = provider.publicLocation;
+
+  return (
+    <View
+      style={{
+        borderRadius: 18,
+        backgroundColor: "rgba(255,255,255,0.96)",
+        borderColor: "rgba(15,23,42,0.08)",
+        borderWidth: 1,
+        padding: 12,
+        gap: 8
+      }}
+    >
+      <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+        <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 20, height: 40, justifyContent: "center", width: 40 }}>
+          {provider.avatarUrl ? (
+            <Image source={{ uri: provider.avatarUrl }} style={{ borderRadius: 20, height: 40, width: 40 }} />
+          ) : (
+            <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>{getProviderInitials(provider.name)}</Text>
+          )}
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }} numberOfLines={1}>
+            {provider.name}
+          </Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 10, marginTop: 3 }} numberOfLines={1}>
+            {publicLocation ? `${publicLocation.city}, ${publicLocation.countryCode}` : provider.city}
+          </Text>
+        </View>
+        <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
+      </View>
+      <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 14 }}>
+        {publicLocation ? providerLocationPrecisionLabels[publicLocation.locationPrecision] : "Ubicacion publica no configurada"}
+      </Text>
+      {distanceLabel ? (
+        <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>{distanceLabel}</Text>
+      ) : null}
+      <View style={{ alignSelf: "flex-start" }}>
+        <Button label="Ver proveedor" onPress={() => onOpenProvider(provider.organizationId)} />
+      </View>
     </View>
   );
 }
@@ -245,11 +342,40 @@ export function MarketplaceWorkspace({
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<ProviderDayOfWeek>(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedDistanceOrigin, setSelectedDistanceOrigin] = useState<DistanceOrigin>(noDistanceOrigin);
+  const [marketplaceResultsMode, setMarketplaceResultsMode] = useState<"list" | "map">("list");
+  const [selectedMapProviderId, setSelectedMapProviderId] = useState<string | null>(null);
   const [bookingSlots, setBookingSlots] = useState<BookingSlot[]>([]);
   const [selectedBookingSlot, setSelectedBookingSlot] = useState<BookingSlot | null>(null);
   const [selectedSlotDate, setSelectedSlotDate] = useState<string | null>(null);
   const [isLoadingBookingSlots, setIsLoadingBookingSlots] = useState(false);
   const [slotErrorMessage, setSlotErrorMessage] = useState<string | null>(null);
+  const [mapLibreComponents, setMapLibreComponents] = useState<MapLibreComponents | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void import("@maplibre/maplibre-react-native")
+      .then((moduleExports) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setMapLibreComponents({
+          Camera: moduleExports.Camera as unknown as ComponentType<MapLibreComponentProps>,
+          MapView: moduleExports.MapView as unknown as ComponentType<MapLibreComponentProps>,
+          PointAnnotation: moduleExports.PointAnnotation as unknown as ComponentType<MapLibreComponentProps>
+        });
+      })
+      .catch(() => {
+        if (isMounted) {
+          setMapLibreComponents(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -265,6 +391,18 @@ export function MarketplaceWorkspace({
     ],
     []
   );
+  const mapProviders = useMemo(() => providers.filter(hasProviderMapLocation), [providers]);
+  const mapCenterCoordinate = useMemo(
+    () => getMarketplaceMapCenter(mapProviders, selectedDistanceOrigin),
+    [mapProviders, selectedDistanceOrigin]
+  );
+  const selectedMapProvider = useMemo(
+    () => mapProviders.find((provider) => provider.organizationId === selectedMapProviderId) ?? mapProviders[0] ?? null,
+    [mapProviders, selectedMapProviderId]
+  );
+  const MapViewComponent = mapLibreComponents?.MapView;
+  const MapCamera = mapLibreComponents?.Camera;
+  const MapPointAnnotation = mapLibreComponents?.PointAnnotation;
   const activeFilterLabels = [
     selectedCategory ? providerServiceCategoryLabels[selectedCategory] : null,
     selectedCity || null,
@@ -335,6 +473,7 @@ export function MarketplaceWorkspace({
 
     clearMessages();
     setSelectedServiceId(null);
+    setSelectedMapProviderId(null);
     await search(nextFilters);
     setCurrentView("results");
   }
@@ -675,8 +814,82 @@ export function MarketplaceWorkspace({
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917", flex: 1 }}>Resultados</Text>
                 <StatusChip label={`${providers.length} resultado(s)`} tone="neutral" />
               </View>
-              <Button label="Modificar busqueda" onPress={() => setCurrentView("home")} tone="secondary" />
-              {providers.length ? providers.map((provider) => (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <Button label="Modificar busqueda" onPress={() => setCurrentView("home")} tone="secondary" />
+                <Button label="Lista" onPress={() => setMarketplaceResultsMode("list")} tone={marketplaceResultsMode === "list" ? "primary" : "secondary"} />
+                <Button label="Mapa" onPress={() => setMarketplaceResultsMode("map")} tone={marketplaceResultsMode === "map" ? "primary" : "secondary"} />
+              </View>
+              {marketplaceResultsMode === "map" ? (
+                <View style={{ borderRadius: 18, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 10, overflow: "hidden" }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900" }}>Mapa de proveedores</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                        Solo ubicaciones publicas declaradas por proveedores. No usamos GPS ni direcciones privadas.
+                      </Text>
+                    </View>
+                    <StatusChip label={`${mapProviders.length} con ubicacion`} tone={mapProviders.length ? "active" : "neutral"} />
+                  </View>
+                  {mapProviders.length && MapViewComponent && MapCamera && MapPointAnnotation ? (
+                    <>
+                      <View style={{ borderRadius: 18, borderColor: "rgba(15,23,42,0.08)", borderWidth: 1, height: 280, overflow: "hidden" }}>
+                        <MapViewComponent
+                          attributionEnabled
+                          logoEnabled={false}
+                          mapStyle={marketplaceMapStyleUrl}
+                          rotateEnabled={false}
+                          style={{ flex: 1 }}
+                        >
+                          <MapCamera centerCoordinate={mapCenterCoordinate} zoomLevel={selectedDistanceOrigin.type === "none" ? 9 : 11} />
+                          {mapProviders.map((provider) => {
+                            const isSelected = selectedMapProvider?.organizationId === provider.organizationId;
+
+                            return (
+                              <MapPointAnnotation
+                                key={provider.organizationId}
+                                coordinate={getProviderMapCoordinate(provider)}
+                                id={`provider-${provider.organizationId}`}
+                                onSelected={() => setSelectedMapProviderId(provider.organizationId)}
+                              >
+                                <View
+                                  style={{
+                                    alignItems: "center",
+                                    backgroundColor: isSelected ? colorTokens.accentDark : "#ffffff",
+                                    borderColor: isSelected ? "#ffffff" : "rgba(0,122,107,0.28)",
+                                    borderRadius: 18,
+                                    borderWidth: 2,
+                                    height: 36,
+                                    justifyContent: "center",
+                                    width: 36,
+                                    ...visualTokens.mobile.softShadow
+                                  }}
+                                >
+                                  <Text style={{ color: isSelected ? "#ffffff" : colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                                    {getProviderInitials(provider.name)}
+                                  </Text>
+                                </View>
+                              </MapPointAnnotation>
+                            );
+                          })}
+                        </MapViewComponent>
+                      </View>
+                      {selectedMapProvider ? (
+                        <MarketplaceProviderMiniCard provider={selectedMapProvider} onOpenProvider={(providerId) => void handleOpenProvider(providerId)} />
+                      ) : null}
+                    </>
+                  ) : (
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                      {mapProviders.length
+                        ? "El mapa requiere reconstruir la app mobile para registrar el modulo nativo de MapLibre. Puedes seguir usando la lista."
+                        : "No hay proveedores con ubicacion publica en estos resultados. Puedes seguir usando la lista."}
+                    </Text>
+                  )}
+                  <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 13 }}>
+                    Vista piloto con MapLibre y estilo demo. Para piloto ampliado conviene configurar proveedor de tiles propio/controlado.
+                  </Text>
+                </View>
+              ) : null}
+              {providers.length && marketplaceResultsMode === "list" ? providers.map((provider) => (
                 <View key={provider.organizationId} style={inputStyle}>
                   <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
                     <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 22, height: 44, justifyContent: "center", width: 44 }}>
@@ -703,7 +916,8 @@ export function MarketplaceWorkspace({
                     <Button label="Ver proveedor" onPress={() => void handleOpenProvider(provider.organizationId)} />
                   </View>
                 </View>
-              )) : <Text style={{ color: colorTokens.muted }}>Ningun proveedor publico coincide con la busqueda y los filtros actuales.</Text>}
+              )) : null}
+              {!providers.length ? <Text style={{ color: colorTokens.muted }}>Ningun proveedor publico coincide con la busqueda y los filtros actuales.</Text> : null}
             </View>
           ) : null}
 

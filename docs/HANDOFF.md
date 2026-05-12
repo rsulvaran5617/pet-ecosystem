@@ -82,6 +82,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Geo-1 no habilita mapa, permisos mobile, ubicacion actual del usuario ni tracking; queda como preparacion controlada antes de abrir marketplace geolocalizado visual.
 - Geo-2 muestra en mobile owner > `Buscar` la ubicacion publica declarada por proveedores visibles: nombre visible, ciudad/pais, precision publica y distancia aproximada solo si el API recibe coordenadas de origen opcionales. No pide permisos, no guarda ubicacion actual y no expone direcciones privadas de owners.
 - Geo-3 agrega selector `Origen para distancia` en mobile owner > `Buscar`: permite `Sin distancia` o zonas aproximadas controladas. Se reviso `user_addresses` y el contrato actual no expone coordenadas, por lo que direcciones guardadas quedan diferidas. No usa GPS, no geocodifica direcciones reales y no publica `user_addresses`.
+- Geo-4 agrega preview de mapa en mobile owner > `Buscar` con MapLibre React Native. El modo `Mapa` dibuja pins solo para proveedores ya visibles con ubicacion publica; al tocar un pin muestra card inferior con ciudad, precision, distancia aproximada si aplica y accion `Ver proveedor`. Usa estilo demo de MapLibre para piloto inicial y conserva fallback de lista. No pide permisos GPS, no guarda ubicacion actual y no expone direcciones privadas.
 
 ## Ajustes QA visual de Cuenta provider
 

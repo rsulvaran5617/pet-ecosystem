@@ -16,6 +16,16 @@
     "android": {
       "package": "com.petecosystem.mobile"
     },
+    "plugins": [
+      [
+        "@maplibre/maplibre-react-native",
+        {
+          "android": {
+            "locationEngine": "default"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "e5396697-a4cc-4fd4-b827-4329585b8166"

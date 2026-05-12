@@ -57,6 +57,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil proveedor
 - ubicacion publica en cards/lista con ciudad, pais, precision y distancia aproximada solo si hay origen opcional
 - selector compacto de origen para distancia: sin distancia o zona aproximada controlada; direccion guardada queda diferida hasta que exponga coordenadas
+- modo Lista/Mapa en resultados; el mapa usa pins de proveedores con ubicacion publica y card inferior para abrir proveedor, sin GPS ni tracking
 - seleccion de servicio
 
 ### Bookings
