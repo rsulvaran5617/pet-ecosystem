@@ -92,6 +92,13 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Provider > `Inicio` deja solo resumen operativo y un acceso compacto a `Estado de publicacion`; la vista `Estado` conserva el diagnostico completo de aprobacion/publicacion.
 - No se tocaron backend, Supabase, migraciones, RLS, Payments, QR, booking capacity, evidencia operacional, pet memory ni avatares.
 
+## Preparacion piloto controlado real 2026-05-14
+
+- Se crea `docs/delivery/PILOT_CONTROLLED_RUNBOOK.md` como guia operativa para piloto con 3 proveedores, 3 propietarios y 1 admin interno.
+- Se crea `docs/delivery/PILOT_DATA_PREPARATION.sql` como archivo reviewable de diagnostico y preparacion no destructiva de datos; los `UPDATE` quedan comentados y no deben ejecutarse sin aprobacion explicita.
+- Estrategia recomendada para primera distribucion Android: APK manual por enlace privado para prueba seca inicial; mover a Firebase App Distribution si se agregan rondas o testers.
+- El piloto mantiene `payment-ready`, sin cobro real, sin migraciones, sin Supabase push, sin borrado de datos historicos y sin apertura de V2/V3 nuevas.
+
 ## Ajustes QA visual de Cuenta provider
 
 ## Actualizacion visual alignment reference canon
