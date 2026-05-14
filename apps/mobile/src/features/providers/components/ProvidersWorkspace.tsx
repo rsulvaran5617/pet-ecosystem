@@ -553,6 +553,8 @@ export function ProvidersWorkspace({
   } = useProvidersWorkspace(enabled && hasProviderRole);
   const [organizationView, setOrganizationView] = useState<OrganizationView>("lista");
   const [organizationListFilter, setOrganizationListFilter] = useState<OrganizationListFilter>("all");
+  const [isBusinessAccordionExpanded, setIsBusinessAccordionExpanded] = useState(true);
+  const [activeBusinessPanel, setActiveBusinessPanel] = useState<"identity" | "profile" | "location" | "publication">("identity");
   const [organizationForm, setOrganizationForm] = useState(emptyOrganizationForm);
   const [publicProfileForm, setPublicProfileForm] = useState(emptyPublicProfileForm);
   const [isPublicProfileFormVisible, setIsPublicProfileFormVisible] = useState(false);
@@ -592,6 +594,8 @@ export function ProvidersWorkspace({
     setPublicLocationForm(buildPublicLocationFormState(selectedOrganizationDetail));
     setIsPublicLocationFormVisible(false);
     setIsPublicLocationAdvancedVisible(false);
+    setIsBusinessAccordionExpanded(true);
+    setActiveBusinessPanel("identity");
     setServiceForm(emptyServiceForm);
     setIsServiceFormVisible(false);
     setDisponibilidadForm({
@@ -773,6 +777,7 @@ export function ProvidersWorkspace({
     [selectedAvailabilityRules.length, selectedDocuments.length, selectedPublicProfile, selectedServicios.length]
   );
   const missingPublicationSteps = publicationSteps.filter((step) => !step.done).length;
+  const completedPublicationSteps = publicationSteps.length - missingPublicationSteps;
   const recommendedProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? dashboardProviderBookings[0] ?? null;
   const navigateProviderSection = (section: ProviderWorkspaceSection) => {
     onNavigateSection?.(section);
@@ -783,6 +788,18 @@ export function ProvidersWorkspace({
     if (bookingId) {
       void openProviderBookingDetail(bookingId);
     }
+  };
+  const openOperationalAttention = () => {
+    const pendingBooking = pendingProviderBookings[0];
+    const confirmedBooking = confirmedProviderBookings[0];
+    const targetBooking = pendingBooking ?? confirmedBooking;
+
+    if (!targetBooking) {
+      return;
+    }
+
+    setProviderBookingStatusFilter(pendingBooking ? "pending_approval" : "confirmed");
+    void openProviderBookingDetail(targetBooking.id);
   };
   const openPublicationNextStep = () => {
     if (!selectedOrganization || !selectedPublicProfile) {
@@ -807,7 +824,7 @@ export function ProvidersWorkspace({
   };
   const showHome = activeSection === "inicio";
   const showOrganization = activeSection === "negocio";
-  const showApproval = activeSection === "inicio" || activeSection === "estado";
+  const showApproval = activeSection === "estado";
   const showBookings = activeSection === "inicio" || activeSection === "reservas";
   const showProfile = false;
   const showServices = activeSection === "servicios";
@@ -1037,6 +1054,59 @@ export function ProvidersWorkspace({
                     </View>
                   ) : null}
                 </View>
+
+                <Pressable
+                  accessibilityLabel="Ver estado de publicacion del negocio"
+                  accessibilityRole="button"
+                  disabled={!selectedOrganization}
+                  onPress={() => navigateProviderSection("estado")}
+                  style={({ pressed }) => ({
+                    borderRadius: 16,
+                    backgroundColor: "rgba(247,242,231,0.74)",
+                    borderColor: "rgba(28,25,23,0.08)",
+                    borderWidth: 1,
+                    padding: 12,
+                    gap: 8,
+                    opacity: pressed ? 0.82 : selectedOrganization ? 1 : 0.7
+                  })}
+                >
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "900", textTransform: "uppercase" }}>
+                        Estado de publicacion
+                      </Text>
+                      <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }} numberOfLines={2}>
+                        {selectedOrganization?.name ?? "Selecciona un negocio"}
+                      </Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                        {selectedOrganization
+                          ? selectedOrganization.approvalStatus !== "approved"
+                            ? "Pendiente de aprobacion administrativa."
+                            : isMarketplaceVisible
+                              ? "Visible en marketplace."
+                              : "Requiere completar publicacion."
+                          : "Crea o selecciona un negocio para ver su estado."}
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end", gap: 6 }}>
+                      <StatusChip
+                        label={
+                          selectedOrganization
+                            ? selectedOrganization.approvalStatus !== "approved"
+                              ? "Pendiente"
+                              : isMarketplaceVisible
+                                ? "Visible"
+                                : "No visible"
+                            : "Sin negocio"
+                        }
+                        tone={selectedOrganization && isMarketplaceVisible ? "active" : selectedOrganization ? "pending" : "neutral"}
+                      />
+                      {selectedOrganization ? (
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Ver estado</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                </Pressable>
               </View>
             ) : null}
 
@@ -1137,6 +1207,100 @@ export function ProvidersWorkspace({
                           <Text style={{ color: "#ffffff", fontSize: 14, fontWeight: "900" }}>✎</Text>
                         </Pressable>
                       </View>
+                      <Pressable
+                        accessibilityLabel={isBusinessAccordionExpanded ? "Colapsar detalles del negocio" : "Expandir detalles del negocio"}
+                        accessibilityRole="button"
+                        onPress={() => setIsBusinessAccordionExpanded((current) => !current)}
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: "rgba(255,255,255,0.78)",
+                          borderColor: "rgba(0,122,107,0.14)",
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          paddingHorizontal: 10,
+                          paddingVertical: 8
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                            Expediente publico del negocio
+                          </Text>
+                          <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 13 }}>
+                            {completedPublicationSteps}/{publicationSteps.length} pasos listos
+                          </Text>
+                        </View>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 14, fontWeight: "900" }}>
+                          {isBusinessAccordionExpanded ? "Ocultar" : "Abrir"}
+                        </Text>
+                      </Pressable>
+                      {isBusinessAccordionExpanded ? (
+                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                          {[
+                            { label: "Identidad", value: "identity" as const },
+                            { label: "Perfil", value: "profile" as const },
+                            { label: "Ubicacion", value: "location" as const },
+                            { label: "Checklist", value: "publication" as const }
+                          ].map((panel) => {
+                            const isSelected = activeBusinessPanel === panel.value;
+
+                            return (
+                              <Pressable
+                                accessibilityLabel={`Abrir ${panel.label}`}
+                                accessibilityRole="button"
+                                key={panel.value}
+                                onPress={() => setActiveBusinessPanel(panel.value)}
+                                style={{
+                                  backgroundColor: isSelected ? colorTokens.accentDark : "rgba(255,255,255,0.86)",
+                                  borderColor: isSelected ? colorTokens.accentDark : "rgba(0,122,107,0.16)",
+                                  borderRadius: 999,
+                                  borderWidth: 1,
+                                  paddingHorizontal: 10,
+                                  paddingVertical: 7
+                                }}
+                              >
+                                <Text style={{ color: isSelected ? "#ffffff" : colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                                  {panel.label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      ) : null}
+                      {isBusinessAccordionExpanded && activeBusinessPanel === "identity" ? (
+                        <View style={{ borderRadius: 14, backgroundColor: "rgba(255,255,255,0.78)", padding: 10, gap: 8 }}>
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                            <View style={{ flex: 1, gap: 2 }}>
+                              <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }}>Identidad del negocio</Text>
+                              <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 13 }} numberOfLines={2}>
+                                Nombre, ciudad, identificador y visibilidad base.
+                              </Text>
+                            </View>
+                            <Pressable
+                              accessibilityLabel="Editar negocio"
+                              disabled={isSubmitting}
+                              onPress={() => {
+                                setOrganizationView("editar");
+                              }}
+                              style={{
+                                alignItems: "center",
+                                backgroundColor: colorTokens.accentDark,
+                                borderRadius: 999,
+                                height: 32,
+                                justifyContent: "center",
+                                opacity: isSubmitting ? 0.65 : 1,
+                                width: 32
+                              }}
+                            >
+                              <Text style={{ color: "#ffffff", fontSize: 14, fontWeight: "900" }}>✎</Text>
+                            </Pressable>
+                          </View>
+                          <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 13 }}>
+                            {selectedOrganization.city} · {selectedOrganization.countryCode} · {selectedOrganization.slug}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
                   ) : (
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.84)", padding: 12, gap: 10 }}>
@@ -1156,7 +1320,7 @@ export function ProvidersWorkspace({
                     </View>
                   )}
 
-                  {selectedOrganization ? (
+                  {selectedOrganization && isBusinessAccordionExpanded && activeBusinessPanel === "profile" ? (
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.74)", padding: 12, gap: 10 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                         <View style={{ flex: 1, gap: 2 }}>
@@ -1286,7 +1450,7 @@ export function ProvidersWorkspace({
                     </View>
                   ) : null}
 
-                  {selectedOrganization ? (
+                  {selectedOrganization && isBusinessAccordionExpanded && activeBusinessPanel === "location" ? (
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,242,231,0.74)", padding: 12, gap: 10 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                         <View style={{ flex: 1, gap: 2 }}>
@@ -1821,10 +1985,19 @@ export function ProvidersWorkspace({
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                       <View style={{ flex: 1, gap: 2 }}>
                         <Text style={{ fontSize: 14, fontWeight: "800", color: "#1c1917", lineHeight: 18 }}>
-                          {isMarketplaceVisible ? "Visible en marketplace" : "No visible en marketplace"}
+                          {selectedOrganization.approvalStatus !== "approved"
+                            ? "Pendiente de aprobacion"
+                            : isMarketplaceVisible
+                              ? "Visible en marketplace"
+                              : "No visible en marketplace"}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: "#1c1917", fontWeight: "900", lineHeight: 15 }} numberOfLines={2}>
+                          {selectedOrganization.name}
                         </Text>
                         <Text style={{ fontSize: 10, color: colorTokens.muted, lineHeight: 14 }}>
-                          {isMarketplaceVisible
+                          {selectedOrganization.approvalStatus !== "approved"
+                            ? "Este negocio ya esta seleccionado, pero aun espera revision administrativa antes de aparecer en marketplace."
+                            : isMarketplaceVisible
                             ? "Tu negocio cumple los pasos principales para recibir reservas."
                             : missingPublicationSteps
                               ? `Faltan ${missingPublicationSteps} paso(s) para publicar tu negocio.`
@@ -1921,15 +2094,22 @@ export function ProvidersWorkspace({
               </View>
               {selectedOrganization ? (
                 <>
-                  <View
-                    style={{
+                  <Pressable
+                    accessibilityLabel={
+                      recommendedProviderBooking ? "Abrir primera reserva que requiere atencion" : "No hay reservas que requieren atencion"
+                    }
+                    accessibilityRole="button"
+                    disabled={!actionableProviderBookings.length}
+                    onPress={openOperationalAttention}
+                    style={({ pressed }) => ({
                       borderRadius: 16,
                       backgroundColor: actionableProviderBookings.length ? "rgba(0,122,107,0.1)" : "rgba(247,242,231,0.74)",
                       borderWidth: 1,
                       borderColor: actionableProviderBookings.length ? "rgba(0,122,107,0.18)" : "rgba(28,25,23,0.08)",
                       padding: 12,
-                      gap: 8
-                    }}
+                      gap: 8,
+                      opacity: pressed ? 0.82 : 1
+                    })}
                   >
                     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                       <View style={{ flex: 1, gap: 2 }}>
@@ -1941,6 +2121,11 @@ export function ProvidersWorkspace({
                             ? `${actionableProviderBookings.length} reserva(s) requieren seguimiento.`
                             : "Las reservas pendientes y confirmadas apareceran aqui."}
                         </Text>
+                        {recommendedProviderBooking ? (
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", lineHeight: 14 }}>
+                            Toca para abrir y filtrar las reservas que requieren accion.
+                          </Text>
+                        ) : null}
                       </View>
                       <View
                         style={{
@@ -1955,7 +2140,7 @@ export function ProvidersWorkspace({
                         <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "900" }}>{actionableProviderBookings.length || "0"}</Text>
                       </View>
                     </View>
-                  </View>
+                  </Pressable>
 
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     {providerBookingFilterOptions.map((metric) => {

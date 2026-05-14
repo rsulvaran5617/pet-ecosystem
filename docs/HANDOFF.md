@@ -82,7 +82,15 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Geo-1 no habilita mapa, permisos mobile, ubicacion actual del usuario ni tracking; queda como preparacion controlada antes de abrir marketplace geolocalizado visual.
 - Geo-2 muestra en mobile owner > `Buscar` la ubicacion publica declarada por proveedores visibles: nombre visible, ciudad/pais, precision publica y distancia aproximada solo si el API recibe coordenadas de origen opcionales. No pide permisos, no guarda ubicacion actual y no expone direcciones privadas de owners.
 - Geo-3 agrega selector `Origen para distancia` en mobile owner > `Buscar`: permite `Sin distancia` o zonas aproximadas controladas. Se reviso `user_addresses` y el contrato actual no expone coordenadas, por lo que direcciones guardadas quedan diferidas. No usa GPS, no geocodifica direcciones reales y no publica `user_addresses`.
-- Geo-4 agrega preview de mapa en mobile owner > `Buscar` con MapLibre React Native. El modo `Mapa` dibuja pins solo para proveedores ya visibles con ubicacion publica; al tocar un pin muestra card inferior con ciudad, precision, distancia aproximada si aplica y accion `Ver proveedor`. Usa estilo demo de MapLibre para piloto inicial y conserva fallback de lista. No pide permisos GPS, no guarda ubicacion actual y no expone direcciones privadas.
+- Geo-4 agrega preview de mapa en mobile owner > `Buscar` con MapLibre React Native. El modo `Mapa` dibuja pins solo para proveedores ya visibles con ubicacion publica exacta declarada por el proveedor; al tocar un pin muestra card inferior con ciudad, distancia aproximada si aplica y accion `Ver proveedor`. Usa estilo demo de MapLibre para piloto inicial y conserva fallback de lista. No pide permisos GPS, no guarda ubicacion actual y no expone direcciones privadas.
+
+## Cierre UX mobile por rol 2026-05-13
+
+- Owner > `Buscar` queda compactado como widget unico: campo principal, categorias rapidas, origen para distancia colapsable, filtros avanzados bajo demanda y acceso a Lista/Mapa sin pedir GPS ni exponer direcciones privadas.
+- Provider > `Negocio` agrupa `Negocio activo`, `Perfil publico`, `Ubicacion publica` y `Publicacion` como expediente jerarquico con secciones colapsables para reducir ruido visual.
+- Provider > `Reservas` permite que `Atencion operativa` actue como acceso directo: abre y filtra reservas pendientes o confirmadas que requieren accion.
+- Provider > `Inicio` deja solo resumen operativo y un acceso compacto a `Estado de publicacion`; la vista `Estado` conserva el diagnostico completo de aprobacion/publicacion.
+- No se tocaron backend, Supabase, migraciones, RLS, Payments, QR, booking capacity, evidencia operacional, pet memory ni avatares.
 
 ## Ajustes QA visual de Cuenta provider
 

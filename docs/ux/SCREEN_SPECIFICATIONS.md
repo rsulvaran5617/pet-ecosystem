@@ -55,8 +55,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - home marketplace publico
 - resultados
 - perfil proveedor
-- ubicacion publica en cards/lista con ciudad, pais, precision y distancia aproximada solo si hay origen opcional
-- selector compacto de origen para distancia: sin distancia o zona aproximada controlada; direccion guardada queda diferida hasta que exponga coordenadas
+- ubicacion publica exacta del proveedor en cards/lista con ciudad, pais y distancia aproximada solo si hay origen opcional
+- widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
 - modo Lista/Mapa en resultados; el mapa usa pins de proveedores con ubicacion publica y card inferior para abrir proveedor, sin GPS ni tracking
 - seleccion de servicio
 

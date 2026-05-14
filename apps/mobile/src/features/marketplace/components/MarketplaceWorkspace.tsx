@@ -7,7 +7,6 @@ import type {
   MarketplaceServiceSelection,
   ProviderAvailabilitySlot,
   ProviderDayOfWeek,
-  ProviderLocationPrecision,
   ProviderServiceCategory
 } from "@pet/types";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
@@ -178,11 +177,7 @@ function formatMoney(priceCents: number, currencyCode: string) {
   }).format(priceCents / 100);
 }
 
-const providerLocationPrecisionLabels: Record<ProviderLocationPrecision, string> = {
-  exact: "Ubicacion exacta",
-  approximate: "Ubicacion aproximada",
-  city: "Zona declarada por ciudad"
-};
+const providerPublishedLocationLabel = "Ubicacion exacta publicada";
 
 function formatProviderDistance(distanceKm: number | null | undefined) {
   if (typeof distanceKm !== "number") {
@@ -251,7 +246,7 @@ function ProviderLocationSummary({ provider }: { provider: MarketplaceProviderSu
           : `Ubicacion publica: ${publicLocation.city}, ${publicLocation.countryCode}`}
       </Text>
       <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 13 }}>
-        {providerLocationPrecisionLabels[publicLocation.locationPrecision]}
+        {providerPublishedLocationLabel}
       </Text>
     </View>
   );
@@ -297,7 +292,7 @@ function MarketplaceProviderMiniCard({
         <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
       </View>
       <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 14 }}>
-        {publicLocation ? providerLocationPrecisionLabels[publicLocation.locationPrecision] : "Ubicacion publica no configurada"}
+        {publicLocation ? providerPublishedLocationLabel : "Ubicacion publica no configurada"}
       </Text>
       {distanceLabel ? (
         <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>{distanceLabel}</Text>
@@ -341,6 +336,7 @@ export function MarketplaceWorkspace({
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<ProviderDayOfWeek>(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [distanceOriginOpen, setDistanceOriginOpen] = useState(false);
   const [selectedDistanceOrigin, setSelectedDistanceOrigin] = useState<DistanceOrigin>(noDistanceOrigin);
   const [marketplaceResultsMode, setMarketplaceResultsMode] = useState<"list" | "map">("list");
   const [selectedMapProviderId, setSelectedMapProviderId] = useState<string | null>(null);
@@ -390,6 +386,10 @@ export function MarketplaceWorkspace({
       ...controlledDistanceZones
     ],
     []
+  );
+  const quickCategoryHighlights = useMemo(
+    () => homeSnapshot?.categoryHighlights.slice(0, 4) ?? [],
+    [homeSnapshot?.categoryHighlights]
   );
   const mapProviders = useMemo(() => providers.filter(hasProviderMapLocation), [providers]);
   const mapCenterCoordinate = useMemo(
@@ -644,17 +644,94 @@ export function MarketplaceWorkspace({
               </View>
 
               <View style={cardStyle}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Busqueda y filtros</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Buscar servicio</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>
+                      Escribe, elige una categoria o usa filtros solo cuando los necesites.
+                    </Text>
+                  </View>
+                  <StatusChip label={`${providers.length} resultado(s)`} tone={providers.length ? "active" : "neutral"} />
+                </View>
                 <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                   <TextInput
                     onChangeText={setSearchQuery}
                     placeholder="Buscar proveedor o servicio"
                     placeholderTextColor="#a8a29e"
-                    style={[inputStyle, { flex: 1, fontSize: 12 }]}
+                    style={[inputStyle, { flex: 1, fontSize: 12, minHeight: 44 }]}
                     value={searchQuery}
                   />
                   <Button disabled={isLoading} label="Buscar" onPress={() => void runSearch()} />
                 </View>
+
+                {quickCategoryHighlights.length ? (
+                  <View style={{ gap: 6 }}>
+                    <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "800", textTransform: "uppercase" }}>
+                      Categorias rapidas
+                    </Text>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      {quickCategoryHighlights.map((highlight) => (
+                        <Button
+                          key={highlight.category}
+                          disabled={isLoading}
+                          label={providerServiceCategoryLabels[highlight.category]}
+                          onPress={() => void runSearch({ category: highlight.category })}
+                          tone={selectedCategory === highlight.category ? "primary" : "secondary"}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                ) : null}
+
+                <Pressable
+                  accessibilityLabel="Cambiar origen para distancia"
+                  accessibilityRole="button"
+                  onPress={() => setDistanceOriginOpen((currentValue) => !currentValue)}
+                  style={{
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "rgba(15,118,110,0.14)",
+                    backgroundColor: "rgba(240,253,250,0.72)",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: 10
+                  }}
+                >
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Origen para distancia</Text>
+                    <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
+                      {selectedDistanceOrigin.label} - {selectedDistanceOrigin.detail}
+                    </Text>
+                  </View>
+                  <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>
+                    {distanceOriginOpen ? "Ocultar" : "Cambiar"}
+                  </Text>
+                </Pressable>
+
+                {distanceOriginOpen ? (
+                  <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      {distanceOriginOptions.map((origin) => {
+                        const isSelected = selectedDistanceOrigin.type === origin.type && selectedDistanceOrigin.id === origin.id;
+
+                        return (
+                          <Button
+                            key={`${origin.type}-${origin.id}`}
+                            disabled={isLoading}
+                            label={origin.label}
+                            onPress={() => void selectDistanceOrigin(origin)}
+                            tone={isSelected ? "primary" : "secondary"}
+                          />
+                        );
+                      })}
+                    </View>
+                    <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                      Usamos solo zonas aproximadas controladas. No usamos GPS ni publicamos tu direccion.
+                    </Text>
+                  </View>
+                ) : null}
+
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {(activeFilterLabels.length ? activeFilterLabels : ["Sin filtros activos"]).map((label) => (
                     <View
@@ -672,35 +749,6 @@ export function MarketplaceWorkspace({
                     </View>
                   ))}
                 </View>
-                <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Origen para distancia</Text>
-                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                        {selectedDistanceOrigin.detail}. No usamos GPS ni publicamos tu direccion.
-                      </Text>
-                    </View>
-                    <StatusChip label={selectedDistanceOrigin.type === "none" ? "sin distancia" : "aprox."} tone={selectedDistanceOrigin.type === "none" ? "neutral" : "active"} />
-                  </View>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                    {distanceOriginOptions.map((origin) => {
-                      const isSelected = selectedDistanceOrigin.type === origin.type && selectedDistanceOrigin.id === origin.id;
-
-                      return (
-                        <Button
-                          key={`${origin.type}-${origin.id}`}
-                          disabled={isLoading}
-                          label={origin.label}
-                          onPress={() => void selectDistanceOrigin(origin)}
-                          tone={isSelected ? "primary" : "secondary"}
-                        />
-                      );
-                    })}
-                  </View>
-                  <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                    Las direcciones guardadas se agregaran como origen cuando el modelo exponga coordenadas; por ahora usa zonas aproximadas controladas.
-                  </Text>
-                </View>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   <Button label={filtersOpen ? "Ocultar filtros" : "Ajustar filtros"} onPress={() => setFiltersOpen((currentValue) => !currentValue)} tone="secondary" />
                   {activeFilterLabels.length ? (
@@ -710,6 +758,7 @@ export function MarketplaceWorkspace({
                         setSelectedCategory("");
                         setSelectedCity("");
                         setSelectedSpecies("");
+                        setSelectedDistanceOrigin(noDistanceOrigin);
                       }}
                       tone="secondary"
                     />
@@ -760,24 +809,6 @@ export function MarketplaceWorkspace({
               </View>
 
               <View style={cardStyle}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917", flex: 1 }}>Explora por categoria</Text>
-                  <StatusChip label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} destacados` : "catalogo vacio"} tone="active" />
-                </View>
-                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                  Elige una categoria o proveedor destacado para preparar una reserva con el contexto de hogar y mascota.
-                </Text>
-                {homeSnapshot?.categoryHighlights.map((highlight) => (
-                  <Pressable key={highlight.category} onPress={() => void runSearch({ category: highlight.category })} style={inputStyle}>
-                    <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>{providerServiceCategoryLabels[highlight.category]}</Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
-                      {highlight.providerCount} proveedor(es) - {highlight.serviceCount} servicio(s)
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              <View style={cardStyle}>
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Proveedores destacados</Text>
                 {homeSnapshot?.featuredProviders.length ? homeSnapshot.featuredProviders.map((provider) => (
                   <Pressable key={provider.organizationId} onPress={() => void handleOpenProvider(provider.organizationId)} style={inputStyle}>
@@ -825,7 +856,7 @@ export function MarketplaceWorkspace({
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900" }}>Mapa de proveedores</Text>
                       <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                        Solo ubicaciones publicas declaradas por proveedores. No usamos GPS ni direcciones privadas.
+                        Mostramos la ubicacion publica exacta declarada por cada proveedor. No usamos GPS ni direcciones privadas del owner.
                       </Text>
                     </View>
                     <StatusChip label={`${mapProviders.length} con ubicacion`} tone={mapProviders.length ? "active" : "neutral"} />
