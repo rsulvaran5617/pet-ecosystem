@@ -2,7 +2,7 @@
 
 ## Fecha de publicacion documentada
 
-2026-04-29
+2026-05-17
 
 ## Objetivo de este handoff
 
@@ -12,15 +12,15 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 
 - rama actual: `master`
 - remoto: `origin` -> `https://github.com/rsulvaran5617/pet-ecosystem.git`
-- HEAD publicado antes de este handoff: `cfc70b7 chore(qa): prepare pilot visual checklist`
+- HEAD publicado antes de este handoff: `b978d3a docs(pilot): add controlled pilot runbook`
 - baseline tecnico previo: `v0.1.0-mvp-baseline.1` en `ea573cd`
 - baseline localizado publicado: `v0.1.0-mvp-baseline-es.1` en `6e984eb`
 - cierre UX productizada: `b20799a chore(ux): close role-based productization handoff`
 - QA/UAT final: `completada`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual: `baseline v0.3.0 aprobado para piloto controlado`
-- working tree al iniciar este handoff: cambios locales de Cuenta provider y checklist visual
+- fase actual: `paquete mobile QA/piloto listo para cierre y publicacion`
+- working tree al iniciar este handoff: ajustes acumulados de QA mobile, autenticacion/onboarding, reservas/QR, mensajes, contexto de mascota, timezone y guias de piloto
 
 ## Que ya quedo cerrado
 
@@ -98,6 +98,22 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Se crea `docs/delivery/PILOT_DATA_PREPARATION.sql` como archivo reviewable de diagnostico y preparacion no destructiva de datos; los `UPDATE` quedan comentados y no deben ejecutarse sin aprobacion explicita.
 - Estrategia recomendada para primera distribucion Android: APK manual por enlace privado para prueba seca inicial; mover a Firebase App Distribution si se agregan rondas o testers.
 - El piloto mantiene `payment-ready`, sin cobro real, sin migraciones, sin Supabase push, sin borrado de datos historicos y sin apertura de V2/V3 nuevas.
+
+## Cierre QA mobile pre-piloto 2026-05-17
+
+- Auth mobile queda ordenado como circuito real de acceso: login por defecto, registro, OTP y recuperacion ocultos hasta seleccionarlos. La pantalla sin sesion ya no muestra marketplace/contexto operativo antes de autenticar.
+- Se agrega reenvio controlado de OTP desde mobile mediante API tipada; no cambia Supabase ni reglas de negocio.
+- Owner post-login queda protegido por compuerta de hogar/familia: si no existe hogar, se solicita crearlo antes de Inicio/Mascotas.
+- Owner Home usa nombre real del perfil, no texto quemado.
+- Timezone/display queda centralizado con `productLocale` / `productTimeZone` para fechas visibles en mobile/admin.
+- Owner `Buscar` queda con campo de busqueda primero y filtros visuales mas compactos.
+- Owner `Reservas` abre por defecto en `Activas`; el QR operacional temporal se limpia cuando el timeline confirma check-in/check-out y tambien puede cerrarse manualmente.
+- Owner `Mensajes` queda como bandeja tipo correo: lista de hilos por reserva, orden reciente a antiguo, cabecera compacta y detalle en acordeon; filtro reducido a selector por estado de reserva.
+- Owner `Mascotas` conserva el contexto activo de mascota al navegar por el menu inferior y rehidrata la ficha al volver.
+- Provider/reservas y admin/soporte refrescan estados con requery controlado sin abrir Supabase Realtime.
+- Se crean guias rapidas de piloto para owner, provider y admin, mas guia de distribucion APK privada.
+- APK release de prueba instalado localmente en Xiaomi `85975329`; ultimo artefacto local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-android-release.apk`, SHA256 `2F2B9F0A638723783900328EEBDC0A416068567B53BE6A670550BF6FD79442A7`.
+- No se ejecutaron migraciones ni `supabase db push`; no se tocaron Payments, geolocalizacion avanzada, mapa funcional adicional, QR backend, booking capacity backend ni evidencia backend.
 
 ## Ajustes QA visual de Cuenta provider
 
@@ -177,9 +193,20 @@ Validaciones ejecutadas durante hardening tecnico/operativo:
 - `corepack pnpm smoke:mvp:health` -> `PASS`
 - `corepack pnpm smoke:mvp:reminders` -> `PASS`
 
+Validaciones ejecutadas durante cierre QA mobile pre-piloto 2026-05-17:
+
+- `corepack pnpm --filter @pet/mobile typecheck` -> `PASS`
+- `corepack pnpm --filter @pet/mobile lint` -> `PASS`
+- `corepack pnpm --filter @pet/mobile build` -> `PASS`
+- Android release build `:app:assembleRelease` en `C:\pb` -> `PASS`
+- instalacion ADB en Xiaomi `85975329` -> `PASS`
+- `git diff --check` -> `PASS` sin errores; solo avisos LF -> CRLF del entorno Windows
+
 ## Pendientes reales
 
-- preparar evidencia visual final si se requiere paquete auditable
+- ejecutar smoke manual del piloto con 3 owners / 3 providers / 1 admin usando las guias nuevas
+- subir manualmente el APK release a enlace privado controlado
+- registrar evidencia visual final si se requiere paquete auditable
 
 ## BLOCK por entorno
 
@@ -208,7 +235,7 @@ Payments MVP+ cambia alcance funcional y debe abrirse como frente separado, actu
 - baseline localizado MVP: `v0.1.0-mvp-baseline-es.1` -> `6e984eb`
 - cierre UX productizada: `b20799a`
 - checklist visual piloto: `cfc70b7`
-- HEAD de continuidad: tomar `git log -1 --oneline --decorate` como referencia principal despues de publicar este handoff
+- HEAD de continuidad: tomar `git log -1 --oneline --decorate` como referencia principal despues de publicar este cierre QA mobile pre-piloto
 
 ### Comandos para levantar
 

@@ -7,7 +7,10 @@ import {
   providerDayOfWeekLabels,
   providerDayOfWeekOrder,
   providerServiceCategoryLabels,
-  providerServiceCategoryOrder
+  providerServiceCategoryOrder,
+  productLocale,
+  productTimeZone,
+  formatDateTimeLabel
 } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
@@ -204,10 +207,11 @@ function getDayOfWeekFromDateKey(dateKey: string) {
 }
 
 function formatAvailabilityDateLabel(dateKey: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat(productLocale, {
     day: "numeric",
     month: "long",
-    weekday: "long"
+    weekday: "long",
+    timeZone: productTimeZone
   }).format(parseDateKey(dateKey));
 }
 
@@ -250,10 +254,7 @@ function formatMoney(priceCents: number, currencyCode: string) {
 }
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatDateTimeLabel(value);
 }
 
 function formatFileSize(fileSizeBytes: number) {
@@ -607,6 +608,16 @@ export function ProvidersWorkspace({
   }, [selectedOrganizationDetail]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
+
+  useEffect(() => {
+    if (!enabled || !hasProviderRole) {
+      return;
+    }
+
+    if (activeSection === "inicio" || activeSection === "reservas" || activeSection === "estado") {
+      void refresh(selectedOrganizationId);
+    }
+  }, [activeSection, enabled, hasProviderRole, selectedOrganizationId]);
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
   const selectedPublicLocation = selectedOrganizationDetail?.publicLocation ?? null;
   const selectedServicios = selectedOrganizationDetail?.services ?? [];
@@ -910,6 +921,7 @@ export function ProvidersWorkspace({
           bookingStatus={selectedProviderBookingDetail.booking.status}
           context="provider"
           enabled={selectedProviderBookingDetail.booking.status === "confirmed"}
+          onOperationChanged={() => refresh(selectedOrganizationId)}
         />
       </View>
     );

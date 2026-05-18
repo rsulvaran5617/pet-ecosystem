@@ -1,4 +1,4 @@
-ï»¿import { coreMvpBoundaries, coreRoleLabels } from "@pet/config";
+import { coreRoleLabels, formatShortDateLabel, formatShortTimeLabel } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import { providerServiceCategoryLabels } from "@pet/config";
 import type {
@@ -84,6 +84,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
 type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
+type AuthAccessPanel = "login" | "register" | "verify" | "recover";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
@@ -94,7 +95,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
   { id: "buscar", label: "Buscar", description: "Proveedores aprobados y servicios disponibles." },
-  { id: "reservas", label: "Reservas", description: "Historial, detalle, reseÃ±as y soporte por reserva." },
+  { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
 ];
@@ -466,7 +467,7 @@ function formatShortDateTime(value: string) {
     return "Fecha pendiente";
   }
 
-  return date.toLocaleDateString("es-PA", { day: "numeric", month: "short" });
+  return formatShortDateLabel(value);
 }
 
 function formatActivityDateTime(value: string) {
@@ -476,8 +477,7 @@ function formatActivityDateTime(value: string) {
     return "Fecha pendiente";
   }
 
-  return date.toLocaleDateString("es-PA", { day: "numeric", month: "short" }) + " Â· " +
-    date.toLocaleTimeString("es-PA", { hour: "numeric", minute: "2-digit" });
+  return `${formatShortDateLabel(value)} · ${formatShortTimeLabel(value)}`;
 }
 
 function getServiceHighlightTone(category: OwnerHomeServiceHighlight["category"], index: number) {
@@ -594,6 +594,7 @@ function OwnerHome({
   householdName,
   onNavigate,
   onSelectPet,
+  ownerFirstName,
   pets,
   paymentMethods,
   reminders,
@@ -604,6 +605,7 @@ function OwnerHome({
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
   onSelectPet: (petId: Uuid) => void;
+  ownerFirstName: string;
   pets: OwnerHomePet[];
   paymentMethods: OwnerHomePaymentMethod[];
   reminders: OwnerHomeReminder[];
@@ -643,6 +645,7 @@ function OwnerHome({
   const paymentBannerSubtitle = defaultPaymentMethod
     ? `${defaultPaymentMethod.brand.toUpperCase()} terminada en ${defaultPaymentMethod.last4}`
     : "para futuras reservas.";
+  const greetingName = ownerFirstName.trim() || "Usuario";
 
   return (
     <View style={{ gap: 20 }}>
@@ -657,7 +660,7 @@ function OwnerHome({
       >
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
-            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 14, lineHeight: 19 }}>Hola, RamÃ³n ðŸ‘‹</Text>
+            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 14, lineHeight: 19 }}>Hola, {greetingName} ??</Text>
             <Text
               numberOfLines={2}
               adjustsFontSizeToFit
@@ -665,7 +668,7 @@ function OwnerHome({
             >
               {householdName}
             </Text>
-            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 13, lineHeight: 18 }}>Â¡Que bueno verte de nuevo!</Text>
+            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 13, lineHeight: 18 }}>¡Que bueno verte de nuevo!</Text>
           </View>
           <View
             style={{
@@ -696,7 +699,7 @@ function OwnerHome({
                   width: 21
                 }}
               >
-                <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "900" }}>âœ“</Text>
+                <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "900" }}>?</Text>
               </View>
             ) : null}
           </View>
@@ -707,7 +710,7 @@ function OwnerHome({
         <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
           <Text style={{ color: colorTokens.ink, fontSize: 14, fontWeight: "800" }}>Mis mascotas</Text>
           <Pressable onPress={() => onNavigate("mascotas")}>
-            <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, fontWeight: "700" }}>Ver todas â€º</Text>
+            <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, fontWeight: "700" }}>Ver todas ›</Text>
           </Pressable>
         </View>
         {pets.length ? (
@@ -895,7 +898,7 @@ function OwnerHome({
               <Text style={{ color: colorTokens.accentDark, fontSize: 19, fontWeight: "900", lineHeight: 21 }}>{completedVaccineCount}</Text>
               <Text style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>Vacunas al dia</Text>
               <Text style={{ color: colorTokens.accentDark, fontSize: 8, fontWeight: "800", lineHeight: 11 }}>
-                {completedVaccineCount > 0 ? "Â¡Bien hecho!" : "Sin vacunas cerradas"}
+                {completedVaccineCount > 0 ? "¡Bien hecho!" : "Sin vacunas cerradas"}
               </Text>
             </View>
             <View style={{ backgroundColor: colorTokens.line, width: 1 }} />
@@ -903,7 +906,7 @@ function OwnerHome({
               <Text style={{ color: colorTokens.warning, fontSize: 19, fontWeight: "900", lineHeight: 21 }}>{pendingReminders.length}</Text>
               <Text style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>Recordatorio pendiente</Text>
               <Text numberOfLines={1} style={{ color: colorTokens.mutedStrong, fontSize: 8, fontWeight: "700", lineHeight: 11 }}>
-                {nextReminder ? `${nextReminderTitle} Â· ${formatShortDateTime(nextReminder.dueAt)}` : "Todo al dia"}
+                {nextReminder ? `${nextReminderTitle} · ${formatShortDateTime(nextReminder.dueAt)}` : "Todo al dia"}
               </Text>
             </View>
           </View>
@@ -914,7 +917,7 @@ function OwnerHome({
         <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
           <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "800" }}>Servicios destacados</Text>
           <Pressable onPress={() => onNavigate("buscar")}>
-            <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "700" }}>Ver mas â€º</Text>
+            <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "700" }}>Ver mas ›</Text>
           </Pressable>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -1055,6 +1058,7 @@ export function CoreHomeScreen() {
   const [verifyForm, setVerifyForm] = useState(emptyVerifyForm);
   const [recoverForm, setRecoverForm] = useState(emptyRecoverForm);
   const [recoveryPasswordForm, setRecoveryPasswordForm] = useState(emptyRecoveryPasswordForm);
+  const [authAccessPanel, setAuthAccessPanel] = useState<AuthAccessPanel>("login");
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
@@ -1119,6 +1123,14 @@ export function CoreHomeScreen() {
   const accountOnboardingTasks =
     snapshot?.onboardingTasks.filter((task) => !isProviderMode || task.id !== "add_payment_method") ?? [];
   const isAccountSectionActive = isProviderMode ? activeProviderSection === "cuenta" : activeOwnerSection === "cuenta";
+  const ownerHouseholdCount = petsWorkspace.householdSnapshot?.households.length ?? 0;
+  const ownerNeedsHouseholdSetup =
+    authState.isAuthenticated &&
+    Boolean(snapshot) &&
+    !isProviderMode &&
+    !petsWorkspace.isLoading &&
+    ownerHouseholdCount === 0;
+  const activeOwnerPetContextId = pendingPetHubPetId ?? petHubContext.petId ?? petsWorkspace.selectedPetId ?? null;
 
   if (isLoading) {
     return (
@@ -1148,20 +1160,16 @@ export function CoreHomeScreen() {
           />
           )
         ) : (
-          <View style={{ borderRadius: 28, backgroundColor: colorTokens.admin, padding: 24, gap: 14, ...visualTokens.mobile.shadow }}>
+          <View style={{ borderRadius: 28, backgroundColor: colorTokens.admin, padding: 22, gap: 12, ...visualTokens.mobile.shadow }}>
             <Text style={{ fontSize: 11, fontWeight: "700", color: "#99f6e4" }}>
-              Bienvenido
+              PET ECOSYSTEM
             </Text>
             <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
-              Cuidado y servicios para tus mascotas
+              Entra a tu espacio de cuidado
             </Text>
             <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
-              Crea tu cuenta o inicia sesion para gestionar mascotas, reservas y mensajes.
+              Inicia sesion, crea tu cuenta o recupera el acceso para continuar con mascotas, reservas y proveedores.
             </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              <StatusChip label="acceso pendiente" tone="pending" />
-              <StatusChip label={coreMvpBoundaries.paymentCaptureInCore ? "cobro activo" : "sin cobro real"} tone="neutral" />
-            </View>
           </View>
         )}
 
@@ -1235,149 +1243,208 @@ export function CoreHomeScreen() {
         {!authState.isAuthenticated ? (
           <>
             <CoreSectionCard
-              eyebrow="Registro"
-              title="Crear cuenta"
-              description="Completa tus datos para empezar a cuidar a tus mascotas desde la app."
-            >
-              <View style={{ gap: 12 }}>
-                <Field
-                  keyboardType="email-address"
-                  label="Email"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, email: value }))}
-                  value={registerForm.email}
-                />
-                <Field
-                  label="Contrasena"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
-                  secureTextEntry
-                  value={registerForm.password}
-                />
-                <Field
-                  label="Nombre"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
-                  value={registerForm.firstName}
-                />
-                <Field
-                  label="Apellido"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
-                  value={registerForm.lastName}
-                />
-                <ChoiceBar
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, role: value }))}
-                  options={[
-                    { label: coreRoleLabels.pet_owner, value: "pet_owner" },
-                    { label: coreRoleLabels.provider, value: "provider" }
-                  ]}
-                  value={registerForm.role}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Crear cuenta"
-                  onPress={() => {
-                    clearMessages();
-                    setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
-                    setRecoverForm({ email: registerForm.email });
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().register({
-                          email: registerForm.email,
-                          password: registerForm.password,
-                          firstName: registerForm.firstName,
-                          lastName: registerForm.lastName,
-                          requestedRoles: [registerForm.role]
-                        }),
-                      "Registro enviado. Completa la verificacion por correo si tu cuenta lo requiere."
-                    );
-                  }}
-                />
-              </View>
-            </CoreSectionCard>
-
-            <CoreSectionCard
               eyebrow="Acceso"
-              title="Inicio de sesion, verificacion y recuperacion"
-              description="Usa tu correo para entrar, verificar tu cuenta o recuperar el acceso."
+              title={
+                authAccessPanel === "login"
+                  ? "Iniciar sesion"
+                  : authAccessPanel === "register"
+                    ? "Crear cuenta"
+                    : authAccessPanel === "verify"
+                      ? "Verificar correo"
+                      : "Recuperar acceso"
+              }
+              description={
+                authAccessPanel === "login"
+                  ? "Usa tu correo y contrasena para continuar."
+                  : authAccessPanel === "register"
+                    ? "Crea tu cuenta y luego verifica el codigo que recibas por correo."
+                    : authAccessPanel === "verify"
+                      ? "Ingresa el codigo de 6 digitos enviado a tu correo."
+                      : "Solicita un enlace seguro para definir una nueva contrasena."
+              }
             >
               <View style={{ gap: 12 }}>
-                <Field
-                  keyboardType="email-address"
-                  label="Correo de acceso"
-                  onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
-                  value={loginForm.email}
+                <ChoiceBar
+                  onChange={setAuthAccessPanel}
+                  options={[
+                    { label: "Entrar", value: "login" },
+                    { label: "Crear", value: "register" },
+                    { label: "Codigo", value: "verify" },
+                    { label: "Recuperar", value: "recover" }
+                  ]}
+                  value={authAccessPanel}
                 />
-                <Field
-                  label="Contrasena de acceso"
-                  onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
-                  secureTextEntry
-                  value={loginForm.password}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Iniciar sesion"
-                  onPress={() => {
-                    clearMessages();
-                    setVerifyForm((currentForm) => ({ ...currentForm, email: loginForm.email }));
-                    setRecoverForm({ email: loginForm.email });
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().login({
-                          email: loginForm.email,
-                          password: loginForm.password
-                        }),
-                      "Sesion autenticada."
-                    );
-                  }}
-                />
-                <Field
-                  keyboardType="email-address"
-                  label="Correo de verificacion"
-                  onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
-                  value={verifyForm.email}
-                />
-                <Field
-                  label="Codigo OTP de 6 digitos"
-                  onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
-                  value={verifyForm.token}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Verificar OTP"
-                  onPress={() => {
-                    clearMessages();
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().verifyOtp({
-                          email: verifyForm.email,
-                          token: verifyForm.token
-                        }),
-                      "Verificacion de correo completada."
-                    );
-                  }}
-                  tone="secondary"
-                />
-                <Field
-                  keyboardType="email-address"
-                  label="Correo de recuperacion"
-                  onChange={(value) => setRecoverForm({ email: value })}
-                  value={recoverForm.email}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Enviar correo de recuperacion"
-                  onPress={() => {
-                    clearMessages();
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().recoverAccess({
-                          email: recoverForm.email,
-                          redirectTo: getMobileRecoveryRedirectUrl()
-                        }),
-                      "Correo de recuperacion solicitado.",
-                      false
-                    );
-                  }}
-                  tone="secondary"
-                />
+
+                {authAccessPanel === "login" ? (
+                  <>
+                    <Field
+                      keyboardType="email-address"
+                      label="Correo"
+                      onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
+                      value={loginForm.email}
+                    />
+                    <Field
+                      label="Contrasena"
+                      onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
+                      secureTextEntry
+                      value={loginForm.password}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Iniciar sesion"
+                      onPress={() => {
+                        clearMessages();
+                        setVerifyForm((currentForm) => ({ ...currentForm, email: loginForm.email }));
+                        setRecoverForm({ email: loginForm.email });
+                        void runAction(
+                          () =>
+                            getMobileCoreApiClient().login({
+                              email: loginForm.email,
+                              password: loginForm.password
+                            }),
+                          undefined,
+                          false
+                        );
+                      }}
+                    />
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      <Button label="Crear cuenta" onPress={() => setAuthAccessPanel("register")} tone="secondary" />
+                      <Button label="Recuperar acceso" onPress={() => setAuthAccessPanel("recover")} tone="secondary" />
+                    </View>
+                  </>
+                ) : null}
+
+                {authAccessPanel === "register" ? (
+                  <>
+                    <Field
+                      keyboardType="email-address"
+                      label="Email"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, email: value }))}
+                      value={registerForm.email}
+                    />
+                    <Field
+                      label="Contrasena"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
+                      secureTextEntry
+                      value={registerForm.password}
+                    />
+                    <Field
+                      label="Nombre"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
+                      value={registerForm.firstName}
+                    />
+                    <Field
+                      label="Apellido"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
+                      value={registerForm.lastName}
+                    />
+                    <ChoiceBar
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, role: value }))}
+                      options={[
+                        { label: coreRoleLabels.pet_owner, value: "pet_owner" },
+                        { label: coreRoleLabels.provider, value: "provider" }
+                      ]}
+                      value={registerForm.role}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Crear cuenta"
+                      onPress={() => {
+                        clearMessages();
+                        setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
+                        setRecoverForm({ email: registerForm.email });
+                        void runAction(
+                          () =>
+                            getMobileCoreApiClient().register({
+                              email: registerForm.email,
+                              password: registerForm.password,
+                              firstName: registerForm.firstName,
+                              lastName: registerForm.lastName,
+                              requestedRoles: [registerForm.role]
+                            }),
+                          "Registro enviado. Revisa tu correo e ingresa el codigo para verificar tu cuenta.",
+                          false
+                        ).then(() => setAuthAccessPanel("verify"));
+                      }}
+                    />
+                    <Button label="Ya tengo cuenta" onPress={() => setAuthAccessPanel("login")} tone="secondary" />
+                  </>
+                ) : null}
+
+                {authAccessPanel === "verify" ? (
+                  <>
+                    <Field
+                      keyboardType="email-address"
+                      label="Correo de verificacion"
+                      onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
+                      value={verifyForm.email}
+                    />
+                    <Field
+                      label="Codigo de 6 digitos"
+                      onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
+                      value={verifyForm.token}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Verificar codigo"
+                      onPress={() => {
+                        clearMessages();
+                        void runAction(
+                          () =>
+                            getMobileCoreApiClient().verifyOtp({
+                              email: verifyForm.email,
+                              token: verifyForm.token
+                            }),
+                          "Verificacion de correo completada. Ya puedes iniciar sesion."
+                        ).then(() => setAuthAccessPanel("login"));
+                      }}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Reenviar codigo"
+                      onPress={() => {
+                        clearMessages();
+                        void runAction(
+                          () =>
+                            getMobileCoreApiClient().resendVerification({
+                              email: verifyForm.email
+                            }),
+                          "Codigo solicitado. Revisa tu correo y espera unos minutos antes de pedir otro.",
+                          false
+                        );
+                      }}
+                      tone="secondary"
+                    />
+                  </>
+                ) : null}
+
+                {authAccessPanel === "recover" ? (
+                  <>
+                    <Field
+                      keyboardType="email-address"
+                      label="Correo de recuperacion"
+                      onChange={(value) => setRecoverForm({ email: value })}
+                      value={recoverForm.email}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Enviar correo de recuperacion"
+                      onPress={() => {
+                        clearMessages();
+                        void runAction(
+                          () =>
+                            getMobileCoreApiClient().recoverAccess({
+                              email: recoverForm.email,
+                              redirectTo: getMobileRecoveryRedirectUrl()
+                            }),
+                          "Correo de recuperacion solicitado. Revisa tu bandeja y evita pedir varios enlaces seguidos.",
+                          false
+                        );
+                      }}
+                    />
+                    <Button label="Volver a inicio de sesion" onPress={() => setAuthAccessPanel("login")} tone="secondary" />
+                  </>
+                ) : null}
               </View>
             </CoreSectionCard>
           </>
@@ -1448,7 +1515,7 @@ export function CoreHomeScreen() {
                         }}
                       >
                         <Text style={{ color: task.status === "completed" ? "#ffffff" : "#c2410c", fontSize: 13, fontWeight: "900", lineHeight: 15 }}>
-                          {task.status === "completed" ? "âœ“" : "!"}
+                          {task.status === "completed" ? "?" : "!"}
                         </Text>
                       </View>
                       <View style={{ flex: 1, gap: 4 }}>
@@ -1491,7 +1558,7 @@ export function CoreHomeScreen() {
                         {snapshot.profile.email}
                       </Text>
                       <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                        {snapshot.profile.phone || "Telefono pendiente"} Â· {snapshot.profile.locale || "es"}
+                        {snapshot.profile.phone || "Telefono pendiente"} · {snapshot.profile.locale || "es"}
                       </Text>
                     </View>
                     <Pressable
@@ -1908,11 +1975,29 @@ export function CoreHomeScreen() {
               </CoreSectionCard>
             ) : null}
 
-            {!isProviderMode ? <HouseholdsWorkspace enabled /> : null}
+            {!isProviderMode ? <HouseholdsWorkspace enabled onHouseholdCreated={petsWorkspace.refresh} /> : null}
           </>
         ) : null}
 
-        {authState.isAuthenticated && snapshot && !isProviderMode && activeOwnerSection === "inicio" ? (
+        {ownerNeedsHouseholdSetup && !isAccountSectionActive ? (
+          <>
+            <View style={{ borderRadius: 22, backgroundColor: colorTokens.accentDark, padding: 16, gap: 6, ...visualTokens.mobile.shadow }}>
+              <Text style={{ color: "#ffffff", fontSize: 16, fontWeight: "900", lineHeight: 20 }}>Primero crea tu familia</Text>
+              <Text style={{ color: "rgba(255,255,255,0.86)", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                Tu familia es el hogar donde se organizan mascotas, permisos y reservas. Despues podras registrar tu primera mascota.
+              </Text>
+            </View>
+            <HouseholdsWorkspace
+              enabled
+              onHouseholdCreated={async () => {
+                await petsWorkspace.refresh();
+                setActiveOwnerSection("inicio");
+              }}
+            />
+          </>
+        ) : null}
+
+        {authState.isAuthenticated && snapshot && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "inicio" ? (
           <OwnerHome
             bookings={bookingsWorkspace.bookings}
             householdName={defaultHouseholdName}
@@ -1923,6 +2008,7 @@ export function CoreHomeScreen() {
               setActivePetHubPanel("detalle");
               setActiveOwnerSection("mascotas");
             }}
+            ownerFirstName={snapshot.profile.firstName}
             pets={petsWorkspace.pets}
             paymentMethods={snapshot.paymentMethods}
             reminders={remindersWorkspace.reminders}
@@ -1930,11 +2016,11 @@ export function CoreHomeScreen() {
             roleSwitchConfirmed={isRoleSwitchInfoMessage}
           />
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mascotas" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "mascotas" ? (
           <>
             <PetsWorkspace
               activePanel={activePetHubPanel}
-              contextPetId={pendingPetHubPetId}
+              contextPetId={activeOwnerPetContextId}
               enabled
               onContextChange={(context) => {
                 setPetHubContext(context);
@@ -1963,8 +2049,7 @@ export function CoreHomeScreen() {
             ) : null}
           </>
         ) : null}
-        {!authState.isAuthenticated ? <MarketplaceWorkspace enabled /> : null}
-        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "buscar" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "buscar" ? (
           <MarketplaceWorkspace
             enabled
             onSelectBookingService={(selection) => {
@@ -1974,7 +2059,7 @@ export function CoreHomeScreen() {
             }}
           />
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "reservas" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "reservas" ? (
           <>
             <BookingsWorkspace
               activePanel={activeBookingHubPanel}
@@ -2024,8 +2109,8 @@ export function CoreHomeScreen() {
             ) : null}
           </>
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && activeOwnerSection === "mensajes" ? (
-          <MessagingWorkspace currentUserId={authState.userId ?? null} enabled focusedBookingId={null} focusVersion={0} viewerRole="owner" />
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "mensajes" ? (
+          <MessagingWorkspace currentUserId={authState.userId ?? null} enabled focusedBookingId={null} focusVersion={chatFocusVersion} viewerRole="owner" />
         ) : null}
         {authState.isAuthenticated && snapshot && isProviderMode && activeProviderSection !== "mensajes" && activeProviderSection !== "cuenta" ? (
           <ProvidersWorkspace
@@ -2037,7 +2122,7 @@ export function CoreHomeScreen() {
           />
         ) : null}
         {authState.isAuthenticated && isProviderMode && activeProviderSection === "mensajes" ? (
-          <MessagingWorkspace currentUserId={authState.userId ?? null} enabled focusedBookingId={null} focusVersion={0} viewerRole="provider" />
+          <MessagingWorkspace currentUserId={authState.userId ?? null} enabled focusedBookingId={null} focusVersion={chatFocusVersion} viewerRole="provider" />
         ) : null}
       </ScrollView>
       {authState.isAuthenticated ? (
@@ -2091,10 +2176,21 @@ export function CoreHomeScreen() {
                 onPress={() => {
                   if (isProviderMode) {
                     setActiveProviderSection(section.id as ProviderSectionId);
+                    if (section.id === "mensajes") {
+                      setFocusedBookingId(null);
+                      setChatFocusVersion((currentVersion) => currentVersion + 1);
+                    }
                     return;
                   }
 
                   setActiveOwnerSection(section.id as OwnerSectionId);
+                  if (section.id === "reservas") {
+                    void bookingsWorkspace.refresh();
+                  }
+                  if (section.id === "mensajes") {
+                    setFocusedBookingId(null);
+                    setChatFocusVersion((currentVersion) => currentVersion + 1);
+                  }
                 }}
                 style={{
                   alignItems: "center",

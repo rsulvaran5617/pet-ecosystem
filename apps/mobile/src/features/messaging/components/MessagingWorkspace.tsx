@@ -1,4 +1,4 @@
-ï»¿import { bookingStatusLabels } from "@pet/config";
+import { bookingStatusLabels, formatDateTimeLabel, productLocale, productTimeZone } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { BookingStatus, ChatThreadSummary, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
@@ -63,53 +63,43 @@ const bodyTextStyle = {
   lineHeight: 16
 } as const;
 
-type MessagingView = "bandeja" | "conversacion";
-type MessageTimeFilter = "all" | "today" | "7d" | "30d";
-type MessageStatusFilter = "all" | BookingStatus;
-
-const messageTimeFilters: Array<{ id: MessageTimeFilter; label: string }> = [
-  { id: "all", label: "Todos" },
-  { id: "today", label: "Hoy" },
-  { id: "7d", label: "7 dias" },
-  { id: "30d", label: "30 dias" }
-];
+type MessageStatusFilter = "all" | "active" | BookingStatus;
 
 const messageStatusFilters: Array<{ id: MessageStatusFilter; label: string }> = [
-  { id: "all", label: "Todos" },
+  { id: "active", label: "Activas" },
   { id: "pending_approval", label: "Pendientes" },
   { id: "confirmed", label: "Confirmadas" },
   { id: "completed", label: "Completadas" },
-  { id: "cancelled", label: "Canceladas" }
+  { id: "cancelled", label: "Canceladas" },
+  { id: "all", label: "Todas" }
 ];
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatDateTimeLabel(value);
 }
 
 function getThreadActivityDate(thread: ChatThreadSummary) {
   return new Date(thread.lastMessageAt ?? thread.updatedAt ?? thread.createdAt);
 }
 
-function matchesTimeFilter(thread: ChatThreadSummary, filter: MessageTimeFilter) {
+function formatShortThreadDate(thread: ChatThreadSummary) {
+  return new Intl.DateTimeFormat(productLocale, {
+    day: "2-digit",
+    month: "short",
+    timeZone: productTimeZone
+  }).format(getThreadActivityDate(thread));
+}
+
+function matchesStatusFilter(thread: ChatThreadSummary, filter: MessageStatusFilter) {
   if (filter === "all") {
     return true;
   }
 
-  const activityDate = getThreadActivityDate(thread);
-  const now = new Date();
-
-  if (filter === "today") {
-    return activityDate.toDateString() === now.toDateString();
+  if (filter === "active") {
+    return thread.bookingStatus === "pending_approval" || thread.bookingStatus === "confirmed";
   }
 
-  const days = filter === "7d" ? 7 : 30;
-  const from = new Date(now);
-  from.setDate(now.getDate() - days);
-
-  return activityDate >= from;
+  return thread.bookingStatus === filter;
 }
 
 function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
@@ -144,31 +134,21 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
   );
 }
 
-function FilterChip({ count, isActive, label, onPress }: { count: number; isActive: boolean; label: string; onPress: () => void }) {
+function DropdownOption({ count, isActive, label, onPress }: { count: number; isActive: boolean; label: string; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       style={{
-        alignItems: "center",
-        borderRadius: 999,
-        backgroundColor: isActive ? colorTokens.accent : "rgba(0,151,143,0.06)",
+        borderRadius: 14,
+        backgroundColor: isActive ? "rgba(0,151,143,0.12)" : "#ffffff",
         borderWidth: isActive ? 0 : 1,
         borderColor: "rgba(0,151,143,0.2)",
-        paddingHorizontal: 9,
-        paddingVertical: 7
+        paddingHorizontal: 10,
+        paddingVertical: 8
       }}
     >
-      <Text
-        numberOfLines={1}
-        style={{
-          color: isActive ? "#ffffff" : colorTokens.accentDark,
-          fontSize: 9,
-          fontWeight: "900",
-          lineHeight: 12,
-          textAlign: "center"
-        }}
-      >
-        {label} Â· {count}
+      <Text numberOfLines={1} style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", lineHeight: 13 }}>
+        {label} · {count}
       </Text>
     </Pressable>
   );
@@ -190,6 +170,7 @@ export function MessagingWorkspace({
   const {
     threads,
     selectedThreadDetail,
+    selectedThreadId,
     messageDraft,
     errorMessage,
     infoMessage,
@@ -202,31 +183,37 @@ export function MessagingWorkspace({
     setMessageDraft
   } = useMessagingWorkspace(enabled, focusedBookingId, focusVersion);
 
-  const [messagingView, setMessagingView] = useState<MessagingView>("bandeja");
-  const [timeFilter, setTimeFilter] = useState<MessageTimeFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<MessageStatusFilter>("all");
-  const timeFilteredThreads = threads.filter((thread) => matchesTimeFilter(thread, timeFilter));
-  const filteredThreads = timeFilteredThreads.filter((thread) => statusFilter === "all" || thread.bookingStatus === statusFilter);
-  const getTimeFilterCount = (filter: MessageTimeFilter) => threads.filter((thread) => matchesTimeFilter(thread, filter)).length;
-  const getStatusFilterCount = (filter: MessageStatusFilter) =>
-    filter === "all" ? timeFilteredThreads.length : timeFilteredThreads.filter((thread) => thread.bookingStatus === filter).length;
+  const [statusFilter, setStatusFilter] = useState<MessageStatusFilter>("active");
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [expandedThreadId, setExpandedThreadId] = useState<Uuid | null>(null);
+  const sortedThreads = [...threads].sort((left, right) => getThreadActivityDate(right).getTime() - getThreadActivityDate(left).getTime());
+  const filteredThreads = sortedThreads.filter((thread) => matchesStatusFilter(thread, statusFilter));
+  const activeFilterLabel = messageStatusFilters.find((filter) => filter.id === statusFilter)?.label ?? "Activas";
+  const getStatusFilterCount = (filter: MessageStatusFilter) => sortedThreads.filter((thread) => matchesStatusFilter(thread, filter)).length;
 
   useEffect(() => {
-    if (!enabled || !focusedBookingId || focusVersion === 0) {
+    if (!enabled || !focusedBookingId || focusVersion === 0 || !selectedThreadId) {
       return;
     }
 
-    setMessagingView("conversacion");
-  }, [enabled, focusedBookingId, focusVersion]);
+    setExpandedThreadId(selectedThreadId);
+  }, [enabled, focusedBookingId, focusVersion, selectedThreadId]);
 
   const openConversation = async (threadId: Uuid) => {
+    if (expandedThreadId === threadId) {
+      setExpandedThreadId(null);
+      return;
+    }
+
+    setExpandedThreadId(threadId);
+
     try {
       await openThread(threadId);
-      setMessagingView("conversacion");
     } catch {
       // El hook ya expone el error en la UI.
     }
   };
+
   const isMessageMine = (senderUserId: Uuid, senderRole: "customer" | "provider") =>
     currentUserId ? senderUserId === currentUserId : viewerRole === "provider" ? senderRole === "provider" : senderRole === "customer";
 
@@ -248,177 +235,163 @@ export function MessagingWorkspace({
           <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", letterSpacing: 0, textTransform: "uppercase" }}>
             Mensajes
           </Text>
-          <Text style={[sectionTitleStyle, messagingView === "conversacion" ? { fontSize: 15, lineHeight: 19 } : null]}>
-            {messagingView === "bandeja" ? "Bandeja de reservas" : "Conversacion de reserva"}
-          </Text>
-          <Text style={sectionDescriptionStyle}>
-            {messagingView === "bandeja"
-              ? "Chats ligados a reservas activas o historicas."
-              : "Conversacion vinculada a una reserva concreta."}
-          </Text>
+          <Text style={sectionTitleStyle}>Bandeja de reservas</Text>
+          <Text style={sectionDescriptionStyle}>Conversaciones ordenadas de la mas reciente a la mas antigua.</Text>
           {!errorMessage && infoMessage ? (
             <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 14, marginTop: 3 }}>
               {infoMessage}
             </Text>
           ) : null}
         </View>
-        <View style={{ gap: 9 }}>
-          {messagingView === "bandeja" ? (
-          <View style={cardStyle}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-              <Text style={[cardTitleStyle, { flex: 1 }]}>Conversaciones por reserva</Text>
-              <StatusChip label={`${filteredThreads.length} visibles`} tone="neutral" />
-            </View>
-            <View style={[inputStyle, { gap: 8, backgroundColor: "rgba(0,151,143,0.04)" }]}>
-              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Filtrar mensajes</Text>
-              <View style={{ gap: 6 }}>
-                <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800" }}>Tiempo</Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                  {messageTimeFilters.map((filter) => (
-                    <FilterChip
-                      key={filter.id}
-                      count={getTimeFilterCount(filter.id)}
-                      isActive={timeFilter === filter.id}
-                      label={filter.label}
-                      onPress={() => setTimeFilter(filter.id)}
-                    />
-                  ))}
-                </View>
-              </View>
-              <View style={{ gap: 6 }}>
-                <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800" }}>Estado de reserva</Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                  {messageStatusFilters.map((filter) => (
-                    <FilterChip
-                      key={filter.id}
-                      count={getStatusFilterCount(filter.id)}
-                      isActive={statusFilter === filter.id}
-                      label={filter.label}
-                      onPress={() => setStatusFilter(filter.id)}
-                    />
-                  ))}
-                </View>
-              </View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
-              <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
-            </View>
-            {isLoading && !threads.length ? <Text style={bodyTextStyle}>Buscando conversaciones ligadas a tus reservas...</Text> : null}
-            {filteredThreads.length ? filteredThreads.map((thread) => (
-              <Pressable
-                key={thread.id}
-                onPress={() => void openConversation(thread.id)}
-                style={[inputStyle, { gap: 7, backgroundColor: "#fffdf8" }]}
-              >
-                <View style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", justifyContent: "space-between" }}>
-                  <Text numberOfLines={2} style={{ flex: 1, fontWeight: "900", color: colorTokens.ink, fontSize: 13, lineHeight: 17 }}>{thread.serviceName}</Text>
-                  <StatusChip label={bookingStatusLabels[thread.bookingStatus]} tone={getStatusTone(thread.bookingStatus)} />
-                </View>
-                <Text style={bodyTextStyle}>
-                  {thread.customerDisplayName} - {thread.providerDisplayName}
-                </Text>
-                <Text style={bodyTextStyle}>Mascota: {thread.petName}</Text>
-                <Text numberOfLines={2} style={bodyTextStyle}>
-                  {thread.lastMessagePreview ?? "Todavia no hay mensajes. Abre el hilo para iniciar la conversacion de la reserva."}
-                </Text>
-                <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900", marginTop: 2 }}>Abrir conversacion</Text>
-              </Pressable>
-            )) : (
-              <View style={[inputStyle, { gap: 6 }]}>
-                <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>Sin conversaciones para este filtro</Text>
-                <Text style={bodyTextStyle}>
-                  Cambia los filtros o abre una reserva y entra a Chat para iniciar una conversacion vinculada al servicio.
-                </Text>
-              </View>
-            )}
+
+        <View style={cardStyle}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+            <Text style={[cardTitleStyle, { flex: 1 }]}>Bandeja de entrada</Text>
+            <StatusChip label={`${filteredThreads.length} visibles`} tone="neutral" />
           </View>
-          ) : null}
 
-          {messagingView === "conversacion" ? (
-          <View style={cardStyle}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-              <Text style={[cardTitleStyle, { flex: 1 }]}>Conversacion</Text>
-              {selectedThreadDetail ? (
-                <StatusChip
-                  label={bookingStatusLabels[selectedThreadDetail.thread.bookingStatus]}
-                  tone={getStatusTone(selectedThreadDetail.thread.bookingStatus)}
-                />
-              ) : (
-                <StatusChip label="sin hilo seleccionado" tone="neutral" />
-              )}
-            </View>
-            <Button label="Volver a la bandeja" onPress={() => setMessagingView("bandeja")} tone="secondary" />
+          <View style={[inputStyle, { gap: 8, backgroundColor: "rgba(0,151,143,0.04)" }]}>
+            <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Estado de reserva</Text>
+            <Pressable
+              onPress={() => setIsStatusDropdownOpen((current) => !current)}
+              style={{
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: "rgba(0,151,143,0.24)",
+                backgroundColor: "#ffffff",
+                paddingHorizontal: 12,
+                paddingVertical: 9,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10
+              }}
+            >
+              <Text style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900" }}>{activeFilterLabel}</Text>
+              <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>{isStatusDropdownOpen ? "^" : "?"}</Text>
+            </Pressable>
+            {isStatusDropdownOpen ? (
+              <View style={{ gap: 6 }}>
+                {messageStatusFilters.map((filter) => (
+                  <DropdownOption
+                    key={filter.id}
+                    count={getStatusFilterCount(filter.id)}
+                    isActive={statusFilter === filter.id}
+                    label={filter.label}
+                    onPress={() => {
+                      setStatusFilter(filter.id);
+                      setIsStatusDropdownOpen(false);
+                    }}
+                  />
+                ))}
+              </View>
+            ) : null}
+          </View>
 
-            {selectedThreadDetail && (!focusedBookingId || selectedThreadDetail.thread.bookingId === focusedBookingId) ? (
-              <>
-                <View style={[inputStyle, { backgroundColor: "rgba(15,118,110,0.08)", gap: 6 }]}>
-                  <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Reserva vinculada</Text>
-                  <Text numberOfLines={2} style={{ fontWeight: "900", color: colorTokens.ink, fontSize: 13, lineHeight: 17 }}>{selectedThreadDetail.thread.serviceName}</Text>
-                  <Text style={bodyTextStyle}>
-                    {selectedThreadDetail.thread.providerDisplayName} - {selectedThreadDetail.thread.customerDisplayName}
-                  </Text>
-                  <Text style={bodyTextStyle}>Mascota: {selectedThreadDetail.thread.petName}</Text>
-                </View>
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+            <Button disabled={isSubmitting} label="Actualizar" onPress={() => void refresh()} tone="secondary" />
+            <Button disabled={isSubmitting} label="Limpiar avisos" onPress={clearMessages} tone="secondary" />
+          </View>
 
-                <View style={{ gap: 8 }}>
-                  {selectedThreadDetail.messages.length ? selectedThreadDetail.messages.map((message) => {
-                    const isMine = isMessageMine(message.senderUserId, message.senderRole);
+          {isLoading && !threads.length ? <Text style={bodyTextStyle}>Buscando conversaciones ligadas a tus reservas...</Text> : null}
+          {filteredThreads.length ? filteredThreads.map((thread) => {
+            const isExpanded = expandedThreadId === thread.id;
+            const isSelectedDetail = selectedThreadDetail?.thread.id === thread.id;
+            const preview = thread.lastMessagePreview ?? "Sin mensajes todavia.";
 
-                    return (
-                      <View
-                        key={message.id}
-                        style={{
-                          borderRadius: 18,
-                          borderWidth: 1,
-                          borderColor: "rgba(28,25,23,0.08)",
-                          backgroundColor: isMine ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.92)",
-                          padding: 10,
-                          gap: 6,
-                          alignSelf: isMine ? "flex-end" : "flex-start",
-                          width: "100%"
-                        }}
-                      >
-                        <View style={{ gap: 4 }}>
-                          <Text style={{ fontWeight: "900", color: colorTokens.ink, fontSize: 12 }}>
-                            {getVisibleSenderName(message.senderUserId, message.senderRole, message.senderDisplayName)}
-                          </Text>
-                          <Text style={{ color: "#78716c", fontSize: 10 }}>{formatDateTime(message.createdAt)}</Text>
-                        </View>
-                        <Text style={{ color: "#44403c", fontSize: 12, lineHeight: 17 }}>{message.messageText}</Text>
-                      </View>
-                    );
-                  }) : (
-                    <Text style={bodyTextStyle}>
-                      Todavia no se han enviado mensajes para esta reserva. Usa el compositor para iniciar la conversacion.
+            return (
+              <View key={thread.id} style={[inputStyle, { gap: 0, backgroundColor: "#fffdf8", padding: 0, overflow: "hidden" }]}>
+                <Pressable onPress={() => void openConversation(thread.id)} style={{ gap: 6, padding: 11 }}>
+                  <View style={{ flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "space-between" }}>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", lineHeight: 13 }}>
+                      {formatShortThreadDate(thread)}
                     </Text>
-                  )}
-                </View>
+                    <StatusChip label={bookingStatusLabels[thread.bookingStatus]} tone={getStatusTone(thread.bookingStatus)} />
+                  </View>
+                  <Text numberOfLines={1} style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                    {thread.providerDisplayName}
+                  </Text>
+                  <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11, fontWeight: "800", lineHeight: 15 }}>
+                    {thread.petName} · {thread.serviceName}
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                    <Text numberOfLines={1} style={{ flex: 1, color: "#57534e", fontSize: 11, lineHeight: 15 }}>
+                      {preview}
+                    </Text>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 14, fontWeight: "900" }}>{isExpanded ? "-" : "+"}</Text>
+                  </View>
+                </Pressable>
 
-                <TextInput
-                  multiline
-                  onChangeText={setMessageDraft}
-                  placeholder="Escribe un mensaje relacionado con la reserva..."
-                  style={[inputStyle, { minHeight: 90, textAlignVertical: "top", color: colorTokens.ink, fontSize: 12 }]}
-                  value={messageDraft}
-                />
-                <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                  <Button disabled={isSubmitting} label="Enviar mensaje" onPress={() => void sendMessage()} />
-                  <Button disabled={isSubmitting} label="Limpiar borrador" onPress={() => setMessageDraft("")} tone="secondary" />
-                </View>
-              </>
-            ) : (
-              <Text style={bodyTextStyle}>
-                {focusedBookingId && focusVersion > 0
-                  ? "Cargando la conversacion vinculada a esta reserva..."
-                  : "Selecciona un hilo desde la bandeja o abre mensajes desde el detalle de una reserva. En este MVP, cada conversacion queda ligada a una reserva."}
-              </Text>
-            )}
-          </View>
-          ) : null}
+                {isExpanded ? (
+                  <View style={{ borderTopWidth: 1, borderTopColor: "rgba(28,25,23,0.08)", padding: 11, gap: 10 }}>
+                    {isSelectedDetail ? (
+                      <>
+                        <View style={[inputStyle, { backgroundColor: "rgba(15,118,110,0.08)", gap: 5 }]}>
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900", textTransform: "uppercase" }}>Reserva vinculada</Text>
+                          <Text numberOfLines={2} style={{ fontWeight: "900", color: colorTokens.ink, fontSize: 12, lineHeight: 16 }}>{selectedThreadDetail.thread.serviceName}</Text>
+                          <Text style={bodyTextStyle}>{selectedThreadDetail.thread.providerDisplayName}</Text>
+                          <Text style={bodyTextStyle}>Mascota: {selectedThreadDetail.thread.petName}</Text>
+                        </View>
+
+                        <View style={{ gap: 8 }}>
+                          {selectedThreadDetail.messages.length ? selectedThreadDetail.messages.map((message) => {
+                            const isMine = isMessageMine(message.senderUserId, message.senderRole);
+
+                            return (
+                              <View
+                                key={message.id}
+                                style={{
+                                  borderRadius: 16,
+                                  borderWidth: 1,
+                                  borderColor: "rgba(28,25,23,0.08)",
+                                  backgroundColor: isMine ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.92)",
+                                  padding: 9,
+                                  gap: 5,
+                                  alignSelf: isMine ? "flex-end" : "flex-start",
+                                  width: "100%"
+                                }}
+                              >
+                                <View style={{ gap: 3 }}>
+                                  <Text style={{ fontWeight: "900", color: colorTokens.ink, fontSize: 11 }}>
+                                    {getVisibleSenderName(message.senderUserId, message.senderRole, message.senderDisplayName)}
+                                  </Text>
+                                  <Text style={{ color: "#78716c", fontSize: 9 }}>{formatDateTime(message.createdAt)}</Text>
+                                </View>
+                                <Text style={{ color: "#44403c", fontSize: 12, lineHeight: 17 }}>{message.messageText}</Text>
+                              </View>
+                            );
+                          }) : (
+                            <Text style={bodyTextStyle}>Todavia no se han enviado mensajes para esta reserva.</Text>
+                          )}
+                        </View>
+
+                        <TextInput
+                          multiline
+                          onChangeText={setMessageDraft}
+                          placeholder="Escribe un mensaje relacionado con la reserva..."
+                          style={[inputStyle, { minHeight: 78, textAlignVertical: "top", color: colorTokens.ink, fontSize: 12 }]}
+                          value={messageDraft}
+                        />
+                        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+                          <Button disabled={isSubmitting} label="Enviar mensaje" onPress={() => void sendMessage()} />
+                          <Button disabled={isSubmitting} label="Limpiar borrador" onPress={() => setMessageDraft("")} tone="secondary" />
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={bodyTextStyle}>Cargando conversacion...</Text>
+                    )}
+                  </View>
+                ) : null}
+              </View>
+            );
+          }) : (
+            <View style={[inputStyle, { gap: 6 }]}>
+              <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>Sin conversaciones para este estado</Text>
+              <Text style={bodyTextStyle}>Cambia el estado de reserva o abre una reserva y entra a Chat para iniciar una conversacion vinculada al servicio.</Text>
+            </View>
+          )}
         </View>
       </View>
     </View>
   );
 }
-

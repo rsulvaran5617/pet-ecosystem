@@ -558,6 +558,7 @@ export function PetsWorkspace({
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
+  const manualContextChangeRef = useRef(false);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
@@ -582,14 +583,20 @@ export function PetsWorkspace({
 
   useEffect(() => {
     const lastReportedContext = lastReportedContextRef.current;
+    const contextPetExists = contextPetId ? pets.some((pet) => pet.id === contextPetId) : false;
+
+    if (contextPetExists && selectedPetId !== contextPetId && !manualContextChangeRef.current) {
+      return;
+    }
 
     if (lastReportedContext.householdId === selectedHouseholdId && lastReportedContext.petId === selectedPetId) {
       return;
     }
 
+    manualContextChangeRef.current = false;
     lastReportedContextRef.current = { householdId: selectedHouseholdId, petId: selectedPetId };
     onContextChangeRef.current?.({ householdId: selectedHouseholdId, petId: selectedPetId });
-  }, [selectedHouseholdId, selectedPetId]);
+  }, [contextPetId, pets, selectedHouseholdId, selectedPetId]);
 
   useEffect(() => {
     if (!enabled || !contextPetId || !pets.some((pet) => pet.id === contextPetId)) {
@@ -646,8 +653,13 @@ export function PetsWorkspace({
     onPanelChange?.("detalle");
   };
 
+  const selectActivePet = async (petId: Uuid) => {
+    manualContextChangeRef.current = true;
+    await selectPet(petId);
+  };
+
   const openPetDetail = (petId: Uuid) => {
-    void selectPet(petId);
+    void selectActivePet(petId);
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
@@ -679,7 +691,7 @@ export function PetsWorkspace({
     ).then(async () => {
       setPetMemoryConfirmationId(null);
       await refresh();
-      await selectPet(petId);
+      await selectActivePet(petId);
     });
   };
   const uploadPetAvatar = (petId: Uuid) => {
@@ -714,7 +726,7 @@ export function PetsWorkspace({
         false
       ).then(async () => {
         await refresh();
-        await selectPet(petId);
+        await selectActivePet(petId);
       });
     });
   };
@@ -856,7 +868,10 @@ export function PetsWorkspace({
               {householdSnapshot.households.map((household) => (
                 <Pressable
                   key={household.id}
-                  onPress={() => void selectHousehold(household.id)}
+                  onPress={() => {
+                    manualContextChangeRef.current = true;
+                    void selectHousehold(household.id);
+                  }}
                   style={{
                     borderRadius: 999,
                     backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.78)",
@@ -976,7 +991,7 @@ export function PetsWorkspace({
                             setPetForm(emptyPetForm);
                             setIsBirthDatePickerOpen(false);
                             await refresh();
-                            await selectPet(pet.id);
+                            await selectActivePet(pet.id);
                             setPetView("detalle");
                           });
                           return;
@@ -994,7 +1009,7 @@ export function PetsWorkspace({
                           setPetForm(emptyPetForm);
                           setIsBirthDatePickerOpen(false);
                           await refresh();
-                          await selectPet(pet.id);
+                          await selectActivePet(pet.id);
                           setPetView("detalle");
                         });
                       }}
@@ -1546,7 +1561,7 @@ export function PetsWorkspace({
                             setDocumentForm(emptyDocumentForm);
                             setIsDocumentFormOpen(false);
                             await refresh();
-                            await selectPet(selectedPetDetail.pet.id);
+                            await selectActivePet(selectedPetDetail.pet.id);
                           });
                         }}
                       />

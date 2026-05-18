@@ -1,6 +1,6 @@
 "use client";
 
-import { supportCaseStatusLabels, supportCaseStatusOrder } from "@pet/config";
+import { formatDateTimeLabel, supportCaseStatusLabels, supportCaseStatusOrder } from "@pet/config";
 import type { SupportCaseStatus } from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 
@@ -25,10 +25,7 @@ const inputStyle = {
 } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatDateTimeLabel(value);
 }
 
 function getStatusTone(status: SupportCaseStatus) {

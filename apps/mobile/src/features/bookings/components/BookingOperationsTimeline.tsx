@@ -1,7 +1,8 @@
+import { formatDateTimeLabel } from "@pet/config";
 import type { BookingOperationType, BookingOperationsTimeline as BookingOperationsTimelineData, BookingStatus, Uuid } from "@pet/types";
 import * as DocumentPicker from "expo-document-picker";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -275,10 +276,7 @@ function ArrowActionIcon({ color = "#64748b", size = 14 }: { color?: string; siz
 }
 
 function formatExpiryLabel(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "short",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatDateTimeLabel(value);
 }
 
 function getQrActionLabel(operationType: BookingOperationType) {
@@ -289,12 +287,14 @@ export function BookingOperationsTimeline({
   bookingId,
   bookingStatus,
   context = "provider",
-  enabled = true
+  enabled = true,
+  onOperationChanged
 }: {
   bookingId: Uuid;
   bookingStatus?: BookingStatus;
   context?: "owner" | "provider";
   enabled?: boolean;
+  onOperationChanged?: () => Promise<void> | void;
 }) {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -318,8 +318,9 @@ export function BookingOperationsTimeline({
     uploadEvidence,
     generateOperationQrToken,
     consumeOperationQrToken,
+    clearOperationQrToken,
     clearQrMessages
-  } = useBookingOperations(bookingId, enabled);
+  } = useBookingOperations(bookingId, enabled, onOperationChanged);
 
   if (!enabled) {
     return null;
@@ -398,6 +399,21 @@ export function BookingOperationsTimeline({
     : ownerCanGenerateCheckOutQr
       ? "check_out"
       : null;
+
+  useEffect(() => {
+    if (!operationQrToken) {
+      return;
+    }
+
+    const tokenStepWasCompleted =
+      (operationQrToken.operationType === "check_in" && Boolean(timeline.checkIn)) ||
+      (operationQrToken.operationType === "check_out" && Boolean(timeline.checkOut));
+
+    if (tokenStepWasCompleted) {
+      clearOperationQrToken();
+    }
+  }, [clearOperationQrToken, operationQrToken, timeline.checkIn, timeline.checkOut]);
+
   const ownerQrHelperText =
     ownerQrOperationType === "check_in"
       ? "Muestra este codigo al proveedor para registrar el inicio del servicio."
@@ -752,6 +768,18 @@ export function BookingOperationsTimeline({
             <Text style={{ color: "#64748b", fontSize: 12, lineHeight: 17, textAlign: "center" }}>
               {ownerQrHelperText} No compartas este codigo fuera de esta reserva.
             </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={clearOperationQrToken}
+              style={{
+                ...actionButtonStyle,
+                backgroundColor: "#ffffff",
+                borderColor: "rgba(0,151,143,0.3)",
+                borderWidth: 1
+              }}
+            >
+              <Text style={{ ...actionButtonTextStyle, color: "#0f766e" }}>Cerrar QR</Text>
+            </Pressable>
           </View>
         ) : null}
       </View>

@@ -1,4 +1,4 @@
-﻿import { formatHouseholdPermissions, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { formatHouseholdPermissions, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingSlot,
@@ -567,6 +567,7 @@ export function MarketplaceWorkspace({
         <View style={{ gap: 12 }}>
           {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
 
+          {currentView === "home" ? null : (
           <View style={[cardStyle, { backgroundColor: "#ffffff" }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <View style={{ flex: 1, gap: 3 }}>
@@ -577,12 +578,12 @@ export function MarketplaceWorkspace({
                   {selectedPet ? "Mascota seleccionada" : selectedHousehold ? "Hogar completo" : "Sin contexto activo"}
                 </Text>
               </View>
-              <StatusChip label={currentView === "home" ? "explorar" : currentView} tone="active" />
+              <StatusChip label={currentView} tone="active" />
             </View>
             <View style={{ gap: 8 }}>
               <SectionSelector
                 count={homeSnapshot?.categoryHighlights.length ?? 0}
-                isActive={currentView === "home"}
+                isActive={false}
                 label="Explorar"
                 onPress={() => setCurrentView("home")}
                 subtitle="Categorias y filtros"
@@ -603,46 +604,10 @@ export function MarketplaceWorkspace({
               />
             </View>
           </View>
+          )}
 
           {currentView === "home" ? (
             <>
-              <View style={cardStyle}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Contexto</Text>
-                <StatusChip label={selectedPet ? "mascota seleccionada" : "hogar completo"} tone="neutral" />
-                {householdSnapshot?.households.length ? (
-                  <>
-                    {householdSnapshot.households.map((household) => (
-                      <Pressable
-                        key={household.id}
-                        onPress={() => void selectHousehold(household.id)}
-                        style={[
-                          inputStyle,
-                          {
-                            backgroundColor:
-                              household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8"
-                          }
-                        ]}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>{household.name}</Text>
-                        <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
-                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
-                        </Text>
-                      </Pressable>
-                    ))}
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      <Button label="Todas las mascotas" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
-                      {pets.map((pet) => (
-                        <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
-                      ))}
-                    </View>
-                  </>
-                ) : (
-                  <Text style={{ color: colorTokens.muted }}>
-                    Puedes explorar proveedores antes de completar hogar y mascotas.
-                  </Text>
-                )}
-              </View>
-
               <View style={cardStyle}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                   <View style={{ flex: 1, gap: 2 }}>
@@ -806,6 +771,43 @@ export function MarketplaceWorkspace({
                   </View>
                 ) : null}
                 <Button disabled={isLoading} label="Buscar proveedores" onPress={() => void runSearch()} />
+              </View>
+
+              <View style={cardStyle}>
+                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Contexto</Text>
+                <StatusChip label={selectedPet ? "mascota seleccionada" : "hogar completo"} tone="neutral" />
+                {householdSnapshot?.households.length ? (
+                  <>
+                    {householdSnapshot.households.map((household) => (
+                      <Pressable
+                        key={household.id}
+                        onPress={() => void selectHousehold(household.id)}
+                        style={[
+                          inputStyle,
+                          {
+                            backgroundColor:
+                              household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8"
+                          }
+                        ]}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>{household.name}</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
+                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      <Button label="Todas las mascotas" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+                      {pets.map((pet) => (
+                        <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <Text style={{ color: colorTokens.muted }}>
+                    Puedes explorar proveedores antes de completar hogar y mascotas.
+                  </Text>
+                )}
               </View>
 
               <View style={cardStyle}>

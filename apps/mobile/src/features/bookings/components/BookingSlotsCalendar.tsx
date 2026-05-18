@@ -1,3 +1,4 @@
+import { formatShortTimeLabel } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { BookingSlot } from "@pet/types";
 import { useMemo } from "react";
@@ -35,10 +36,7 @@ const slotCardStyle = {
 } as const;
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(new Date(value));
+  return formatShortTimeLabel(value);
 }
 
 function getSlotLabel(slot: BookingSlot) {

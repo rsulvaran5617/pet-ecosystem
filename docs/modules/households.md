@@ -26,6 +26,8 @@ Permitir que varias personas compartan el cuidado de una o mas mascotas a traves
 
 ## Reglas
 - un hogar debe tener al menos un admin
+- un owner nuevo debe crear o aceptar un hogar antes de registrar la primera mascota
+- la app mobile debe priorizar la creacion de hogar/familia cuando el owner autenticado no tiene hogares disponibles
 - los permisos minimos son:
   - `view`
   - `edit`

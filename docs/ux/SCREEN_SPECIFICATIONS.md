@@ -22,6 +22,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - verificacion OTP manual
 - login
 - recovery
+- pantalla de acceso mobile ordenada por pestañas: login por defecto, registro, OTP y recuperación ocultos hasta seleccionarlos
+- pantalla sin sesion enfocada solo en autenticacion; marketplace, contexto de hogar y proveedores quedan ocultos hasta iniciar sesion
+- login exitoso sin aviso global persistente; los mensajes visibles quedan para errores, verificacion, recuperacion y cierre de sesion
+- registro mobile pasa a verificación OTP después de crear cuenta y permite solicitar reenvío controlado del código
 - perfil
 - preferencias
 - direcciones
@@ -32,6 +36,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - snapshot de hogares
 - miembros
 - invitaciones
+- compuerta owner post-login: si no existe hogar/familia, crear hogar aparece antes de Inicio/Mascotas
 
 ### Pets
 - lista de mascotas
@@ -65,12 +70,16 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - historial
 - detalle
 - cancelacion
+- requery controlado al entrar a Reservas y despues de mutaciones criticas para reflejar estados recientes sin Realtime
+- owner reservas: la vista de historial abre por defecto en reservas Activas para reducir ruido visual; "Todas" queda disponible como filtro secundario de consulta historica
 - V2 owner booking QR: en detalle de reserva confirmada, accion para mostrar QR temporal de check-in y luego check-out
 - V2 booking capacity: seleccion de slot/cupo antes de crear booking; slots como tarjetas por dia con cupos disponibles
 
 ### Messaging
 - inbox
 - detalle de chat
+- requery de hilos al entrar desde el menu para evitar estados de reserva obsoletos
+- polling silencioso en conversacion abierta para recibir mensajes nuevos de otro dispositivo sin Realtime
 
 ### Reviews
 - dejar review
@@ -94,6 +103,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - detalle operativo del booking con acciones `approve`, `reject` y `complete`
 - V2 provider booking operations: scanner QR en detalle de reserva confirmada para check-in/check-out; botones manuales quedan fallback piloto
 - provider reservas: los contadores Pendientes, Confirmadas, Completadas y Canceladas actuan como filtros tactiles; el detalle de una reserva se muestra como acordeon debajo de la card seleccionada
+- owner mensajes: bandeja tipo correo con hilos de reserva ordenados por actividad reciente, cabeceras compactas y detalle desplegable por acordeon; el filtro queda simplificado a un dropdown de estado de reserva
+- owner mascotas: la mascota seleccionada se conserva como contexto activo al navegar por el menu inferior y se rehidrata al volver a Mascotas, Salud, Documentos o Recordatorios
 - provider negocio: la ubicacion publica puede heredar coordenadas aproximadas desde ciudad/zona soportada sin solicitar GPS ni publicar direccion privada.
 - V2 booking capacity: provider configura capacidad por franja asociada a servicio
 

@@ -1,4 +1,4 @@
-﻿import { bookingStatusLabels } from "@pet/config";
+﻿import { bookingStatusLabels, formatDateTimeLabel } from "@pet/config";
 import { colorTokens } from "@pet/ui";
 import type { ReviewRating, Uuid } from "@pet/types";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -19,10 +19,7 @@ const inputStyle = {
 const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 } as const;
 
 function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
+  return formatDateTimeLabel(value);
 }
 
 function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {

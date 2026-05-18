@@ -69,16 +69,19 @@ Usuario interno que revisa proveedores pendientes, aprueba/rechaza y gestiona so
 
 1. Instalar la APK de piloto.
 2. Abrir la app.
-3. Seleccionar `Crear cuenta`.
-4. Completar email, contrasena, nombre y apellido.
-5. Seleccionar rol inicial:
+3. En la pantalla de acceso, la app muestra `Entrar` por defecto.
+4. Seleccionar la pestaña `Crear`.
+5. Completar email, contrasena, nombre y apellido.
+6. Seleccionar rol inicial:
    - propietario: `Propietario de mascota`;
    - proveedor: `Proveedor`.
-6. Crear cuenta.
-7. Revisar correo y completar verificacion si Supabase lo solicita.
-8. Iniciar sesion con email y contrasena.
-9. Completar perfil desde Cuenta.
-10. Confirmar que el rol activo corresponde al flujo asignado.
+7. Crear cuenta.
+8. Revisar correo y completar verificacion en la pestaña `OTP` si Supabase lo solicita.
+9. Usar `Reenviar codigo` solo una vez si no llega el correo, para evitar limite de envio.
+10. Volver a `Entrar` e iniciar sesion con email y contrasena.
+11. Completar perfil desde Cuenta.
+12. Si el usuario es propietario y no tiene familia, crear primero el hogar/familia solicitado por la app.
+13. Confirmar que el rol activo corresponde al flujo asignado.
 
 Nota operativa: para este piloto, crear cada usuario con su rol correcto desde el inicio. No depender de cambio/agregado de rol posterior.
 
@@ -117,7 +120,7 @@ Checklist por propietario:
 2. Registrarse como `Propietario de mascota`.
 3. Iniciar sesion.
 4. Completar perfil personal.
-5. Crear hogar.
+5. Crear hogar/familia si la app lo solicita al entrar.
 6. Crear mascota activa.
 7. Subir avatar/foto de mascota si aplica.
 8. Entrar a `Buscar`.

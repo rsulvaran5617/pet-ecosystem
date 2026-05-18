@@ -53,7 +53,11 @@ function getEvidenceUploadErrorMessage(error: unknown) {
   return `No se pudo cargar la evidencia documental. Detalle tecnico: ${message}`;
 }
 
-export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = true): UseBookingOperationsResult {
+export function useBookingOperations(
+  bookingId: Uuid | null,
+  enabled: boolean = true,
+  onOperationChanged?: () => Promise<void> | void
+): UseBookingOperationsResult {
   const [timeline, setTimeline] = useState<BookingOperationsTimeline | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmittingCheckIn, setIsSubmittingCheckIn] = useState(false);
@@ -95,6 +99,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
       const client = getMobileBookingOperationsApiClient();
       await client.createCheckIn(bookingId, {});
       await refresh();
+      await onOperationChanged?.();
     } catch {
       setActionErrorMessage(
         "No se pudo registrar el check-in. Verifica que la reserva este confirmada y que tu usuario tenga permisos de proveedor."
@@ -114,6 +119,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
       const client = getMobileBookingOperationsApiClient();
       await client.createCheckOut(bookingId);
       await refresh();
+      await onOperationChanged?.();
     } catch {
       setActionErrorMessage(
         "No se pudo registrar el check-out. Verifica que la reserva tenga check-in y que tu usuario tenga permisos de proveedor."
@@ -133,6 +139,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
       const client = getMobileBookingOperationsApiClient();
       const evidence = await client.uploadEvidence(bookingId, input);
       await refresh();
+      await onOperationChanged?.();
       return evidence;
     } catch (error) {
       setActionErrorMessage(getEvidenceUploadErrorMessage(error));
@@ -173,6 +180,7 @@ export function useBookingOperations(bookingId: Uuid | null, enabled: boolean = 
       const client = getMobileBookingOperationsApiClient();
       await client.consumeBookingOperationToken(rawToken);
       await refresh();
+      await onOperationChanged?.();
       setQrSuccessMessage("Operacion registrada correctamente.");
       return true;
     } catch {

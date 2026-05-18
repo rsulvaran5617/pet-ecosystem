@@ -161,9 +161,39 @@ export function useMessagingWorkspace(
 
     focusedBookingIdRef.current = focusedBookingId;
     setErrorMessage(null);
-    setInfoMessage("Se solicito el chat de la reserva. Cargando el hilo vinculado.");
+    setInfoMessage(null);
     void refresh(focusedBookingId);
   }, [enabled, focusedBookingId, focusVersion]);
+
+  useEffect(() => {
+    if (!enabled || focusedBookingId || focusVersion === 0) {
+      return;
+    }
+
+    focusedBookingIdRef.current = null;
+    setErrorMessage(null);
+    void refresh(null);
+  }, [enabled, focusedBookingId, focusVersion]);
+
+  useEffect(() => {
+    if (!enabled || !selectedThreadId) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      const threadId = selectedThreadIdRef.current;
+
+      if (!threadId) {
+        return;
+      }
+
+      void loadThreadDetail(threadId).catch(() => {
+        // El polling es silencioso para no interrumpir la escritura del usuario.
+      });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [enabled, selectedThreadId]);
 
   return {
     threads,
@@ -187,7 +217,7 @@ export function useMessagingWorkspace(
         focusedBookingIdRef.current = detail.thread.bookingId;
 
         if (mountedRef.current) {
-          setInfoMessage(`Hilo cargado para ${detail.thread.serviceName}.`);
+          setInfoMessage(null);
         }
       } catch (error) {
         if (mountedRef.current) {

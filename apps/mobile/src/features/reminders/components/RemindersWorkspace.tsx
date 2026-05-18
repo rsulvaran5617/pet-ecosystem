@@ -1,4 +1,4 @@
-import { calendarEventStatusLabels, formatHouseholdPermissions, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
+import { calendarEventStatusLabels, formatDateLabel, formatHouseholdPermissions, productLocale, productTimeZone, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { Reminder, Uuid } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
@@ -57,11 +57,7 @@ function toIsoDate(dateValue: string) {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("es-PA", {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
+  return formatDateLabel(value);
 }
 
 function formatDatePickerLabel(value: string) {
@@ -75,10 +71,11 @@ function formatDatePickerLabel(value: string) {
     return value;
   }
 
-  return date.toLocaleDateString("es-PA", {
+  return date.toLocaleDateString(productLocale, {
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
+    timeZone: productTimeZone
   });
 }
 

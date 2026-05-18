@@ -30,6 +30,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 
 ## Reglas
 - toda mascota pertenece a un `household`
+- el owner no debe ver el registro de mascota como siguiente paso si todavia no tiene hogar/familia creada o aceptada
 - una mascota puede estar `active` o `in_memory`
 - `in_memory` conserva documentos, salud, recordatorios e historial, y evita uso accidental en nuevas reservas
 - un miembro con permiso de hogar `view` puede consultar mascotas y documentos
@@ -39,6 +40,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
+- mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos y recordatorios no pierdan foco al moverse entre opciones del menu inferior
 - no se implementa `pet_timeline` ni `pet_document_shares` en este slice
 
 ## Dependencias minimas

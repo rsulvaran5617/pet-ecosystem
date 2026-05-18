@@ -119,6 +119,10 @@ export interface VerifyOtpInput {
   token: string;
 }
 
+export interface ResendVerificationInput {
+  email: string;
+}
+
 export interface RecoverAccessInput {
   email: string;
   redirectTo?: string;

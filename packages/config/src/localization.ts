@@ -1,5 +1,6 @@
 export const productLanguage = "es" as const;
 export const productLocale = "es-PA";
+export const productTimeZone = "America/Panama";
 
 export function formatCurrencyAmount(priceCents: number, currencyCode: string) {
   return new Intl.NumberFormat(productLocale, {
@@ -11,12 +12,30 @@ export function formatCurrencyAmount(priceCents: number, currencyCode: string) {
 export function formatDateTimeLabel(value: string) {
   return new Intl.DateTimeFormat(productLocale, {
     dateStyle: "medium",
-    timeStyle: "short"
+    timeStyle: "short",
+    timeZone: productTimeZone
   }).format(new Date(value));
 }
 
 export function formatDateLabel(value: string) {
   return new Intl.DateTimeFormat(productLocale, {
-    dateStyle: "medium"
+    dateStyle: "medium",
+    timeZone: productTimeZone
+  }).format(new Date(value));
+}
+
+export function formatShortDateLabel(value: string) {
+  return new Intl.DateTimeFormat(productLocale, {
+    day: "numeric",
+    month: "short",
+    timeZone: productTimeZone
+  }).format(new Date(value));
+}
+
+export function formatShortTimeLabel(value: string) {
+  return new Intl.DateTimeFormat(productLocale, {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: productTimeZone
   }).format(new Date(value));
 }

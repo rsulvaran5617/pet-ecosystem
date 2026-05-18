@@ -1,4 +1,4 @@
-import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
+import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { BookingStatus, MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
@@ -85,8 +85,8 @@ type BookingWorkspaceView = "historial" | "servicio" | "mascota" | "horario" | "
 type BookingStatusFilter = "all" | "active" | BookingStatus;
 
 const bookingStatusFilters: Array<{ id: BookingStatusFilter; label: string }> = [
-  { id: "all", label: "Todas" },
   { id: "active", label: "Activas" },
+  { id: "all", label: "Todas" },
   { id: "pending_approval", label: "Pendientes" },
   { id: "confirmed", label: "Confirmadas" },
   { id: "completed", label: "Completadas" },
@@ -213,17 +213,19 @@ function formatSlotCancellationDeadline(slotStartAt: string, cancellationWindowH
 }
 
 function formatReservationDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat(productLocale, {
     weekday: "long",
     day: "numeric",
-    month: "long"
+    month: "long",
+    timeZone: productTimeZone
   }).format(new Date(value));
 }
 
 function formatReservationTime(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
+  return new Intl.DateTimeFormat(productLocale, {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
+    timeZone: productTimeZone
   }).format(new Date(value));
 }
 
@@ -287,12 +289,13 @@ export function BookingsWorkspace({
     buildPreview,
     createBooking,
     openBookingDetail,
-    cancelBooking
+    cancelBooking,
+    refresh
   } = useBookingsWorkspace(enabled, marketplaceSelection);
 
   const selectedBookingId = selectedBookingDetail?.booking.id ?? null;
   const [bookingView, setBookingView] = useState<BookingWorkspaceView>(marketplaceSelection ? "servicio" : "historial");
-  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>("all");
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>("active");
   const filteredBookings =
     bookingStatusFilter === "all"
       ? bookings
@@ -785,6 +788,10 @@ export function BookingsWorkspace({
                 bookingStatus={selectedBookingDetail.booking.status}
                 context="owner"
                 enabled={selectedBookingDetail.booking.status === "confirmed" || selectedBookingDetail.booking.status === "completed"}
+                onOperationChanged={async () => {
+                  await refresh();
+                  await openBookingDetail(selectedBookingDetail.booking.id);
+                }}
               />
               {activePanel !== "detalle" ? (
                 <View style={inputStyle}>

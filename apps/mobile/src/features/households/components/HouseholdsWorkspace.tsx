@@ -119,7 +119,7 @@ function togglePermission(currentPermissions: HouseholdPermission[], permission:
   return currentPermissions.filter((value) => value !== permission);
 }
 
-export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
+export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: boolean; onHouseholdCreated?: () => void | Promise<void> }) {
   const {
     snapshot,
     selectedHouseholdId,
@@ -177,8 +177,9 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     name: createHouseholdName.trim()
                   }),
                 "Hogar creado."
-              ).then(() => {
+              ).then(async () => {
                 setCreateHouseholdName("");
+                await onHouseholdCreated?.();
               });
             }}
           />

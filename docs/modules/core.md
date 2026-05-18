@@ -42,6 +42,10 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - los metodos de pago guardados pertenecen al usuario
 - verificacion y recuperacion se apoyan en Supabase Auth
 - la verificacion manual por OTP usa el codigo de email de Supabase Auth y `POST /auth/verify-otp` lo valida con `email + token`
+- el acceso mobile debe presentar login por defecto y mantener registro, verificacion OTP y recuperacion como paneles separados para evitar confusion y solicitudes repetidas de correo
+- la pantalla mobile sin sesion debe comportarse como flujo de autenticacion puro; no debe renderizar marketplace, contexto de hogar, proveedores ni modulos que requieran usuario autenticado
+- el login exitoso no debe mostrar un aviso global persistente; la app debe llevar al usuario directamente a su contexto y reservar mensajes visibles para errores o acciones que requieran atencion
+- el reenvio de OTP de registro usa Supabase Auth `resend` y debe mostrarse como accion controlada para evitar `email rate limit exceeded`
 - la recuperacion incluye solicitud de email y actualizacion de password dentro de la sesion recovery de Supabase Auth
 - `public.profiles` se sincroniza desde `auth.users` mediante trigger y backfill en base de datos
 - la orquestacion de cobro real queda para `bookings` y `payments`
@@ -50,6 +54,7 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/verify-otp`
+- `POST /auth/resend-verification`
 - `POST /auth/recover-access`
 - `POST /auth/recover-access/complete`
 - `POST /auth/refresh`

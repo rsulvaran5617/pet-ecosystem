@@ -18,6 +18,14 @@ import { createClient } from "@supabase/supabase-js";
 import "react-native-url-polyfill/auto";
 import { AppState } from "react-native";
 
+declare const process:
+  {
+    env: {
+      EXPO_PUBLIC_SUPABASE_URL?: string;
+      EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
+    };
+  };
+
 let mobileSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 let mobileCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
 let mobileBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null = null;
@@ -34,12 +42,18 @@ let mobileProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null
 let authRefreshBound = false;
 const mobileAppScheme = "petecosystem";
 const mobileRecoveryRedirectUrl = `${mobileAppScheme}://auth/recovery`;
+const embeddedEnv = {
+  EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+};
 
 function getEnvValue(name: "EXPO_PUBLIC_SUPABASE_URL" | "EXPO_PUBLIC_SUPABASE_ANON_KEY") {
   const processEnv = (globalThis as typeof globalThis & { process?: { env?: Record<string, string | undefined> } }).process
     ?.env;
   const value =
-    name === "EXPO_PUBLIC_SUPABASE_URL" ? processEnv?.EXPO_PUBLIC_SUPABASE_URL : processEnv?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    name === "EXPO_PUBLIC_SUPABASE_URL"
+      ? embeddedEnv.EXPO_PUBLIC_SUPABASE_URL ?? processEnv?.EXPO_PUBLIC_SUPABASE_URL
+      : embeddedEnv.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? processEnv?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!value) {
     throw new Error(`Falta la variable de entorno requerida: ${name}`);

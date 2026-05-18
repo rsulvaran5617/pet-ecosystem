@@ -35,6 +35,7 @@
 - `controlled_avatar_media` -> `partial`
 - `pet_memory_status` -> `partial`
 - `geo_marketplace_v2` -> `partial`
+- `pilot_mobile_qa_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
 - `pharmacy` -> `not_started`
@@ -62,6 +63,8 @@
 - Geo marketplace V2: Geo-0 prepara modelo tecnico/documental con `provider_public_locations`, PostGIS, precision publica controlada y contratos tipados. Geo-1 agrega UI provider minima en `Negocio` para capturar/editar ubicacion publica manual, precision y visibilidad. Geo-2 muestra ubicacion publica en marketplace owner y calcula distancia aproximada solo si llegan coordenadas de origen opcionales. Geo-3 agrega selector de origen controlado con zonas aproximadas; direcciones guardadas quedan diferidas hasta exponer coordenadas en contrato. Geo-4 agrega preview de mapa en mobile owner con MapLibre, pins de proveedores publicos usando la ubicacion exacta publicada por el proveedor y fallback de lista. No pide permisos de ubicacion ni tracking.
 - Baseline `v0.3.0-booking-capacity-ops.1` queda aprobado para piloto controlado sobre `master` en `a677f7b`; readiness documentado en `docs/delivery/V0_3_0_PILOT_READINESS.md`.
 - Piloto controlado real: runbook operativo creado en `docs/delivery/PILOT_CONTROLLED_RUNBOOK.md` y guia SQL no destructiva en `docs/delivery/PILOT_DATA_PREPARATION.sql` para preparar 3 proveedores, 3 propietarios y 1 admin sin borrar historicos ni ejecutar migraciones.
+- Cierre QA mobile pre-piloto: autenticacion mobile ordenada, compuerta de hogar post-login, saludo owner con nombre real, contexto de mascota persistente en navegacion inferior, mensajes tipo bandeja/acordeon, reservas owner filtradas por Activas, QR owner cerrable/auto-limpiable tras check-in/check-out, requery controlado sin Realtime y guias de APK/quick-start para owners, providers y admin.
+- APK local de piloto actualizado: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-android-release.apk`, SHA256 `2F2B9F0A638723783900328EEBDC0A416068567B53BE6A670550BF6FD79442A7`. La distribucion sigue siendo manual por enlace privado; no se subio a servicios externos desde el agente.
 - Visual alignment reference canon: fase visual controlada iniciada sobre las referencias en `docs/ux/reference/`. Se deriva guia minima en `docs/ux/VISUAL_STYLE_GUIDE.md` y se alinean tokens, cards, chips, botones, navegacion mobile y shell/admin cards sin cambiar logica funcional, backend, DB, contratos API ni reglas de negocio.
 - quedan pendientes externos/no bloqueantes de evidencia o ampliacion de cobertura fuera del criterio de salida MVP
 - el baseline esta alineado para piloto controlado, no para produccion comercial
@@ -73,9 +76,9 @@
 - baseline localizado actual publicado en `v0.1.0-mvp-baseline-es.1` sobre `6e984eb`
 - piloto controlado: `aprobado`
 - fase UX por rol: `cerrada`
-- fase actual del proyecto: `hardening tecnico/operativo del piloto cerrado`; siguiente frente elegible `Payments MVP+` si se decide abrir nuevo alcance funcional
+- fase actual del proyecto: `QA mobile pre-piloto cerrado`; siguiente paso recomendado es smoke operativo con 3 proveedores, 3 propietarios y 1 admin antes de abrir nuevo alcance funcional
 - baseline operativo actual: `v0.3.0-booking-capacity-ops.1`, aprobado para piloto controlado; no abrir Payments hasta cerrar el paquete operativo de piloto.
 - checklist visual/manual: `docs/delivery/PILOT_VISUAL_QA_CHECKLIST.md`
-- HEAD operativo publicado antes del handoff actual: `cfc70b7`
+- HEAD operativo publicado antes del handoff actual: `b978d3a`
 - pendientes restantes: `no bloqueantes`; evidencia visual final si se requiere paquete auditable y pendientes externos de entorno
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare

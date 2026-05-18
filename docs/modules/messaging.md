@@ -35,6 +35,10 @@ Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una
   - el owner de la organizacion proveedora del booking
 - no se habilitan conversaciones fuera del scope autorizado de la reserva
 - el inbox y el detalle deben poder resolverse sin exponer datos privados fuera de ese scope
+- al abrir Mensajes desde el menu mobile, el cliente debe reconsultar hilos para reflejar cambios recientes del booking asociado sin requerir Supabase Realtime
+- mientras una conversacion esta abierta, mobile usa polling silencioso del detalle del hilo para mostrar mensajes enviados desde otro dispositivo sin obligar al usuario a salir y volver a entrar
+- owner mobile presenta la bandeja como una lista tipo correo: hilos ordenados de mas reciente a mas antiguo, cabecera compacta con fecha corta, negocio, mascota, servicio y preview; el detalle se despliega como acordeon dentro de la misma lista
+- el filtro visible de la bandeja owner se reduce a un selector compacto por estado de reserva, con Activas como vista inicial
 
 ## APIs relacionadas
 - `GET /chats`

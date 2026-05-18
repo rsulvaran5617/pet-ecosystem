@@ -10,6 +10,7 @@ import type {
   OnboardingTask,
   RecoverAccessInput,
   RecoverySummary,
+  ResendVerificationInput,
   RegisterInput,
   SwitchRoleInput,
   UpdatePreferencesInput,
@@ -41,6 +42,7 @@ export interface CoreApiClient {
   login(input: LoginInput): Promise<AuthResult>;
   logout(): Promise<void>;
   verifyOtp(input: VerifyOtpInput): Promise<VerificationSummary>;
+  resendVerification(input: ResendVerificationInput): Promise<VerificationSummary>;
   recoverAccess(input: RecoverAccessInput): Promise<RecoverySummary>;
   completeRecovery(input: CompleteRecoveryInput): Promise<void>;
   updateProfile(input: UpdateProfileInput): Promise<UserProfile>;
@@ -501,6 +503,23 @@ export function createCoreApiClient(supabase: CoreSupabaseClient): CoreApiClient
         status: "verified",
         maskedDestination: maskEmail(input.email),
         lastSentAt: verifiedUser?.email_confirmed_at ?? new Date().toISOString()
+      };
+    },
+    async resendVerification(input) {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: input.email
+      });
+
+      if (error) {
+        fail(error, "Unable to resend the registration code.");
+      }
+
+      return {
+        channel: "email",
+        status: "pending",
+        maskedDestination: maskEmail(input.email),
+        lastSentAt: new Date().toISOString()
       };
     },
     async recoverAccess(input) {

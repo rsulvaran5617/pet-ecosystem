@@ -85,6 +85,7 @@ Reglas del QR:
 - el token es single-use, expira en ventana corta y puede revocarse
 - provider externo no puede consumir tokens de otra organizacion
 - evidencia operacional no reemplaza el QR como prueba principal de presencia; documenta actividad posterior a check-in/check-out
+- owner mobile debe limpiar el QR temporal visible cuando el timeline confirme que el paso asociado ya fue consumido, para permitir avanzar claramente de check-in a check-out
 
 ## Modelo V2 Booking Capacity / booking slots
 
@@ -178,6 +179,8 @@ Riesgos:
 - internal notes no deben exponerse al owner
 - evidencia debe guardar metadata relacional y archivo en storage con politicas acordes a booking/provider/admin; mientras el esquema remoto conserve `file_url not null`, el cliente escribe `file_url = storage_path` como compatibilidad privada, no como URL publica
 - historial y detalle deben mantenerse visibles para miembros autorizados del hogar y para el provider owner involucrado
+- despues de mutaciones criticas de reserva u operaciones (`approve`, `reject`, `complete`, cancelacion, check-in/check-out QR/manual y evidencia), mobile debe ejecutar requery controlado de lista/detalle/timeline sin depender de Realtime
+- al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto
 
 ## Dependencias
 - core
