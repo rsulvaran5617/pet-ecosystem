@@ -108,6 +108,9 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Timezone/display queda centralizado con `productLocale` / `productTimeZone` para fechas visibles en mobile/admin.
 - Owner `Buscar` queda con campo de busqueda primero y filtros visuales mas compactos.
 - Owner `Buscar` incorpora un slice UX de marketplace: buscador superior con accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultados con avatar/ubicacion/CTA. No cambia backend, Supabase, contratos API ni flujo de reservas.
+- Handoff Buscar -> Reservas ajustado: cuando Buscar entrega un slot seleccionado, Reservas conserva proveedor/servicio/slot y abre directamente en mascota o metodo de pago segun falte contexto; Marketplace sigue sin crear reservas ni consumir cupos.
+- Owner `Reservas` incorpora stepper visual Servicio -> Mascota -> Horario -> Resumen -> Confirmar. Es capa UX solamente; no cambia backend, capacity, preview ni confirmacion.
+- Owner `Reservas` preview queda redisenado como ticket compacto para validacion final: conserva el mismo preview/confirmacion y mantiene payment-ready sin cobro real.
 - Owner `Reservas` abre por defecto en `Activas`; el QR operacional temporal se limpia cuando el timeline confirma check-in/check-out y tambien puede cerrarse manualmente.
 - Owner `Mensajes` queda como bandeja tipo correo: lista de hilos por reserva, orden reciente a antiguo, cabecera compacta y detalle en acordeon; filtro reducido a selector por estado de reserva.
 - Owner `Mascotas` conserva el contexto activo de mascota al navegar por el menu inferior y rehidrata la ficha al volver.

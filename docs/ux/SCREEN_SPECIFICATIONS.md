@@ -75,6 +75,9 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - owner reservas: la vista de historial abre por defecto en reservas Activas para reducir ruido visual; "Todas" queda disponible como filtro secundario de consulta historica
 - V2 owner booking QR: en detalle de reserva confirmada, accion para mostrar QR temporal de check-in y luego check-out
 - V2 booking capacity: seleccion de slot/cupo antes de crear booking; slots como tarjetas por dia con cupos disponibles
+- owner Buscar -> Reservas: si el usuario toca `Abrir vista previa de la reserva` con slot elegido, Reservas conserva proveedor/servicio/slot y salta al paso pendiente de mascota/metodo sin consumir cupo.
+- owner Reservas: flujo de preparacion usa stepper horizontal tipo etiquetas con estados completado, activo y pendiente para Servicio, Mascota, Horario, Resumen y Confirmar.
+- owner Reservas preview: mostrar resumen tipo ticket compacto con estado, proveedor/servicio, mascota, horario, precio, metodo y CTA principal `Confirmar reserva`.
 
 ### Messaging
 - inbox

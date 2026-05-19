@@ -1,4 +1,4 @@
-import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
+import { bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { BookingStatus, MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
@@ -6,6 +6,8 @@ import { Pressable, Text, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { BookingOperationsTimeline } from "./BookingOperationsTimeline";
+import { BookingProgressStepper, type BookingProgressStepId } from "./BookingProgressStepper";
+import { BookingPreviewTicket } from "./BookingPreviewTicket";
 import { BookingSlotsCalendar } from "./BookingSlotsCalendar";
 import { useBookingsWorkspace } from "../hooks/useBookingsWorkspace";
 
@@ -103,6 +105,59 @@ function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | 
   }
 
   return "neutral" as const;
+}
+
+function getBookingProgressState({
+  activeSelection,
+  bookingView,
+  preview,
+  selectedBookingDetail,
+  selectedBookingSlot,
+  selectedPetId
+}: {
+  activeSelection: MarketplaceServiceSelection | null;
+  bookingView: BookingWorkspaceView;
+  preview: unknown;
+  selectedBookingDetail: unknown;
+  selectedBookingSlot: unknown;
+  selectedPetId: Uuid | null;
+}) {
+  const completedSteps = new Set<BookingProgressStepId>();
+
+  if (activeSelection || bookingView !== "servicio") {
+    completedSteps.add("service");
+  }
+
+  if (selectedPetId || ["horario", "metodo", "preview", "detalle"].includes(bookingView)) {
+    completedSteps.add("pet");
+  }
+
+  if (selectedBookingSlot || ["metodo", "preview", "detalle"].includes(bookingView)) {
+    completedSteps.add("slot");
+  }
+
+  if (preview || bookingView === "detalle") {
+    completedSteps.add("summary");
+  }
+
+  if (selectedBookingDetail && bookingView === "detalle") {
+    completedSteps.add("confirm");
+  }
+
+  const activeStep: BookingProgressStepId =
+    bookingView === "mascota"
+      ? "pet"
+      : bookingView === "horario"
+        ? "slot"
+        : bookingView === "preview"
+          ? "confirm"
+          : bookingView === "detalle"
+            ? "confirm"
+            : bookingView === "metodo"
+              ? "summary"
+              : "service";
+
+  return { activeStep, completedSteps: Array.from(completedSteps) };
 }
 
 function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boolean; label: string; onPress: () => void; tone?: "primary" | "secondary" }) {
@@ -296,6 +351,7 @@ export function BookingsWorkspace({
   const selectedBookingId = selectedBookingDetail?.booking.id ?? null;
   const [bookingView, setBookingView] = useState<BookingWorkspaceView>(marketplaceSelection ? "servicio" : "historial");
   const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>("active");
+  const [lastCreatedBookingId, setLastCreatedBookingId] = useState<Uuid | null>(null);
   const filteredBookings =
     bookingStatusFilter === "all"
       ? bookings
@@ -309,6 +365,20 @@ export function BookingsWorkspace({
       : filter === "active"
         ? bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed").length
         : bookings.filter((booking) => booking.status === filter).length;
+  const bookingProgressState = getBookingProgressState({
+    activeSelection,
+    bookingView,
+    preview,
+    selectedBookingDetail,
+    selectedBookingSlot,
+    selectedPetId
+  });
+  const isMarketplaceImportInfoMessage = infoMessage?.startsWith("Seleccion de servicio importada desde Servicios.") ?? false;
+  const shouldShowBookingProgress =
+    bookingView !== "historial" &&
+    (Boolean(activeSelection) ||
+      Boolean(preview) ||
+      (bookingView === "detalle" && selectedBookingDetail?.booking.id === lastCreatedBookingId));
 
   useEffect(() => {
     onBookingContextChange?.({ bookingId: selectedBookingId });
@@ -319,7 +389,13 @@ export function BookingsWorkspace({
       return;
     }
 
-    setBookingView(marketplaceSelection.selectedBookingSlot && marketplaceSelection.petId ? "metodo" : "servicio");
+    setBookingView(
+      marketplaceSelection.selectedBookingSlot
+        ? marketplaceSelection.petId
+          ? "metodo"
+          : "mascota"
+        : "servicio"
+    );
     onPanelChange?.("detalle");
   }, [marketplaceSelection?.selectedAt, onPanelChange]);
 
@@ -339,12 +415,14 @@ export function BookingsWorkspace({
   const handleClearSelection = () => {
     clearSelection();
     onClearMarketplaceSelection?.();
+    setLastCreatedBookingId(null);
     showBookingView("historial");
   };
 
   const handleGeneratePreview = async () => {
     try {
       await buildPreview();
+      setLastCreatedBookingId(null);
       showBookingView("preview");
     } catch {
       // El hook ya publica el mensaje de error visible para el usuario.
@@ -353,7 +431,8 @@ export function BookingsWorkspace({
 
   const handleCreateBooking = async () => {
     try {
-      await createBooking();
+      const detail = await createBooking();
+      setLastCreatedBookingId(detail.booking.id);
       onClearMarketplaceSelection?.();
       showBookingView("detalle");
     } catch {
@@ -368,7 +447,7 @@ export function BookingsWorkspace({
   return (
     <View style={{ gap: 14 }}>
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
-      {!errorMessage && infoMessage ? (
+      {!errorMessage && infoMessage && !isMarketplaceImportInfoMessage ? (
         <View style={cardStyle}>
           {bookingView === "detalle" && selectedBookingDetail ? (
             <View style={{ gap: 4 }}>
@@ -433,6 +512,12 @@ export function BookingsWorkspace({
               Elige mascota, horario y confirma solo al final.
             </Text>
           )}
+          {shouldShowBookingProgress ? (
+            <BookingProgressStepper
+              activeStep={bookingProgressState.activeStep}
+              completedSteps={bookingProgressState.completedSteps}
+            />
+          ) : null}
         </View>
         <View style={{ gap: 9 }}>
           {isLoading && !householdSnapshot ? <Text style={bodyTextStyle}>Preparando tus reservas...</Text> : null}
@@ -493,7 +578,11 @@ export function BookingsWorkspace({
               Las reservas nuevas solo muestran mascotas activas. Las mascotas en memoria conservan su historial, pero no se usan para nuevos servicios.
             </Text>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              <Button disabled={!selectedPetId || isSubmitting} label="Elegir horario" onPress={() => showBookingView("horario")} />
+              <Button
+                disabled={!selectedPetId || isSubmitting}
+                label={selectedBookingSlot ? "Continuar" : "Elegir horario"}
+                onPress={() => showBookingView(selectedBookingSlot ? "metodo" : "horario")}
+              />
               <Button disabled={isSubmitting} label="Volver al servicio" onPress={() => showBookingView("servicio")} tone="secondary" />
             </View>
           </View>
@@ -579,74 +668,29 @@ export function BookingsWorkspace({
           ) : null}
 
           {bookingView === "preview" ? (
-          <View style={cardStyle}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-              <Text style={[cardTitleStyle, { flex: 1 }]}>Preview de reserva</Text>
-              <StatusChip label={preview ? bookingStatusLabels[preview.statusOnCreate] : "sin generar"} tone={preview ? getStatusTone(preview.statusOnCreate) : "neutral"} />
-            </View>
+          <View style={{ gap: 8 }}>
             {preview ? (
-              <>
-                <View style={inputStyle}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Proveedor</Text>
-                  <Text style={[bodyTextStyle, { marginTop: 6 }]}>{preview.providerName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Servicio</Text>
-                  <Text style={[bodyTextStyle, { marginTop: 6 }]}>{preview.serviceName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Mascota</Text>
-                  <Text style={[bodyTextStyle, { marginTop: 6 }]}>{preview.petName}</Text>
-                </View>
-                <View style={inputStyle}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Modo</Text>
-                  <Text style={[bodyTextStyle, { marginTop: 6 }]}>{bookingModeLabels[preview.bookingMode]}</Text>
-                </View>
-                {selectedBookingSlot ? (
-                  <View style={inputStyle}>
-                    <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Horario seleccionado</Text>
-                    <Text style={[bodyTextStyle, { marginTop: 6 }]}>
-                      {formatDateTimeLabel(selectedBookingSlot.slotStartAt)} - {formatDateTimeLabel(selectedBookingSlot.slotEndAt)}
-                    </Text>
-                    <Text style={[bodyTextStyle, { marginTop: 6 }]}>
-                      Este cupo se validara de nuevo al crear la reserva.
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={inputStyle}>
-                    <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Inicio</Text>
-                    <Text style={[bodyTextStyle, { marginTop: 6 }]}>{formatDateTimeLabel(preview.scheduledStartAt)}</Text>
-                  </View>
-                )}
-                <View style={inputStyle}>
-                  <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>Precio</Text>
-                  <Text style={[bodyTextStyle, { marginTop: 6 }]}>{formatCurrencyAmount(preview.totalPriceCents, preview.currencyCode)}</Text>
-                </View>
-                <Text style={bodyTextStyle}>
-                  Politica de cancelacion: esta reserva puede cancelarse hasta{" "}
-                  {selectedBookingSlot
+              <BookingPreviewTicket
+                cancellationDeadlineLabel={
+                  selectedBookingSlot
                     ? formatSlotCancellationDeadline(selectedBookingSlot.slotStartAt, preview.cancellationWindowHours)
-                    : formatDateTimeLabel(preview.cancellationDeadlineAt)}{" "}
-                  dentro de la ventana base del proveedor de {preview.cancellationWindowHours} hora(s).
-                </Text>
-                <Text style={bodyTextStyle}>
-                  Metodo de pago: {preview.paymentMethodSummary ? `${preview.paymentMethodSummary.brand.toUpperCase()} ${preview.paymentMethodSummary.last4}` : "Sin metodo de pago guardado vinculado"}
-                </Text>
-                <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-                  <Button
-                    disabled={isSubmitting}
-                    label="Confirmar reserva"
-                    onPress={() => void handleCreateBooking()}
-                  />
-                  <Button disabled={isSubmitting} label="Cambiar horario" onPress={() => showBookingView("horario")} tone="secondary" />
-                  <Button disabled={isSubmitting} label="Cambiar metodo" onPress={() => showBookingView("metodo")} tone="secondary" />
-                  <Button disabled={isSubmitting} label="Volver a historial" onPress={() => showBookingView("historial")} tone="secondary" />
-                </View>
-              </>
+                    : formatDateTimeLabel(preview.cancellationDeadlineAt)
+                }
+                isSubmitting={isSubmitting}
+                onChangePayment={() => showBookingView("metodo")}
+                onChangeSlot={() => showBookingView("horario")}
+                onConfirm={() => void handleCreateBooking()}
+                onGoBack={() => showBookingView("historial")}
+                preview={preview}
+                selectedSlot={selectedBookingSlot}
+              />
             ) : (
-              <Text style={bodyTextStyle}>
-                Genera el preview despues de seleccionar hogar, mascota y metodo de pago opcional. El preview muestra precio y te indica si la reserva es inmediata o queda pendiente de aprobacion; si elegiste horario, el cupo final se valida al crear la reserva.
-              </Text>
+              <View style={cardStyle}>
+                <Text style={cardTitleStyle}>Resumen de reserva</Text>
+                <Text style={bodyTextStyle}>
+                  Genera el preview despues de seleccionar hogar, mascota y metodo de pago opcional. El preview muestra precio y te indica si la reserva queda pendiente de aprobacion.
+                </Text>
+              </View>
             )}
           </View>
           ) : null}
@@ -663,6 +707,7 @@ export function BookingsWorkspace({
                 key={booking.id}
                 onPress={() => {
                   onPanelChange?.("detalle");
+                  setLastCreatedBookingId(null);
                   void openBookingDetail(booking.id).then(() => showBookingView("detalle"));
                 }}
                 style={[inputStyle, { backgroundColor: selectedBookingId === booking.id ? "rgba(15,118,110,0.08)" : "#fffdf8" }]}
