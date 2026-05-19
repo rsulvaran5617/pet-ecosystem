@@ -53,6 +53,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - Geo-3 no expone `user_addresses`: marketplace solo recibe coordenadas de filtro desde zonas controladas y muestra distancia aproximada
 - Geo-4 mapa solo dibuja providers ya visibles para marketplace con `provider_public_locations.is_public = true`; los pins usan la coordenada publica exacta declarada por el proveedor y no exponen direcciones privadas del owner
 - owner Buscar usa un widget compacto: campo principal, categorias rapidas, origen para distancia colapsable y filtros avanzados bajo demanda
+- Owner Buscar puede abrir un modo de busqueda enfocada con sugerencias, busquedas recientes visuales, chips rapidos y panel modal de filtros. Los filtros funcionales siguen siendo los existentes: texto, categoria, ciudad/especie y origen controlado para distancia.
 - marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
 - no hay tracking en tiempo real dentro de Geo-0/Geo-4
 - la seleccion de servicio no crea por si sola el booking

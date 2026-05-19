@@ -107,6 +107,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Owner Home usa nombre real del perfil, no texto quemado.
 - Timezone/display queda centralizado con `productLocale` / `productTimeZone` para fechas visibles en mobile/admin.
 - Owner `Buscar` queda con campo de busqueda primero y filtros visuales mas compactos.
+- Owner `Buscar` incorpora un slice UX de marketplace: buscador superior con accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultados con avatar/ubicacion/CTA. No cambia backend, Supabase, contratos API ni flujo de reservas.
 - Owner `Reservas` abre por defecto en `Activas`; el QR operacional temporal se limpia cuando el timeline confirma check-in/check-out y tambien puede cerrarse manualmente.
 - Owner `Mensajes` queda como bandeja tipo correo: lista de hilos por reserva, orden reciente a antiguo, cabecera compacta y detalle en acordeon; filtro reducido a selector por estado de reserva.
 - Owner `Mascotas` conserva el contexto activo de mascota al navegar por el menu inferior y rehidrata la ficha al volver.
