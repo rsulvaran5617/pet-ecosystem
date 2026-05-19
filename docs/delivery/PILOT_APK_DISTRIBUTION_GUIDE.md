@@ -14,14 +14,14 @@ Distribuir la APK Android de Pet Ecosystem a usuarios piloto mediante enlace pri
 
 | Campo | Valor |
 | --- | --- |
-| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-android-release.apk` |
-| Fecha de preparacion | 2026-05-17 |
+| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk` |
+| Fecha de preparacion | 2026-05-18 |
 | Rama | `master` |
-| Commit | `pendiente: cierre QA mobile pre-piloto` |
-| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile` |
+| Commit | `2be22c3 feat(ui): refine owner marketplace search experience` |
+| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile + Marketplace UX` |
 | Ambiente | Supabase remoto configurado en mobile `.env` |
 | Uso | Piloto controlado, no produccion comercial |
-| SHA256 | `2F2B9F0A638723783900328EEBDC0A416068567B53BE6A670550BF6FD79442A7` |
+| SHA256 | `C4A61EA37D223421DF34FCFCF44E044709C9B7692EAB0974EC0DF03BE1C3D206` |
 
 La app sigue en modo `payment-ready`: no realiza cobros reales.
 
@@ -36,13 +36,13 @@ Subir manualmente el APK a una carpeta privada:
 Estructura recomendada:
 
 ```text
-Pet Ecosystem / Piloto / APK / v0.3.0 / 2026-05-17 /
+Pet Ecosystem / Piloto / APK / v0.3.0 / 2026-05-18 /
 ```
 
 Archivo recomendado:
 
 ```text
-pet-ecosystem-pilot-v0.3.0-android-release.apk
+pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk
 ```
 
 No subir el APK a carpetas publicas, redes sociales, grupos abiertos o enlaces sin control de acceso.
@@ -141,27 +141,25 @@ Si algo falla, envia captura de pantalla y modelo de tu telefono.
 
 ## Comando usado para preparar APK
 
-En Windows, para evitar limites de longitud de ruta con CMake/PNPM, se uso una copia corta local en `C:\pb` con el mismo commit que `master`.
+En Windows, para evitar limites de longitud de ruta con CMake/PNPM, se uso una copia corta local en `C:\p` con el mismo commit que `master`.
 
 ```powershell
-git clone --local "c:\Users\Ramon Sulvaran\pet-ecosystem" C:\pb
-cd C:\pb
-corepack pnpm install --frozen-lockfile
-cd C:\pb\apps\mobile\android
-$env:NODE_ENV="production"
-.\gradlew.bat :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --max-workers=2
+git clone --local "c:\Users\Ramon Sulvaran\pet-ecosystem" C:\p
+cd C:\p
+corepack pnpm install --frozen-lockfile --shamefully-hoist --force
+& C:\p\apps\mobile\android\gradlew.bat -p C:\p\apps\mobile\android app:assembleRelease -x lint -x test --configure-on-demand --build-cache
 ```
 
 Despues se copio:
 
 ```text
-C:\pb\apps\mobile\android\app\build\outputs\apk\release\app-release.apk
+C:\p\apps\mobile\android\app\build\outputs\apk\release\app-release.apk
 ```
 
 a:
 
 ```text
-dist/pilot/android/pet-ecosystem-pilot-v0.3.0-android-release.apk
+dist/pilot/android/pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk
 ```
 
 ## Verificacion local del APK

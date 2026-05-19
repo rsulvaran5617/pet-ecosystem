@@ -113,7 +113,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Owner `Mascotas` conserva el contexto activo de mascota al navegar por el menu inferior y rehidrata la ficha al volver.
 - Provider/reservas y admin/soporte refrescan estados con requery controlado sin abrir Supabase Realtime.
 - Se crean guias rapidas de piloto para owner, provider y admin, mas guia de distribucion APK privada.
-- APK release de prueba instalado localmente en Xiaomi `85975329`; ultimo artefacto local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-android-release.apk`, SHA256 `2F2B9F0A638723783900328EEBDC0A416068567B53BE6A670550BF6FD79442A7`.
+- APK release de prueba actualizado para validar Marketplace UX en piloto: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk`, SHA256 `C4A61EA37D223421DF34FCFCF44E044709C9B7692EAB0974EC0DF03BE1C3D206`.
 - No se ejecutaron migraciones ni `supabase db push`; no se tocaron Payments, geolocalizacion avanzada, mapa funcional adicional, QR backend, booking capacity backend ni evidencia backend.
 
 ## Ajustes QA visual de Cuenta provider
