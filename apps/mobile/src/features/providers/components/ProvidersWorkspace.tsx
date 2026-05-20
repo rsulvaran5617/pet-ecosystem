@@ -25,7 +25,7 @@ import type {
   Uuid
 } from "@pet/types";
 import { useEffect, useMemo, useRef, useState, type Ref } from "react";
-import { Image, Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -959,18 +959,105 @@ export function ProvidersWorkspace({
             ) : null}
 
             {showHome ? (
-              <View style={{ borderRadius: 18, backgroundColor: colorTokens.surface, padding: 14, gap: 12, ...visualTokens.mobile.softShadow }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+              <>
+                {organizations.length ? (
+                  <View style={{ borderRadius: 18, backgroundColor: colorTokens.surface, padding: 12, gap: 10, ...visualTokens.mobile.softShadow }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", lineHeight: 16 }}>Tus negocios</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>
+                          Selecciona el negocio operativo.
+                        </Text>
+                      </View>
+                      <StatusChip label={`${organizations.length} total`} tone="neutral" />
+                    </View>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+                    >
+                      {organizations.map((organization) => {
+                        const isSelected = organization.id === selectedOrganizationId;
+                        const avatarUrl = isSelected ? selectedPublicProfile?.avatarUrl ?? organization.avatarUrl : organization.avatarUrl;
+
+                        return (
+                          <Pressable
+                            accessibilityLabel={`Seleccionar negocio ${organization.name}`}
+                            accessibilityRole="button"
+                            key={organization.id}
+                            onPress={() => {
+                              if (!isSelected) {
+                                void selectOrganization(organization.id);
+                              }
+                            }}
+                            style={({ pressed }) => ({
+                              width: 118,
+                              borderRadius: 16,
+                              borderWidth: 1,
+                              borderColor: isSelected ? "rgba(15,118,110,0.3)" : "rgba(28,25,23,0.08)",
+                              backgroundColor: isSelected ? "rgba(0,151,143,0.1)" : "rgba(248,250,252,0.92)",
+                              opacity: pressed ? 0.8 : 1,
+                              padding: 9,
+                              gap: 7
+                            })}
+                          >
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 7 }}>
+                              <View
+                                style={{
+                                  alignItems: "center",
+                                  backgroundColor: isSelected ? "#ccfbf1" : "rgba(0,151,143,0.08)",
+                                  borderRadius: 999,
+                                  height: 34,
+                                  justifyContent: "center",
+                                  overflow: "hidden",
+                                  width: 34
+                                }}
+                              >
+                                {avatarUrl ? (
+                                  <Image source={{ uri: avatarUrl }} style={{ height: 34, width: 34 }} />
+                                ) : (
+                                  <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>
+                                    {getProviderInitials(organization.name)}
+                                  </Text>
+                                )}
+                              </View>
+                              <Text style={{ color: isSelected ? colorTokens.accentDark : colorTokens.muted, fontSize: 14, fontWeight: "900" }}>
+                                {isSelected ? "✓" : "›"}
+                              </Text>
+                            </View>
+                            <View style={{ gap: 2 }}>
+                              <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 10, fontWeight: "900", lineHeight: 13 }}>
+                                {organization.name}
+                              </Text>
+                              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>
+                                {organization.city}
+                              </Text>
+                              <Text
+                                numberOfLines={1}
+                                style={{ color: isSelected ? colorTokens.accentDark : colorTokens.muted, fontSize: 8, fontWeight: "800", lineHeight: 11 }}
+                              >
+                                {organization.isPublic ? "Activo" : "Privado"} · {providerApprovalStatusLabels[organization.approvalStatus]}
+                              </Text>
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                ) : null}
+
+              <View style={{ borderRadius: 18, backgroundColor: colorTokens.surface, padding: 10, gap: 8, ...visualTokens.mobile.softShadow }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>Resumen de hoy</Text>
-                    <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                    <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", lineHeight: 15 }}>Resumen de hoy</Text>
+                    <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>
                       {selectedOrganization ? selectedOrganization.name : "Selecciona o crea un negocio para operar"}
                     </Text>
                   </View>
                   <StatusChip label={isMarketplaceVisible ? "Visible" : "No visible"} tone={isMarketplaceVisible ? "active" : "pending"} />
                 </View>
 
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {[
                     {
                       accessibilityLabel: "Ver reservas de hoy",
@@ -1010,20 +1097,20 @@ export function ProvidersWorkspace({
                         width: "48%",
                         minWidth: 124,
                         flexGrow: 1,
-                        borderRadius: 14,
+                        borderRadius: 13,
                         borderWidth: 1,
                         borderColor: "rgba(148,163,184,0.18)",
                         backgroundColor: "rgba(248,250,252,0.92)",
                         opacity: pressed ? 0.76 : 1,
-                        padding: 10,
-                        gap: 5
+                        padding: 8,
+                        gap: 3
                       })}
                     >
                       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
-                        <Text style={{ color: metric.tone, fontSize: 20, fontWeight: "900", lineHeight: 22 }}>{metric.value}</Text>
-                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Ver</Text>
+                        <Text style={{ color: metric.tone, fontSize: 16, fontWeight: "900", lineHeight: 18 }}>{metric.value}</Text>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>Ver</Text>
                       </View>
-                      <Text style={{ color: "#1c1917", fontSize: 10, fontWeight: "800", lineHeight: 13 }}>{metric.label}</Text>
+                      <Text style={{ color: "#1c1917", fontSize: 9, fontWeight: "800", lineHeight: 12 }}>{metric.label}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -1034,11 +1121,11 @@ export function ProvidersWorkspace({
                     backgroundColor: pendingProviderBookings.length ? "rgba(249,115,22,0.1)" : "rgba(0,122,107,0.08)",
                     borderWidth: 1,
                     borderColor: pendingProviderBookings.length ? "rgba(249,115,22,0.18)" : "rgba(0,122,107,0.16)",
-                    padding: 12,
-                    gap: 8
+                    padding: 9,
+                    gap: 5
                   }}
                 >
-                  <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                  <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 14 }}>
                     {pendingProviderBookings.length
                       ? "Solicitudes por aprobar"
                       : confirmedProviderBookings.length
@@ -1047,7 +1134,7 @@ export function ProvidersWorkspace({
                           ? "Operacion al dia"
                           : "Completa tu publicacion"}
                   </Text>
-                  <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                  <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>
                     {pendingProviderBookings.length
                       ? `${pendingProviderBookings.length} reserva(s) esperan respuesta del proveedor.`
                       : confirmedProviderBookings.length
@@ -1077,20 +1164,20 @@ export function ProvidersWorkspace({
                     backgroundColor: "rgba(247,242,231,0.74)",
                     borderColor: "rgba(28,25,23,0.08)",
                     borderWidth: 1,
-                    padding: 12,
-                    gap: 8,
+                    padding: 9,
+                    gap: 5,
                     opacity: pressed ? 0.82 : selectedOrganization ? 1 : 0.7
                   })}
                 >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
                     <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "900", textTransform: "uppercase" }}>
+                      <Text style={{ color: colorTokens.muted, fontSize: 8, fontWeight: "900", textTransform: "uppercase" }}>
                         Estado de publicacion
                       </Text>
-                      <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 15 }} numberOfLines={2}>
+                      <Text style={{ color: "#1c1917", fontSize: 10, fontWeight: "900", lineHeight: 13 }} numberOfLines={2}>
                         {selectedOrganization?.name ?? "Selecciona un negocio"}
                       </Text>
-                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                      <Text style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 12 }}>
                         {selectedOrganization
                           ? selectedOrganization.approvalStatus !== "approved"
                             ? "Pendiente de aprobacion administrativa."
@@ -1114,12 +1201,13 @@ export function ProvidersWorkspace({
                         tone={selectedOrganization && isMarketplaceVisible ? "active" : selectedOrganization ? "pending" : "neutral"}
                       />
                       {selectedOrganization ? (
-                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Ver estado</Text>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>Ver estado</Text>
                       ) : null}
                     </View>
                   </View>
                 </Pressable>
               </View>
+              </>
             ) : null}
 
             {showOrganization ? (

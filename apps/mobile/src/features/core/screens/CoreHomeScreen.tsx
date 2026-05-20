@@ -94,7 +94,7 @@ type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" |
 const ownerSections: Array<{ description: string; id: OwnerSectionId; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
-  { id: "buscar", label: "Buscar", description: "Proveedores aprobados y servicios disponibles." },
+  { id: "buscar", label: "Buscar", description: "Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar." },
   { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }

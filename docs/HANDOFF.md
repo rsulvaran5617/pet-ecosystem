@@ -119,6 +119,16 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - APK release de prueba actualizado para validar Marketplace UX en piloto: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk`, SHA256 `C4A61EA37D223421DF34FCFCF44E044709C9B7692EAB0974EC0DF03BE1C3D206`.
 - No se ejecutaron migraciones ni `supabase db push`; no se tocaron Payments, geolocalizacion avanzada, mapa funcional adicional, QR backend, booking capacity backend ni evidencia backend.
 
+## Cierre QA visual mobile owner/provider 2026-05-19
+
+- Owner > `Mascotas`: se retiro el chip redundante de hogar bajo el carrusel de mascotas para liberar espacio visual sin cambiar el contexto activo ni la seleccion de mascota.
+- Owner > `Buscar`: el encabezado concentra el copy descriptivo, se elimina el bloque intermedio de contexto/resultados y se simplifica la tarjeta `Prepara tu reserva` para que el flujo sea mas directo.
+- Owner > `Reservas`: las tarjetas del historial se alinean al estilo ticket/resumen de reserva, conservando filtros y navegacion existentes.
+- Provider > `Inicio`: se agrega carrusel horizontal de negocios reales sobre el panel operativo, reutilizando `selectOrganization`; el panel operativo queda mas compacto sin cambiar metricas ni destinos de navegacion.
+- Provider > `Reservas`: se corrige el crash/pantalla en blanco al abrir el detalle de una reserva confirmada. La causa era un `useEffect` dentro de `BookingOperationsTimeline` declarado despues de retornos condicionales; ahora el hook se ejecuta siempre y sale temprano si no hay timeline/QR activo.
+- APK release actualizado e instalado en Xiaomi `85975329` para validar el fix del detalle de reserva provider.
+- No se tocaron backend, Supabase, migraciones, RLS, RPCs, Payments, geolocalizacion, booking capacity backend, QR backend ni evidencia backend.
+
 ## Ajustes QA visual de Cuenta provider
 
 ## Actualizacion visual alignment reference canon

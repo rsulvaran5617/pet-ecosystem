@@ -896,20 +896,14 @@ export function MarketplaceWorkspace({
         }}
       >
         <View style={{ gap: 3 }}>
-          <Text style={{ color: colorTokens.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" }}>
-            Buscar
-          </Text>
           <Text style={{ color: colorTokens.ink, fontSize: 14, fontWeight: "900", lineHeight: 18 }}>
             {currentView === "home" ? "Encuentra un servicio" : "Servicios para tus mascotas"}
-          </Text>
-          <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 16 }}>
-            Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar.
           </Text>
         </View>
         <View style={{ gap: 12 }}>
           {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
 
-          {currentView === "home" || currentView === "search" ? null : (
+          {currentView === "home" || currentView === "search" || currentView === "results" || currentView === "selection" ? null : (
           <View style={[cardStyle, { backgroundColor: "#ffffff" }]}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
               <View style={{ flex: 1, gap: 3 }}>
@@ -932,14 +926,14 @@ export function MarketplaceWorkspace({
               />
               <SectionSelector
                 count={providers.length}
-                isActive={currentView === "results"}
+                isActive={false}
                 label="Resultados"
                 onPress={() => setCurrentView("results")}
                 subtitle="Proveedores encontrados"
               />
               <SectionSelector
                 count={selectedProviderDetail?.services.length ?? 0}
-                isActive={currentView === "provider" || currentView === "selection"}
+                isActive
                 label="Proveedor"
                 onPress={() => selectedProviderDetail ? setCurrentView("provider") : setCurrentView("home")}
                 subtitle="Servicios y disponibilidad"
@@ -1502,17 +1496,11 @@ export function MarketplaceWorkspace({
                 <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>Mascota</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{selectedPet?.name ?? "Todas las mascotas del hogar"}</Text>
               </View>
-              <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                Esta seleccion transfiere el proveedor, el servicio, la mascota opcional y el horario elegido directamente al espacio de Reservas.
-              </Text>
               <View style={[cardStyle, { backgroundColor: "rgba(247,250,252,0.92)", gap: 10 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                   <Text style={{ color: "#1c1917", flex: 1, fontSize: 13, fontWeight: "900" }}>Horarios con cupo</Text>
                   <StatusChip label={selectedBookingSlot ? "horario listo" : `${bookingSlots.length} slot(s)`} tone={selectedBookingSlot ? "active" : "neutral"} />
                 </View>
-                <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
-                  Marketplace solo consulta y prepara el contexto. La reserva se crea despues en Reservas.
-                </Text>
                 {slotErrorMessage ? <Text style={{ color: "#991b1b", fontSize: 11, fontWeight: "700" }}>{slotErrorMessage}</Text> : null}
                 {!bookingSlots.length && !isLoadingBookingSlots ? (
                   <Button

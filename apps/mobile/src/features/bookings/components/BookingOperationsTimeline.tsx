@@ -322,6 +322,20 @@ export function BookingOperationsTimeline({
     clearQrMessages
   } = useBookingOperations(bookingId, enabled, onOperationChanged);
 
+  useEffect(() => {
+    if (!timeline || !operationQrToken) {
+      return;
+    }
+
+    const tokenStepWasCompleted =
+      (operationQrToken.operationType === "check_in" && Boolean(timeline.checkIn)) ||
+      (operationQrToken.operationType === "check_out" && Boolean(timeline.checkOut));
+
+    if (tokenStepWasCompleted) {
+      clearOperationQrToken();
+    }
+  }, [clearOperationQrToken, operationQrToken, timeline]);
+
   if (!enabled) {
     return null;
   }
@@ -399,20 +413,6 @@ export function BookingOperationsTimeline({
     : ownerCanGenerateCheckOutQr
       ? "check_out"
       : null;
-
-  useEffect(() => {
-    if (!operationQrToken) {
-      return;
-    }
-
-    const tokenStepWasCompleted =
-      (operationQrToken.operationType === "check_in" && Boolean(timeline.checkIn)) ||
-      (operationQrToken.operationType === "check_out" && Boolean(timeline.checkOut));
-
-    if (tokenStepWasCompleted) {
-      clearOperationQrToken();
-    }
-  }, [clearOperationQrToken, operationQrToken, timeline.checkIn, timeline.checkOut]);
 
   const ownerQrHelperText =
     ownerQrOperationType === "check_in"

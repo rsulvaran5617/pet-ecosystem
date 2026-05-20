@@ -710,16 +710,74 @@ export function BookingsWorkspace({
                   setLastCreatedBookingId(null);
                   void openBookingDetail(booking.id).then(() => showBookingView("detalle"));
                 }}
-                style={[inputStyle, { backgroundColor: selectedBookingId === booking.id ? "rgba(15,118,110,0.08)" : "#fffdf8" }]}
+                style={[
+                  inputStyle,
+                  {
+                    backgroundColor: selectedBookingId === booking.id ? "rgba(0,151,143,0.08)" : "#fffdf8",
+                    borderColor: selectedBookingId === booking.id ? "rgba(0,151,143,0.24)" : "rgba(15,23,42,0.08)",
+                    gap: 8,
+                    padding: 10
+                  }
+                ]}
               >
-                <View style={{ gap: 8 }}>
-                  <Text style={{ fontSize: 13, fontWeight: "800", color: colorTokens.ink }}>{booking.serviceName}</Text>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 15 }}>
+                      {booking.serviceName}
+                    </Text>
+                    <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>
+                      Reserva #{booking.id.slice(0, 4)}
+                    </Text>
+                  </View>
                   <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
                 </View>
-                <Text style={[bodyTextStyle, { marginTop: 6 }]}>{booking.providerName} - {booking.petName}</Text>
-                <Text style={[bodyTextStyle, { marginTop: 6 }]}>{formatDateTimeLabel(booking.scheduledStartAt)}</Text>
-                <Text style={[bodyTextStyle, { marginTop: 6 }]}>{formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}</Text>
-                <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "800", marginTop: 8 }}>Ver detalle de reserva</Text>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 8,
+                    borderRadius: 14,
+                    backgroundColor: "rgba(248,250,252,0.86)",
+                    borderWidth: 1,
+                    borderColor: "rgba(226,232,240,0.92)",
+                    padding: 8
+                  }}
+                >
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={detailLabelStyle}>Proveedor</Text>
+                    <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.82} style={detailValueStyle}>
+                      {booking.providerName}
+                    </Text>
+                  </View>
+                  <View style={{ width: 1, backgroundColor: colorTokens.line }} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={detailLabelStyle}>Mascota</Text>
+                    <Text numberOfLines={1} style={[detailValueStyle, { fontSize: 11 }]}>
+                      {booking.petName}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={detailLabelStyle}>Fecha y hora</Text>
+                    <Text numberOfLines={2} style={[detailValueStyle, { fontWeight: "800" }]}>
+                      {formatDateTimeLabel(booking.scheduledStartAt)}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 0.7, gap: 2 }}>
+                    <Text style={detailLabelStyle}>Total</Text>
+                    <Text style={[detailValueStyle, { fontSize: 11 }]}>
+                      {formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 7 }}>
+                  <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>
+                    Ver detalle de reserva
+                  </Text>
+                </View>
               </Pressable>
             )) : <Text style={bodyTextStyle}>No hay {activeStatusFilterLabel} para mostrar. Puedes cambiar el filtro o preparar una reserva desde un servicio publicado.</Text>}
           </View>

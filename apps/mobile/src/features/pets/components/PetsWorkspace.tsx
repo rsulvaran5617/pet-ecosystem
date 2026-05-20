@@ -542,7 +542,6 @@ export function PetsWorkspace({
     isLoading,
     isSubmitting,
     clearMessages,
-    selectHousehold,
     selectPet,
     refresh,
     runAction
@@ -862,35 +861,9 @@ export function PetsWorkspace({
           </View>
         </ScrollView>
 
-        {householdSnapshot?.households.length ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: "row", gap: 8, paddingRight: 4 }}>
-              {householdSnapshot.households.map((household) => (
-                <Pressable
-                  key={household.id}
-                  onPress={() => {
-                    manualContextChangeRef.current = true;
-                    void selectHousehold(household.id);
-                  }}
-                  style={{
-                    borderRadius: 999,
-                    backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.78)",
-                    borderColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.25)" : "rgba(15,23,42,0.08)",
-                    borderWidth: 1,
-                    paddingHorizontal: 12,
-                    paddingVertical: 7
-                  }}
-                >
-                  <Text style={{ color: household.id === selectedHouseholdId ? "#0f766e" : "#64748b", fontSize: 12, fontWeight: "800" }}>
-                    {household.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        ) : (
+        {!householdSnapshot?.households.length ? (
           <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
-        )}
+        ) : null}
 
         <View
           style={{
