@@ -4,6 +4,7 @@
 
 - `closed`
 - `closed_with_notes`
+- `documented_on_hold`
 - `partial`
 - `not_started`
 
@@ -21,7 +22,7 @@
 - `support` -> `closed_with_notes`
 - `providers` -> `closed_with_notes`
 - `admin` -> `closed_with_notes`
-- `payments` -> `partial`
+- `payments` -> `documented_on_hold`
 - `qa_smoke` -> `closed_with_notes`
 - `qa_manual_web` -> `closed_with_notes`
 - `qa_android_mobile` -> `closed_with_notes`
@@ -46,6 +47,8 @@
 ## Salvedades activas del baseline
 
 - pagos solo en modo `payment-ready`
+- Payments-0/0.1 documental cerrado: `docs/payments/PAYMENTS_MVP_PLUS_DESIGN.md`, `docs/payments/PAYMENTS_DECISION_RECORD.md` y `docs/modules/payments.md` definen alcance MVP+, modelo propuesto, RLS esperada, riesgos y slices antes de migraciones/codigo.
+- Payments queda en `documented_on_hold`: el MVP actual no procesa pagos reales; `payment_methods` sigue como referencia visual/operativa; piloto controlado continua con cobro fuera de app; Wompi Panama queda como candidato principal para MVP+ sujeto a sandbox/contrato y no como decision irreversible.
 - la smoke canonica `full` ya cubre `Core`, `Households`, `Pets`, `Health`, `Reminders` y el bloque transaccional critico sobre Supabase real
 - smoke automatizada documentada en `PASS`
 - la UI principal de `web`, `mobile` y `admin` quedo localizada al espanol, validada con lint/typecheck/build/export/smoke e incorporada en el baseline publicado `v0.1.0-mvp-baseline-es.1`

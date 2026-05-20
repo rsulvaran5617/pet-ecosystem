@@ -129,6 +129,25 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - APK release actualizado e instalado en Xiaomi `85975329` para validar el fix del detalle de reserva provider.
 - No se tocaron backend, Supabase, migraciones, RLS, RPCs, Payments, geolocalizacion, booking capacity backend, QR backend ni evidencia backend.
 
+## Inicio Payments MVP+ 2026-05-19
+
+- Se retoma el frente de medios de pago como `Payments-0` documental.
+- Estado actual confirmado: `payment-ready`, con `payment_methods` referenciales y `bookings.selected_payment_method_id`, sin captura real, refunds, conciliacion ni payouts.
+- Se crea `docs/payments/PAYMENTS_MVP_PLUS_DESIGN.md` con modelo propuesto (`payments`, `payment_events`, `payment_refunds`), RLS esperada, flujos owner/provider/admin, politica objetivo de captura y slices recomendados.
+- Se crea `docs/modules/payments.md` como ficha canonica del modulo.
+- No se implementaron migraciones, codigo funcional, Supabase push, proveedor de pago, webhooks ni variables nuevas.
+- Antes de Payments-1 se debe validar proveedor de pago, pais/merchant/moneda y politica de captura/autorizacion.
+
+## Payments-0.1 Decision Record 2026-05-20
+
+- Se crea `docs/payments/PAYMENTS_DECISION_RECORD.md` para decidir proveedor y politica inicial de cobro sin tocar codigo funcional.
+- Mercado inicial: Panama.
+- Decision piloto: mantener cobro fuera de app durante piloto controlado para no mezclar soporte operativo con responsabilidad financiera.
+- Decision MVP+: Wompi Panama queda como candidato principal por documentacion publica de Panama, tokenizacion, tarjetas/Clave, eventos/webhooks y preautorizacion/captura; sujeto a cuenta comercio, contrato y sandbox. No es una decision irreversible.
+- Stripe no queda como default para merchant Panama local porque Panama no aparece en disponibilidad global revisada; podria reabrirse solo con entidad/merchant en pais soportado.
+- Politica objetivo: servicios `instant` con captura inmediata; servicios `approval_required` con preautorizacion y captura al aprobar si sandbox/contrato lo confirma.
+- No se crearon migraciones, no se ejecuto Supabase, no se modificaron variables reales y no se introdujo checkout en flujos existentes.
+
 ## Ajustes QA visual de Cuenta provider
 
 ## Actualizacion visual alignment reference canon
