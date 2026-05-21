@@ -148,6 +148,14 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Politica objetivo: servicios `instant` con captura inmediata; servicios `approval_required` con preautorizacion y captura al aprobar si sandbox/contrato lo confirma.
 - No se crearon migraciones, no se ejecuto Supabase, no se modificaron variables reales y no se introdujo checkout en flujos existentes.
 
+## Owner evidence read para reservas 2026-05-20
+
+- Se prepara lectura owner de evidencia documental operacional dentro del detalle/historial de reserva.
+- El provider sigue siendo el unico que carga evidencia despues de check-out; owner queda en modo consulta.
+- `BookingEvidence` incorpora `signedUrl` temporal y `BookingEvidenceCard` permite abrir el documento cuando exista URL firmada.
+- Se agrega migracion local `20260520164000_owner_booking_operation_evidence_read.sql` para permitir lectura owner de `booking_operations`, `booking_operation_evidence` y objetos del bucket privado `booking-operation-evidence` solo cuando `can_view_booking` sea verdadero.
+- No se ejecuto `supabase db push`; la visibilidad real en remoto requiere aplicar esa migracion de forma controlada.
+
 ## Ajustes QA visual de Cuenta provider
 
 ## Actualizacion visual alignment reference canon
@@ -319,6 +327,44 @@ Siguiente paso recomendado:
 - evaluar apertura formal de `Payments MVP+` como nuevo alcance funcional
 
 No abrir V2/V3 ni pagos reales sin actualizar alcance, modelo de datos, API y reglas operativas.
+
+## Handoff 2026-05-21 - cierre QA mobile / APK piloto
+
+Estado:
+
+- Rama esperada: `master`.
+- `master` queda con un commit documental local de Payments pendiente de publicar antes de este cierre.
+- Se preparo un nuevo APK local de piloto para pruebas Android:
+  - Ruta: `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-qa-20260520-arm64-release.apk`
+  - SHA256: `43D57C10B4B77E8B02CB0F94DE5E190072C56344EEFF99BF21615B265F4E1EE1`
+  - Build: release privado `arm64-v8a`, generado con JSC para evitar fallos Windows/Hermes por rutas con espacios y source maps.
+- Para que el build release sea reproducible con PNPM, `@pet/mobile` declara explicitamente dependencias que Expo/React Native usaban transitivamente durante el bundle nativo:
+  - `expo-asset`
+  - `@react-native/assets-registry`
+  - `babel-preset-expo`
+- El APK no se subio a servicios externos desde el agente; debe compartirse manualmente por enlace privado.
+
+Cambios funcionales/UI incluidos en el cierre:
+
+- Owner booking history/timeline puede renderizar evidencia documental con boton `Abrir documento` usando URL firmada temporal.
+- Se agrega migracion read-only `20260520164000_owner_booking_operation_evidence_read.sql` para permitir al owner leer operaciones/evidencia/storage objects de sus propias reservas sin exponer notas internas.
+- Marketplace owner, en detalle de proveedor, cuando no hay agenda publica semanal pero si hay servicios, muestra tarjetas por servicio con CTA `Ver cupos` para consultar horarios reales por servicio.
+- Provider mobile vuelve accionables las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) para llevar al area que resuelve el pendiente.
+- Provider home incluye carrusel compacto de negocios disponibles, con avatar/logo si existe, para cambiar el negocio activo desde Inicio.
+
+Validaciones ejecutadas antes del cierre:
+
+- `corepack pnpm --filter @pet/types typecheck` -> PASS
+- `corepack pnpm --filter @pet/api-client typecheck` -> PASS
+- `corepack pnpm --filter @pet/mobile lint` -> PASS
+- `corepack pnpm --filter @pet/mobile typecheck` -> PASS
+- `git diff --check` -> PASS
+
+Notas operativas:
+
+- La migracion owner evidence read esta versionada en repo, pero debe aplicarse a Supabase remoto con `supabase db push` en una ventana controlada antes de esperar lectura real de evidencia en el telefono del owner.
+- No se modifican Payments reales, QR logic, booking capacity, evidence upload provider ni reglas de negocio.
+- El build de APK se genero desde copia temporal local corta con `node-linker=hoisted` para evitar limites de path de Windows/CMake; el repo principal no depende de esa copia.
 
 ### Prompt exacto recomendado para continuar
 

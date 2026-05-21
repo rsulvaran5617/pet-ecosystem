@@ -111,11 +111,13 @@ Modelo recomendado CAP-0:
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
+- las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` lleva a `Estado`, donde se cargan documentos de aprobacion
+- el panel de Inicio del proveedor puede mostrar un carrusel compacto de negocios para cambiar el negocio activo sin entrar a la lista vertical de `Negocio`
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side
 - internal notes son privadas para provider/admin y no deben mostrarse al owner
-- evidencia visible para owner requiere decision explicita posterior
+- evidencia documental puede ser visible para owner en modo lectura cuando la migracion read-only de evidencia este aplicada; notas internas siguen privadas para provider/admin
 - evidencia operacional no es la prueba principal de presencia; sirve como fotos/documentos de actividad despues del flujo QR
 - capacidad de booking pertenece a provider availability/bookings; no modifica QR, check-in/check-out ni evidencia
 - provider operations no habilita cobro real, payouts, ingresos, refunds ni conciliacion

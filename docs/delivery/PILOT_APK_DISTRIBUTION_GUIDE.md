@@ -172,3 +172,34 @@ La verificacion ZIP basica confirmo:
 - `resources.arsc` presente.
 
 No se subio el APK a ningun servicio externo desde el agente.
+
+## APK QA mobile 2026-05-20
+
+APK generado para pruebas QA Android sobre el estado local de `master`:
+
+```text
+dist/pilot/android/pet-ecosystem-pilot-v0.3.0-qa-20260520-arm64-release.apk
+```
+
+Verificacion:
+
+- Tamaño: `134.51 MB`
+- SHA256: `43D57C10B4B77E8B02CB0F94DE5E190072C56344EEFF99BF21615B265F4E1EE1`
+- Arquitectura: `arm64-v8a`
+- Motor JS: JSC para este build privado de QA
+- Distribucion: enlace privado manual, no Play Store/Firebase
+
+Notas tecnicas del build:
+
+- Se uso una copia temporal local corta (`C:\b20`) para evitar limites de ruta de Windows/CMake.
+- En la copia temporal se instalo con `node-linker=hoisted` para evitar rutas internas largas de PNPM durante compilacion nativa.
+- Comando equivalente usado:
+
+```powershell
+corepack pnpm install --frozen-lockfile --config.node-linker=hoisted
+$env:NODE_ENV='production'
+cd C:\b20\apps\mobile\android
+.\gradlew.bat clean assembleRelease -PhermesEnabled=false -PreactNativeArchitectures=arm64-v8a --no-daemon
+```
+
+El paquete es adecuado para el Xiaomi y testers Android modernos de 64 bits. Si se requiere compatibilidad amplia con dispositivos antiguos, generar un APK universal o builds por ABI en un entorno con rutas cortas y soporte de long paths estable.

@@ -127,7 +127,7 @@ Notas:
 - check-in/check-out deben migrar a flujo principal QR: owner genera token temporal y provider lo consume via RPC/server-side; botones manuales quedan fallback piloto
 - evidencia, report card e internal notes solo pueden mutarse por el owner proveedor de la organizacion del booking o por flujos server-side equivalentes
 - admin puede leer operaciones para soporte o auditoria operativa
-- owner no tiene lectura directa inicial de operaciones
+- owner puede leer operaciones/evidencia de sus propias reservas cuando la policy read-only de evidencia esta aplicada; la evidencia devuelve metadata y URL firmada temporal para descarga controlada
 - internal notes no son visibles para owner
 - evidencia usa `storage_bucket` y `storage_path`, no URL arbitraria
 

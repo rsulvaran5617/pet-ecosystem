@@ -1468,7 +1468,47 @@ export function MarketplaceWorkspace({
                       )}
                     </View>
                   </>
-                ) : <Text style={{ color: colorTokens.muted }}>Todavia no hay bloques publicos de disponibilidad.</Text>}
+                ) : selectedProviderDetail.services.length ? (
+                  <View style={{ gap: 10 }}>
+                    <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                      La agenda se consulta por servicio. Elige una opcion para ver horarios reales con cupo.
+                    </Text>
+                    <View style={{ gap: 8 }}>
+                      {selectedProviderDetail.services.map((service) => (
+                        <View
+                          key={`availability-service-${service.id}`}
+                          style={{
+                            borderRadius: 14,
+                            borderWidth: 1,
+                            borderColor: "rgba(15,118,110,0.16)",
+                            backgroundColor: "rgba(15,118,110,0.06)",
+                            padding: 10,
+                            gap: 8
+                          }}
+                        >
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                            <View style={{ flex: 1, gap: 3 }}>
+                              <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 14 }}>
+                                {service.name}
+                              </Text>
+                              <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 13 }}>
+                                {service.durationMinutes ? `${service.durationMinutes} min` : "Horario flexible"} - {formatMoney(service.basePriceCents, service.currencyCode)}
+                              </Text>
+                            </View>
+                            <StatusChip label={providerServiceCategoryLabels[service.category]} tone="neutral" />
+                          </View>
+                          <Button
+                            disabled={isLoadingBookingSlots}
+                            label="Ver cupos"
+                            onPress={() => void handleShowServiceSlots(service.id)}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <Text style={{ color: colorTokens.muted }}>Todavia no hay servicios publicados para consultar cupos.</Text>
+                )}
               </View>
             </>
           ) : null}

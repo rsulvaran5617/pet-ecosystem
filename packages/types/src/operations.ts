@@ -52,6 +52,7 @@ export interface BookingEvidence extends TimestampedEntity {
   bookingId: Uuid;
   storageBucket: string;
   storagePath: string;
+  signedUrl: string | null;
   fileName: string;
   fileSizeBytes: number;
   mimeType: string | null;

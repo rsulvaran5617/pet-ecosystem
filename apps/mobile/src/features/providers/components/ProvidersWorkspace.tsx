@@ -108,6 +108,7 @@ export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "dis
 type OrganizationView = "lista" | "crear" | "editar";
 type OrganizationListFilter = "all" | "active" | "approved" | "ready";
 type ProviderBookingStatusFilter = "all" | "pending_approval" | "confirmed" | "completed" | "cancelled";
+type PublicationStepId = "business" | "services" | "availability" | "documents";
 
 const emptyOrganizationForm: OrganizationFormState = {
   name: "",
@@ -674,6 +675,7 @@ export function ProvidersWorkspace({
       }),
     [organizationListFilter, organizations]
   );
+  const homeOrganizations = organizations.length ? organizations : selectedOrganization ? [selectedOrganization] : [];
   const emptyAvailabilityFormForSelectedService = useMemo(
     () => ({
       ...emptyDisponibilidadForm,
@@ -780,10 +782,10 @@ export function ProvidersWorkspace({
     hasPublishedService;
   const publicationSteps = useMemo(
     () => [
-      { title: "Negocio", detail: "Perfil publico", done: Boolean(selectedPublicProfile) },
-      { title: "Servicios", detail: "Oferta activa", done: selectedServicios.length > 0 },
-      { title: "Horarios", detail: "Cupos definidos", done: selectedAvailabilityRules.length > 0 },
-      { title: "Documentos", detail: "Soporte cargado", done: selectedDocuments.length > 0 }
+      { id: "business" as const, title: "Negocio", detail: "Perfil publico", done: Boolean(selectedPublicProfile) },
+      { id: "services" as const, title: "Servicios", detail: "Oferta activa", done: selectedServicios.length > 0 },
+      { id: "availability" as const, title: "Horarios", detail: "Cupos definidos", done: selectedAvailabilityRules.length > 0 },
+      { id: "documents" as const, title: "Documentos", detail: "Soporte cargado", done: selectedDocuments.length > 0 }
     ],
     [selectedAvailabilityRules.length, selectedDocuments.length, selectedPublicProfile, selectedServicios.length]
   );
@@ -812,24 +814,44 @@ export function ProvidersWorkspace({
     setProviderBookingStatusFilter(pendingBooking ? "pending_approval" : "confirmed");
     void openProviderBookingDetail(targetBooking.id);
   };
-  const openPublicationNextStep = () => {
-    if (!selectedOrganization || !selectedPublicProfile) {
+  const openPublicationStep = (stepId: PublicationStepId) => {
+    if (stepId === "business") {
+      setIsBusinessAccordionExpanded(true);
+      setActiveBusinessPanel("profile");
       navigateProviderSection("negocio");
       return;
     }
 
-    if (!selectedServicios.length) {
+    if (stepId === "services") {
       navigateProviderSection("servicios");
       return;
     }
 
-    if (!selectedAvailabilityRules.length) {
+    if (stepId === "availability") {
       navigateProviderSection("disponibilidad");
       return;
     }
 
+    navigateProviderSection("estado");
+  };
+  const openPublicationNextStep = () => {
+    if (!selectedOrganization || !selectedPublicProfile) {
+      openPublicationStep("business");
+      return;
+    }
+
+    if (!selectedServicios.length) {
+      openPublicationStep("services");
+      return;
+    }
+
+    if (!selectedAvailabilityRules.length) {
+      openPublicationStep("availability");
+      return;
+    }
+
     if (!selectedDocuments.length || selectedOrganization.approvalStatus !== "approved") {
-      navigateProviderSection("estado");
+      openPublicationStep("documents");
       return;
     }
   };
@@ -960,7 +982,7 @@ export function ProvidersWorkspace({
 
             {showHome ? (
               <>
-                {organizations.length ? (
+                {homeOrganizations.length ? (
                   <View style={{ borderRadius: 18, backgroundColor: colorTokens.surface, padding: 12, gap: 10, ...visualTokens.mobile.softShadow }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
                       <View style={{ flex: 1, gap: 2 }}>
@@ -969,14 +991,14 @@ export function ProvidersWorkspace({
                           Selecciona el negocio operativo.
                         </Text>
                       </View>
-                      <StatusChip label={`${organizations.length} total`} tone="neutral" />
+                      <StatusChip label={`${homeOrganizations.length} total`} tone="neutral" />
                     </View>
                     <ScrollView
                       horizontal
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={{ gap: 8, paddingRight: 4 }}
                     >
-                      {organizations.map((organization) => {
+                      {homeOrganizations.map((organization) => {
                         const isSelected = organization.id === selectedOrganizationId;
                         const avatarUrl = isSelected ? selectedPublicProfile?.avatarUrl ?? organization.avatarUrl : organization.avatarUrl;
 
@@ -1056,6 +1078,75 @@ export function ProvidersWorkspace({
                   </View>
                   <StatusChip label={isMarketplaceVisible ? "Visible" : "No visible"} tone={isMarketplaceVisible ? "active" : "pending"} />
                 </View>
+
+                {homeOrganizations.length ? (
+                  <View style={{ gap: 7 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                      <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "900", textTransform: "uppercase" }}>Tus negocios</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800" }}>{homeOrganizations.length} total</Text>
+                    </View>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
+                      {homeOrganizations.map((organization) => {
+                        const isSelected = organization.id === selectedOrganizationId;
+                        const avatarUrl = isSelected ? selectedPublicProfile?.avatarUrl ?? organization.avatarUrl : organization.avatarUrl;
+
+                        return (
+                          <Pressable
+                            accessibilityLabel={`Seleccionar negocio ${organization.name}`}
+                            accessibilityRole="button"
+                            key={`home-${organization.id}`}
+                            onPress={() => {
+                              if (!isSelected) {
+                                void selectOrganization(organization.id);
+                              }
+                            }}
+                            style={({ pressed }) => ({
+                              alignItems: "center",
+                              backgroundColor: isSelected ? "rgba(0,151,143,0.1)" : "rgba(248,250,252,0.92)",
+                              borderColor: isSelected ? "rgba(15,118,110,0.3)" : "rgba(28,25,23,0.08)",
+                              borderRadius: 14,
+                              borderWidth: 1,
+                              flexDirection: "row",
+                              gap: 8,
+                              minWidth: 150,
+                              opacity: pressed ? 0.82 : 1,
+                              padding: 8
+                            })}
+                          >
+                            <View
+                              style={{
+                                alignItems: "center",
+                                backgroundColor: isSelected ? "#ccfbf1" : "rgba(0,151,143,0.08)",
+                                borderRadius: 999,
+                                height: 32,
+                                justifyContent: "center",
+                                overflow: "hidden",
+                                width: 32
+                              }}
+                            >
+                              {avatarUrl ? (
+                                <Image source={{ uri: avatarUrl }} style={{ height: 32, width: 32 }} />
+                              ) : (
+                                <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>{getProviderInitials(organization.name)}</Text>
+                              )}
+                            </View>
+                            <View style={{ flex: 1, gap: 1 }}>
+                              <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 10, fontWeight: "900", lineHeight: 13 }}>
+                                {organization.name}
+                              </Text>
+                              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>
+                                {organization.city} - {providerApprovalStatusLabels[organization.approvalStatus]}
+                              </Text>
+                            </View>
+                            <Text style={{ color: isSelected ? colorTokens.accentDark : colorTokens.muted, fontSize: 13, fontWeight: "900" }}>
+                              {isSelected ? "OK" : ">"}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                ) : null}
 
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {[
@@ -1794,9 +1885,12 @@ export function ProvidersWorkspace({
                       </View>
                       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                         {publicationSteps.map((step) => (
-                          <View
+                          <Pressable
+                            accessibilityLabel={`Abrir paso de publicacion ${step.title}`}
+                            accessibilityRole="button"
                             key={step.title}
-                            style={{
+                            onPress={() => openPublicationStep(step.id)}
+                            style={({ pressed }) => ({
                               width: "48%",
                               minWidth: 124,
                               flexGrow: 1,
@@ -1805,14 +1899,18 @@ export function ProvidersWorkspace({
                               borderColor: step.done ? "rgba(0,122,107,0.18)" : "rgba(148,163,184,0.2)",
                               borderWidth: 1,
                               padding: 9,
-                              gap: 4
-                            }}
+                              gap: 4,
+                              opacity: pressed ? 0.82 : 1
+                            })}
                           >
-                            <Text style={{ color: step.done ? "#007a6b" : colorTokens.muted, fontSize: 11, fontWeight: "900" }}>
-                              {step.done ? "Listo" : "Pendiente"}
-                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                              <Text style={{ color: step.done ? "#007a6b" : colorTokens.muted, fontSize: 11, fontWeight: "900" }}>
+                                {step.done ? "Listo" : "Pendiente"}
+                              </Text>
+                              <Text style={{ color: step.done ? "#007a6b" : colorTokens.muted, fontSize: 12, fontWeight: "900" }}>{">"}</Text>
+                            </View>
                             <Text style={{ color: "#1c1917", fontSize: 10, fontWeight: "800", lineHeight: 13 }}>{step.title}</Text>
-                          </View>
+                          </Pressable>
                         ))}
                       </View>
                     </View>
@@ -2121,9 +2219,12 @@ export function ProvidersWorkspace({
 
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     {publicationSteps.map((step, index) => (
-                      <View
+                      <Pressable
+                        accessibilityLabel={`Abrir paso de publicacion ${step.title}`}
+                        accessibilityRole="button"
                         key={step.title}
-                        style={{
+                        onPress={() => openPublicationStep(step.id)}
+                        style={({ pressed }) => ({
                           width: "48%",
                           minWidth: 124,
                           flexGrow: 1,
@@ -2132,8 +2233,9 @@ export function ProvidersWorkspace({
                           borderColor: step.done ? "rgba(0,122,107,0.2)" : "rgba(148,163,184,0.22)",
                           backgroundColor: step.done ? "rgba(0,122,107,0.06)" : "rgba(248,250,252,0.9)",
                           padding: 10,
-                          gap: 6
-                        }}
+                          gap: 6,
+                          opacity: pressed ? 0.82 : 1
+                        })}
                       >
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                           <Text style={{ fontSize: 10, fontWeight: "800", color: colorTokens.muted }}>{index + 1}</Text>
@@ -2143,7 +2245,7 @@ export function ProvidersWorkspace({
                         </View>
                         <Text style={{ fontSize: 12, fontWeight: "800", color: "#1c1917", lineHeight: 15 }}>{step.title}</Text>
                         <Text style={{ fontSize: 9, color: colorTokens.muted, lineHeight: 12 }}>{step.detail}</Text>
-                      </View>
+                      </Pressable>
                     ))}
                   </View>
 

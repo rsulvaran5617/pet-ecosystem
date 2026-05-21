@@ -81,12 +81,26 @@ function mapCheckOut(row: BookingOperationRow): BookingCheckOut {
   };
 }
 
-function mapEvidence(row: BookingOperationEvidenceRow): BookingEvidence {
+async function createEvidenceSignedUrl(
+  supabase: OperationsSupabaseClient,
+  row: BookingOperationEvidenceRow
+): Promise<string | null> {
+  const { data, error } = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 60 * 15);
+
+  if (error) {
+    return null;
+  }
+
+  return data.signedUrl;
+}
+
+async function mapEvidence(supabase: OperationsSupabaseClient, row: BookingOperationEvidenceRow): Promise<BookingEvidence> {
   return {
     id: row.id,
     bookingId: row.booking_id,
     storageBucket: row.storage_bucket,
     storagePath: row.storage_path,
+    signedUrl: await createEvidenceSignedUrl(supabase, row),
     fileName: row.file_name,
     fileSizeBytes: row.file_size_bytes,
     mimeType: row.mime_type,
@@ -345,7 +359,7 @@ export function createBookingOperationsApiClient(
         );
       }
 
-      return mapEvidence(data as BookingOperationEvidenceRow);
+      return mapEvidence(supabase, data as BookingOperationEvidenceRow);
     },
 
     async upsertReportCard(bookingId, input) {
@@ -464,7 +478,7 @@ export function createBookingOperationsApiClient(
 
       const checkIn = checkInData && checkInData.length > 0 ? mapCheckIn(checkInData[0] as BookingOperationRow) : null;
       const checkOut = checkOutData && checkOutData.length > 0 ? mapCheckOut(checkOutData[0] as BookingOperationRow) : null;
-      const evidences = (evidenceData ?? []).map((row) => mapEvidence(row as BookingOperationEvidenceRow));
+      const evidences = await Promise.all((evidenceData ?? []).map((row) => mapEvidence(supabase, row as BookingOperationEvidenceRow)));
       const reportCard = reportData ? mapReportCard(reportData as BookingOperationReportRow) : null;
       const notes = (notesData ?? []).map((row) => mapOperationNote(row as BookingOperationNoteRow));
 

@@ -1,6 +1,6 @@
 import { formatDateTimeLabel } from "@pet/config";
 import type { BookingCheckIn, BookingCheckOut, BookingEvidence, BookingOperationNote, BookingReportCard } from "@pet/types";
-import { Text, View } from "react-native";
+import { Linking, Pressable, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 const timelineItemStyle = {
@@ -152,6 +152,26 @@ export function BookingEvidenceCard({ evidences }: { evidences: BookingEvidence[
               - {evidence.fileName} ({(evidence.fileSizeBytes / 1024 / 1024).toFixed(2)} MB)
             </Text>
             <Text style={timeStyle}>{formatDateTimeLabel(evidence.createdAt)}</Text>
+            {evidence.signedUrl ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  void Linking.openURL(evidence.signedUrl as string);
+                }}
+                style={{
+                  alignSelf: "flex-start",
+                  backgroundColor: "rgba(0,151,143,0.1)",
+                  borderColor: "rgba(0,151,143,0.22)",
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  marginTop: 6,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6
+                }}
+              >
+                <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Abrir documento</Text>
+              </Pressable>
+            ) : null}
           </View>
         ))}
       </View>
