@@ -4,8 +4,8 @@
 
 Preparar el despliegue web inicial de Pet Ecosystem en DigitalOcean App Platform usando:
 
-- `petcosys.com` para la landing publica y experiencia web owner/provider.
-- `admin.petcosys.com` para el backoffice admin.
+- `petecosyst.com` para la landing publica y experiencia web owner/provider.
+- `admin.petecosyst.com` para el backoffice admin.
 
 Este documento es preparatorio. No cambia Supabase, no ejecuta migraciones, no abre pagos reales y no modifica reglas de negocio.
 
@@ -24,8 +24,8 @@ Este documento es preparatorio. No cambia Supabase, no ejecuta migraciones, no a
 
 | Superficie | Workspace | Ruta local | Framework | Ruta publica objetivo |
 | --- | --- | --- | --- | --- |
-| Landing/web publica | `@pet/web` | `apps/web` | Next.js | `petcosys.com` |
-| Admin web | `@pet/admin` | `apps/admin` | Next.js | `admin.petcosys.com` |
+| Landing/web publica | `@pet/web` | `apps/web` | Next.js | `petecosyst.com` |
+| Admin web | `@pet/admin` | `apps/admin` | Next.js | `admin.petecosyst.com` |
 
 ### Rutas actuales
 
@@ -74,18 +74,18 @@ Usar Droplet solo si aparece una necesidad concreta de control de servidor: prox
 Crear dos apps separadas en DigitalOcean App Platform, ambas desde el mismo repo y rama `master`:
 
 1. `pet-ecosystem-web`
-   - Dominio: `petcosys.com`.
+   - Dominio: `petecosyst.com`.
    - Workspace: `@pet/web`.
    - Publica landing `/` y app autenticada `/app`.
 
 2. `pet-ecosystem-admin`
-   - Dominio: `admin.petcosys.com`.
+   - Dominio: `admin.petecosyst.com`.
    - Workspace: `@pet/admin`.
    - Publica backoffice admin.
 
 Separarlas evita mezclar routing publico/admin dentro de una sola app y permite escalar, pausar o proteger admin de forma independiente.
 
-## Configuracion exacta: petcosys.com
+## Configuracion exacta: petecosyst.com
 
 Tipo de componente: Web Service.
 
@@ -118,11 +118,11 @@ Notas:
 
 Dominio:
 
-- Agregar `petcosys.com` en Networking > Domains.
+- Agregar `petecosyst.com` en Networking > Domains.
 - Si DNS lo gestiona DigitalOcean, dejar que App Platform cree/verifique registros.
 - Si DNS lo gestiona otro proveedor, usar el CNAME/A records que App Platform muestre para el dominio.
 
-## Configuracion exacta: admin.petcosys.com
+## Configuracion exacta: admin.petecosyst.com
 
 Tipo de componente: Web Service.
 
@@ -150,7 +150,7 @@ corepack pnpm --filter @pet/admin exec next start --hostname 0.0.0.0 --port $POR
 
 Dominio:
 
-- Agregar `admin.petcosys.com` en Networking > Domains.
+- Agregar `admin.petecosyst.com` en Networking > Domains.
 - Crear/verificar el DNS que App Platform indique.
 
 ## Variables de entorno requeridas
@@ -172,13 +172,13 @@ No configurar ni exponer:
 
 ## DNS esperado
 
-La configuracion exacta depende de si el DNS de `petcosys.com` lo administra DigitalOcean o un proveedor externo.
+La configuracion exacta depende de si el DNS de `petecosyst.com` lo administra DigitalOcean o un proveedor externo.
 
 ### Si DigitalOcean administra DNS
 
 1. Delegar nameservers del dominio a DigitalOcean.
-2. En App Platform, agregar `petcosys.com` a la app web.
-3. En App Platform, agregar `admin.petcosys.com` a la app admin.
+2. En App Platform, agregar `petecosyst.com` a la app web.
+3. En App Platform, agregar `admin.petecosyst.com` a la app admin.
 4. Dejar que DigitalOcean cree los registros necesarios.
 5. Esperar emision de certificado TLS y propagacion.
 
@@ -186,22 +186,22 @@ La configuracion exacta depende de si el DNS de `petcosys.com` lo administra Dig
 
 1. Agregar el dominio en App Platform.
 2. Copiar los registros que DigitalOcean muestre.
-3. Para `admin.petcosys.com`, normalmente crear un `CNAME` hacia el alias `*.ondigitalocean.app` indicado por App Platform.
-4. Para `petcosys.com` apex, usar CNAME flattening/ALIAS si el proveedor lo soporta; si no, usar los A records que App Platform entregue.
+3. Para `admin.petecosyst.com`, normalmente crear un `CNAME` hacia el alias `*.ondigitalocean.app` indicado por App Platform.
+4. Para `petecosyst.com` apex, usar CNAME flattening/ALIAS si el proveedor lo soporta; si no, usar los A records que App Platform entregue.
 5. Esperar propagacion DNS. DigitalOcean indica que puede tardar hasta 72 horas.
 
 ## Checklist DNS
 
-- [ ] Confirmar donde se administra DNS de `petcosys.com`.
+- [ ] Confirmar donde se administra DNS de `petecosyst.com`.
 - [ ] Crear app `pet-ecosystem-web` en App Platform.
-- [ ] Asociar `petcosys.com` a la app web.
+- [ ] Asociar `petecosyst.com` a la app web.
 - [ ] Crear app `pet-ecosystem-admin` en App Platform.
-- [ ] Asociar `admin.petcosys.com` a la app admin.
+- [ ] Asociar `admin.petecosyst.com` a la app admin.
 - [ ] Configurar registros DNS indicados por App Platform.
 - [ ] Verificar certificados TLS activos.
-- [ ] Verificar `https://petcosys.com`.
-- [ ] Verificar `https://petcosys.com/app`.
-- [ ] Verificar `https://admin.petcosys.com`.
+- [ ] Verificar `https://petecosyst.com`.
+- [ ] Verificar `https://petecosyst.com/app`.
+- [ ] Verificar `https://admin.petecosyst.com`.
 
 ## App spec YAML propuesto
 

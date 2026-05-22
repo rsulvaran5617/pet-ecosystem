@@ -32,7 +32,7 @@ services:
         type: GENERAL
         value: "1"
 domains:
-  - domain: petcosys.com
+  - domain: petecosyst.com
     type: PRIMARY
 alerts:
   - rule: DEPLOYMENT_FAILED
@@ -68,7 +68,7 @@ services:
         type: GENERAL
         value: "1"
 domains:
-  - domain: admin.petcosys.com
+  - domain: admin.petecosyst.com
     type: PRIMARY
 alerts:
   - rule: DEPLOYMENT_FAILED
