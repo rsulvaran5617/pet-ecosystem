@@ -14,14 +14,14 @@ Distribuir la APK Android de Pet Ecosystem a usuarios piloto mediante enlace pri
 
 | Campo | Valor |
 | --- | --- |
-| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk` |
-| Fecha de preparacion | 2026-05-18 |
+| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk` |
+| Fecha de preparacion | 2026-05-22 |
 | Rama | `master` |
-| Commit | `2be22c3 feat(ui): refine owner marketplace search experience` |
-| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile + Marketplace UX` |
+| Commit | `4c6f686 feat(mobile): add in-app message notices` |
+| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile + Marketplace UX + messaging notices` |
 | Ambiente | Supabase remoto configurado en mobile `.env` |
 | Uso | Piloto controlado, no produccion comercial |
-| SHA256 | `C4A61EA37D223421DF34FCFCF44E044709C9B7692EAB0974EC0DF03BE1C3D206` |
+| SHA256 | `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC` |
 
 La app sigue en modo `payment-ready`: no realiza cobros reales.
 
@@ -36,13 +36,13 @@ Subir manualmente el APK a una carpeta privada:
 Estructura recomendada:
 
 ```text
-Pet Ecosystem / Piloto / APK / v0.3.0 / 2026-05-18 /
+Pet Ecosystem / Piloto / APK / v0.3.0 / 2026-05-22 /
 ```
 
 Archivo recomendado:
 
 ```text
-pet-ecosystem-pilot-v0.3.0-marketplace-ux-android-release.apk
+pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk
 ```
 
 No subir el APK a carpetas publicas, redes sociales, grupos abiertos o enlaces sin control de acceso.
@@ -203,3 +203,35 @@ cd C:\b20\apps\mobile\android
 ```
 
 El paquete es adecuado para el Xiaomi y testers Android modernos de 64 bits. Si se requiere compatibilidad amplia con dispositivos antiguos, generar un APK universal o builds por ABI en un entorno con rutas cortas y soporte de long paths estable.
+
+## APK messaging notices 2026-05-22
+
+APK generado para pruebas piloto Android con aviso emergente in-app de mensajes:
+
+```text
+dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk
+```
+
+Verificacion:
+
+- Tamaño: `134.51 MB`
+- SHA256: `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC`
+- Arquitectura: `arm64-v8a`
+- Motor JS: JSC para este build privado de QA/piloto
+- Commit base: `4c6f686 feat(mobile): add in-app message notices`
+- Distribucion: enlace privado manual, no Play Store/Firebase
+
+Notas tecnicas del build:
+
+- Se uso una copia temporal local corta (`C:\b22`) para evitar limites de ruta de Windows/CMake.
+- En la copia temporal se instalo con `node-linker=hoisted`.
+- Comando equivalente usado:
+
+```powershell
+corepack pnpm install --frozen-lockfile --config.node-linker=hoisted
+$env:NODE_ENV='production'
+cd C:\b22\apps\mobile\android
+.\gradlew.bat assembleRelease -PhermesEnabled=false -PreactNativeArchitectures=arm64-v8a --no-daemon --console=plain
+```
+
+La verificacion ZIP basica confirmo `AndroidManifest.xml`, `classes.dex`, `assets/index.android.bundle` y `resources.arsc`.
