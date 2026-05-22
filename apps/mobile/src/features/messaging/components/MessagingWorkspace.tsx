@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
+import { useInAppMessageNotifications, type InAppMessageNotice } from "../hooks/useInAppMessageNotifications";
 import { useMessagingWorkspace } from "../hooks/useMessagingWorkspace";
 
 const inputStyle = {
@@ -154,6 +155,57 @@ function DropdownOption({ count, isActive, label, onPress }: { count: number; is
   );
 }
 
+function MessageNoticeBanner({
+  notice,
+  onDismiss,
+  onOpen
+}: {
+  notice: InAppMessageNotice;
+  onDismiss: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onOpen}
+      style={{
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: "rgba(0,151,143,0.2)",
+        backgroundColor: "#f0fdfa",
+        padding: 12,
+        gap: 7,
+        ...visualTokens.mobile.softShadow
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Nuevo mensaje</Text>
+        <Pressable
+          onPress={(event) => {
+            event.stopPropagation();
+            onDismiss();
+          }}
+          style={{
+            alignItems: "center",
+            backgroundColor: "rgba(15,118,110,0.1)",
+            borderRadius: 999,
+            height: 26,
+            justifyContent: "center",
+            width: 26
+          }}
+        >
+          <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>x</Text>
+        </Pressable>
+      </View>
+      <Text numberOfLines={1} style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+        {notice.senderName}
+      </Text>
+      <Text numberOfLines={2} style={{ color: "#57534e", fontSize: 12, fontWeight: "600", lineHeight: 17 }}>
+        {notice.body}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function MessagingWorkspace({
   currentUserId = null,
   enabled,
@@ -186,6 +238,11 @@ export function MessagingWorkspace({
   const [statusFilter, setStatusFilter] = useState<MessageStatusFilter>("active");
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [expandedThreadId, setExpandedThreadId] = useState<Uuid | null>(null);
+  const { clearNotice, notice } = useInAppMessageNotifications({
+    currentUserId,
+    enabled,
+    viewerRole
+  });
   const sortedThreads = [...threads].sort((left, right) => getThreadActivityDate(right).getTime() - getThreadActivityDate(left).getTime());
   const filteredThreads = sortedThreads.filter((thread) => matchesStatusFilter(thread, statusFilter));
   const activeFilterLabel = messageStatusFilters.find((filter) => filter.id === statusFilter)?.label ?? "Activas";
@@ -229,6 +286,16 @@ export function MessagingWorkspace({
 
   return (
     <View style={{ gap: 14 }}>
+      {notice ? (
+        <MessageNoticeBanner
+          notice={notice}
+          onDismiss={clearNotice}
+          onOpen={() => {
+            clearNotice();
+            void openConversation(notice.threadId);
+          }}
+        />
+      ) : null}
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       <View style={sectionShellStyle}>
         <View style={{ gap: 3 }}>

@@ -87,6 +87,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - detalle de chat
 - requery de hilos al entrar desde el menu para evitar estados de reserva obsoletos
 - polling silencioso en conversacion abierta para recibir mensajes nuevos de otro dispositivo sin Realtime
+- aviso emergente in-app con vibracion corta en `Mensajes` cuando llega un mensaje entrante de la contraparte; no cubre push en background/cerrado
 
 ### Reviews
 - dejar review
