@@ -28,8 +28,34 @@ const signedOutState: CoreAuthState = {
   emailVerified: false
 };
 
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    })
+  ]);
+}
+
+function isSupabaseAuthLockNoise(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return message.includes("auth-token") && message.includes("another request stole it");
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
+}
+
 export function useCoreWorkspace(): UseCoreWorkspaceResult {
   const mountedRef = useRef(true);
+  const bootstrapTimedOutRef = useRef(false);
+  const refreshPromiseRef = useRef<Promise<void> | null>(null);
   const [authState, setAuthState] = useState<CoreAuthState>(signedOutState);
   const [snapshot, setSnapshot] = useState<CoreIdentitySnapshot | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,37 +65,83 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
 
-  async function refresh() {
+  async function loadCoreSnapshot() {
+    const client = getBrowserCoreApiClient();
+    const nextAuthState = await withTimeout(
+      client.getAuthState(),
+      12000,
+      "La sesion tardo demasiado en responder. Refresca la pagina o vuelve a iniciar sesion."
+    );
+
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setAuthState(nextAuthState);
+    setIsLoading(false);
+
+    if (!nextAuthState.isAuthenticated) {
+      setSnapshot(null);
+      setIsRecoverySession(false);
+      return;
+    }
+
+    const nextSnapshot = await withTimeout(
+      client.getCoreSnapshot(),
+      15000,
+      "No se pudo cargar tu espacio a tiempo. Refresca la pagina o vuelve a iniciar sesion."
+    );
+
+    if (!mountedRef.current) {
+      return;
+    }
+
+    setSnapshot(nextSnapshot);
+    setErrorMessage((currentMessage) => (currentMessage && isSupabaseAuthLockNoise(new Error(currentMessage)) ? null : currentMessage));
+    bootstrapTimedOutRef.current = false;
+  }
+
+  async function refreshCore() {
     try {
-      const client = getBrowserCoreApiClient();
-      const nextAuthState = await client.getAuthState();
-
-      if (!mountedRef.current) {
-        return;
-      }
-
-      setAuthState(nextAuthState);
-
-      if (!nextAuthState.isAuthenticated) {
-        setSnapshot(null);
-        setIsRecoverySession(false);
-        return;
-      }
-
-      const nextSnapshot = await client.getCoreSnapshot();
-
-      if (!mountedRef.current) {
-        return;
-      }
-
-      setSnapshot(nextSnapshot);
+      await loadCoreSnapshot();
     } catch (error) {
       if (!mountedRef.current) {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio core.");
+      if (isSupabaseAuthLockNoise(error)) {
+        setErrorMessage(null);
+        await wait(300);
+
+        if (!mountedRef.current) {
+          return;
+        }
+
+        try {
+          await loadCoreSnapshot();
+        } catch (retryError) {
+          if (mountedRef.current && !isSupabaseAuthLockNoise(retryError)) {
+            setErrorMessage(retryError instanceof Error ? retryError.message : "No fue posible actualizar tu espacio.");
+          }
+        }
+
+        return;
+      }
+
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar tu espacio.");
     }
+  }
+
+  async function refresh() {
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
+    }
+
+    refreshPromiseRef.current = refreshCore().finally(() => {
+      refreshPromiseRef.current = null;
+    });
+
+    return refreshPromiseRef.current;
   }
 
   async function runAction<T>(action: () => Promise<T>, successMessage?: string, refreshAfter = true) {
@@ -92,7 +164,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
       const nextMessage = error instanceof Error ? error.message : "La accion de core fallo.";
 
       if (mountedRef.current) {
-        setErrorMessage(nextMessage);
+        setErrorMessage(isSupabaseAuthLockNoise(error) ? null : nextMessage);
       }
 
       throw error;
@@ -109,6 +181,16 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
     let unsubscribe = () => undefined;
 
     async function bootstrap() {
+      const bootstrapFallbackTimer = window.setTimeout(() => {
+        if (!mountedRef.current) {
+          return;
+        }
+
+        bootstrapTimedOutRef.current = true;
+        setIsLoading(false);
+        setErrorMessage((currentMessage) => currentMessage ?? "La carga inicial sigue tardando. Puedes intentar refrescar la pagina o cambiar de rol cuando aparezca tu sesion.");
+      }, 8000);
+
       try {
         const supabase = getBrowserSupabaseClient();
 
@@ -133,11 +215,18 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         };
       } catch (error) {
         if (mountedRef.current) {
-          setConfigError(error instanceof Error ? error.message : "No fue posible inicializar Supabase en web.");
+          setConfigError(isSupabaseAuthLockNoise(error) ? null : error instanceof Error ? error.message : "No fue posible inicializar Supabase en web.");
         }
       } finally {
+        window.clearTimeout(bootstrapFallbackTimer);
+
         if (mountedRef.current) {
           setIsLoading(false);
+          if (!bootstrapTimedOutRef.current) {
+            setErrorMessage((currentMessage) =>
+              currentMessage === "La carga inicial sigue tardando. Puedes intentar refrescar la pagina o cambiar de rol cuando aparezca tu sesion." ? null : currentMessage
+            );
+          }
         }
       }
     }

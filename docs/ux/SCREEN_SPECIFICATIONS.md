@@ -31,6 +31,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - direcciones
 - metodos de pago
 - cambio de rol
+- web autenticada respeta rol activo: `provider` muestra consola de proveedor y oculta workspaces owner; `pet_owner` muestra hogar/mascotas/marketplace/reservas y oculta consola provider
 
 ### Households
 - snapshot de hogares
@@ -97,6 +98,12 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - organizaciones
 - perfil de negocio
 - perfil publico
+- web provider console en `apps/web`: cabecera operativa, metricas, navegacion por secciones y acceso a Negocios, Publicacion, Reservas, Perfil publico, Servicios, Disponibilidad y Documentos sin usar admin interno
+- web provider console mantiene formularios colapsados por defecto y usa CTAs de crear/editar para abrirlos; `Mis negocios` se muestra como carrusel horizontal y cada tarjeta abre la edicion del negocio mediante un CTA de lapiz
+- cabecera web provider separa `Negocio seleccionado` de `Pendientes generales`; los pendientes globales se agregan por todos los negocios y cada caja navega al primer negocio relacionado y a la seccion que resuelve el pendiente
+- cabecera web provider incluye tres indicadores globales `payment-ready`: ingresado por citas completadas, pendiente por citas pendientes/confirmadas y no ingresado por cancelaciones atribuidas al proveedor por razon registrada; son referencia operativa, sin cobro real
+- `Publicacion` en web provider muestra un panel de pendientes accionables; cada pendiente abre la seccion que lo resuelve: perfil, servicios, agenda, documentos o negocio
+- `Agenda` en web provider incluye una vista read-only de cupos publicados por servicio: selector de servicio, consulta de proximos 14 dias y tarjetas por fecha/horario con cupos reservados, disponibles y estado; no crea reservas ni consume cupo
 - ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
 - servicios
 - disponibilidad
@@ -134,6 +141,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - home admin
 - proveedores pendientes
 - detalle de proveedor
+- detalle de proveedor muestra readiness de publicacion para piloto: perfil publico, servicios, horarios/capacidad, ubicacion publica, documentos y visibilidad
+- documentos de aprobacion se abren desde admin con enlaces firmados temporales para auditoria read-only
 - cola de soporte
 - soporte basico
 

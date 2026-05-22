@@ -31,6 +31,10 @@ Permitir la operacion minima de plataforma requerida por el MVP.
 ## Reglas
 - el estado del proveedor controla su visibilidad publica
 - admin puede listar proveedores pendientes, abrir detalle y aprobar o rechazar
+- la revision de proveedor muestra un checklist de readiness para piloto con perfil publico, servicios, horarios/capacidad, ubicacion publica, documentos y visibilidad
+- el checklist solo ordena informacion existente; no cambia reglas de aprobacion ni crea datos nuevos
+- admin puede abrir documentos de aprobacion mediante URL firmada temporal de storage para auditoria read-only antes de aprobar/rechazar
+- la auditoria documental no crea estado por documento en MVP; la decision formal sigue siendo a nivel proveedor
 - el soporte MVP se gestiona desde admin, no desde un rol separado de soporte
 - admin puede listar casos, abrir detalle y actualizar estado o resolucion basica
 - approvals y actualizaciones administrativas criticas dejan rastro minimo en `audit_logs`

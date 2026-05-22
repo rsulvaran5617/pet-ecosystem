@@ -233,7 +233,20 @@ function mapProviderAvailabilityRule(row: ProviderAvailabilityRuleRow): Provider
   };
 }
 
-function mapProviderDocument(row: ProviderDocumentRow): ProviderApprovalDocument {
+async function createProviderDocumentSignedUrl(
+  supabase: ProvidersSupabaseClient,
+  row: ProviderDocumentRow
+): Promise<string | null> {
+  const { data, error } = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 60 * 15);
+
+  if (error) {
+    return null;
+  }
+
+  return data.signedUrl;
+}
+
+function mapProviderDocument(row: ProviderDocumentRow, signedUrl: string | null = null): ProviderApprovalDocument {
   return {
     id: row.id,
     organizationId: row.organization_id,
@@ -243,6 +256,7 @@ function mapProviderDocument(row: ProviderDocumentRow): ProviderApprovalDocument
     fileName: row.file_name,
     storageBucket: row.storage_bucket,
     storagePath: row.storage_path,
+    signedUrl,
     mimeType: row.mime_type,
     fileSizeBytes: row.file_size_bytes,
     createdAt: row.created_at,
@@ -325,7 +339,11 @@ async function getProviderOrganizationDetailById(
     services: (serviceRows ?? []).map(mapProviderService),
     availability: (availabilityRows ?? []).map(mapProviderAvailability),
     availabilityRules: (availabilityRuleRows ?? []).map(mapProviderAvailabilityRule),
-    approvalDocuments: (documentRows ?? []).map(mapProviderDocument)
+    approvalDocuments: await Promise.all(
+      (documentRows ?? []).map(async (row) =>
+        mapProviderDocument(row as ProviderDocumentRow, await createProviderDocumentSignedUrl(supabase, row as ProviderDocumentRow))
+      )
+    )
   } satisfies ProviderOrganizationDetail;
 }
 
@@ -657,7 +675,11 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         fail(error, "Unable to load the provider approval documents.");
       }
 
-      return (data ?? []).map(mapProviderDocument);
+      return Promise.all(
+        (data ?? []).map(async (row) =>
+          mapProviderDocument(row as ProviderDocumentRow, await createProviderDocumentSignedUrl(supabase, row as ProviderDocumentRow))
+        )
+      );
     },
     async uploadProviderApprovalDocument(organizationId, input) {
       const user = await requireCurrentUser(supabase);
@@ -698,7 +720,7 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
         fail(error, "Unable to save the provider approval document record.");
       }
 
-      return mapProviderDocument(data);
+      return mapProviderDocument(data, await createProviderDocumentSignedUrl(supabase, data));
     },
     async getProviderApprovalStatus(organizationId) {
       const user = await requireCurrentUser(supabase);

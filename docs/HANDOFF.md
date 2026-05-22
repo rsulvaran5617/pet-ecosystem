@@ -366,6 +366,70 @@ Notas operativas:
 - No se modifican Payments reales, QR logic, booking capacity, evidence upload provider ni reglas de negocio.
 - El build de APK se genero desde copia temporal local corta con `node-linker=hoisted` para evitar limites de path de Windows/CMake; el repo principal no depende de esa copia.
 
+## Handoff 2026-05-21 - Admin readiness proveedor piloto
+
+Estado:
+
+- Admin web sigue limitado al alcance MVP: login admin, cola de proveedores pendientes, aprobacion/rechazo y soporte basico.
+- Se mejora la vista `Proveedores > Revision del proveedor` con un checklist visual de readiness para piloto.
+- El checklist usa datos existentes del detalle admin:
+  - perfil publico
+  - servicios publicos/activos
+  - horarios o reglas de capacidad activas
+  - ubicacion publica valida
+  - documentos de aprobacion
+  - visibilidad de la organizacion
+- No se agregan endpoints, migraciones, reglas de negocio ni mutaciones nuevas.
+- Slice documental read-only agregado: los documentos de aprobacion del proveedor ahora exponen `signedUrl` temporal en el API client y admin muestra `Abrir documento`.
+- No se agrega estado por documento; la decision formal continua siendo aprobar/rechazar proveedor.
+- No requiere migracion nueva porque la policy base `provider_documents_objects_select` ya permite lectura a `public.is_platform_admin(auth.uid())`.
+
+Validacion recomendada:
+
+- iniciar admin web
+- entrar con usuario admin
+- abrir `Proveedores`
+- seleccionar un proveedor pendiente
+- revisar que el panel muestre conteo `Listo para piloto` o pendientes concretos antes de aprobar/rechazar
+- abrir cada documento de aprobacion y confirmar que el enlace temporal carga el archivo esperado
+
+## Handoff 2026-05-21 - Provider web console inicial
+
+Estado:
+
+- Se confirma que el blueprint contempla una suite SaaS/web para proveedores como superficie separada del admin interno.
+- `apps/web` queda como experiencia provider-facing inicial para pantallas amplias.
+- Se agrega shell operativo al workspace de proveedores existente:
+  - cabecera `Provider web console`
+  - metricas de servicios, agenda, readiness y reservas
+  - navegacion horizontal a `Negocios`, `Publicacion`, `Reservas`, `Perfil publico`, `Servicios`, `Disponibilidad` y `Documentos`
+- La consola se compacta para uso real:
+  - tipografia de encabezado web reducida
+  - lista de negocios visible como carrusel horizontal compacto
+  - cabecera separada en `Negocio seleccionado` y `Pendientes generales`; el panel global agrega citas por aprobar, reservas confirmadas, conversaciones activas, publicacion incompleta, falta de servicios, agenda o documentos
+  - cada tarjeta de negocio abre la edicion con un CTA circular de lapiz
+  - el bloque `Publicacion` muestra pendientes accionables y cada uno abre la seccion que lo resuelve
+  - el bloque `Agenda` en web provider agrega `Cupos publicados`, una vista read-only por servicio que consulta slots reales de los proximos 14 dias mediante `get_service_booking_slots`; no crea reservas ni consume cupos
+  - la cabecera agrega indicadores globales `payment-ready` para todos los negocios: ingresado por citas completadas, pendiente por citas pendientes/confirmadas y no ingresado por cancelaciones atribuidas al proveedor por razon registrada; no hay captura real de pagos
+  - formularios de perfil, servicios, agenda y documentos cerrados por defecto
+  - CTAs `+` / `Editar` abren formularios solo cuando el proveedor los necesita
+  - copy tecnico reemplazado por lenguaje orientado a negocio
+- Se corrige carga de la web provider para evitar que el shell quede atrapado indefinidamente en `Preparando tu espacio` cuando el snapshot core tarda; el estado de carga se libera al resolver auth y mantiene mensajes de error visibles si la carga secundaria tarda.
+- Se corrige visibilidad de la consola provider: las secciones avanzadas, carrusel horizontal de negocios, navegacion, publicacion, servicios, agenda y documentos quedan visibles por defecto; solo el formulario de negocio depende de abrir edicion.
+- La web autenticada ahora respeta el rol activo:
+  - `provider`: muestra consola proveedor y oculta hogares, mascotas, marketplace, reservas owner, reviews, soporte y mensajes owner
+  - `pet_owner`: mantiene la experiencia owner y permite cambiar de rol si el usuario tambien es proveedor
+- No se agregan tablas, migraciones, endpoints ni reglas nuevas.
+- `apps/admin` conserva su alcance de backoffice interno: aprobacion/rechazo, soporte y auditoria administrativa.
+
+Validacion recomendada:
+
+- iniciar `apps/web` en `http://localhost:3000`
+- entrar con un usuario que tenga rol proveedor
+- confirmar que la consola muestra organizaciones del proveedor
+- usar la navegacion superior para saltar a publicacion, reservas, servicios, disponibilidad y documentos
+- crear/editar solo datos de prueba si se esta en ambiente piloto controlado
+
 ### Prompt exacto recomendado para continuar
 
 ```text

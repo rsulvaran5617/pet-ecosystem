@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { providerApprovalDocumentTypeLabels, providerApprovalStatusLabels, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { formatDateTimeLabel, providerApprovalDocumentTypeLabels, providerApprovalStatusLabels, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import type { ProviderOrganizationDetail } from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 
 import { useAdminProvidersWorkspace } from "../hooks/useAdminProvidersWorkspace";
@@ -69,6 +70,124 @@ function Button({
   );
 }
 
+type ReadinessTone = "ready" | "pending" | "attention";
+
+interface ProviderReadinessItem {
+  detail: string;
+  label: string;
+  tone: ReadinessTone;
+}
+
+function getReadinessPalette(tone: ReadinessTone) {
+  if (tone === "ready") {
+    return {
+      background: "rgba(15,118,110,0.12)",
+      border: "rgba(15,118,110,0.2)",
+      color: "#0f766e",
+      label: "Listo"
+    };
+  }
+
+  if (tone === "attention") {
+    return {
+      background: "rgba(217,119,6,0.12)",
+      border: "rgba(217,119,6,0.2)",
+      color: "#b45309",
+      label: "Revisar"
+    };
+  }
+
+  return {
+    background: "rgba(113,113,122,0.1)",
+    border: "rgba(113,113,122,0.18)",
+    color: "#52525b",
+    label: "Pendiente"
+  };
+}
+
+function getProviderReadiness(detail: ProviderOrganizationDetail) {
+  const publicServices = detail.services.filter((service) => service.isPublic && service.isActive);
+  const activeAvailabilityBlocks = detail.availability.filter((slot) => slot.isActive);
+  const activeCapacityRules = detail.availabilityRules.filter((rule) => rule.isActive);
+  const hasUsableLocation =
+    Boolean(detail.publicLocation?.isPublic) &&
+    typeof detail.publicLocation?.latitude === "number" &&
+    typeof detail.publicLocation?.longitude === "number" &&
+    (detail.publicLocation.latitude !== 0 || detail.publicLocation.longitude !== 0);
+
+  const items: ProviderReadinessItem[] = [
+    {
+      label: "Perfil publico",
+      detail: detail.publicProfile?.isPublic
+        ? "Visible para marketplace"
+        : detail.publicProfile
+          ? "Existe, pero esta oculto"
+          : "Falta presentacion publica",
+      tone: detail.publicProfile?.isPublic ? "ready" : "pending"
+    },
+    {
+      label: "Servicios",
+      detail: publicServices.length ? `${publicServices.length} servicio(s) activos y publicos` : "Falta oferta visible",
+      tone: publicServices.length ? "ready" : "pending"
+    },
+    {
+      label: "Horarios/capacidad",
+      detail: activeCapacityRules.length
+        ? `${activeCapacityRules.length} regla(s) con capacidad`
+        : activeAvailabilityBlocks.length
+          ? `${activeAvailabilityBlocks.length} bloque(s) de agenda simple`
+          : "Faltan cupos u horarios activos",
+      tone: activeCapacityRules.length || activeAvailabilityBlocks.length ? "ready" : "pending"
+    },
+    {
+      label: "Ubicacion publica",
+      detail: hasUsableLocation ? `${detail.publicLocation?.city}, ${detail.publicLocation?.countryCode}` : "Falta ubicacion publica valida",
+      tone: hasUsableLocation ? "ready" : "attention"
+    },
+    {
+      label: "Documentos",
+      detail: detail.approvalDocuments.length ? `${detail.approvalDocuments.length} documento(s) cargados` : "Falta soporte documental",
+      tone: detail.approvalDocuments.length ? "ready" : "pending"
+    },
+    {
+      label: "Visibilidad",
+      detail: detail.organization.isPublic ? "Publicable al aprobarse" : "Organizacion marcada como privada",
+      tone: detail.organization.isPublic ? "ready" : "attention"
+    }
+  ];
+
+  const readyCount = items.filter((item) => item.tone === "ready").length;
+  const pendingCount = items.length - readyCount;
+
+  return {
+    items,
+    pendingCount,
+    readyCount,
+    canApproveForPilot: pendingCount === 0
+  };
+}
+
+function ReadinessPill({ tone }: { tone: ReadinessTone }) {
+  const palette = getReadinessPalette(tone);
+
+  return (
+    <span
+      style={{
+        border: `1px solid ${palette.border}`,
+        borderRadius: "999px",
+        background: palette.background,
+        color: palette.color,
+        fontSize: "12px",
+        fontWeight: 800,
+        padding: "6px 10px",
+        whiteSpace: "nowrap"
+      }}
+    >
+      {palette.label}
+    </span>
+  );
+}
+
 export function AdminProvidersWorkspace({
   onOpenQueue,
   variant = "full"
@@ -89,6 +208,7 @@ export function AdminProvidersWorkspace({
     approveOrganization,
     rejectOrganization
   } = useAdminProvidersWorkspace(true);
+  const readiness = selectedOrganization ? getProviderReadiness(selectedOrganization) : null;
 
   if (variant === "home") {
     return (
@@ -183,7 +303,17 @@ export function AdminProvidersWorkspace({
           <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
             <h2 style={{ margin: 0, fontSize: "24px" }}>Revision del proveedor</h2>
             {selectedOrganization ? (
-              <span style={{ color: "#52525b" }}>{selectedOrganization.organization.id}</span>
+              <span
+                style={{
+                  borderRadius: "999px",
+                  background: readiness?.canApproveForPilot ? "rgba(15,118,110,0.12)" : "rgba(217,119,6,0.12)",
+                  color: readiness?.canApproveForPilot ? "#0f766e" : "#b45309",
+                  fontWeight: 800,
+                  padding: "8px 12px"
+                }}
+              >
+                {readiness?.canApproveForPilot ? "Listo para piloto" : `${readiness?.pendingCount ?? 0} pendiente(s)`}
+              </span>
             ) : (
               <span style={{ color: "#71717a" }}>Sin proveedor seleccionado</span>
             )}
@@ -192,6 +322,56 @@ export function AdminProvidersWorkspace({
             <p style={{ margin: 0, color: "#52525b" }}>Cargando detalle del proveedor pendiente...</p>
           ) : selectedOrganization ? (
             <>
+              {readiness ? (
+                <div
+                  style={{
+                    borderRadius: "18px",
+                    border: "1px solid rgba(0,138,151,0.18)",
+                    background: "linear-gradient(135deg, rgba(236,253,245,0.92), rgba(255,255,255,0.96))",
+                    display: "grid",
+                    gap: "14px",
+                    padding: "16px"
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start", flexWrap: "wrap" }}>
+                    <div style={{ display: "grid", gap: "4px" }}>
+                      <p style={{ margin: 0, color: colorTokens.adminAccent, fontSize: "12px", fontWeight: 800, textTransform: "uppercase" }}>
+                        Readiness de publicacion
+                      </p>
+                      <h3 style={{ margin: 0, fontSize: "22px", lineHeight: 1.18 }}>{selectedOrganization.organization.name}</h3>
+                      <p style={{ margin: 0, color: "#52525b", lineHeight: 1.5 }}>
+                        Checklist operativo para decidir si el proveedor puede entrar al piloto sin dejar datos criticos incompletos.
+                      </p>
+                    </div>
+                    <strong style={{ color: "#0f766e", fontSize: "28px", lineHeight: 1 }}>
+                      {readiness.readyCount}/{readiness.items.length}
+                    </strong>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: "10px" }}>
+                    {readiness.items.map((item) => (
+                      <div
+                        key={item.label}
+                        style={{
+                          borderRadius: "14px",
+                          border: "1px solid rgba(24,24,27,0.1)",
+                          background: "#ffffff",
+                          display: "grid",
+                          gap: "8px",
+                          padding: "12px",
+                          minHeight: "96px"
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                          <strong style={{ color: "#18181b" }}>{item.label}</strong>
+                          <ReadinessPill tone={item.tone} />
+                        </div>
+                        <span style={{ color: "#52525b", lineHeight: 1.45 }}>{item.detail}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                 <div style={inputStyle}>
                   <strong>Negocio</strong>
@@ -277,16 +457,54 @@ export function AdminProvidersWorkspace({
               </div>
 
               <div style={inputStyle}>
-                <strong>Documentos de aprobacion</strong>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ display: "grid", gap: "4px" }}>
+                    <strong>Documentos de aprobacion</strong>
+                    <span style={{ color: "#52525b", lineHeight: 1.5 }}>
+                      Abre cada soporte y valida identidad, permisos o respaldo antes de aprobar.
+                    </span>
+                  </div>
+                  <span style={{ color: "#71717a", fontWeight: 700 }}>{selectedOrganization.approvalDocuments.length} archivo(s)</span>
+                </div>
                 {selectedOrganization.approvalDocuments.length ? (
                   <div style={{ display: "grid", gap: "10px", marginTop: "10px" }}>
                     {selectedOrganization.approvalDocuments.map((document) => (
-                      <div key={document.id} style={{ display: "grid", gap: "4px" }}>
-                        <strong>{document.title}</strong>
-                        <span style={{ color: "#52525b" }}>{providerApprovalDocumentTypeLabels[document.documentType]}</span>
-                        <span style={{ color: "#71717a" }}>
-                          {document.fileName} · {document.mimeType ?? "Tipo desconocido"} · {Math.max(1, Math.round(document.fileSizeBytes / 1024))} KB
-                        </span>
+                      <div
+                        key={document.id}
+                        style={{
+                          border: "1px solid rgba(24,24,27,0.1)",
+                          borderRadius: "14px",
+                          display: "grid",
+                          gap: "10px",
+                          padding: "12px"
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "start", flexWrap: "wrap" }}>
+                          <div style={{ display: "grid", gap: "4px" }}>
+                            <strong>{document.title}</strong>
+                            <span style={{ color: "#52525b" }}>{providerApprovalDocumentTypeLabels[document.documentType]}</span>
+                            <span style={{ color: "#71717a" }}>
+                              {document.fileName} · {document.mimeType ?? "Tipo desconocido"} · {Math.max(1, Math.round(document.fileSizeBytes / 1024))} KB
+                            </span>
+                            <span style={{ color: "#71717a" }}>Cargado: {formatDateTimeLabel(document.createdAt)}</span>
+                          </div>
+                          <Button
+                            disabled={!document.signedUrl}
+                            onClick={() => {
+                              if (document.signedUrl) {
+                                window.open(document.signedUrl, "_blank", "noopener,noreferrer");
+                              }
+                            }}
+                            tone="secondary"
+                          >
+                            Abrir documento
+                          </Button>
+                        </div>
+                        {!document.signedUrl ? (
+                          <span style={{ color: "#b45309", lineHeight: 1.5 }}>
+                            No fue posible generar enlace temporal. Revisa permisos de storage o vuelve a recargar el detalle.
+                          </span>
+                        ) : null}
                       </div>
                     ))}
                   </div>

@@ -23,6 +23,7 @@ export interface ProviderApprovalDocument extends TimestampedEntity {
   fileName: string;
   storageBucket: string;
   storagePath: string;
+  signedUrl: string | null;
   mimeType: string | null;
   fileSizeBytes: number;
 }

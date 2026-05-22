@@ -1,12 +1,34 @@
 "use client";
 
-import type { BookingDetail, BookingSummary, ProviderOrganization, ProviderOrganizationDetail, Uuid } from "@pet/types";
+import type { BookingDetail, BookingStatus, BookingSummary, ProviderOrganization, ProviderOrganizationDetail, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
-import { getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
+import { getBrowserBookingsApiClient, getBrowserMessagingApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
+
+export interface ProviderMoneyIndicator {
+  bookingCount: number;
+  totalsByCurrency: Record<string, number>;
+}
+
+export interface ProviderBusinessOverview {
+  organization: ProviderOrganization;
+  bookingCounts: Record<BookingStatus, number>;
+  moneyIndicators: {
+    completed: ProviderMoneyIndicator;
+    pendingService: ProviderMoneyIndicator;
+    providerCancelled: ProviderMoneyIndicator;
+  };
+  messageThreadCount: number;
+  hasPublicProfile: boolean;
+  hasService: boolean;
+  hasAvailability: boolean;
+  hasDocuments: boolean;
+  isMarketplaceVisible: boolean;
+}
 
 interface UseProvidersWorkspaceResult {
   organizations: ProviderOrganization[];
+  businessOverviews: ProviderBusinessOverview[];
   selectedOrganizationId: Uuid | null;
   selectedOrganizationDetail: ProviderOrganizationDetail | null;
   providerBookings: BookingSummary[];
@@ -30,6 +52,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   const selectedOrganizationIdRef = useRef<Uuid | null>(null);
   const selectedBookingIdRef = useRef<Uuid | null>(null);
   const [organizations, setOrganizations] = useState<ProviderOrganization[]>([]);
+  const [businessOverviews, setBusinessOverviews] = useState<ProviderBusinessOverview[]>([]);
   const [selectedOrganizationDetail, setSelectedOrganizationDetail] = useState<ProviderOrganizationDetail | null>(null);
   const [providerBookings, setProviderBookings] = useState<BookingSummary[]>([]);
   const [selectedProviderBookingDetail, setSelectedProviderBookingDetail] = useState<BookingDetail | null>(null);
@@ -37,6 +60,30 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(enabled);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function createMoneyIndicator(): ProviderMoneyIndicator {
+    return {
+      bookingCount: 0,
+      totalsByCurrency: {}
+    };
+  }
+
+  function addBookingToMoneyIndicator(indicator: ProviderMoneyIndicator, booking: BookingSummary) {
+    indicator.bookingCount += 1;
+    indicator.totalsByCurrency[booking.currencyCode] = (indicator.totalsByCurrency[booking.currencyCode] ?? 0) + booking.totalPriceCents;
+  }
+
+  function isProviderCancelledBooking(booking: BookingSummary) {
+    const reason = booking.cancelReason?.toLowerCase() ?? "";
+
+    return (
+      booking.status === "cancelled" &&
+      (reason.includes("provider") ||
+        reason.includes("proveedor") ||
+        reason.includes("rechazada") ||
+        reason.includes("declined by provider"))
+    );
+  }
 
   async function loadProviderBookingDetail(bookingId: Uuid) {
     const detail = await getBrowserBookingsApiClient().getBookingDetail(bookingId);
@@ -85,10 +132,82 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     return detail;
   }
 
+  async function loadBusinessOverviews(nextOrganizations: ProviderOrganization[]) {
+    const [details, bookingGroups, threads] = await Promise.all([
+      Promise.all(nextOrganizations.map((organization) => getBrowserProvidersApiClient().getProviderOrganizationDetail(organization.id))),
+      Promise.all(
+        nextOrganizations.map((organization) =>
+          getBrowserBookingsApiClient().listProviderBookings({
+            organizationId: organization.id,
+            includeCancelled: true
+          })
+        )
+      ),
+      getBrowserMessagingApiClient().listThreads()
+    ]);
+
+    return details.map((detail, index) => {
+      const bookings = bookingGroups[index] ?? [];
+      const bookingCounts = bookings.reduce<Record<BookingStatus, number>>(
+        (counts, booking) => {
+          counts[booking.status] += 1;
+          return counts;
+        },
+        {
+          pending_approval: 0,
+          confirmed: 0,
+          completed: 0,
+          cancelled: 0
+        }
+      );
+      const moneyIndicators = {
+        completed: createMoneyIndicator(),
+        pendingService: createMoneyIndicator(),
+        providerCancelled: createMoneyIndicator()
+      };
+
+      bookings.forEach((booking) => {
+        if (booking.status === "completed") {
+          addBookingToMoneyIndicator(moneyIndicators.completed, booking);
+        }
+
+        if (booking.status === "pending_approval" || booking.status === "confirmed") {
+          addBookingToMoneyIndicator(moneyIndicators.pendingService, booking);
+        }
+
+        if (isProviderCancelledBooking(booking)) {
+          addBookingToMoneyIndicator(moneyIndicators.providerCancelled, booking);
+        }
+      });
+      const hasPublicProfile = Boolean(detail.publicProfile);
+      const hasService = detail.services.some((service) => service.isPublic && service.isActive);
+      const hasAvailability = detail.availability.length > 0 || detail.availabilityRules.some((rule) => rule.isActive);
+      const hasDocuments = detail.approvalDocuments.length > 0;
+      const isMarketplaceVisible =
+        detail.organization.approvalStatus === "approved" &&
+        detail.organization.isPublic &&
+        Boolean(detail.publicProfile?.isPublic) &&
+        hasService;
+
+      return {
+        organization: detail.organization,
+        bookingCounts,
+        moneyIndicators,
+        messageThreadCount: threads.filter((thread) => thread.providerOrganizationId === detail.organization.id && thread.lastMessageAt).length,
+        hasPublicProfile,
+        hasService,
+        hasAvailability,
+        hasDocuments,
+        isMarketplaceVisible
+      };
+    });
+  }
+
   async function refresh(preferredOrganizationId?: Uuid | null) {
     if (!enabled) {
       if (mountedRef.current) {
         setOrganizations([]);
+        setBusinessOverviews([]);
         setSelectedOrganizationDetail(null);
         setProviderBookings([]);
         setSelectedProviderBookingDetail(null);
@@ -110,13 +229,15 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       }
 
       setOrganizations(nextOrganizations);
+      setBusinessOverviews(await loadBusinessOverviews(nextOrganizations));
 
       const targetOrganizationId = preferredOrganizationId ?? selectedOrganizationIdRef.current ?? nextOrganizations[0]?.id ?? null;
 
       if (!targetOrganizationId) {
-        selectedOrganizationIdRef.current = null;
-        setSelectedOrganizationDetail(null);
-        return;
+          selectedOrganizationIdRef.current = null;
+          setSelectedOrganizationDetail(null);
+          setBusinessOverviews([]);
+          return;
       }
 
       await loadOrganizationDetail(targetOrganizationId);
@@ -167,6 +288,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
 
   return {
     organizations,
+    businessOverviews,
     selectedOrganizationId: selectedOrganizationIdRef.current,
     selectedOrganizationDetail,
     providerBookings,

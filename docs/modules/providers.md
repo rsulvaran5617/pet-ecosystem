@@ -18,6 +18,7 @@ Gestionar onboarding y operacion base del proveedor para dejarlo listo para apro
 - recibir bookings de su organizacion
 - aprobar o rechazar bookings `pending_approval`
 - completar bookings `confirmed`
+- consola web provider-facing inicial en `apps/web` para operar negocio, perfil publico, servicios, disponibilidad, documentos, readiness y reservas sin entrar al admin interno
 
 ## Alcance diferido
 - staff
@@ -113,6 +114,9 @@ Modelo recomendado CAP-0:
 - la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
 - las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` lleva a `Estado`, donde se cargan documentos de aprobacion
 - el panel de Inicio del proveedor puede mostrar un carrusel compacto de negocios para cambiar el negocio activo sin entrar a la lista vertical de `Negocio`
+- la consola web del proveedor vive en `apps/web`, no en `apps/admin`; usa los mismos contratos provider existentes y agrega shell/navegacion operativa para pantallas amplias sin crear reglas nuevas
+- la consola web provider muestra en `Agenda` una vista read-only de cupos publicados por servicio usando `get_service_booking_slots`; permite validar visualmente horarios, cupos disponibles, llenos, expirados o de ultimo cupo sin crear reservas ni modificar reglas
+- la consola web provider muestra indicadores globales de referencia operativa para todos los negocios: dinero ingresado por citas completadas, dinero pendiente por citas pendientes/confirmadas y dinero no ingresado por reservas canceladas por proveedor segun `cancelReason`; no representa captura real de pagos
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

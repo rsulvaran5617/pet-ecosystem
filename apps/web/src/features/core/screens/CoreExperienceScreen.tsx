@@ -263,12 +263,48 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
   );
 }
 
+function isHiddenTechnicalAuthMessage(message: string | null) {
+  if (!message) {
+    return false;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+  return normalizedMessage.includes("auth-token") && normalizedMessage.includes("another request stole it");
+}
+
 function getRoleTone(role: CoreRole, isActive: boolean) {
   if (isActive) {
     return "active" as const;
   }
 
   return role === "provider" ? ("pending" as const) : ("neutral" as const);
+}
+
+function getShellCopy(activeRole: CoreRole, isAuthenticated: boolean) {
+  if (!isAuthenticated) {
+    return {
+      eyebrow: "Pet Ecosystem",
+      title: "Cuidado y servicios para tus mascotas",
+      description: "Inicia sesion o crea tu cuenta para gestionar mascotas, proveedores, reservas y mensajes.",
+      accent: "Acceso seguro"
+    };
+  }
+
+  if (activeRole === "provider") {
+    return {
+      eyebrow: "Suite proveedor",
+      title: "Consola de gestion para tu negocio pet",
+      description: "Administra publicacion, servicios, disponibilidad, documentos y reservas desde una superficie web enfocada en proveedor.",
+      accent: "Modo proveedor"
+    };
+  }
+
+  return {
+    eyebrow: "Owner web",
+    title: "Centro de cuidado de tus mascotas",
+    description: "Consulta hogares, mascotas, salud, busqueda de servicios, reservas y conversaciones desde tu contexto de propietario.",
+    accent: "Modo propietario"
+  };
 }
 
 export function CoreExperienceScreen() {
@@ -327,6 +363,11 @@ export function CoreExperienceScreen() {
   const completedTasks = snapshot?.onboardingTasks.filter((task) => task.status === "completed").length ?? 0;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
   const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
+  const isProviderMode = authState.isAuthenticated && activeRole === "provider";
+  const isOwnerMode = authState.isAuthenticated && activeRole === "pet_owner";
+  const shellCopy = getShellCopy(activeRole, authState.isAuthenticated);
+  const visibleConfigError = isHiddenTechnicalAuthMessage(configError) ? null : configError;
+  const visibleErrorMessage = isHiddenTechnicalAuthMessage(errorMessage) ? null : errorMessage;
 
   return (
     <main
@@ -341,32 +382,31 @@ export function CoreExperienceScreen() {
       <section style={{ width: "min(1180px, 100%)", margin: "0 auto", display: "grid", gap: "24px" }}>
         <header
           style={{
-            borderRadius: "28px",
-            padding: "36px",
+            borderRadius: "22px",
+            padding: "24px 28px",
             background: "rgba(28, 25, 23, 0.92)",
             color: "#f8fafc",
-            boxShadow: "0 24px 64px rgba(28, 25, 23, 0.2)",
+            boxShadow: "0 18px 46px rgba(28, 25, 23, 0.16)",
             display: "grid",
-            gap: "16px"
+            gap: "12px"
           }}
         >
           <p style={{ margin: 0, fontSize: "12px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#99f6e4" }}>
-            EP-01 / Core
+            {shellCopy.eyebrow}
           </p>
-          <h1 style={{ margin: 0, fontSize: "48px", lineHeight: 1 }}>Autenticacion real con Supabase y perfil base persistido</h1>
-          <p style={{ margin: 0, maxWidth: "780px", lineHeight: 1.7, color: "rgba(248, 250, 252, 0.82)" }}>
-            Esta superficie se mantiene dentro del core: onboarding, registro, inicio de sesion, verificacion, recuperacion, perfil,
-            preferencias, direcciones, cambio de rol y tarjetas guardadas.
+          <h1 style={{ margin: 0, fontSize: "34px", lineHeight: 1.08 }}>{shellCopy.title}</h1>
+          <p style={{ margin: 0, maxWidth: "780px", fontSize: "15px", lineHeight: 1.55, color: "rgba(248, 250, 252, 0.82)" }}>
+            {shellCopy.description}
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
             <StatusPill
               tone={snapshot ? "active" : "pending"}
-              label={snapshot ? `${completedTasks}/${snapshot.onboardingTasks.length} pasos core listos` : "auth pendiente"}
+              label={snapshot ? `${completedTasks}/${snapshot.onboardingTasks.length} pasos listos` : "acceso pendiente"}
             />
-            <StatusPill tone="neutral" label={`rol activo: ${coreRoleLabels[activeRole]}`} />
+            <StatusPill tone="neutral" label={shellCopy.accent} />
             <StatusPill
               tone={coreMvpBoundaries.paymentCaptureInCore ? "pending" : "active"}
-              label={coreMvpBoundaries.paymentCaptureInCore ? "cobro dentro del core" : "solo metodos guardados"}
+              label={coreMvpBoundaries.paymentCaptureInCore ? "cobro activo" : "sin cobro real"}
             />
             {authState.isAuthenticated && authState.email ? <StatusPill tone="neutral" label={authState.email} /> : null}
           </div>
@@ -388,9 +428,9 @@ export function CoreExperienceScreen() {
           ) : null}
         </header>
 
-        {configError ? <Notice message={configError} tone="error" /> : null}
-        {!configError && errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
-        {!configError && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
+        {visibleConfigError ? <Notice message={visibleConfigError} tone="error" /> : null}
+        {!visibleConfigError && visibleErrorMessage ? <Notice message={visibleErrorMessage} tone="error" /> : null}
+        {!visibleConfigError && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
         {isRecoverySession ? (
           <Notice
             message="Supabase detecto una sesion de recuperacion. Define una nueva contrasena para completar el flujo de acceso."
@@ -398,7 +438,7 @@ export function CoreExperienceScreen() {
           />
         ) : null}
 
-        {!configError && isRecoverySession ? (
+        {!visibleConfigError && isRecoverySession ? (
           <CoreSection
             eyebrow="Sesion de recuperacion"
             title="Define una nueva contrasena"
@@ -451,13 +491,70 @@ export function CoreExperienceScreen() {
           </CoreSection>
         ) : null}
 
+        {!isLoading && authState.isAuthenticated && snapshot ? (
+          <section
+            style={{
+              borderRadius: "20px",
+              border: "1px solid rgba(28, 25, 23, 0.1)",
+              background: "rgba(255, 255, 255, 0.82)",
+              padding: "16px 18px",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "16px",
+              alignItems: "center",
+              flexWrap: "wrap"
+            }}
+          >
+            <div style={{ display: "grid", gap: "4px" }}>
+              <strong>{isProviderMode ? "Vista de proveedor" : "Vista de propietario"}</strong>
+              <span style={{ color: "#57534e", fontSize: "14px" }}>
+                {isProviderMode
+                  ? "Solo se muestra la consola del negocio. Cambia de rol para ver hogares, mascotas y reservas como propietario."
+                  : "Solo se muestra el contexto del hogar y las reservas como propietario. Cambia de rol para operar negocios."}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+              {snapshot.roles.map((role) => (
+                <button
+                  key={role.id}
+                  disabled={isSubmitting || role.isActive}
+                  onClick={() => {
+                    if (role.isActive) {
+                      return;
+                    }
+
+                    clearMessages();
+                    void runAction(
+                      () => getBrowserCoreApiClient().switchRole({ role: role.role }),
+                      `Vista cambiada a ${coreRoleLabels[role.role]}.`
+                    );
+                  }}
+                  style={{
+                    borderRadius: "999px",
+                    border: role.isActive ? "1px solid rgba(15, 118, 110, 0.24)" : "1px solid rgba(28, 25, 23, 0.12)",
+                    background: role.isActive ? "rgba(15, 118, 110, 0.12)" : "rgba(255,255,255,0.86)",
+                    color: role.isActive ? "#0f766e" : "#44403c",
+                    cursor: role.isActive || isSubmitting ? "default" : "pointer",
+                    fontWeight: 800,
+                    padding: "9px 13px"
+                  }}
+                  type="button"
+                >
+                  {role.isActive ? "✓ " : ""}
+                  {coreRoleLabels[role.role]}
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {isLoading ? (
           <CoreSection
             eyebrow="Cargando"
-            title="Conectando el espacio core"
-            description="Resolviendo la sesion actual de Supabase y los registros persistidos del core."
+            title="Preparando tu espacio"
+            description="Estamos cargando tu sesion y mostrando la experiencia que corresponde a tu rol activo."
           >
-            <p style={{ margin: 0, color: "#57534e" }}>Cargando autenticacion, perfil, roles, direcciones y metodos de pago...</p>
+            <p style={{ margin: 0, color: "#57534e" }}>Cargando datos de cuenta y permisos...</p>
           </CoreSection>
         ) : null}
 
@@ -646,7 +743,7 @@ export function CoreExperienceScreen() {
           </div>
         ) : null}
 
-        {!isLoading && authState.isAuthenticated && snapshot ? (
+        {!isLoading && isOwnerMode && snapshot ? (
           <div
             style={{
               display: "grid",
@@ -1178,14 +1275,14 @@ export function CoreExperienceScreen() {
           </div>
         ) : null}
 
-        {!isLoading && authState.isAuthenticated ? <HouseholdsWorkspace enabled /> : null}
-        {!isLoading && authState.isAuthenticated ? <PetsWorkspace enabled /> : null}
-        {!isLoading && authState.isAuthenticated ? <HealthWorkspace enabled /> : null}
-        {!isLoading && authState.isAuthenticated ? <RemindersWorkspace enabled /> : null}
-        {!isLoading && authState.isAuthenticated ? (
-          <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive={activeRole === "provider"} />
+        {!isLoading && isOwnerMode ? <HouseholdsWorkspace enabled /> : null}
+        {!isLoading && isOwnerMode ? <PetsWorkspace enabled /> : null}
+        {!isLoading && isOwnerMode ? <HealthWorkspace enabled /> : null}
+        {!isLoading && isOwnerMode ? <RemindersWorkspace enabled /> : null}
+        {!isLoading && isProviderMode ? (
+          <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive />
         ) : null}
-        {!isLoading ? (
+        {!isLoading && !isProviderMode ? (
           <MarketplaceWorkspace
             enabled
             onSelectBookingService={
@@ -1197,7 +1294,7 @@ export function CoreExperienceScreen() {
             }
           />
         ) : null}
-        {!isLoading && authState.isAuthenticated ? (
+        {!isLoading && isOwnerMode ? (
           <BookingsWorkspace
             enabled
             marketplaceSelection={marketplaceSelection}
@@ -1215,13 +1312,13 @@ export function CoreExperienceScreen() {
             }}
           />
         ) : null}
-        {!isLoading && authState.isAuthenticated ? (
+        {!isLoading && isOwnerMode ? (
           <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
         ) : null}
-        {!isLoading && authState.isAuthenticated ? (
+        {!isLoading && isOwnerMode ? (
           <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
         ) : null}
-        {!isLoading && authState.isAuthenticated ? (
+        {!isLoading && isOwnerMode ? (
           <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
         ) : null}
       </section>
