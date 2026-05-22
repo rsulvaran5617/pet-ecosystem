@@ -1,0 +1,75 @@
+# Proposed DigitalOcean App Platform specs.
+# This file is documentation/proposal only. Do not apply without reviewing domains,
+# environment variables, region, size, and GitHub repo access.
+
+---
+name: pet-ecosystem-web
+region: nyc
+services:
+  - name: web
+    environment_slug: node-js
+    github:
+      repo: rsulvaran5617/pet-ecosystem
+      branch: master
+      deploy_on_push: true
+    source_dir: /
+    build_command: corepack enable && corepack pnpm --filter @pet/web build
+    run_command: corepack pnpm --filter @pet/web exec next start --hostname 0.0.0.0 --port $PORT
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: REPLACE_IN_DIGITALOCEAN
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: REPLACE_IN_DIGITALOCEAN
+      - key: NEXT_TELEMETRY_DISABLED
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: "1"
+domains:
+  - domain: petcosys.com
+    type: PRIMARY
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+---
+name: pet-ecosystem-admin
+region: nyc
+services:
+  - name: admin
+    environment_slug: node-js
+    github:
+      repo: rsulvaran5617/pet-ecosystem
+      branch: master
+      deploy_on_push: true
+    source_dir: /
+    build_command: corepack enable && corepack pnpm --filter @pet/admin build
+    run_command: corepack pnpm --filter @pet/admin exec next start --hostname 0.0.0.0 --port $PORT
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: REPLACE_IN_DIGITALOCEAN
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+        value: REPLACE_IN_DIGITALOCEAN
+      - key: NEXT_TELEMETRY_DISABLED
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: "1"
+domains:
+  - domain: admin.petcosys.com
+    type: PRIMARY
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
