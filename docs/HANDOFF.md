@@ -430,6 +430,22 @@ Validacion recomendada:
 - usar la navegacion superior para saltar a publicacion, reservas, servicios, disponibilidad y documentos
 - crear/editar solo datos de prueba si se esta en ambiente piloto controlado
 
+## Handoff 2026-05-22 - Landing publica web
+
+Estado:
+
+- `apps/web` agrega landing publica de identidad de producto en `/`.
+- La experiencia autenticada por rol se mueve a `/app`, manteniendo owner/provider sobre el mismo `CoreExperienceScreen`.
+- Se incorpora el activo visual `apps/web/public/brand/pet-ecosystem-logo.png` a partir del logo compartido para identificar marca en cabecera y hero.
+- La composicion visual se alinea a la referencia compartida: header de marca, hero con mock mobile, visual pet, bloques de confianza, pasos `Asi funciona`, cards para duenos/proveedores, CTA de piloto y footer informativo.
+- La landing comunica alcance real del MVP/piloto: super app owner, suite provider, marketplace/orquestacion y estado `payment-ready`; no promete pagos reales, comercio, clinica digital ni telecare.
+- No se agregan backend, Supabase, migraciones, APIs ni reglas nuevas.
+
+Validacion recomendada:
+
+- abrir `http://localhost:3000` y confirmar landing publica.
+- abrir `http://localhost:3000/app` y confirmar experiencia autenticada por rol.
+
 ### Prompt exacto recomendado para continuar
 
 ```text

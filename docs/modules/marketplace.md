@@ -5,6 +5,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 
 ## Alcance MVP
 - home marketplace
+- landing publica de identidad en `apps/web` como entrada informativa del producto; no crea reservas ni expone datos privados
 - busqueda
 - filtros basicos
 - perfil publico del proveedor

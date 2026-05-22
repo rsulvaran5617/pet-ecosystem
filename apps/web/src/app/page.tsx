@@ -1,5 +1,5 @@
-import { CoreExperienceScreen } from "../features/core/screens/CoreExperienceScreen";
+import { ProductLandingScreen } from "../features/landing/screens/ProductLandingScreen";
 
 export default function HomePage() {
-  return <CoreExperienceScreen />;
+  return <ProductLandingScreen />;
 }

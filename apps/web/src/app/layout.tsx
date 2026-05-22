@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Pet Ecosystem Web",
-  description: "Base web del MVP del ecosistema pet."
+  title: "Pet Ecosystem",
+  description: "Ecosistema digital para cuidado de mascotas, proveedores pet y marketplace de servicios."
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
