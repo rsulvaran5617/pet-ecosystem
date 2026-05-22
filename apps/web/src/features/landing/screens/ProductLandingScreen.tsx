@@ -40,7 +40,7 @@ const secondaryLinkStyle = {
   textDecoration: "none"
 };
 
-const navItems = ["Inicio", "Para duenos", "Para proveedores", "Clinica/servicios", "Piloto", "Contacto"];
+const navItems = ["Inicio", "Para dueños", "Para proveedores", "Clinica/servicios", "Piloto", "Contacto"];
 
 const serviceChips = [
   { icon: "VC", label: "Veterinaria" },
@@ -100,7 +100,7 @@ function PhoneMock({ compact = false }: { compact?: boolean }) {
       <div className="phone-speaker" />
       <div className="phone-content">
         <div className="phone-top">
-          <span>Hola, Ana</span>
+          <span>Hola, Valeria</span>
           <strong>¿Que necesita hoy?</strong>
         </div>
         <div className="phone-search">Buscar veterinaria, grooming o paseos</div>
@@ -869,12 +869,12 @@ export function ProductLandingScreen() {
               Todo el cuidado de tu mascota en un solo <span>ecosistema</span>
             </h1>
             <p>
-              Conectamos duenos de mascotas con proveedores confiables para reservar servicios, dar seguimiento a
+              Conectamos dueños de mascotas con proveedores confiables para reservar servicios, dar seguimiento a
               la atencion y mantener la informacion de cada mascota organizada.
             </p>
             <div className="hero-actions">
               <a href="/app" style={primaryLinkStyle}>
-                Soy dueno de mascota
+                Soy dueño de mascota
               </a>
               <a href="/app" style={secondaryLinkStyle}>
                 Soy proveedor de servicios
@@ -944,7 +944,7 @@ export function ProductLandingScreen() {
           <div className="audience-grid">
             <article className="audience-card">
               <div>
-                <h3>Para duenos de mascotas</h3>
+                <h3>Para dueños de mascotas</h3>
                 <p>Encuentra servicios confiables y da seguimiento completo al bienestar de tus mascotas.</p>
                 <ul>
                   {ownerItems.map((item) => (
@@ -987,7 +987,7 @@ export function ProductLandingScreen() {
               </p>
               <div className="pilot-actions">
                 <a href="/app" style={primaryLinkStyle}>
-                  Quiero participar como dueno
+                  Quiero participar como dueño
                 </a>
                 <a href="/app" style={secondaryLinkStyle}>
                   Quiero registrarme como proveedor
@@ -1012,7 +1012,7 @@ export function ProductLandingScreen() {
           </div>
           <div>
             <h4>Producto</h4>
-            <a href="#para-duenos">Para duenos</a>
+            <a href="#para-duenos">Para dueños</a>
             <a href="#para-proveedores">Para proveedores</a>
             <a href="/app">Consola</a>
           </div>

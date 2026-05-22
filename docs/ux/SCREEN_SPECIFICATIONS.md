@@ -17,7 +17,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 ## Pantallas MVP minimas
 
 ### Core
-- landing web publica en `/` con identidad de Pet Ecosystem, header de marca, hero con mock mobile, visual pet, bloques de confianza, pasos `Asi funciona`, cards para duenos/proveedores y CTA hacia `/app`
+- landing web publica en `/` con identidad de Pet Ecosystem, header de marca, hero con mock mobile con saludo a Valeria, visual pet, bloques de confianza, pasos `Asi funciona`, cards para dueños/proveedores y CTA hacia `/app`
 - experiencia web autenticada vive en `/app`
 - onboarding
 - registro
