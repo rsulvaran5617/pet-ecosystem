@@ -102,6 +102,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil de negocio
 - perfil publico
 - web provider console en `apps/web`: cabecera operativa, metricas, navegacion por secciones y acceso a Negocios, Publicacion, Reservas, Perfil publico, Servicios, Disponibilidad y Documentos sin usar admin interno
+- web provider PW-0 usa una base visual de consola profesional con sidebar izquierdo `Panel`, `Negocios`, `Servicios`, `Reservas`, `Agenda`, `Publicacion` y `Documentos`, topbar de negocio activo, cards blancas, chips de estado y metricas compactas sin alterar datos ni mutaciones
+- web provider PW-1 convierte `Panel` en dashboard multinegocios con header de acciones rapidas, metricas ejecutivas, tarjetas de negocio gestionables, salud del negocio activo y proximas acciones operativas; los datos faltantes se presentan como pendientes o empty states profesionales
 - web provider console mantiene formularios colapsados por defecto y usa CTAs de crear/editar para abrirlos; `Mis negocios` se muestra como carrusel horizontal y cada tarjeta abre la edicion del negocio mediante un CTA de lapiz
 - web provider trata `Documentos de aprobacion` como expediente maestro del negocio: se muestran y cargan dentro de la seccion de edicion abierta con el lapiz de la tarjeta del negocio, no como seccion operativa independiente
 - cabecera web provider separa `Negocio seleccionado` de `Pendientes generales`; los pendientes globales se agregan por todos los negocios y cada caja navega al primer negocio relacionado y a la seccion que resuelve el pendiente

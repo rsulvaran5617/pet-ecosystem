@@ -22,7 +22,7 @@ import type {
   UpdateProviderServiceInput,
   Uuid
 } from "@pet/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
@@ -99,11 +99,13 @@ type DocumentFormState = {
 };
 
 const providerConsoleSections = [
-  { id: "provider-web-organizations", label: "Mis negocios", detail: "Cambia el negocio activo" },
-  { id: "provider-web-publication", label: "Publicacion", detail: "Que falta para aparecer" },
-  { id: "provider-web-bookings", label: "Reservas", detail: "Solicitudes y atencion" },
-  { id: "provider-web-services", label: "Servicios", detail: "Oferta y precios" },
-  { id: "provider-web-availability", label: "Agenda", detail: "Horarios disponibles" }
+  { id: "provider-web-panel", label: "Panel", detail: "Resumen ejecutivo" },
+  { id: "provider-web-organizations", label: "Negocios", detail: "Gestion multinegocio" },
+  { id: "provider-web-services", label: "Servicios", detail: "Catalogo y precios" },
+  { id: "provider-web-bookings", label: "Reservas", detail: "Operacion diaria" },
+  { id: "provider-web-availability", label: "Agenda/Capacidad", detail: "Capacidad y cupos" },
+  { id: "provider-web-publication", label: "Publicacion", detail: "Readiness marketplace" },
+  { id: "provider-web-business", label: "Documentos", detail: "Expediente maestro" }
 ] as const;
 
 const emptyOrganizationForm: OrganizationFormState = {
@@ -484,6 +486,367 @@ function Button({
     >
       {children}
     </button>
+  );
+}
+
+type ProviderVisualTone = "primary" | "neutral" | "success" | "warning" | "danger";
+
+const providerVisualPalette: Record<
+  ProviderVisualTone,
+  { background: string; border: string; color: string; soft: string }
+> = {
+  primary: { background: "#0f766e", border: "rgba(15, 118, 110, 0.28)", color: "#ffffff", soft: "rgba(15, 118, 110, 0.1)" },
+  neutral: { background: "#ffffff", border: "rgba(28, 25, 23, 0.1)", color: "#1c1917", soft: "rgba(120, 113, 108, 0.09)" },
+  success: { background: "#ecfdf5", border: "rgba(15, 118, 110, 0.2)", color: "#0f766e", soft: "rgba(15, 118, 110, 0.1)" },
+  warning: { background: "#fff7ed", border: "rgba(217, 119, 6, 0.22)", color: "#b45309", soft: "rgba(245, 158, 11, 0.12)" },
+  danger: { background: "#fef2f2", border: "rgba(220, 38, 38, 0.18)", color: "#b91c1c", soft: "rgba(220, 38, 38, 0.08)" }
+};
+
+function ProviderActionButton({
+  children,
+  disabled,
+  onClick,
+  tone = "primary",
+  type = "button"
+}: {
+  children: ReactNode;
+  disabled?: boolean;
+  onClick?: () => void;
+  tone?: "primary" | "secondary" | "ghost";
+  type?: "button" | "submit";
+}) {
+  const palette =
+    tone === "primary"
+      ? { background: "#0f766e", border: "rgba(15, 118, 110, 0.28)", color: "#ffffff" }
+      : tone === "secondary"
+        ? { background: "#ffffff", border: "rgba(15, 118, 110, 0.22)", color: "#0f766e" }
+        : { background: "transparent", border: "rgba(15, 118, 110, 0.14)", color: "#334155" };
+
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      type={type}
+      style={{
+        alignItems: "center",
+        background: palette.background,
+        border: `1px solid ${palette.border}`,
+        borderRadius: "999px",
+        color: palette.color,
+        cursor: disabled ? "not-allowed" : "pointer",
+        display: "inline-flex",
+        fontSize: "11px",
+        fontWeight: 800,
+        gap: "6px",
+        justifyContent: "center",
+        lineHeight: 1,
+        minHeight: "32px",
+        opacity: disabled ? 0.62 : 1,
+        padding: "8px 12px",
+        whiteSpace: "nowrap"
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ProviderStatusChip({ label, tone = "neutral" }: { label: string; tone?: ProviderVisualTone }) {
+  const palette = providerVisualPalette[tone];
+
+  return (
+    <span
+      style={{
+        alignItems: "center",
+        background: palette.background,
+        border: `1px solid ${palette.border}`,
+        borderRadius: "999px",
+        color: palette.color,
+        display: "inline-flex",
+        fontSize: "10px",
+        fontWeight: 900,
+        letterSpacing: "0.08em",
+        lineHeight: 1,
+        minHeight: "28px",
+        padding: "7px 10px",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap"
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function ProviderCard({
+  children,
+  id,
+  style
+}: {
+  children: ReactNode;
+  id?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <article
+      id={id}
+      style={{
+        background: "rgba(255, 255, 255, 0.9)",
+        border: "1px solid rgba(15, 118, 110, 0.12)",
+        borderRadius: "20px",
+        boxShadow: "0 16px 34px rgba(15, 23, 42, 0.07)",
+        display: "grid",
+        gap: "14px",
+        padding: "18px",
+        ...style
+      }}
+    >
+      {children}
+    </article>
+  );
+}
+
+function ProviderMetricCard({
+  label,
+  note,
+  surface = "light",
+  tone = "neutral",
+  value
+}: {
+  label: string;
+  note: string;
+  surface?: "light" | "dark";
+  tone?: ProviderVisualTone;
+  value: ReactNode;
+}) {
+  const palette = providerVisualPalette[tone];
+  const isDark = surface === "dark";
+
+  return (
+    <div
+      style={{
+        background: isDark ? "rgba(255,255,255,0.13)" : palette.background,
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.16)" : palette.border}`,
+        borderRadius: "16px",
+        display: "grid",
+        gap: "5px",
+        minHeight: "92px",
+        padding: "12px"
+      }}
+    >
+      <span
+        style={{
+          color: isDark ? "#ccfbf1" : palette.color,
+          fontSize: "10px",
+          fontWeight: 900,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase"
+        }}
+      >
+        {label}
+      </span>
+      <strong style={{ color: isDark ? "#f8fafc" : "#111827", fontSize: "22px", lineHeight: 1 }}>{value}</strong>
+      <span style={{ color: isDark ? "rgba(248,250,252,0.76)" : "#667085", fontSize: "12px", lineHeight: 1.35 }}>{note}</span>
+    </div>
+  );
+}
+
+function ProviderSidebar({
+  onNavigate,
+  sections
+}: {
+  onNavigate: (sectionId: string) => void;
+  sections: typeof providerConsoleSections;
+}) {
+  return (
+    <aside
+      style={{
+        alignSelf: "start",
+        background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        borderRadius: "22px",
+        boxShadow: "0 18px 40px rgba(15, 23, 42, 0.18)",
+        display: "grid",
+        gap: "16px",
+        padding: "16px",
+        position: "sticky",
+        top: "16px"
+      }}
+    >
+      <div style={{ alignItems: "center", display: "flex", gap: "10px", minWidth: 0 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            alignItems: "center",
+            background: "rgba(255, 255, 255, 0.94)",
+            borderRadius: "16px",
+            display: "inline-flex",
+            flexShrink: 0,
+            height: "42px",
+            justifyContent: "center",
+            overflow: "hidden",
+            width: "42px"
+          }}
+        >
+          <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "34px", objectFit: "contain", width: "34px" }} />
+        </span>
+        <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
+          <strong style={{ color: "#f8fafc", fontSize: "14px", lineHeight: 1.15 }}>Pet Ecosystem</strong>
+          <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "11px" }}>Consola proveedor</span>
+        </div>
+      </div>
+
+      <nav aria-label="Secciones de consola proveedor" style={{ display: "grid", gap: "8px" }}>
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => onNavigate(section.id)}
+            style={{
+              background: section.id === "provider-web-panel" ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "14px",
+              color: "#f8fafc",
+              cursor: "pointer",
+              display: "grid",
+              gap: "3px",
+              padding: "10px 11px",
+              textAlign: "left"
+            }}
+            type="button"
+          >
+            <strong style={{ color: section.id === "provider-web-panel" ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
+              {section.label}
+            </strong>
+            <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>
+          </button>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+function ProviderTopbar({
+  approvalLabel,
+  bookingCount,
+  businessCount,
+  isMarketplaceVisible,
+  onCreateBusiness,
+  onCreateService,
+  onRefresh,
+  onSelectOrganization,
+  organizations,
+  refreshDisabled,
+  selectedOrganizationId,
+  selectedName
+}: {
+  approvalLabel: string;
+  bookingCount: number;
+  businessCount: number;
+  isMarketplaceVisible: boolean;
+  onCreateBusiness: () => void;
+  onCreateService: () => void;
+  onRefresh: () => void;
+  onSelectOrganization: (organizationId: Uuid) => void;
+  organizations: Array<{ id: Uuid; name: string }>;
+  refreshDisabled?: boolean;
+  selectedOrganizationId: Uuid | null;
+  selectedName: string;
+}) {
+  return (
+    <header
+      style={{
+        alignItems: "center",
+        background: "rgba(255, 255, 255, 0.88)",
+        border: "1px solid rgba(15, 118, 110, 0.12)",
+        borderRadius: "20px",
+        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
+        display: "flex",
+        gap: "14px",
+        justifyContent: "space-between",
+        padding: "14px 16px",
+        position: "sticky",
+        top: "12px",
+        zIndex: 3
+      }}
+    >
+      <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
+        <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          Negocio activo
+        </span>
+        <strong style={{ color: "#101828", fontSize: "18px", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis" }}>
+          {selectedName}
+        </strong>
+      </div>
+      <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+        <select
+          aria-label="Seleccionar negocio activo"
+          onChange={(event) => onSelectOrganization(event.target.value as Uuid)}
+          style={{
+            background: "#fffdf8",
+            border: "1px solid rgba(15, 118, 110, 0.18)",
+            borderRadius: "999px",
+            color: "#101828",
+            fontSize: "11px",
+            fontWeight: 800,
+            minHeight: "32px",
+            minWidth: "150px",
+            padding: "7px 10px"
+          }}
+          value={selectedOrganizationId ?? ""}
+        >
+          <option disabled={organizations.length > 0} value="">
+            {organizations.length ? "Selecciona negocio" : "Sin negocios"}
+          </option>
+          {organizations.map((organization) => (
+            <option key={organization.id} value={organization.id}>
+              {organization.name}
+            </option>
+          ))}
+        </select>
+        <ProviderStatusChip label={approvalLabel} tone={isMarketplaceVisible ? "success" : "warning"} />
+        <ProviderStatusChip label={`${businessCount} negocios`} tone="neutral" />
+        <ProviderStatusChip label={`${bookingCount} reservas`} tone="neutral" />
+        <ProviderActionButton disabled={refreshDisabled} onClick={onCreateBusiness} tone="primary">
+          + Negocio
+        </ProviderActionButton>
+        <ProviderActionButton disabled={refreshDisabled || !selectedOrganizationId} onClick={onCreateService} tone="secondary">
+          + Servicio
+        </ProviderActionButton>
+        <ProviderActionButton disabled={refreshDisabled} onClick={onRefresh} tone="secondary">
+          Actualizar
+        </ProviderActionButton>
+      </div>
+    </header>
+  );
+}
+
+function ProviderShell({
+  children,
+  sidebar,
+  topbar
+}: {
+  children: ReactNode;
+  sidebar: ReactNode;
+  topbar: ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        background: "linear-gradient(180deg, #fbfaf7 0%, #f7f2e7 100%)",
+        border: "1px solid rgba(15, 118, 110, 0.08)",
+        borderRadius: "28px",
+        display: "grid",
+        gap: "18px",
+        gridTemplateColumns: "minmax(190px, 230px) minmax(0, 1fr)",
+        padding: "16px"
+      }}
+    >
+      {sidebar}
+      <main style={{ display: "grid", gap: "16px", minWidth: 0 }}>
+        {topbar}
+        {children}
+      </main>
+    </div>
   );
 }
 
@@ -882,12 +1245,69 @@ export function ProvidersWorkspace({
       organizationId: businessOverviews.find((overview) => !overview.hasDocuments)?.organization.id ?? null
     }
   ].filter((card) => card.count > 0);
+  const selectedBusinessOverview = selectedOrganizationId
+    ? businessOverviews.find((overview) => overview.organization.id === selectedOrganizationId) ?? null
+    : null;
+  const publishedBusinessCount = businessOverviews.filter((overview) => overview.isMarketplaceVisible).length;
+  const pendingBusinessCount = businessOverviews.filter((overview) => !overview.isMarketplaceVisible).length;
+  const activeServiceCount = businessOverviews.reduce((total, overview) => total + overview.activeServiceCount, 0);
+  const activeConfiguredCapacity = selectedAvailabilityRules
+    .filter((rule) => rule.isActive)
+    .reduce((total, rule) => total + rule.capacity, 0);
+  const upcomingAvailableCapacity = capacitySlots.length
+    ? capacitySlots.reduce((total, slot) => total + Math.max(0, slot.availableCount), 0)
+    : activeConfiguredCapacity;
+  const alertCount =
+    pendingProviderBookings.length +
+    pendingReadinessItems.length +
+    businessOverviews.filter((overview) => !overview.isMarketplaceVisible).length;
+  const executiveMetrics = [
+    { label: "Negocios", value: organizations.length, note: "total registrados", tone: "neutral" as const },
+    { label: "Publicados", value: publishedBusinessCount, note: "visibles en marketplace", tone: "success" as const },
+    { label: "Pendientes", value: pendingBusinessCount, note: "requieren accion", tone: pendingBusinessCount ? ("warning" as const) : ("neutral" as const) },
+    { label: "Servicios activos", value: activeServiceCount, note: "oferta operativa", tone: "success" as const },
+    { label: "Reservas pendientes", value: pendingProviderBookings.length, note: "por aprobar", tone: pendingProviderBookings.length ? ("warning" as const) : ("neutral" as const) },
+    { label: "Cupos disponibles", value: upcomingAvailableCapacity, note: capacitySlots.length ? "proximos 14 dias" : "capacidad activa", tone: "primary" as const },
+    { label: "Alertas", value: alertCount, note: alertCount ? "revisar acciones" : "sin alertas criticas", tone: alertCount ? ("warning" as const) : ("success" as const) }
+  ];
+  const activeBusinessHealth = [
+    { label: "Perfil publico", done: Boolean(selectedPublicProfile), action: "Completar perfil", sectionId: "provider-web-profile" },
+    { label: "Servicios configurados", done: selectedServices.length > 0, action: "Crear servicio", sectionId: "provider-web-services" },
+    {
+      label: "Horarios/capacidad",
+      done: selectedAvailability.length > 0 || selectedAvailabilityRules.some((rule) => rule.isActive),
+      action: "Definir horarios",
+      sectionId: "provider-web-availability"
+    },
+    { label: "Documentos cargados", done: selectedDocuments.length > 0, action: "Cargar documentos", sectionId: "provider-web-business" },
+    { label: "Ubicacion publica", done: Boolean(selectedPublicLocation?.isPublic), action: "Configurar ubicacion", sectionId: "provider-web-profile" }
+  ];
+  const activeMarketplaceLabel = isMarketplaceVisible
+    ? "Visible"
+    : selectedOrganization?.approvalStatus === "approved"
+      ? "No visible"
+      : "Pendiente";
   const closeProviderForms = () => {
     setIsBusinessFormOpen(false);
     setIsProfileFormOpen(false);
     setIsServiceFormOpen(false);
     setIsAvailabilityFormOpen(false);
     setIsDocumentFormOpen(false);
+  };
+  const openCreateBusiness = () => {
+    clearMessages();
+    closeProviderForms();
+    setOrganizationMode("create");
+    setOrganizationForm(emptyOrganizationForm);
+    setIsBusinessFormOpen(true);
+    scrollToProviderSection("provider-web-business");
+  };
+  const openCreateService = () => {
+    clearMessages();
+    closeProviderForms();
+    setServiceForm(emptyServiceForm);
+    setIsServiceFormOpen(true);
+    scrollToProviderSection("provider-web-services");
   };
   const openGlobalAction = (sectionId: string, organizationId: Uuid | null) => {
     closeProviderForms();
@@ -950,15 +1370,29 @@ export function ProvidersWorkspace({
         ) : isLoading && !organizations.length && !selectedOrganizationDetail ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando organizaciones de proveedores desde Supabase...</p>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              fontSize: "12px",
-              gridTemplateColumns: "minmax(250px, 320px) minmax(0, 1fr)",
-              gap: "18px"
-            }}
+          <ProviderShell
+            sidebar={<ProviderSidebar onNavigate={scrollToProviderSection} sections={providerConsoleSections} />}
+            topbar={
+              <ProviderTopbar
+                approvalLabel={selectedOrganization ? providerApprovalStatusLabels[selectedOrganization.approvalStatus] : "Sin negocio activo"}
+                bookingCount={providerBookings.length}
+                businessCount={organizations.length}
+                isMarketplaceVisible={isMarketplaceVisible}
+                onCreateBusiness={openCreateBusiness}
+                onCreateService={openCreateService}
+                onRefresh={() => void refresh(selectedOrganizationId)}
+                onSelectOrganization={(organizationId) => {
+                  closeProviderForms();
+                  void selectOrganization(organizationId);
+                }}
+                organizations={organizations.map((organization) => ({ id: organization.id, name: organization.name }))}
+                refreshDisabled={isSubmitting}
+                selectedOrganizationId={selectedOrganizationId}
+                selectedName={selectedOrganization?.name ?? "Selecciona un negocio"}
+              />
+            }
           >
-            <div style={{ gridColumn: "1 / -1", display: "grid", gap: "14px" }}>
+            <div id="provider-web-panel" style={{ display: "grid", gap: "14px" }}>
               <div
                 style={{
                   borderRadius: "22px",
@@ -1018,21 +1452,14 @@ export function ProvidersWorkspace({
                       { label: "Publicacion", value: `${readyChecklistCount}/${reviewReadiness.length}`, note: nextReadinessItem?.label ?? "listo para revision" },
                       { label: "Reservas", value: providerBookings.length, note: nextProviderBooking ? "hay actividad reciente" : "sin reservas aun" }
                     ].map((metric) => (
-                      <div
+                      <ProviderMetricCard
                         key={metric.label}
-                        style={{
-                          borderRadius: "16px",
-                          background: "rgba(255,255,255,0.13)",
-                          border: "1px solid rgba(255,255,255,0.16)",
-                          padding: "12px",
-                          display: "grid",
-                          gap: "5px"
-                        }}
-                      >
-                        <span style={{ fontSize: "12px", color: "#ccfbf1", fontWeight: 800, textTransform: "uppercase" }}>{metric.label}</span>
-                        <strong style={{ fontSize: "21px", lineHeight: 1 }}>{metric.value}</strong>
-                        <span style={{ color: "rgba(248, 250, 252, 0.78)", fontSize: "13px" }}>{metric.note}</span>
-                      </div>
+                        label={metric.label}
+                        note={metric.note}
+                        surface="dark"
+                        tone="success"
+                        value={metric.value}
+                      />
                     ))}
                   </div>
                 </div>
@@ -1090,17 +1517,235 @@ export function ProvidersWorkspace({
                 </div>
               </div>
 
-              <div
-                style={{
-                  borderRadius: "22px",
-                  padding: "18px",
-                  background: "rgba(255, 255, 255, 0.86)",
-                  border: "1px solid rgba(15, 118, 110, 0.16)",
-                  boxShadow: "0 16px 32px rgba(28, 25, 23, 0.08)",
-                  display: "grid",
-                  gap: "12px"
-                }}
-              >
+              <section style={{ display: "grid", gap: "14px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(138px, 1fr))", gap: "10px" }}>
+                  {executiveMetrics.map((metric) => (
+                    <ProviderMetricCard key={metric.label} label={metric.label} note={metric.note} tone={metric.tone} value={metric.value} />
+                  ))}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.45fr) minmax(280px, 0.75fr)", gap: "14px" }}>
+                  <ProviderCard>
+                    <div style={{ alignItems: "center", display: "flex", gap: "12px", justifyContent: "space-between", flexWrap: "wrap" }}>
+                      <div style={{ display: "grid", gap: "4px" }}>
+                        <p style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", margin: 0, textTransform: "uppercase" }}>
+                          Gestion multinegocios
+                        </p>
+                        <h3 style={{ color: "#101828", fontSize: "18px", margin: 0 }}>Tus negocios</h3>
+                      </div>
+                      <ProviderActionButton disabled={isSubmitting} onClick={openCreateBusiness} tone="secondary">
+                        + Nuevo negocio
+                      </ProviderActionButton>
+                    </div>
+
+                    {businessOverviews.length ? (
+                      <div style={{ display: "grid", gap: "10px" }}>
+                        {businessOverviews.map((overview) => {
+                          const organization = overview.organization;
+                          const isSelected = organization.id === selectedOrganizationId;
+                          const approvalTone =
+                            organization.approvalStatus === "approved"
+                              ? "success"
+                              : organization.approvalStatus === "rejected"
+                                ? "danger"
+                                : "warning";
+
+                          return (
+                            <article
+                              key={organization.id}
+                              style={{
+                                alignItems: "center",
+                                background: isSelected ? "rgba(15, 118, 110, 0.08)" : "#ffffff",
+                                border: isSelected ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.1)",
+                                borderRadius: "16px",
+                                display: "grid",
+                                gap: "12px",
+                                gridTemplateColumns: "minmax(210px, 1.2fr) repeat(3, minmax(86px, 0.5fr)) auto",
+                                padding: "12px"
+                              }}
+                            >
+                              <button
+                                onClick={() => {
+                                  closeProviderForms();
+                                  void selectOrganization(organization.id);
+                                }}
+                                style={{
+                                  alignItems: "center",
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "#101828",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  gap: "10px",
+                                  minWidth: 0,
+                                  padding: 0,
+                                  textAlign: "left"
+                                }}
+                                type="button"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  style={{
+                                    alignItems: "center",
+                                    background: "rgba(15, 118, 110, 0.1)",
+                                    borderRadius: "14px",
+                                    color: "#0f766e",
+                                    display: "inline-flex",
+                                    flexShrink: 0,
+                                    fontSize: "11px",
+                                    fontWeight: 900,
+                                    height: "42px",
+                                    justifyContent: "center",
+                                    overflow: "hidden",
+                                    width: "42px"
+                                  }}
+                                >
+                                  {organization.avatarUrl ? (
+                                    <img alt="" src={organization.avatarUrl} style={{ height: "100%", objectFit: "cover", width: "100%" }} />
+                                  ) : (
+                                    organization.name
+                                      .split(/\s+/)
+                                      .filter(Boolean)
+                                      .slice(0, 2)
+                                      .map((part) => part[0])
+                                      .join("")
+                                      .toUpperCase()
+                                  )}
+                                </span>
+                                <span style={{ display: "grid", gap: "3px", minWidth: 0 }}>
+                                  <strong style={{ fontSize: "13px", lineHeight: 1.15, overflow: "hidden", textOverflow: "ellipsis" }}>
+                                    {organization.name}
+                                  </strong>
+                                  <span style={{ color: "#667085", fontSize: "11px" }}>
+                                    {organization.city}, {organization.countryCode}
+                                  </span>
+                                  <span style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                    <ProviderStatusChip label={providerApprovalStatusLabels[organization.approvalStatus]} tone={approvalTone} />
+                                    <ProviderStatusChip label={organization.isPublic ? "Publico" : "Privado"} tone={organization.isPublic ? "success" : "neutral"} />
+                                  </span>
+                                </span>
+                              </button>
+
+                              <div style={{ display: "grid", gap: "3px" }}>
+                                <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Servicios</span>
+                                <strong style={{ color: "#101828", fontSize: "16px" }}>{overview.serviceCount}</strong>
+                              </div>
+                              <div style={{ display: "grid", gap: "3px" }}>
+                                <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Pendientes</span>
+                                <strong style={{ color: overview.bookingCounts.pending_approval ? "#b45309" : "#101828", fontSize: "16px" }}>
+                                  {overview.bookingCounts.pending_approval}
+                                </strong>
+                              </div>
+                              <div style={{ display: "grid", gap: "3px" }}>
+                                <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Publicacion</span>
+                                <ProviderStatusChip label={overview.isMarketplaceVisible ? "Visible" : "Pendiente"} tone={overview.isMarketplaceVisible ? "success" : "warning"} />
+                              </div>
+                              <ProviderActionButton
+                                onClick={() => {
+                                  closeProviderForms();
+                                  void selectOrganization(organization.id).then(() => {
+                                    window.setTimeout(() => scrollToProviderSection("provider-web-business"), 120);
+                                  });
+                                }}
+                                tone={isSelected ? "primary" : "secondary"}
+                              >
+                                Gestionar
+                              </ProviderActionButton>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          background: "rgba(15, 118, 110, 0.06)",
+                          border: "1px solid rgba(15, 118, 110, 0.14)",
+                          borderRadius: "16px",
+                          color: "#475467",
+                          padding: "16px"
+                        }}
+                      >
+                        Todavia no hay negocios registrados. Crea el primero para preparar perfil, servicios, agenda y documentos.
+                      </div>
+                    )}
+                  </ProviderCard>
+
+                  <ProviderCard>
+                    <div style={{ display: "grid", gap: "5px" }}>
+                      <p style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", margin: 0, textTransform: "uppercase" }}>
+                        Salud del negocio activo
+                      </p>
+                      <h3 style={{ color: "#101828", fontSize: "18px", margin: 0 }}>
+                        {selectedOrganization?.name ?? "Sin negocio seleccionado"}
+                      </h3>
+                      <ProviderStatusChip
+                        label={`Marketplace: ${activeMarketplaceLabel}`}
+                        tone={isMarketplaceVisible ? "success" : activeMarketplaceLabel === "Pendiente" ? "warning" : "neutral"}
+                      />
+                    </div>
+
+                    <div style={{ display: "grid", gap: "8px" }}>
+                      {activeBusinessHealth.map((item) => (
+                        <button
+                          key={item.label}
+                          onClick={() => openGlobalAction(item.sectionId, selectedOrganizationId)}
+                          style={{
+                            alignItems: "center",
+                            background: item.done ? "rgba(15, 118, 110, 0.06)" : "rgba(245, 158, 11, 0.08)",
+                            border: item.done ? "1px solid rgba(15, 118, 110, 0.14)" : "1px solid rgba(245, 158, 11, 0.2)",
+                            borderRadius: "14px",
+                            color: "#101828",
+                            cursor: "pointer",
+                            display: "flex",
+                            gap: "10px",
+                            justifyContent: "space-between",
+                            padding: "10px",
+                            textAlign: "left"
+                          }}
+                          type="button"
+                        >
+                          <span style={{ display: "grid", gap: "2px" }}>
+                            <strong style={{ fontSize: "12px" }}>{item.label}</strong>
+                            <span style={{ color: "#667085", fontSize: "10px" }}>{item.done ? "Completo" : item.action}</span>
+                          </span>
+                          <ProviderStatusChip label={item.done ? "OK" : "Pendiente"} tone={item.done ? "success" : "warning"} />
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{ borderTop: "1px solid rgba(28,25,23,0.08)", display: "grid", gap: "8px", paddingTop: "10px" }}>
+                      <strong style={{ color: "#101828", fontSize: "13px" }}>Proximas acciones</strong>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                        <ProviderActionButton onClick={() => openGlobalAction("provider-web-profile", selectedOrganizationId)} tone="secondary">
+                          Completar perfil
+                        </ProviderActionButton>
+                        <ProviderActionButton onClick={openCreateService} tone="secondary">
+                          Crear servicio
+                        </ProviderActionButton>
+                        <ProviderActionButton onClick={() => openGlobalAction("provider-web-availability", selectedOrganizationId)} tone="secondary">
+                          Definir horarios
+                        </ProviderActionButton>
+                        <ProviderActionButton onClick={() => openGlobalAction("provider-web-business", selectedOrganizationId)} tone="secondary">
+                          Cargar documentos
+                        </ProviderActionButton>
+                        <ProviderActionButton onClick={() => openGlobalAction("provider-web-bookings", selectedOrganizationId)} tone="secondary">
+                          Revisar reservas
+                        </ProviderActionButton>
+                        <ProviderActionButton onClick={() => openGlobalAction("provider-web-publication", selectedOrganizationId)} tone="primary">
+                          Publicar negocio
+                        </ProviderActionButton>
+                      </div>
+                      <span style={{ color: "#667085", fontSize: "11px" }}>
+                        {selectedBusinessOverview
+                          ? `${selectedBusinessOverview.activeServiceCount} servicio(s) activo(s), ${selectedBusinessOverview.documentCount} documento(s) y ${selectedBusinessOverview.availabilityRuleCount} regla(s) de agenda.`
+                          : "Selecciona un negocio para ver su estado operativo."}
+                      </span>
+                    </div>
+                  </ProviderCard>
+                </div>
+              </section>
+
+              <ProviderCard>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
                     <p style={{ margin: 0, color: "#0f766e", fontSize: "11px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -1139,38 +1784,7 @@ export function ProvidersWorkspace({
                     ))}
                   </div>
                 ) : null}
-              </div>
-
-              <nav
-                aria-label="Secciones de consola proveedor"
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  overflowX: "auto",
-                  padding: "2px 2px 8px"
-                }}
-              >
-                {providerConsoleSections.map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => scrollToProviderSection(section.id)}
-                    type="button"
-                    style={{
-                      borderRadius: "16px",
-                      border: "1px solid rgba(15, 118, 110, 0.18)",
-                      background: "rgba(255,255,255,0.82)",
-                      color: "#0f766e",
-                      cursor: "pointer",
-                      minWidth: "150px",
-                      padding: "12px 14px",
-                      textAlign: "left"
-                    }}
-                  >
-                    <strong style={{ display: "block", fontSize: "14px" }}>{section.label}</strong>
-                    <span style={{ display: "block", marginTop: "4px", color: "#57534e", fontSize: "12px", lineHeight: 1.35 }}>{section.detail}</span>
-                  </button>
-                ))}
-              </nav>
+              </ProviderCard>
             </div>
 
             <div style={{ gridColumn: "1 / -1", display: "grid", gap: "18px", alignContent: "start" }}>
@@ -2828,7 +3442,7 @@ export function ProvidersWorkspace({
               </article>
 
             </div>
-          </div>
+          </ProviderShell>
         )}
       </CoreSection>
     </div>

@@ -23,6 +23,11 @@ export interface ProviderBusinessOverview {
   hasService: boolean;
   hasAvailability: boolean;
   hasDocuments: boolean;
+  hasPublicLocation: boolean;
+  serviceCount: number;
+  activeServiceCount: number;
+  availabilityRuleCount: number;
+  documentCount: number;
   isMarketplaceVisible: boolean;
 }
 
@@ -183,6 +188,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       const hasService = detail.services.some((service) => service.isPublic && service.isActive);
       const hasAvailability = detail.availability.length > 0 || detail.availabilityRules.some((rule) => rule.isActive);
       const hasDocuments = detail.approvalDocuments.length > 0;
+      const hasPublicLocation = Boolean(detail.publicLocation?.isPublic);
       const isMarketplaceVisible =
         detail.organization.approvalStatus === "approved" &&
         detail.organization.isPublic &&
@@ -198,6 +204,11 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         hasService,
         hasAvailability,
         hasDocuments,
+        hasPublicLocation,
+        serviceCount: detail.services.length,
+        activeServiceCount: detail.services.filter((service) => service.isActive).length,
+        availabilityRuleCount: detail.availabilityRules.length,
+        documentCount: detail.approvalDocuments.length,
         isMarketplaceVisible
       };
     });
