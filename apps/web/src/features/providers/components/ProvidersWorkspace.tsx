@@ -35,10 +35,10 @@ const fieldLabelStyle = {
 };
 
 const controlStyle = {
-  borderRadius: "14px",
+  borderRadius: "12px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "12px 14px",
-  fontSize: "15px",
+  padding: "9px 11px",
+  fontSize: "12px",
   background: "#fffdf8"
 };
 
@@ -347,7 +347,8 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(28, 25, 23, 0.14)",
         background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.82)",
         color: tone === "primary" ? "#f8fafc" : "#1c1917",
-        padding: "12px 18px",
+        fontSize: "11px",
+        padding: "8px 12px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
@@ -802,7 +803,8 @@ export function ProvidersWorkspace({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(250px, 300px) minmax(280px, 360px) minmax(0, 1fr)",
+              fontSize: "12px",
+              gridTemplateColumns: "minmax(250px, 320px) minmax(0, 1fr)",
               gap: "18px"
             }}
           >
@@ -2075,17 +2077,17 @@ export function ProvidersWorkspace({
               <article
                 id="provider-web-availability"
                 style={{
-                  borderRadius: "22px",
-                  padding: "18px",
+                  borderRadius: "18px",
+                  padding: "14px",
                   background: "rgba(247, 242, 231, 0.72)",
                   display: "grid",
-                  gap: "12px"
+                  gap: "9px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "20px" }}>Agenda</h3>
-                    <span style={{ color: "#57534e", fontSize: "13px" }}>Planifica horarios y cupos por servicio.</span>
+                    <h3 style={{ margin: 0, fontSize: "16px" }}>Agenda</h3>
+                    <span style={{ color: "#57534e", fontSize: "11px" }}>Planifica horarios y cupos por servicio.</span>
                   </div>
                   <StatusPill label={`${selectedAvailabilityRules.length} regla(s)`} tone="neutral" />
                 </div>
@@ -2096,7 +2098,7 @@ export function ProvidersWorkspace({
                         style={{
                           alignItems: "end",
                           display: "grid",
-                          gap: "10px",
+                          gap: "8px",
                           gridTemplateColumns: "minmax(220px, 1fr) auto"
                         }}
                       >
@@ -2129,8 +2131,8 @@ export function ProvidersWorkspace({
                       <div
                         style={{
                           display: "grid",
-                          gap: "8px",
-                          gridTemplateColumns: "repeat(7, minmax(104px, 1fr))",
+                          gap: "6px",
+                          gridTemplateColumns: "repeat(7, minmax(92px, 1fr))",
                           overflowX: "auto",
                           paddingBottom: "2px"
                         }}
@@ -2144,16 +2146,16 @@ export function ProvidersWorkspace({
                               style={{
                                 background: "rgba(255,255,255,0.66)",
                                 border: "1px solid rgba(15,118,110,0.12)",
-                                borderRadius: "16px",
+                                borderRadius: "13px",
                                 display: "grid",
-                                gap: "8px",
-                                minHeight: "164px",
-                                padding: "8px"
+                                gap: "5px",
+                                minHeight: "112px",
+                                padding: "6px"
                               }}
                             >
                               <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "6px" }}>
-                                <strong style={{ color: "#1c1917", fontSize: "12px" }}>{providerDayOfWeekLabels[dayOfWeek].slice(0, 3)}</strong>
-                                <span style={{ color: "#0f766e", fontSize: "9px", fontWeight: 800 }}>{dayRules.length ? `${dayRules.length}` : "-"}</span>
+                                <strong style={{ color: "#1c1917", fontSize: "10px" }}>{providerDayOfWeekLabels[dayOfWeek].slice(0, 3)}</strong>
+                                <span style={{ color: "#0f766e", fontSize: "8px", fontWeight: 800 }}>{dayRules.length ? `${dayRules.length}` : "-"}</span>
                               </div>
                               {dayRules.length ? (
                                 dayRules.map((rule) => {
@@ -2165,17 +2167,17 @@ export function ProvidersWorkspace({
                                       style={{
                                         background: tone.background,
                                         border: `1px solid ${tone.border}`,
-                                        borderRadius: "13px",
+                                        borderRadius: "10px",
                                         display: "grid",
-                                        gap: "5px",
-                                        padding: "8px"
+                                        gap: "3px",
+                                        padding: "5px"
                                       }}
                                     >
-                                      <strong style={{ color: "#1c1917", fontSize: "11px" }}>
+                                      <strong style={{ color: "#1c1917", fontSize: "9px" }}>
                                         {rule.startsAt.slice(0, 5)} - {rule.endsAt.slice(0, 5)}
                                       </strong>
-                                      <span style={{ color: tone.color, fontSize: "9px", fontWeight: 800 }}>{tone.label}</span>
-                                      <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+                                      <span style={{ color: tone.color, fontSize: "7px", fontWeight: 800 }}>{tone.label}</span>
+                                      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
                                         <button
                                           disabled={isSubmitting}
                                           onClick={() => {
@@ -2196,9 +2198,9 @@ export function ProvidersWorkspace({
                                             background: "rgba(255,255,255,0.82)",
                                             color: "#1c1917",
                                             cursor: isSubmitting ? "not-allowed" : "pointer",
-                                            fontSize: "9px",
+                                            fontSize: "7px",
                                             fontWeight: 800,
-                                            padding: "5px 8px"
+                                            padding: "3px 6px"
                                           }}
                                           type="button"
                                         >
@@ -2221,9 +2223,9 @@ export function ProvidersWorkspace({
                                             background: "rgba(255,255,255,0.82)",
                                             color: rule.isActive ? "#b45309" : "#0f766e",
                                             cursor: isSubmitting ? "not-allowed" : "pointer",
-                                            fontSize: "9px",
+                                            fontSize: "7px",
                                             fontWeight: 800,
-                                            padding: "5px 8px"
+                                            padding: "3px 6px"
                                           }}
                                           type="button"
                                         >
@@ -2255,8 +2257,8 @@ export function ProvidersWorkspace({
                                     fontSize: "10px",
                                     fontWeight: 800,
                                     justifyContent: "center",
-                                    minHeight: "92px",
-                                    padding: "8px",
+                                    minHeight: "54px",
+                                    padding: "6px",
                                     textAlign: "center"
                                   }}
                                   type="button"
@@ -2310,16 +2312,16 @@ export function ProvidersWorkspace({
                           style={{
                             background: "rgba(255,255,255,0.76)",
                             border: "1px solid rgba(15,118,110,0.16)",
-                            borderRadius: "18px",
+                            borderRadius: "14px",
                             display: "grid",
-                            gap: "10px",
-                            padding: "12px"
+                            gap: "8px",
+                            padding: "10px"
                           }}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                             <div style={{ display: "grid", gap: "3px" }}>
-                              <strong style={{ fontSize: "13px" }}>{availabilityForm.id ? "Editar franja" : "Crear franja"}</strong>
-                              <span style={{ color: "#57534e", fontSize: "10px" }}>Servicio, dia, horario y cupos.</span>
+                              <strong style={{ fontSize: "11px" }}>{availabilityForm.id ? "Editar franja" : "Crear franja"}</strong>
+                              <span style={{ color: "#57534e", fontSize: "9px" }}>Servicio, dia, horario y cupos.</span>
                             </div>
                             <button
                               onClick={() => setIsAvailabilityFormOpen(false)}
@@ -2329,15 +2331,15 @@ export function ProvidersWorkspace({
                                 background: "rgba(255,255,255,0.84)",
                                 cursor: "pointer",
                                 fontWeight: 900,
-                                height: "28px",
-                                width: "28px"
+                                height: "24px",
+                                width: "24px"
                               }}
                               type="button"
                             >
                               ×
                             </button>
                           </div>
-                          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))" }}>
+                          <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))" }}>
                             <SelectField<Uuid | "">
                               label="Servicio"
                               onChange={(value) => setAvailabilityForm((current) => ({ ...current, serviceId: value }))}
@@ -2368,18 +2370,18 @@ export function ProvidersWorkspace({
 
                       <div
                         style={{
-                          borderRadius: "16px",
+                          borderRadius: "13px",
                           border: "1px solid rgba(15, 118, 110, 0.12)",
                           background: "rgba(240, 253, 250, 0.5)",
                           display: "grid",
-                          gap: "8px",
-                          padding: "10px"
+                          gap: "6px",
+                          padding: "8px"
                         }}
                       >
                         <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
                           <div style={{ display: "grid", gap: "2px" }}>
-                            <strong style={{ fontSize: "12px" }}>Cupos proyectados</strong>
-                            <span style={{ color: "#57534e", fontSize: "10px" }}>Validacion de reservas reales para los proximos 14 dias.</span>
+                            <strong style={{ fontSize: "10px" }}>Cupos proyectados</strong>
+                            <span style={{ color: "#57534e", fontSize: "8px" }}>Validacion de reservas reales para los proximos 14 dias.</span>
                           </div>
                           <button
                             disabled={!capacityServiceId || isLoadingCapacitySlots}

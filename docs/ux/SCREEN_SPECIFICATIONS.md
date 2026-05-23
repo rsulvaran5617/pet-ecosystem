@@ -108,6 +108,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - cabecera web provider incluye tres indicadores globales `payment-ready`: ingresado por citas completadas, pendiente por citas pendientes/confirmadas y no ingresado por cancelaciones atribuidas al proveedor por razon registrada; son referencia operativa, sin cobro real
 - `Publicacion` en web provider muestra un panel de pendientes accionables; cada pendiente abre la seccion que lo resuelve: perfil, servicios, agenda, documentos o negocio
 - `Agenda` en web provider permite crear y editar horarios con cupos por servicio igual que mobile provider: servicio, dia, hora inicio, hora fin, capacidad y activo/inactivo; ademas incluye vista read-only de cupos proyectados por servicio para los proximos 14 dias, sin crear reservas ni consumir cupo
+- `Agenda` en web provider usa un planificador semanal compacto dentro de un layout de dos columnas: servicios/agenda tienen mas ancho horizontal, los bloques por dia son bajos y los botones internos usan menor tamano para reducir scroll vertical
 - ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
 - servicios
 - disponibilidad
