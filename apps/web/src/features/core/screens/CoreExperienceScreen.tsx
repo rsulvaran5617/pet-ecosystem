@@ -5,9 +5,16 @@ import { colorTokens, spacingTokens } from "@pet/ui";
 import type {
   AddPaymentMethodInput,
   AddressLabel,
+  BookingSummary,
+  CalendarEvent,
+  ChatThreadSummary,
+  CoreIdentitySnapshot,
   CoreRole,
+  HouseholdsSnapshot,
   MarketplaceServiceSelection,
   PaymentMethodBrand,
+  PetSummary,
+  Reminder,
   UpdatePreferencesInput,
   UpdateProfileInput,
   UpsertAddressInput,
@@ -18,7 +25,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import { CoreSection } from "../components/CoreSection";
 import { StatusPill } from "../components/StatusPill";
 import { useCoreWorkspace } from "../hooks/useCoreWorkspace";
-import { getBrowserCoreApiClient, getBrowserRecoveryRedirectUrl } from "../services/supabase-browser";
+import {
+  getBrowserBookingsApiClient,
+  getBrowserCoreApiClient,
+  getBrowserHouseholdsApiClient,
+  getBrowserMessagingApiClient,
+  getBrowserPetsApiClient,
+  getBrowserRecoveryRedirectUrl,
+  getBrowserRemindersApiClient
+} from "../services/supabase-browser";
 import { HouseholdsWorkspace } from "../../households/components/HouseholdsWorkspace";
 import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
 import { HealthWorkspace } from "../../health/components/HealthWorkspace";
@@ -334,6 +349,414 @@ function OwnerWebSection({ children, id }: { children: ReactNode; id: OwnerWebSe
   return (
     <section id={id} style={{ display: "grid", gap: "18px", scrollMarginTop: "18px" }}>
       {children}
+    </section>
+  );
+}
+
+type OwnerDashboardData = {
+  householdSnapshot: HouseholdsSnapshot | null;
+  pets: PetSummary[];
+  bookings: BookingSummary[];
+  reminders: Reminder[];
+  calendarEvents: CalendarEvent[];
+  threads: ChatThreadSummary[];
+};
+
+const emptyOwnerDashboardData: OwnerDashboardData = {
+  householdSnapshot: null,
+  pets: [],
+  bookings: [],
+  reminders: [],
+  calendarEvents: [],
+  threads: []
+};
+
+function formatOwnerDashboardDateTime(value: string) {
+  return new Intl.DateTimeFormat("es-PA", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
+
+function getPetAgeLabel(birthDate: string | null) {
+  if (!birthDate) {
+    return "Edad no registrada";
+  }
+
+  const birth = new Date(`${birthDate}T00:00:00`);
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  const monthDelta = today.getMonth() - birth.getMonth();
+
+  if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birth.getDate())) {
+    years -= 1;
+  }
+
+  if (years <= 0) {
+    return "Menor de 1 ano";
+  }
+
+  return `${years} ano(s)`;
+}
+
+function OwnerDashboardCard({ children }: { children: ReactNode }) {
+  return (
+    <article
+      style={{
+        background: "#ffffff",
+        border: "1px solid rgba(15, 23, 42, 0.08)",
+        borderRadius: "16px",
+        boxShadow: "0 12px 28px rgba(15, 23, 42, 0.06)",
+        display: "grid",
+        gap: "12px",
+        padding: "14px"
+      }}
+    >
+      {children}
+    </article>
+  );
+}
+
+function OwnerDashboardMetric({
+  icon,
+  label,
+  note,
+  tone = "teal",
+  value
+}: {
+  icon: OwnerWebIconName;
+  label: string;
+  note: string;
+  tone?: "teal" | "blue" | "orange" | "rose";
+  value: ReactNode;
+}) {
+  const palette = {
+    teal: { background: "rgba(15, 118, 110, 0.1)", color: "#0f766e" },
+    blue: { background: "rgba(37, 99, 235, 0.1)", color: "#1d4ed8" },
+    orange: { background: "rgba(245, 158, 11, 0.14)", color: "#b45309" },
+    rose: { background: "rgba(225, 29, 72, 0.1)", color: "#be123c" }
+  }[tone];
+
+  return (
+    <OwnerDashboardCard>
+      <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+        <span
+          style={{
+            alignItems: "center",
+            background: palette.background,
+            borderRadius: "12px",
+            color: palette.color,
+            display: "inline-flex",
+            height: "34px",
+            justifyContent: "center",
+            width: "34px"
+          }}
+        >
+          <OwnerWebIcon name={icon} size={17} />
+        </span>
+        <strong style={{ color: "#344054", fontSize: "11px" }}>{label}</strong>
+      </div>
+      <strong style={{ color: "#0b163f", fontSize: "22px", lineHeight: 1 }}>{value}</strong>
+      <span style={{ color: "#667085", fontSize: "11px" }}>{note}</span>
+    </OwnerDashboardCard>
+  );
+}
+
+function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
+  const [dashboardData, setDashboardData] = useState<OwnerDashboardData>(emptyOwnerDashboardData);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboardData() {
+      setIsLoadingDashboard(true);
+      setDashboardError(null);
+
+      try {
+        const householdSnapshot = await getBrowserHouseholdsApiClient().getHouseholdsSnapshot();
+        const householdIds = householdSnapshot.households.map((household) => household.id);
+        const petsByHousehold = await Promise.all(householdIds.map((householdId) => getBrowserPetsApiClient().listHouseholdPets(householdId)));
+        const bookingsByHousehold = await Promise.all(
+          householdIds.map((householdId) =>
+            getBrowserBookingsApiClient().listBookings({
+              householdId,
+              includeCancelled: true
+            })
+          )
+        );
+        const remindersByHousehold = await Promise.all(
+          householdIds.map((householdId) =>
+            getBrowserRemindersApiClient().listReminders({
+              householdId,
+              includeCompleted: true
+            })
+          )
+        );
+        const calendarEventsByHousehold = await Promise.all(
+          householdIds.map((householdId) =>
+            getBrowserRemindersApiClient().listCalendarEvents({
+              householdId,
+              includeCompleted: true
+            })
+          )
+        );
+        const threads = await getBrowserMessagingApiClient().listThreads();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDashboardData({
+          householdSnapshot,
+          pets: petsByHousehold.flat(),
+          bookings: bookingsByHousehold.flat(),
+          reminders: remindersByHousehold.flat(),
+          calendarEvents: calendarEventsByHousehold.flat(),
+          threads
+        });
+      } catch (error) {
+        if (isMounted) {
+          setDashboardError(error instanceof Error ? error.message : "No fue posible cargar el dashboard owner.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingDashboard(false);
+        }
+      }
+    }
+
+    void loadDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const now = new Date();
+  const activePets = dashboardData.pets.filter((pet) => pet.status === "active");
+  const activeBookings = dashboardData.bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed");
+  const upcomingBookings = activeBookings
+    .filter((booking) => new Date(booking.scheduledStartAt) >= now)
+    .sort((left, right) => left.scheduledStartAt.localeCompare(right.scheduledStartAt));
+  const pendingReminders = dashboardData.reminders
+    .filter((reminder) => reminder.status === "pending")
+    .sort((left, right) => left.dueAt.localeCompare(right.dueAt));
+  const vaccineReminders = pendingReminders.filter((reminder) => reminder.reminderType === "vaccine");
+  const documentCount = dashboardData.pets.reduce((total, pet) => total + pet.documentCount, 0);
+  const recentActivity = [
+    ...dashboardData.bookings.map((booking) => ({
+      id: `booking-${booking.id}`,
+      title: booking.serviceName,
+      detail: `${booking.petName} con ${booking.providerName}`,
+      date: booking.createdAt,
+      icon: "booking" as const
+    })),
+    ...dashboardData.reminders.map((reminder) => ({
+      id: `reminder-${reminder.id}`,
+      title: reminder.title,
+      detail: reminder.status === "completed" ? "Recordatorio completado" : "Recordatorio pendiente",
+      date: reminder.createdAt,
+      icon: "calendar" as const
+    }))
+  ]
+    .sort((left, right) => right.date.localeCompare(left.date))
+    .slice(0, 5);
+  const ownerName = `${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || "Propietario";
+
+  return (
+    <section style={{ display: "grid", gap: "14px" }}>
+      <OwnerDashboardCard>
+        <div style={{ alignItems: "center", display: "flex", gap: "16px", justifyContent: "space-between", flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gap: "5px" }}>
+            <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              Panel owner
+            </span>
+            <h2 style={{ color: "#0b163f", fontSize: "24px", lineHeight: 1.08, margin: 0 }}>Hola, {ownerName}</h2>
+            <span style={{ color: "#667085", fontSize: "13px" }}>
+              Gestiona mascotas, salud, reservas, documentos y mensajes desde una vista consolidada.
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <StatusPill tone="active" label="Propietario" />
+            <StatusPill tone="neutral" label={`${dashboardData.householdSnapshot?.households.length ?? 0} hogar(es)`} />
+            <StatusPill tone={dashboardError ? "pending" : "neutral"} label={isLoadingDashboard ? "cargando" : dashboardError ? "datos parciales" : "datos al dia"} />
+          </div>
+        </div>
+      </OwnerDashboardCard>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(118px, 1fr))", gap: "10px" }}>
+        <OwnerDashboardMetric icon="paw" label="Mascotas" note="registradas activas" value={activePets.length} />
+        <OwnerDashboardMetric
+          icon="calendar"
+          label="Proxima actividad"
+          note={upcomingBookings[0] ? formatOwnerDashboardDateTime(upcomingBookings[0].scheduledStartAt) : "sin agenda proxima"}
+          tone="blue"
+          value={upcomingBookings[0]?.petName ?? "-"}
+        />
+        <OwnerDashboardMetric icon="booking" label="Reservas activas" note="pendientes o confirmadas" tone="teal" value={activeBookings.length} />
+        <OwnerDashboardMetric icon="health" label="Recordatorios" note="pendientes de atender" tone="orange" value={pendingReminders.length} />
+        <OwnerDashboardMetric icon="account" label="Documentos" note="archivos de mascotas" tone="blue" value={documentCount} />
+        <OwnerDashboardMetric icon="chat" label="Mensajes" note="hilos con actividad" tone="rose" value={dashboardData.threads.filter((thread) => thread.lastMessageAt).length} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.9fr", gap: "14px" }}>
+        <OwnerDashboardCard>
+          <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "12px" }}>
+            <div style={{ display: "grid", gap: "3px" }}>
+              <strong style={{ color: "#0b163f", fontSize: "15px" }}>Mis mascotas</strong>
+              <span style={{ color: "#667085", fontSize: "11px" }}>Perfil, documentos y estado general</span>
+            </div>
+            <a href="#owner-web-pets" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, textDecoration: "none" }}>
+              Ver todas
+            </a>
+          </div>
+          {activePets.length ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "10px" }}>
+              {activePets.slice(0, 4).map((pet) => (
+                <article
+                  key={pet.id}
+                  style={{
+                    background: "linear-gradient(180deg, rgba(236,253,245,0.74), #ffffff)",
+                    border: "1px solid rgba(15, 118, 110, 0.12)",
+                    borderRadius: "16px",
+                    display: "grid",
+                    gap: "10px",
+                    padding: "12px"
+                  }}
+                >
+                  <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+                    <span
+                      style={{
+                        alignItems: "center",
+                        background: "rgba(15, 118, 110, 0.1)",
+                        borderRadius: "16px",
+                        color: "#0f766e",
+                        display: "inline-flex",
+                        height: "46px",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        width: "46px"
+                      }}
+                    >
+                      {pet.avatarUrl ? (
+                        <img alt="" src={pet.avatarUrl} style={{ height: "100%", objectFit: "cover", width: "100%" }} />
+                      ) : (
+                        <OwnerWebIcon name="paw" size={22} />
+                      )}
+                    </span>
+                    <span style={{ display: "grid", gap: "2px", minWidth: 0 }}>
+                      <strong style={{ color: "#0b163f", fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis" }}>{pet.name}</strong>
+                      <span style={{ color: "#667085", fontSize: "10px" }}>
+                        {pet.species}
+                        {pet.breed ? ` / ${pet.breed}` : ""}
+                      </span>
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                    <StatusPill tone="active" label={getPetAgeLabel(pet.birthDate)} />
+                    <StatusPill tone={pet.documentCount ? "neutral" : "pending"} label={`${pet.documentCount} doc.`} />
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div style={{ background: "rgba(15, 118, 110, 0.06)", borderRadius: "14px", color: "#667085", padding: "14px" }}>
+              Aun no hay mascotas registradas. Agrega la primera mascota para activar salud, documentos y reservas.
+            </div>
+          )}
+        </OwnerDashboardCard>
+
+        <OwnerDashboardCard>
+          <strong style={{ color: "#0b163f", fontSize: "15px" }}>Proximas actividades</strong>
+          {upcomingBookings.length ? (
+            <div style={{ display: "grid", gap: "9px" }}>
+              {upcomingBookings.slice(0, 4).map((booking) => (
+                <article key={booking.id} style={{ borderBottom: "1px solid rgba(15,23,42,0.08)", display: "grid", gap: "3px", paddingBottom: "9px" }}>
+                  <strong style={{ color: "#101828", fontSize: "12px" }}>{booking.serviceName}</strong>
+                  <span style={{ color: "#667085", fontSize: "11px" }}>
+                    {booking.petName} / {booking.providerName}
+                  </span>
+                  <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 800 }}>{formatOwnerDashboardDateTime(booking.scheduledStartAt)}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <span style={{ color: "#667085", fontSize: "12px" }}>No hay reservas proximas. Busca servicios para planificar la siguiente actividad.</span>
+          )}
+        </OwnerDashboardCard>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+        <OwnerDashboardCard>
+          <strong style={{ color: "#0b163f", fontSize: "15px" }}>Salud y recordatorios</strong>
+          <div style={{ display: "grid", gap: "8px" }}>
+            <StatusPill tone={vaccineReminders.length ? "pending" : "active"} label={`${vaccineReminders.length} vacuna(s) pendiente(s)`} />
+            <StatusPill tone={pendingReminders.length ? "pending" : "active"} label={`${pendingReminders.length} recordatorio(s)`} />
+            <span style={{ color: "#667085", fontSize: "11px" }}>
+              {pendingReminders[0] ? `Proximo: ${pendingReminders[0].title}` : "Todo luce al dia segun los datos actuales."}
+            </span>
+          </div>
+        </OwnerDashboardCard>
+        <OwnerDashboardCard>
+          <strong style={{ color: "#0b163f", fontSize: "15px" }}>Documentos</strong>
+          <span style={{ color: "#667085", fontSize: "12px" }}>
+            {documentCount ? `${documentCount} documento(s) cargado(s) entre tus mascotas.` : "Sin documentos cargados todavia."}
+          </span>
+          <a href="#owner-web-pets" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, textDecoration: "none" }}>
+            Gestionar documentos
+          </a>
+        </OwnerDashboardCard>
+        <OwnerDashboardCard>
+          <strong style={{ color: "#0b163f", fontSize: "15px" }}>Actividad reciente</strong>
+          {recentActivity.length ? (
+            <div style={{ display: "grid", gap: "8px" }}>
+              {recentActivity.slice(0, 4).map((activity) => (
+                <div key={activity.id} style={{ alignItems: "start", display: "grid", gap: "8px", gridTemplateColumns: "22px minmax(0, 1fr)" }}>
+                  <span style={{ color: "#0f766e" }}>
+                    <OwnerWebIcon name={activity.icon} size={15} />
+                  </span>
+                  <span style={{ display: "grid", gap: "2px" }}>
+                    <strong style={{ color: "#101828", fontSize: "11px" }}>{activity.title}</strong>
+                    <span style={{ color: "#667085", fontSize: "10px" }}>{activity.detail}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span style={{ color: "#667085", fontSize: "12px" }}>Todavia no hay actividad reciente.</span>
+          )}
+        </OwnerDashboardCard>
+      </div>
+
+      <OwnerDashboardCard>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {[
+            { href: "#owner-web-marketplace", label: "Buscar servicios" },
+            { href: "#owner-web-bookings", label: "Reservar servicio" },
+            { href: "#owner-web-pets", label: "Gestionar mascotas" },
+            { href: "#owner-web-messaging", label: "Abrir mensajes" }
+          ].map((action) => (
+            <a
+              href={action.href}
+              key={action.label}
+              style={{
+                background: action.label === "Buscar servicios" ? "#0f766e" : "#ffffff",
+                border: "1px solid rgba(15, 118, 110, 0.18)",
+                borderRadius: "999px",
+                color: action.label === "Buscar servicios" ? "#ffffff" : "#0f766e",
+                fontSize: "11px",
+                fontWeight: 800,
+                padding: "8px 12px",
+                textDecoration: "none"
+              }}
+            >
+              {action.label}
+            </a>
+          ))}
+        </div>
+      </OwnerDashboardCard>
     </section>
   );
 }
@@ -947,6 +1370,7 @@ export function CoreExperienceScreen() {
           <OwnerWebShell ownerName={snapshot ? `${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || "Propietario" : "Propietario"}>
             {snapshot ? (
               <OwnerWebSection id="owner-web-panel">
+                <OwnerDashboard snapshot={snapshot} />
                 <div
                   style={{
                     display: "grid",

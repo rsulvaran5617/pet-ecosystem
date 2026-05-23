@@ -35,6 +35,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - cambio de rol
 - web autenticada respeta rol activo: `provider` muestra consola de proveedor y oculta workspaces owner; `pet_owner` muestra hogar/mascotas/marketplace/reservas y oculta consola provider
 - owner web usa una consola con sidebar izquierdo y area de contenido derecha para `Panel`, `Hogar`, `Mascotas`, `Salud`, `Agenda`, `Buscar`, `Reservas`, `Mensajes` y `Cuenta`, manteniendo los workspaces existentes y sin cambiar contratos ni reglas
+- owner web `Panel` muestra dashboard interno de gestion de mascotas con saludo, KPIs de mascotas/reservas/recordatorios/documentos/mensajes, cards de mascotas, proximas actividades, salud y recordatorios, documentos, actividad reciente y accesos rapidos usando datos existentes y empty states visuales
 
 ### Households
 - snapshot de hogares
