@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-label="Crear horario">
+<style>
+  .bg{fill:#f7f4ee}.phone{fill:#fff;stroke:#0f172a;stroke-width:10}.top{fill:#06325c}.teal{fill:#00978f}.mint{fill:#e5faf6}.ink{fill:#0f172a}.muted{fill:#64748b}.card{fill:#fff;stroke:#dfe7e4;stroke-width:1.5}.soft{fill:#f3fbf9;stroke:#bfe8e0;stroke-width:1.5}.warn{fill:#fff7ed;stroke:#fed7aa;stroke-width:1.5}.btn{fill:#00978f}.line{stroke:#d5dedb;stroke-width:1.4}.chip{fill:#e6f7f3;stroke:#9bded4;stroke-width:1.2}.label{font:700 12px Arial,sans-serif;fill:#00978f}.h1{font:800 26px Arial,sans-serif;fill:#0f172a}.h2{font:800 18px Arial,sans-serif;fill:#0f172a}.body{font:500 13px Arial,sans-serif;fill:#334155}.small{font:600 10px Arial,sans-serif;fill:#64748b}.buttonText{font:800 12px Arial,sans-serif;fill:#fff}.nav{font:700 10px Arial,sans-serif;fill:#64748b}.navOn{font:800 10px Arial,sans-serif;fill:#00978f}
+</style>
+<rect class="bg" width="390" height="844"/>
+<rect x="25" y="18" width="340" height="808" rx="34" class="phone"/>
+<rect x="47" y="48" width="296" height="78" rx="24" class="top"/>
+<text x="66" y="78" style="font:800 13px Arial,sans-serif;fill:#99f6e4">PET ECOSYSTEM</text>
+<text x="66" y="104" style="font:800 22px Arial,sans-serif;fill:#fff">Crear horario</text>
+<text x="66" y="141" class="body">Asigna servicio, dia, hora y cantidad de cupos.</text>
+<rect x="47" y="164" width="296" height="530" rx="20" class="card"/>
+<text x="66" y="198" class="label">CAPACIDAD</text><text x="66" y="226" class="h1">Crear horario</text>
+<text x="66" y="260" class="small">Servicio</text><rect x="66" y="272" width="238" height="40" rx="13" fill="#f8fafc" stroke="#dbe7e3"/><text x="82" y="297" class="body">Grooming completo</text>
+<text x="66" y="336" class="small">Dia</text><rect x="66" y="348" width="238" height="40" rx="13" fill="#f8fafc" stroke="#dbe7e3"/><text x="82" y="373" class="body">Lunes</text>
+<text x="66" y="412" class="small">Hora inicio / fin</text><rect x="66" y="424" width="108" height="40" rx="13" fill="#f8fafc" stroke="#dbe7e3"/><text x="92" y="449" class="body">09:00</text><rect x="196" y="424" width="108" height="40" rx="13" fill="#f8fafc" stroke="#dbe7e3"/><text x="222" y="449" class="body">13:00</text>
+<text x="66" y="490" class="small">Capacidad maxima</text><rect x="66" y="502" width="238" height="40" rx="13" fill="#f8fafc" stroke="#dbe7e3"/><text x="82" y="527" class="body">4 cupos</text>
+<rect x="66" y="568" width="238" height="42" rx="21" class="btn"/><text x="145" y="595" class="buttonText">Crear</text>
+<text x="66" y="650" class="small">La app valida que la capacidad sea mayor que cero.</text>
+<rect x="47" y="755" width="296" height="48" rx="20" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="70" y="784" class="nav">Inicio</text><text x="128" y="784" class="navOn">Negocio</text><text x="196" y="784" class="nav">Servicios</text><text x="280" y="784" class="nav">Horarios</text>
+</svg>

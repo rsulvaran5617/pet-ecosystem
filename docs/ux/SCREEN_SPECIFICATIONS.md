@@ -106,7 +106,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - cabecera web provider separa `Negocio seleccionado` de `Pendientes generales`; los pendientes globales se agregan por todos los negocios y cada caja navega al primer negocio relacionado y a la seccion que resuelve el pendiente
 - cabecera web provider incluye tres indicadores globales `payment-ready`: ingresado por citas completadas, pendiente por citas pendientes/confirmadas y no ingresado por cancelaciones atribuidas al proveedor por razon registrada; son referencia operativa, sin cobro real
 - `Publicacion` en web provider muestra un panel de pendientes accionables; cada pendiente abre la seccion que lo resuelve: perfil, servicios, agenda, documentos o negocio
-- `Agenda` en web provider incluye una vista read-only de cupos publicados por servicio: selector de servicio, consulta de proximos 14 dias y tarjetas por fecha/horario con cupos reservados, disponibles y estado; no crea reservas ni consume cupo
+- `Agenda` en web provider permite crear y editar horarios con cupos por servicio igual que mobile provider: servicio, dia, hora inicio, hora fin, capacidad y activo/inactivo; ademas incluye vista read-only de cupos proyectados por servicio para los proximos 14 dias, sin crear reservas ni consumir cupo
 - ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
 - servicios
 - disponibilidad

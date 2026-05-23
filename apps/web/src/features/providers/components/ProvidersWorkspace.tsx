@@ -13,8 +13,10 @@ import {
 import type {
   BookingMode,
   BookingSlot,
+  CreateProviderAvailabilityRuleInput,
   ProviderApprovalDocumentType,
   ProviderServiceCategory,
+  UpdateProviderAvailabilityRuleInput,
   UpdateProviderOrganizationInput,
   UpdateProviderServiceInput,
   Uuid
@@ -62,9 +64,11 @@ type ServiceFormState = {
 };
 type AvailabilityFormState = {
   id?: Uuid;
+  serviceId: Uuid | "";
   dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   startsAt: string;
   endsAt: string;
+  capacity: string;
   isActive: boolean;
 };
 type DocumentFormState = {
@@ -111,9 +115,11 @@ const emptyServiceForm: ServiceFormState = {
 };
 
 const emptyAvailabilityForm: AvailabilityFormState = {
+  serviceId: "",
   dayOfWeek: 1,
   startsAt: "09:00",
   endsAt: "17:00",
+  capacity: "1",
   isActive: true
 };
 
@@ -219,6 +225,42 @@ function formatSlotTime(value: string) {
   return value.slice(0, 5);
 }
 
+function formatAvailabilityRuleTone(rule: { capacity: number; isActive: boolean }) {
+  if (!rule.isActive) {
+    return {
+      background: "rgba(254, 226, 226, 0.54)",
+      border: "rgba(220, 38, 38, 0.18)",
+      color: "#b91c1c",
+      label: "Inactivo"
+    };
+  }
+
+  if (rule.capacity === 1) {
+    return {
+      background: "rgba(255, 247, 237, 0.84)",
+      border: "rgba(249, 115, 22, 0.24)",
+      color: "#c2410c",
+      label: "Ultimo cupo"
+    };
+  }
+
+  if (rule.capacity <= 2) {
+    return {
+      background: "rgba(240, 253, 244, 0.78)",
+      border: "rgba(34, 197, 94, 0.2)",
+      color: "#15803d",
+      label: `${rule.capacity} cupos`
+    };
+  }
+
+  return {
+    background: "rgba(236, 253, 245, 0.88)",
+    border: "rgba(15, 118, 110, 0.22)",
+    color: "#0f766e",
+    label: `${rule.capacity} cupos disponibles`
+  };
+}
+
 function formatFileSize(fileSizeBytes: number) {
   if (fileSizeBytes < 1024) {
     return `${fileSizeBytes} B`;
@@ -261,6 +303,41 @@ function getProviderReadinessAction(label: string) {
   }
 
   return { sectionId: "provider-web-business", actionLabel: "Revisar negocio" };
+}
+
+function validateAvailabilityRuleForm(form: AvailabilityFormState) {
+  const capacity = Number(form.capacity);
+
+  if (!form.serviceId) {
+    return "Selecciona un servicio para configurar horarios.";
+  }
+
+  if (!Number.isFinite(capacity) || capacity <= 0) {
+    return "La capacidad debe ser mayor que cero.";
+  }
+
+  if (form.startsAt >= form.endsAt) {
+    return "La hora final debe ser posterior a la hora inicial.";
+  }
+
+  return null;
+}
+
+function buildAvailabilityRulePayload(form: AvailabilityFormState) {
+  const validationError = validateAvailabilityRuleForm(form);
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
+  return {
+    serviceId: form.serviceId,
+    dayOfWeek: form.dayOfWeek,
+    startsAt: form.startsAt,
+    endsAt: form.endsAt,
+    capacity: Number(form.capacity),
+    isActive: form.isActive
+  };
 }
 
 function Button({
@@ -480,7 +557,10 @@ export function ProvidersWorkspace({
       isPublic: selectedOrganizationDetail.publicProfile?.isPublic ?? true
     });
     setServiceForm(emptyServiceForm);
-    setAvailabilityForm(emptyAvailabilityForm);
+    setAvailabilityForm({
+      ...emptyAvailabilityForm,
+      serviceId: selectedOrganizationDetail.services.find((service) => service.isPublic && service.isActive)?.id ?? selectedOrganizationDetail.services[0]?.id ?? ""
+    });
     setDocumentForm(emptyDocumentForm);
     setOrganizationMode("edit");
     setCapacityServiceId(selectedOrganizationDetail.services.find((service) => service.isPublic && service.isActive)?.id ?? selectedOrganizationDetail.services[0]?.id ?? null);
@@ -1886,11 +1966,14 @@ export function ProvidersWorkspace({
                     <span style={{ color: "#57534e", fontSize: "13px" }}>Horarios base en los que atiendes servicios.</span>
                   </div>
                   <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                    <StatusPill label={`${selectedAvailability.length} bloques`} tone="neutral" />
+                    <StatusPill label={`${selectedAvailabilityRules.length} regla(s)`} tone="neutral" />
                     <button
-                      disabled={!selectedOrganization || isSubmitting}
+                      disabled={!selectedOrganization || !selectedServices.length || isSubmitting}
                       onClick={() => {
-                        setAvailabilityForm(emptyAvailabilityForm);
+                        setAvailabilityForm({
+                          ...emptyAvailabilityForm,
+                          serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
+                        });
                         setIsAvailabilityFormOpen((current) => !current);
                       }}
                       style={{
@@ -1898,7 +1981,7 @@ export function ProvidersWorkspace({
                         border: "1px solid rgba(15, 118, 110, 0.22)",
                         background: isAvailabilityFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
                         color: isAvailabilityFormOpen ? "#0f766e" : "#f8fafc",
-                        cursor: selectedOrganization ? "pointer" : "not-allowed",
+                        cursor: selectedOrganization && selectedServices.length ? "pointer" : "not-allowed",
                         fontWeight: 800,
                         padding: "9px 13px"
                       }}
@@ -1917,41 +2000,47 @@ export function ProvidersWorkspace({
                         clearMessages();
 
                         if (availabilityForm.id) {
+                          const payload = buildAvailabilityRulePayload(availabilityForm) satisfies UpdateProviderAvailabilityRuleInput;
                           void runAction(
                             () =>
-                              getBrowserProvidersApiClient().updateProviderAvailabilitySlot(availabilityForm.id!, {
-                                dayOfWeek: availabilityForm.dayOfWeek,
-                                startsAt: availabilityForm.startsAt,
-                                endsAt: availabilityForm.endsAt,
-                                isActive: availabilityForm.isActive
-                              }),
-                            "Bloque de disponibilidad actualizado."
+                              getBrowserProvidersApiClient().updateProviderAvailabilityRule(availabilityForm.id!, payload),
+                            "Horario actualizado."
                           ).then(async () => {
-                            setAvailabilityForm(emptyAvailabilityForm);
+                            setAvailabilityForm({
+                              ...emptyAvailabilityForm,
+                              serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
+                            });
                             await refresh(selectedOrganization.id);
                             setIsAvailabilityFormOpen(false);
                           });
                           return;
                         }
 
+                        const payload = {
+                          organizationId: selectedOrganization.id,
+                          ...buildAvailabilityRulePayload(availabilityForm)
+                        } satisfies CreateProviderAvailabilityRuleInput;
                         void runAction(
                           () =>
-                            getBrowserProvidersApiClient().addProviderAvailabilitySlot({
-                              organizationId: selectedOrganization.id,
-                              dayOfWeek: availabilityForm.dayOfWeek,
-                              startsAt: availabilityForm.startsAt,
-                              endsAt: availabilityForm.endsAt,
-                              isActive: availabilityForm.isActive
-                            }),
-                          "Bloque de disponibilidad creado."
+                            getBrowserProvidersApiClient().createProviderAvailabilityRule(payload),
+                          "Horario guardado."
                         ).then(async () => {
-                            setAvailabilityForm(emptyAvailabilityForm);
+                          setAvailabilityForm({
+                            ...emptyAvailabilityForm,
+                            serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
+                          });
                           await refresh(selectedOrganization.id);
                           setIsAvailabilityFormOpen(false);
                         });
                       }}
                       style={{ display: "grid", gap: "12px" }}
                     >
+                      <SelectField<Uuid | "">
+                        label="Servicio"
+                        onChange={(value) => setAvailabilityForm((current) => ({ ...current, serviceId: value }))}
+                        options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
+                        value={availabilityForm.serviceId || selectedServices[0]?.id || ""}
+                      />
                       <SelectField<AvailabilityFormState["dayOfWeek"]>
                         label="Dia"
                         onChange={(value) => setAvailabilityForm((current) => ({ ...current, dayOfWeek: value }))}
@@ -1962,13 +2051,23 @@ export function ProvidersWorkspace({
                         <Field label="Empieza a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
                         <Field label="Termina a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
                       </div>
-                      <CheckField checked={availabilityForm.isActive} label="Bloque activo" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
+                      <Field label="Capacidad" onChange={(value) => setAvailabilityForm((current) => ({ ...current, capacity: value }))} type="number" value={availabilityForm.capacity} />
+                      <CheckField checked={availabilityForm.isActive} label="Horario activo" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
                       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
-                          {availabilityForm.id ? "Guardar bloque" : "Crear bloque"}
+                          {availabilityForm.id ? "Guardar horario" : "Crear horario"}
                         </Button>
                         {availabilityForm.id ? (
-                          <Button disabled={isSubmitting} onClick={() => setAvailabilityForm(emptyAvailabilityForm)} tone="secondary">
+                          <Button
+                            disabled={isSubmitting}
+                            onClick={() =>
+                              setAvailabilityForm({
+                                ...emptyAvailabilityForm,
+                                serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
+                              })
+                            }
+                            tone="secondary"
+                          >
                             Cancelar edicion
                           </Button>
                         ) : null}
@@ -2129,52 +2228,91 @@ export function ProvidersWorkspace({
                       </div>
                     ) : null}
 
-                    {selectedAvailability.length ? (
+                    {selectedAvailabilityRules.length ? (
                       <div style={{ display: "grid", gap: "12px" }}>
-                        {selectedAvailability.map((slot) => (
-                          <article
-                            key={slot.id}
-                            style={{
-                              borderRadius: "18px",
-                              padding: "14px 16px",
-                              background: "rgba(255,255,255,0.72)",
-                              display: "grid",
-                              gap: "8px"
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <strong>{providerDayOfWeekLabels[slot.dayOfWeek]}</strong>
-                              <StatusPill label={slot.isActive ? "activo" : "inactivo"} tone={slot.isActive ? "active" : "neutral"} />
-                            </div>
-                            <span style={{ color: "#57534e" }}>
-                              {slot.startsAt.slice(0, 5)} - {slot.endsAt.slice(0, 5)}
-                            </span>
-                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                              <Button
-                                disabled={isSubmitting}
-                                onClick={() =>
-                                  {
-                                  setAvailabilityForm({
-                                    id: slot.id,
-                                    dayOfWeek: slot.dayOfWeek,
-                                    startsAt: slot.startsAt,
-                                    endsAt: slot.endsAt,
-                                    isActive: slot.isActive
-                                  });
-                                  setIsAvailabilityFormOpen(true);
-                                  scrollToProviderSection("provider-web-availability");
+                        {selectedAvailabilityRules.map((rule) => {
+                          const service = selectedServices.find((candidate) => candidate.id === rule.serviceId);
+                          const tone = formatAvailabilityRuleTone(rule);
+
+                          return (
+                            <article
+                              key={rule.id}
+                              style={{
+                                borderRadius: "18px",
+                                border: `1px solid ${tone.border}`,
+                                padding: "14px 16px",
+                                background: tone.background,
+                                display: "grid",
+                                gap: "8px"
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                                <div style={{ display: "grid", gap: "3px" }}>
+                                  <strong>{providerDayOfWeekLabels[rule.dayOfWeek]}</strong>
+                                  <span style={{ color: "#57534e", fontSize: "12px" }}>{service?.name ?? "Servicio no disponible"}</span>
+                                </div>
+                                <span
+                                  style={{
+                                    borderRadius: "999px",
+                                    background: "rgba(255,255,255,0.74)",
+                                    color: tone.color,
+                                    fontSize: "11px",
+                                    fontWeight: 800,
+                                    padding: "6px 10px"
+                                  }}
+                                >
+                                  {tone.label}
+                                </span>
+                              </div>
+                              <span style={{ color: "#57534e" }}>
+                                {rule.startsAt.slice(0, 5)} - {rule.endsAt.slice(0, 5)}
+                              </span>
+                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", flexWrap: "wrap" }}>
+                                <Button
+                                  disabled={isSubmitting}
+                                  onClick={() =>
+                                    {
+                                    setAvailabilityForm({
+                                      id: rule.id,
+                                      serviceId: rule.serviceId,
+                                      dayOfWeek: rule.dayOfWeek,
+                                      startsAt: rule.startsAt,
+                                      endsAt: rule.endsAt,
+                                      capacity: String(rule.capacity),
+                                      isActive: rule.isActive
+                                    });
+                                    setIsAvailabilityFormOpen(true);
+                                    scrollToProviderSection("provider-web-availability");
+                                    }
                                   }
-                                }
-                                tone="secondary"
-                              >
-                                Editar
-                              </Button>
-                            </div>
-                          </article>
-                        ))}
+                                  tone="secondary"
+                                >
+                                  Editar
+                                </Button>
+                                <Button
+                                  disabled={isSubmitting}
+                                  onClick={() => {
+                                    clearMessages();
+                                    void runAction(
+                                      () => getBrowserProvidersApiClient().setProviderAvailabilityRuleActive(rule.id, !rule.isActive),
+                                      rule.isActive ? "Horario desactivado." : "Horario activado."
+                                    ).then(async () => {
+                                      await refresh(selectedOrganization.id);
+                                    });
+                                  }}
+                                  tone="secondary"
+                                >
+                                  {rule.isActive ? "Pausar" : "Activar"}
+                                </Button>
+                              </div>
+                            </article>
+                          );
+                        })}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay disponibilidad configurada.</p>
+                      <p style={{ margin: 0, color: "#57534e" }}>
+                        Todavia no hay horarios con cupos configurados. Crea un servicio y luego usa + Horario.
+                      </p>
                     )}
                   </>
                 ) : (
