@@ -1812,6 +1812,12 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["provider_services"]["Row"];
       };
+      delete_provider_service: {
+        Args: {
+          target_service_id: string;
+        };
+        Returns: boolean;
+      };
       add_provider_availability_slot: {
         Args: {
           target_organization_id: string;

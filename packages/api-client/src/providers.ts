@@ -46,6 +46,7 @@ export interface ProvidersApiClient {
   upsertProviderPublicLocation(organizationId: Uuid, input: UpsertProviderPublicLocationInput): Promise<ProviderPublicLocation>;
   createProviderService(input: CreateProviderServiceInput): Promise<ProviderService>;
   updateProviderService(serviceId: Uuid, input: UpdateProviderServiceInput): Promise<ProviderService>;
+  deleteProviderService(serviceId: Uuid): Promise<void>;
   addProviderAvailabilitySlot(input: CreateProviderAvailabilityInput): Promise<ProviderAvailabilitySlot>;
   updateProviderAvailabilitySlot(slotId: Uuid, input: UpdateProviderAvailabilityInput): Promise<ProviderAvailabilitySlot>;
   listProviderAvailabilityRules(organizationId: Uuid): Promise<ProviderAvailabilityRule[]>;
@@ -532,6 +533,15 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       }
 
       return mapProviderService(data);
+    },
+    async deleteProviderService(serviceId) {
+      const { error } = await supabase.rpc("delete_provider_service", {
+        target_service_id: serviceId
+      });
+
+      if (error) {
+        fail(error, "Unable to delete the provider service.");
+      }
     },
     async addProviderAvailabilitySlot(input) {
       const { data, error } = await supabase.rpc("add_provider_availability_slot", {

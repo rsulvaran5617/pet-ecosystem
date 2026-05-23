@@ -109,6 +109,8 @@ Modelo recomendado CAP-0:
 - no se debe usar la direccion privada del owner ni tracking de ubicacion para publicar un proveedor
 - en V2 capacity, marketplace/booking expone slots calculados desde reglas activas con cupos disponibles
 - el owner proveedor ve y gestiona solo su propia organizacion
+- la consola web permite eliminar un servicio solo cuando no tiene historial de reservas; si ya tiene reservas, debe conservarse para trazabilidad y el proveedor solo puede desactivarlo u ocultarlo del marketplace
+- al eliminar un servicio sin historial se eliminan tambien sus reglas futuras de horarios/cupos asociadas por cascada, porque siguen siendo configuracion maestra no transaccional
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking

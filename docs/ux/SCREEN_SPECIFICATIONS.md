@@ -110,6 +110,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - `Agenda` en web provider permite crear y editar horarios con cupos por servicio igual que mobile provider: servicio, dia, hora inicio, hora fin, capacidad y activo/inactivo; ademas incluye vista read-only de cupos proyectados por servicio para los proximos 14 dias, sin crear reservas ni consumir cupo
 - `Agenda` en web provider usa un planificador semanal compacto dentro de un layout de dos columnas: servicios/agenda tienen mas ancho horizontal, los bloques por dia son bajos y los botones internos usan menor tamano para reducir scroll vertical
 - formulario compacto de `Agenda` en web provider reduce tipografia y controles de hora/cupos; la capacidad no admite valores negativos ni decimales al guardar
+- `Servicios` en web provider permite eliminar servicios creados por error solo cuando no tienen reservas asociadas; los servicios con historial se conservan y se gestionan con `Servicio activo` / `Servicio publico`
 - ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
 - servicios
 - disponibilidad

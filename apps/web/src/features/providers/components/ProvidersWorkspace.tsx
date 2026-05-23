@@ -599,6 +599,10 @@ export function ProvidersWorkspace({
   const selectedAvailabilityRules = selectedOrganizationDetail?.availabilityRules ?? [];
   const selectedDocuments = selectedOrganizationDetail?.approvalDocuments ?? [];
   const activeCapacityService = selectedServices.find((service) => service.id === capacityServiceId) ?? selectedServices[0] ?? null;
+  const bookingCountByServiceId = providerBookings.reduce<Record<string, number>>((counts, booking) => {
+    counts[booking.providerServiceId] = (counts[booking.providerServiceId] ?? 0) + 1;
+    return counts;
+  }, {});
   const filteredAvailabilityRules = activeCapacityService
     ? selectedAvailabilityRules.filter((rule) => rule.serviceId === activeCapacityService.id)
     : selectedAvailabilityRules;
@@ -2061,44 +2065,95 @@ export function ProvidersWorkspace({
                               {formatMoney(service.basePriceCents, service.currencyCode)}  -  {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
                             </span>
                             <span style={{ color: "#57534e", fontSize: "9px" }}>{service.shortDescription ?? "Todavia no hay descripcion."}</span>
-                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                              <button
-                                disabled={isSubmitting}
-                                onClick={() =>
-                                  {
-                                  setServiceForm({
-                                    id: service.id,
-                                    name: service.name,
-                                    category: service.category,
-                                    shortDescription: service.shortDescription ?? "",
-                                    speciesServedText: service.speciesServed.join(", "),
-                                    durationMinutes: service.durationMinutes?.toString() ?? "",
-                                    bookingMode: service.bookingMode,
-                                    basePrice: (service.basePriceCents / 100).toFixed(2),
-                                    currencyCode: service.currencyCode,
-                                    cancellationWindowHours: service.cancellationWindowHours.toString(),
-                                    isPublic: service.isPublic,
-                                    isActive: service.isActive
-                                  });
-                                  setIsServiceFormOpen(true);
-                                  scrollToProviderSection("provider-web-services");
-                                  }
-                                }
-                                style={{
-                                  borderRadius: "999px",
-                                  border: "1px solid rgba(28, 25, 23, 0.14)",
-                                  background: "rgba(255,255,255,0.82)",
-                                  color: "#1c1917",
-                                  cursor: isSubmitting ? "not-allowed" : "pointer",
-                                  fontSize: "8px",
-                                  fontWeight: 800,
-                                  opacity: isSubmitting ? 0.65 : 1,
-                                  padding: "6px 10px"
-                                }}
-                                type="button"
-                              >
-                                Editar
-                              </button>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                              <span style={{ color: "#78716c", fontSize: "8px" }}>
+                                {bookingCountByServiceId[service.id]
+                                  ? `${bookingCountByServiceId[service.id]} reserva(s): se conserva como historial`
+                                  : "Sin reservas: puede eliminarse si fue creado por error"}
+                              </span>
+                              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                                <button
+                                  disabled={isSubmitting}
+                                  onClick={() => {
+                                    setServiceForm({
+                                      id: service.id,
+                                      name: service.name,
+                                      category: service.category,
+                                      shortDescription: service.shortDescription ?? "",
+                                      speciesServedText: service.speciesServed.join(", "),
+                                      durationMinutes: service.durationMinutes?.toString() ?? "",
+                                      bookingMode: service.bookingMode,
+                                      basePrice: (service.basePriceCents / 100).toFixed(2),
+                                      currencyCode: service.currencyCode,
+                                      cancellationWindowHours: service.cancellationWindowHours.toString(),
+                                      isPublic: service.isPublic,
+                                      isActive: service.isActive
+                                    });
+                                    setIsServiceFormOpen(true);
+                                    scrollToProviderSection("provider-web-services");
+                                  }}
+                                  style={{
+                                    borderRadius: "999px",
+                                    border: "1px solid rgba(28, 25, 23, 0.14)",
+                                    background: "rgba(255,255,255,0.82)",
+                                    color: "#1c1917",
+                                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                                    fontSize: "8px",
+                                    fontWeight: 800,
+                                    opacity: isSubmitting ? 0.65 : 1,
+                                    padding: "6px 10px"
+                                  }}
+                                  type="button"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  disabled={isSubmitting}
+                                  onClick={() => {
+                                    clearMessages();
+
+                                    const confirmed = window.confirm(
+                                      bookingCountByServiceId[service.id]
+                                        ? "Este servicio tiene historial de reservas y no se puede eliminar. Puedes editarlo para desactivarlo u ocultarlo."
+                                        : `Eliminar "${service.name}"? Tambien se eliminaran sus horarios futuros si no tiene reservas.`
+                                    );
+
+                                    if (!confirmed || bookingCountByServiceId[service.id]) {
+                                      return;
+                                    }
+
+                                    void runAction(
+                                      () => getBrowserProvidersApiClient().deleteProviderService(service.id),
+                                      "Servicio eliminado."
+                                    ).then(async () => {
+                                      if (serviceForm.id === service.id) {
+                                        setServiceForm(emptyServiceForm);
+                                        setIsServiceFormOpen(false);
+                                      }
+
+                                      if (capacityServiceId === service.id) {
+                                        setCapacityServiceId(null);
+                                      }
+
+                                      await refresh(selectedOrganization.id);
+                                    });
+                                  }}
+                                  style={{
+                                    borderRadius: "999px",
+                                    border: "1px solid rgba(185, 28, 28, 0.2)",
+                                    background: "rgba(254, 242, 242, 0.84)",
+                                    color: "#991b1b",
+                                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                                    fontSize: "8px",
+                                    fontWeight: 800,
+                                    opacity: isSubmitting ? 0.65 : 1,
+                                    padding: "6px 10px"
+                                  }}
+                                  type="button"
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
                             </div>
                           </article>
                         ))}

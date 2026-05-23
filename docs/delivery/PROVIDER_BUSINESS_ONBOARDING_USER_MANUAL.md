@@ -138,6 +138,7 @@ Reglas importantes:
 
 - Un servicio inactivo no debe ofrecerse para reservas.
 - Un servicio no publico puede existir internamente, pero no debe mostrarse al propietario.
+- En web, puedes eliminar un servicio creado por error si todavia no tiene reservas. Si ya tiene historial, la app conserva el servicio y debes desactivarlo u ocultarlo.
 - El precio no ejecuta cobro real durante el piloto.
 
 Toca `Crear servicio` o `Guardar` al terminar.

@@ -124,6 +124,7 @@ Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, 
 - `PUT /provider/organizations/{id}/public-location` (V2 Geo-0)
 - `POST /provider/organizations/{id}/services`
 - `PATCH /provider/services/{id}`
+- `DELETE /provider/services/{id}` solo si no tiene reservas asociadas; si tiene historial debe desactivarse u ocultarse
 - `POST /provider/organizations/{id}/availability`
 - `PATCH /provider/availability/{id}`
 - `POST /provider/organizations/{id}/availability-rules` (V2 booking capacity, propuesto)
