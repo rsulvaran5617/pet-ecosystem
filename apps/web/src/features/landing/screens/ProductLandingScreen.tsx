@@ -1,4 +1,4 @@
-const brandLogoPath = "/brand/pet-ecosystem-logo.png";
+const brandLogoPath = "/brand/pet-ecosystem-logo-mark.png";
 
 const surfaceStyle = {
   minHeight: "100vh",

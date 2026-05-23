@@ -5,6 +5,12 @@
     "version": "0.0.0",
     "scheme": "petecosystem",
     "orientation": "portrait",
+    "icon": "./assets/brand/pet-ecosystem-app-icon.png",
+    "splash": {
+      "image": "./assets/brand/pet-ecosystem-logo-mark.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f8f4ec"
+    },
     "platforms": [
       "ios",
       "android",
@@ -14,7 +20,11 @@
       "bundleIdentifier": "com.petecosystem.mobile"
     },
     "android": {
-      "package": "com.petecosystem.mobile"
+      "package": "com.petecosystem.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/pet-ecosystem-adaptive-foreground.png",
+        "backgroundColor": "#f8f4ec"
+      }
     },
     "plugins": [
       [

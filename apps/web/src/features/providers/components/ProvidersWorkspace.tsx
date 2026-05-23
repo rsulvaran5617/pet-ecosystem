@@ -1132,7 +1132,8 @@ export function ProvidersWorkspace({
                           display: "grid",
                           gap: "7px",
                           padding: 0,
-                          textAlign: "left"
+                          textAlign: "left",
+                          width: "100%"
                         }}
                       >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
@@ -1205,42 +1206,44 @@ export function ProvidersWorkspace({
                       <span style={{ color: "#57534e", fontSize: "11px", paddingLeft: "46px" }}>{organization.city}</span>
                       <span style={{ color: "#57534e", fontSize: "10px", paddingLeft: "46px" }}>{organization.isPublic ? "Visible al aprobarse" : "Privado"}</span>
                       </button>
-                      <button
-                        aria-label={`Editar ${organization.name}`}
-                        onClick={() => {
-                          closeProviderForms();
-                          setOrganizationMode("edit");
-                          setOrganizationForm({
-                            name: organization.name,
-                            slug: organization.slug,
-                            city: organization.city,
-                            countryCode: organization.countryCode,
-                            isPublic: organization.isPublic
-                          });
-                          setIsBusinessFormOpen(true);
-                          void selectOrganization(organization.id);
-                          window.setTimeout(() => scrollToProviderSection("provider-web-business"), 120);
-                        }}
-                        style={{
-                          position: "absolute",
-                          right: "10px",
-                          bottom: "10px",
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "999px",
-                          background: organization.id === selectedOrganizationId ? "#0f766e" : "rgba(15, 118, 110, 0.12)",
-                          color: organization.id === selectedOrganizationId ? "#f8fafc" : "#0f766e",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: "11px",
-                          fontWeight: 900
-                        }}
-                      >
-                        âœŽ
-                      </button>
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button
+                          aria-label={`Editar ${organization.name}`}
+                          onClick={() => {
+                            closeProviderForms();
+                            setOrganizationMode("edit");
+                            setOrganizationForm({
+                              name: organization.name,
+                              slug: organization.slug,
+                              city: organization.city,
+                              countryCode: organization.countryCode,
+                              isPublic: organization.isPublic
+                            });
+                            setIsBusinessFormOpen(true);
+                            void selectOrganization(organization.id);
+                            window.setTimeout(() => scrollToProviderSection("provider-web-business"), 120);
+                          }}
+                          style={{
+                            borderRadius: "999px",
+                            background: organization.id === selectedOrganizationId ? "#0f766e" : "rgba(15, 118, 110, 0.12)",
+                            color: organization.id === selectedOrganizationId ? "#f8fafc" : "#0f766e",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "8px",
+                            fontWeight: 900,
+                            letterSpacing: "0.04em",
+                            minHeight: "22px",
+                            padding: "5px 8px",
+                            textTransform: "uppercase"
+                          }}
+                          type="button"
+                        >
+                          Editar
+                        </button>
+                      </div>
                     </article>
                     ))}
                   </div>
@@ -1611,7 +1614,7 @@ export function ProvidersWorkspace({
                                   Pendiente
                                 </span>
                                 <strong style={{ fontSize: "9px" }}>{item.label}</strong>
-                                <span style={{ color: "#0f766e", fontSize: "13px", fontWeight: 800 }}>{action.actionLabel} â†’</span>
+                                <span style={{ color: "#0f766e", fontSize: "13px", fontWeight: 800 }}>{action.actionLabel} &gt;</span>
                               </button>
                             );
                           })}
@@ -1619,7 +1622,7 @@ export function ProvidersWorkspace({
                       ) : (
                         <div style={{ ...controlStyle, display: "grid", gap: "6px", background: "rgba(15, 118, 110, 0.08)" }}>
                           <strong>Tu negocio esta completo para revision.</strong>
-                          <span style={{ color: "#57534e" }}>MantÃ©n servicios, agenda y documentos actualizados antes de operar nuevas reservas.</span>
+                          <span style={{ color: "#57534e" }}>Manten servicios, agenda y documentos actualizados antes de operar nuevas reservas.</span>
                         </div>
                       )}
                     </div>
@@ -1837,7 +1840,7 @@ export function ProvidersWorkspace({
                       }}
                       type="button"
                     >
-                      {isProfileFormOpen ? "Cerrar" : "âœŽ Editar"}
+                      {isProfileFormOpen ? "Cerrar" : "Editar"}
                     </button>
                   </div>
                 </div>
