@@ -13,7 +13,7 @@ import type {
   UpsertAddressInput,
   Uuid
 } from "@pet/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { CoreSection } from "../components/CoreSection";
 import { StatusPill } from "../components/StatusPill";
@@ -29,6 +29,28 @@ import { BookingsWorkspace } from "../../bookings/components/BookingsWorkspace";
 import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
 import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
 import { SupportWorkspace } from "../../support/components/SupportWorkspace";
+
+type OwnerWebSectionId =
+  | "owner-web-panel"
+  | "owner-web-households"
+  | "owner-web-pets"
+  | "owner-web-health"
+  | "owner-web-reminders"
+  | "owner-web-marketplace"
+  | "owner-web-bookings"
+  | "owner-web-messaging"
+  | "owner-web-account";
+
+type OwnerWebIconName =
+  | "account"
+  | "booking"
+  | "calendar"
+  | "chat"
+  | "health"
+  | "home"
+  | "marketplace"
+  | "panel"
+  | "paw";
 
 type RegisterFormState = {
   email: string;
@@ -124,6 +146,18 @@ const emptyPaymentForm: PaymentFormState = {
   isDefault: true
 };
 
+const ownerWebSections: Array<{ id: OwnerWebSectionId; label: string; detail: string; icon: OwnerWebIconName }> = [
+  { id: "owner-web-panel", label: "Panel", detail: "Cuenta y activacion", icon: "panel" },
+  { id: "owner-web-households", label: "Hogar", detail: "Familia y permisos", icon: "home" },
+  { id: "owner-web-pets", label: "Mascotas", detail: "Perfiles y documentos", icon: "paw" },
+  { id: "owner-web-health", label: "Salud", detail: "Vacunas y condiciones", icon: "health" },
+  { id: "owner-web-reminders", label: "Agenda", detail: "Recordatorios", icon: "calendar" },
+  { id: "owner-web-marketplace", label: "Buscar", detail: "Proveedores y servicios", icon: "marketplace" },
+  { id: "owner-web-bookings", label: "Reservas", detail: "Historial y preview", icon: "booking" },
+  { id: "owner-web-messaging", label: "Mensajes", detail: "Chat y soporte", icon: "chat" },
+  { id: "owner-web-account", label: "Cuenta", detail: "Perfil y pagos", icon: "account" }
+];
+
 const fieldLabelStyle = {
   fontSize: "12px",
   textTransform: "uppercase" as const,
@@ -137,6 +171,172 @@ const controlStyle = {
   fontSize: "15px",
   background: "#fffdf8"
 };
+
+function OwnerWebIcon({ name, size = 17 }: { name: OwnerWebIconName; size?: number }) {
+  const commonProps = {
+    fill: "none",
+    stroke: "currentColor",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    strokeWidth: 2
+  };
+  const paths: Record<OwnerWebIconName, ReactNode> = {
+    account: (
+      <>
+        <circle {...commonProps} cx="12" cy="8" r="4" />
+        <path {...commonProps} d="M4 21c1.5-4 4.2-6 8-6s6.5 2 8 6" />
+      </>
+    ),
+    booking: (
+      <>
+        <rect {...commonProps} height="15" rx="2" width="16" x="4" y="5" />
+        <path {...commonProps} d="M8 3v4M16 3v4M4 10h16M8 15l2 2 5-5" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect {...commonProps} height="15" rx="2" width="16" x="4" y="5" />
+        <path {...commonProps} d="M8 3v4M16 3v4M4 10h16M8 14h3M14 14h2M8 17h2" />
+      </>
+    ),
+    chat: (
+      <>
+        <path {...commonProps} d="M4 5h16v11H8l-4 4V5Z" />
+        <path {...commonProps} d="M8 9h8M8 13h5" />
+      </>
+    ),
+    health: (
+      <>
+        <path {...commonProps} d="M12 21s-7-4.5-9-9.2C1.5 8 3.8 5 7 5c2 0 3.2 1.1 5 3 1.8-1.9 3-3 5-3 3.2 0 5.5 3 4 6.8C19 16.5 12 21 12 21Z" />
+        <path {...commonProps} d="M12 10v5M9.5 12.5h5" />
+      </>
+    ),
+    home: (
+      <>
+        <path {...commonProps} d="M4 11 12 4l8 7v9H5v-9" />
+        <path {...commonProps} d="M10 20v-6h4v6" />
+      </>
+    ),
+    marketplace: (
+      <>
+        <path {...commonProps} d="M5 10h14l-1 10H6L5 10Z" />
+        <path {...commonProps} d="M8 10a4 4 0 0 1 8 0M9 14h.01M15 14h.01" />
+      </>
+    ),
+    panel: (
+      <>
+        <rect {...commonProps} height="7" rx="2" width="7" x="3" y="3" />
+        <rect {...commonProps} height="7" rx="2" width="7" x="14" y="3" />
+        <rect {...commonProps} height="7" rx="2" width="7" x="3" y="14" />
+        <rect {...commonProps} height="7" rx="2" width="7" x="14" y="14" />
+      </>
+    ),
+    paw: (
+      <>
+        <path {...commonProps} d="M8.5 11.5c-2.5 1.5-4 3.3-3.2 5.2.7 1.7 2.9 1.2 4.8.9 1.1-.2 2.7-.2 3.8 0 1.9.3 4.1.8 4.8-.9.8-1.9-.7-3.7-3.2-5.2-2.3-1.4-4.7-1.4-7 0Z" />
+        <path {...commonProps} d="M6.5 8.5c.7 1.1.4 2.4-.6 2.8-1 .5-2.2-.1-2.8-1.3-.7-1.1-.4-2.4.6-2.8 1-.5 2.2.1 2.8 1.3ZM11 5.8c.2 1.4-.5 2.5-1.6 2.6-1.1.1-2.1-.9-2.2-2.2C7 4.8 7.7 3.7 8.8 3.6c1.1-.1 2.1.9 2.2 2.2ZM17.5 8.5c-.7 1.1-.4 2.4.6 2.8 1 .5 2.2-.1 2.8-1.3.7-1.1.4-2.4-.6-2.8-1-.5-2.2.1-2.8 1.3ZM13 5.8c-.2 1.4.5 2.5 1.6 2.6 1.1.1 2.1-.9 2.2-2.2.2-1.4-.5-2.5-1.6-2.6-1.1-.1-2.1.9-2.2 2.2Z" />
+      </>
+    )
+  };
+
+  return (
+    <svg aria-hidden="true" height={size} viewBox="0 0 24 24" width={size}>
+      {paths[name]}
+    </svg>
+  );
+}
+
+function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName: string }) {
+  return (
+    <div
+      style={{
+        background: "linear-gradient(180deg, #fbfaf7 0%, #f7f2e7 100%)",
+        border: "1px solid rgba(15, 118, 110, 0.1)",
+        borderRadius: "28px",
+        display: "grid",
+        gap: "18px",
+        gridTemplateColumns: "minmax(190px, 230px) minmax(0, 1fr)",
+        padding: "16px"
+      }}
+    >
+      <aside
+        style={{
+          alignSelf: "start",
+          background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
+          borderRadius: "22px",
+          boxShadow: "0 18px 40px rgba(15, 23, 42, 0.16)",
+          display: "grid",
+          gap: "16px",
+          padding: "16px",
+          position: "sticky",
+          top: "16px"
+        }}
+      >
+        <div style={{ alignItems: "center", display: "flex", gap: "10px", minWidth: 0 }}>
+          <span
+            aria-hidden="true"
+            style={{
+              alignItems: "center",
+              background: "rgba(255, 255, 255, 0.94)",
+              borderRadius: "16px",
+              color: "#0f766e",
+              display: "inline-flex",
+              flexShrink: 0,
+              height: "42px",
+              justifyContent: "center",
+              overflow: "hidden",
+              width: "42px"
+            }}
+          >
+            <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "34px", objectFit: "contain", width: "34px" }} />
+          </span>
+          <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
+            <strong style={{ color: "#f8fafc", fontSize: "14px", lineHeight: 1.15 }}>Pet Ecosystem</strong>
+            <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "11px" }}>{ownerName}</span>
+          </div>
+        </div>
+        <nav aria-label="Secciones owner web" style={{ display: "grid", gap: "8px" }}>
+          {ownerWebSections.map((section) => (
+            <a
+              href={`#${section.id}`}
+              key={section.id}
+              style={{
+                background: section.id === "owner-web-panel" ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "14px",
+                color: "#f8fafc",
+                display: "grid",
+                gap: "3px",
+                gridTemplateColumns: "22px minmax(0, 1fr)",
+                padding: "10px 11px",
+                textDecoration: "none"
+              }}
+            >
+              <span style={{ color: section.id === "owner-web-panel" ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
+                <OwnerWebIcon name={section.icon} size={16} />
+              </span>
+              <span style={{ display: "grid", gap: "3px" }}>
+                <strong style={{ color: section.id === "owner-web-panel" ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
+                  {section.label}
+                </strong>
+                <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>
+              </span>
+            </a>
+          ))}
+        </nav>
+      </aside>
+      <div style={{ display: "grid", gap: "18px", minWidth: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+function OwnerWebSection({ children, id }: { children: ReactNode; id: OwnerWebSectionId }) {
+  return (
+    <section id={id} style={{ display: "grid", gap: "18px", scrollMarginTop: "18px" }}>
+      {children}
+    </section>
+  );
+}
 
 function Button({
   children,
@@ -743,14 +943,17 @@ export function CoreExperienceScreen() {
           </div>
         ) : null}
 
-        {!isLoading && isOwnerMode && snapshot ? (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: "24px"
-            }}
-          >
+        {!isLoading && isOwnerMode ? (
+          <OwnerWebShell ownerName={snapshot ? `${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || "Propietario" : "Propietario"}>
+            {snapshot ? (
+              <OwnerWebSection id="owner-web-panel">
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                    gap: "18px"
+                  }}
+                >
             <CoreSection
               eyebrow="Onboarding"
               title="Ruta de activacion actual"
@@ -853,6 +1056,7 @@ export function CoreExperienceScreen() {
               </div>
             </CoreSection>
 
+            <span id="owner-web-account" style={{ scrollMarginTop: "18px" }} />
             <CoreSection
               eyebrow="Perfil"
               title="Perfil base persistido"
@@ -1272,54 +1476,64 @@ export function CoreExperienceScreen() {
                 </div>
               </div>
             </CoreSection>
-          </div>
+                </div>
+              </OwnerWebSection>
+            ) : null}
+
+            <OwnerWebSection id="owner-web-households">
+              <HouseholdsWorkspace enabled />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-pets">
+              <PetsWorkspace enabled />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-health">
+              <HealthWorkspace enabled />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-reminders">
+              <RemindersWorkspace enabled />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-marketplace">
+              <MarketplaceWorkspace
+                enabled
+                onSelectBookingService={(selection) => {
+                  setMarketplaceSelection(selection);
+                }}
+              />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-bookings">
+              <BookingsWorkspace
+                enabled
+                marketplaceSelection={marketplaceSelection}
+                onOpenChatForBooking={(bookingId) => {
+                  setFocusedBookingId(bookingId);
+                  setChatFocusVersion(Date.now());
+                }}
+                onOpenReviewForBooking={(bookingId) => {
+                  setFocusedReviewBookingId(bookingId);
+                  setReviewFocusVersion(Date.now());
+                }}
+                onOpenSupportForBooking={(bookingId) => {
+                  setFocusedSupportBookingId(bookingId);
+                  setSupportFocusVersion(Date.now());
+                }}
+              />
+            </OwnerWebSection>
+            <OwnerWebSection id="owner-web-messaging">
+              <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
+              <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
+              <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
+            </OwnerWebSection>
+          </OwnerWebShell>
         ) : null}
 
-        {!isLoading && isOwnerMode ? <HouseholdsWorkspace enabled /> : null}
-        {!isLoading && isOwnerMode ? <PetsWorkspace enabled /> : null}
-        {!isLoading && isOwnerMode ? <HealthWorkspace enabled /> : null}
-        {!isLoading && isOwnerMode ? <RemindersWorkspace enabled /> : null}
         {!isLoading && isProviderMode ? (
           <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive />
         ) : null}
-        {!isLoading && !isProviderMode ? (
+        {!isLoading && !authState.isAuthenticated ? (
           <MarketplaceWorkspace
             enabled
-            onSelectBookingService={
-              authState.isAuthenticated
-                ? (selection) => {
-                    setMarketplaceSelection(selection);
-                  }
-                : undefined
-            }
+            onSelectBookingService={undefined}
           />
-        ) : null}
-        {!isLoading && isOwnerMode ? (
-          <BookingsWorkspace
-            enabled
-            marketplaceSelection={marketplaceSelection}
-            onOpenChatForBooking={(bookingId) => {
-              setFocusedBookingId(bookingId);
-              setChatFocusVersion(Date.now());
-            }}
-            onOpenReviewForBooking={(bookingId) => {
-              setFocusedReviewBookingId(bookingId);
-              setReviewFocusVersion(Date.now());
-            }}
-            onOpenSupportForBooking={(bookingId) => {
-              setFocusedSupportBookingId(bookingId);
-              setSupportFocusVersion(Date.now());
-            }}
-          />
-        ) : null}
-        {!isLoading && isOwnerMode ? (
-          <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
-        ) : null}
-        {!isLoading && isOwnerMode ? (
-          <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
-        ) : null}
-        {!isLoading && isOwnerMode ? (
-          <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
         ) : null}
       </section>
     </main>

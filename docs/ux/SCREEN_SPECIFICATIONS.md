@@ -34,6 +34,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - metodos de pago
 - cambio de rol
 - web autenticada respeta rol activo: `provider` muestra consola de proveedor y oculta workspaces owner; `pet_owner` muestra hogar/mascotas/marketplace/reservas y oculta consola provider
+- owner web usa una consola con sidebar izquierdo y area de contenido derecha para `Panel`, `Hogar`, `Mascotas`, `Salud`, `Agenda`, `Buscar`, `Reservas`, `Mensajes` y `Cuenta`, manteniendo los workspaces existentes y sin cambiar contratos ni reglas
 
 ### Households
 - snapshot de hogares
