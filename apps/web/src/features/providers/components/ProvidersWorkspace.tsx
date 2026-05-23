@@ -29,7 +29,7 @@ import { getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../..
 import { type ProviderMoneyIndicator, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const fieldLabelStyle = {
-  fontSize: "12px",
+  fontSize: "10px",
   textTransform: "uppercase" as const,
   color: "#78716c"
 };
@@ -37,9 +37,18 @@ const fieldLabelStyle = {
 const controlStyle = {
   borderRadius: "12px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "9px 11px",
-  fontSize: "12px",
+  padding: "7px 9px",
+  fontSize: "11px",
   background: "#fffdf8"
+};
+
+const compactScheduleControlStyle = {
+  ...controlStyle,
+  borderRadius: "10px",
+  fontSize: "10px",
+  minWidth: 0,
+  padding: "6px 7px",
+  width: "100%"
 };
 
 type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
@@ -300,6 +309,10 @@ function validateAvailabilityRuleForm(form: AvailabilityFormState) {
     return "La capacidad debe ser mayor que cero.";
   }
 
+  if (!Number.isInteger(capacity)) {
+    return "La capacidad debe ser un numero entero.";
+  }
+
   if (form.startsAt >= form.endsAt) {
     return "La hora final debe ser posterior a la hora inicial.";
   }
@@ -322,6 +335,16 @@ function buildAvailabilityRulePayload(form: AvailabilityFormState) {
     capacity: Number(form.capacity),
     isActive: form.isActive
   };
+}
+
+function normalizePositiveIntegerInput(value: string) {
+  const parsedValue = Number(value);
+
+  if (!Number.isFinite(parsedValue)) {
+    return "";
+  }
+
+  return String(Math.max(1, Math.floor(parsedValue)));
 }
 
 function Button({
@@ -360,12 +383,18 @@ function Button({
 }
 
 function Field({
+  compact = false,
+  min,
   label,
+  onBlur,
   onChange,
   type = "text",
   value
 }: {
+  compact?: boolean;
   label: string;
+  min?: number;
+  onBlur?: (value: string) => void;
   onChange: (value: string) => void;
   type?: "number" | "text" | "time";
   value: string;
@@ -373,17 +402,26 @@ function Field({
   return (
     <label style={{ display: "grid", gap: "6px" }}>
       <span style={fieldLabelStyle}>{label}</span>
-      <input onChange={(event) => onChange(event.target.value)} style={controlStyle} type={type} value={value} />
+      <input
+        min={min}
+        onBlur={(event) => onBlur?.(event.target.value)}
+        onChange={(event) => onChange(event.target.value)}
+        style={compact ? compactScheduleControlStyle : controlStyle}
+        type={type}
+        value={value}
+      />
     </label>
   );
 }
 
 function SelectField<TValue extends string | number>({
+  compact = false,
   label,
   onChange,
   options,
   value
 }: {
+  compact?: boolean;
   label: string;
   onChange: (value: TValue) => void;
   options: Array<{ label: string; value: TValue }>;
@@ -394,7 +432,7 @@ function SelectField<TValue extends string | number>({
       <span style={fieldLabelStyle}>{label}</span>
       <select
         onChange={(event) => onChange((typeof value === "number" ? Number(event.target.value) : event.target.value) as TValue)}
-        style={controlStyle}
+        style={compact ? compactScheduleControlStyle : controlStyle}
         value={String(value)}
       >
         {options.map((option) => (
@@ -2339,22 +2377,38 @@ export function ProvidersWorkspace({
                               ×
                             </button>
                           </div>
-                          <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))" }}>
+                          <div
+                            style={{
+                              display: "grid",
+                              gap: "7px",
+                              gridTemplateColumns: "minmax(150px, 1.25fr) minmax(82px, 0.7fr) minmax(96px, 0.7fr) minmax(96px, 0.7fr) minmax(70px, 0.45fr)"
+                            }}
+                          >
                             <SelectField<Uuid | "">
+                              compact
                               label="Servicio"
                               onChange={(value) => setAvailabilityForm((current) => ({ ...current, serviceId: value }))}
                               options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
                               value={availabilityForm.serviceId || activeCapacityService?.id || selectedServices[0]?.id || ""}
                             />
                             <SelectField<AvailabilityFormState["dayOfWeek"]>
+                              compact
                               label="Dia"
                               onChange={(value) => setAvailabilityForm((current) => ({ ...current, dayOfWeek: value }))}
                               options={providerDayOfWeekOrder.map((day) => ({ label: providerDayOfWeekLabels[day], value: day }))}
                               value={availabilityForm.dayOfWeek}
                             />
-                            <Field label="Inicio" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
-                            <Field label="Fin" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
-                            <Field label="Cupos" onChange={(value) => setAvailabilityForm((current) => ({ ...current, capacity: value }))} type="number" value={availabilityForm.capacity} />
+                            <Field compact label="Inicio" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
+                            <Field compact label="Fin" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
+                            <Field
+                              compact
+                              label="Cupos"
+                              min={1}
+                              onChange={(value) => setAvailabilityForm((current) => ({ ...current, capacity: value }))}
+                              onBlur={(value) => setAvailabilityForm((current) => ({ ...current, capacity: normalizePositiveIntegerInput(value) }))}
+                              type="number"
+                              value={availabilityForm.capacity}
+                            />
                           </div>
                           <CheckField checked={availabilityForm.isActive} label="Franja activa" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
                           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
