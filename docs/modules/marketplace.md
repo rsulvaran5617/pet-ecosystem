@@ -55,6 +55,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - Geo-4 mapa solo dibuja providers ya visibles para marketplace con `provider_public_locations.is_public = true`; los pins usan la coordenada publica exacta declarada por el proveedor y no exponen direcciones privadas del owner
 - owner Buscar usa un widget compacto: campo principal, categorias rapidas, origen para distancia colapsable y filtros avanzados bajo demanda
 - Owner Buscar puede abrir un modo de busqueda enfocada con sugerencias, busquedas recientes visuales, chips rapidos y panel modal de filtros. Los filtros funcionales siguen siendo los existentes: texto, categoria, ciudad/especie y origen controlado para distancia.
+- web owner Buscar replica el patron funcional de mobile owner: barra principal, chips de categorias, busquedas recientes, sugerencias, filtros bajo demanda, contexto hogar/mascota y cards visuales de proveedores antes del handoff a Reservas
 - en el detalle de proveedor, si no existen bloques publicos semanales pero si hay servicios publicados, la seccion `Disponibilidad` muestra los servicios con CTA `Ver cupos` para consultar slots reales por servicio sin crear reservas desde marketplace
 - marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
 - no hay tracking en tiempo real dentro de Geo-0/Geo-4

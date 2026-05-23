@@ -262,6 +262,8 @@ function OwnerWebIcon({ name, size = 17 }: { name: OwnerWebIconName; size?: numb
 }
 
 function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName: string }) {
+  const [activeSectionId, setActiveSectionId] = useState<OwnerWebSectionId>("owner-web-panel");
+
   return (
     <div
       style={{
@@ -315,8 +317,9 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
             <a
               href={`#${section.id}`}
               key={section.id}
+              onClick={() => setActiveSectionId(section.id)}
               style={{
-                background: section.id === "owner-web-panel" ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
+                background: section.id === activeSectionId ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
                 borderRadius: "14px",
                 color: "#f8fafc",
@@ -327,11 +330,11 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
                 textDecoration: "none"
               }}
             >
-              <span style={{ color: section.id === "owner-web-panel" ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
+              <span style={{ color: section.id === activeSectionId ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
                 <OwnerWebIcon name={section.icon} size={16} />
               </span>
               <span style={{ display: "grid", gap: "3px" }}>
-                <strong style={{ color: section.id === "owner-web-panel" ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
+                <strong style={{ color: section.id === activeSectionId ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
                   {section.label}
                 </strong>
                 <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>

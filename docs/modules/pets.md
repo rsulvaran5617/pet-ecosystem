@@ -41,6 +41,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
 - mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos y recordatorios no pierdan foco al moverse entre opciones del menu inferior
+- web owner presenta la gestion de mascotas con selector de hogares compacto, carrusel superior de mascotas y ficha inferior de datos maestros/documentos para la mascota seleccionada, reutilizando permisos y mutaciones existentes
 - no se implementa `pet_timeline` ni `pet_document_shares` en este slice
 
 ## Dependencias minimas

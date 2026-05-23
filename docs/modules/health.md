@@ -42,6 +42,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - listar requiere acceso de lectura a la mascota
 - registrar o editar requiere permisos derivados de `edit` o `admin` en el hogar
 - las condiciones criticas deben resaltarse en el dashboard simple
+- web owner presenta salud con selector compacto de hogares, carrusel superior de mascotas y ficha inferior por mascota con resumen, vacunas, alergias y condiciones en tarjetas compactas reutilizando permisos y mutaciones existentes
 - en MVP no existe share activo hacia proveedores o clinica
 
 ## API conceptual

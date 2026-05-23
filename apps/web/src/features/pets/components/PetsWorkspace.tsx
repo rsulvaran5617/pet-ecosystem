@@ -2,6 +2,7 @@
 
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
 import type { PetDocumentType, PetSex, UpdatePetInput } from "@pet/types";
+import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
@@ -10,18 +11,27 @@ import { getBrowserPetsApiClient } from "../../core/services/supabase-browser";
 import { usePetHealthSummary } from "../../health/hooks/usePetHealthSummary";
 import { usePetsWorkspace } from "../hooks/usePetsWorkspace";
 
-const fieldLabelStyle = {
-  fontSize: "12px",
-  textTransform: "uppercase" as const,
-  color: "#78716c"
+const fieldLabelStyle: CSSProperties = {
+  fontSize: "8px",
+  textTransform: "uppercase",
+  color: "#78716c",
+  letterSpacing: "0.04em"
 };
 
-const controlStyle = {
-  borderRadius: "14px",
+const controlStyle: CSSProperties = {
+  borderRadius: "10px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "12px 14px",
-  fontSize: "15px",
+  padding: "8px 10px",
+  fontSize: "10px",
   background: "#fffdf8"
+};
+
+const compactCardStyle: CSSProperties = {
+  borderRadius: "18px",
+  padding: "14px",
+  background: "rgba(247, 242, 231, 0.72)",
+  display: "grid",
+  gap: "10px"
 };
 
 const emptyPetForm: UpdatePetInput = {
@@ -68,7 +78,8 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(28, 25, 23, 0.14)",
         background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.82)",
         color: tone === "primary" ? "#f8fafc" : "#1c1917",
-        padding: "12px 18px",
+        padding: "8px 12px",
+        fontSize: "10px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
@@ -93,7 +104,7 @@ function Field({
   value: string;
 }) {
   return (
-    <label style={{ display: "grid", gap: "6px" }}>
+    <label style={{ display: "grid", gap: "5px" }}>
       <span style={fieldLabelStyle}>{label}</span>
       <input onChange={(event) => onChange(event.target.value)} placeholder={placeholder} style={controlStyle} type={type} value={value} />
     </label>
@@ -112,7 +123,7 @@ function SelectField<TValue extends string>({
   value: TValue;
 }) {
   return (
-    <label style={{ display: "grid", gap: "6px" }}>
+    <label style={{ display: "grid", gap: "5px" }}>
       <span style={fieldLabelStyle}>{label}</span>
       <select onChange={(event) => onChange(event.target.value as TValue)} style={controlStyle} value={value}>
         {options.map((option) => (
@@ -135,12 +146,12 @@ function TextArea({
   value: string;
 }) {
   return (
-    <label style={{ display: "grid", gap: "6px" }}>
+    <label style={{ display: "grid", gap: "5px" }}>
       <span style={fieldLabelStyle}>{label}</span>
       <textarea
         onChange={(event) => onChange(event.target.value)}
-        rows={4}
-        style={{ ...controlStyle, resize: "vertical" as const }}
+        rows={3}
+        style={{ ...controlStyle, resize: "vertical" }}
         value={value}
       />
     </label>
@@ -209,6 +220,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
+  const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const documentGroups = useMemo(
     () =>
       petDocumentTypeOrder
@@ -223,6 +235,23 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     selectedPetDetail?.pet.id ?? null,
     enabled
   );
+
+  const loadPetForm = (pet: typeof pets[number]) => {
+    setEditingPetId(pet.id);
+    setPetForm({
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed ?? "",
+      sex: pet.sex,
+      birthDate: pet.birthDate ?? "",
+      notes: pet.notes ?? ""
+    });
+  };
+
+  const resetPetForm = () => {
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+  };
 
   if (!enabled) {
     return null;
@@ -241,68 +270,129 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
         {isLoading ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando hogares, mascotas y documentos desde Supabase...</p>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(240px, 300px) minmax(280px, 360px) minmax(0, 1fr)",
-              gap: "18px"
-            }}
-          >
-            <div style={{ display: "grid", gap: "12px", alignContent: "start" }}>
-              <h3 style={{ margin: 0 }}>Hogares</h3>
+          <div style={{ display: "grid", gap: "12px" }}>
+            <article style={compactCardStyle}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <h3 style={{ margin: 0, fontSize: "16px" }}>Hogares</h3>
+                {selectedHousehold ? (
+                  <StatusPill label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
+                ) : null}
+              </div>
               {householdSnapshot?.households.length ? (
-                householdSnapshot.households.map((household) => {
-                  const isActive = household.id === selectedHouseholdId;
+                <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "4px" }}>
+                  {householdSnapshot.households.map((household) => {
+                    const isActive = household.id === selectedHouseholdId;
 
-                  return (
-                    <button
-                      key={household.id}
-                      onClick={() => void selectHousehold(household.id)}
-                      style={{
-                        borderRadius: "18px",
-                        border: isActive ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.1)",
-                        padding: "16px",
-                        textAlign: "left",
-                        background: isActive ? "rgba(15, 118, 110, 0.08)" : "rgba(247, 242, 231, 0.72)",
-                        display: "grid",
-                        gap: "10px",
-                        cursor: "pointer"
-                      }}
-                      type="button"
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                        <strong>{household.name}</strong>
-                        <StatusPill
-                          label={household.myPermissions.includes("edit") ? "editable" : "solo lectura"}
-                          tone={household.myPermissions.includes("edit") ? "active" : "neutral"}
-                        />
-                      </div>
-                      <span style={{ color: "#57534e" }}>{household.memberCount} integrante(s)</span>
-                    </button>
-                  );
-                })
+                    return (
+                      <button
+                        key={household.id}
+                        onClick={() => void selectHousehold(household.id)}
+                        style={{
+                          minWidth: "180px",
+                          borderRadius: "14px",
+                          border: isActive ? "1px solid rgba(15, 118, 110, 0.32)" : "1px solid rgba(28, 25, 23, 0.08)",
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          background: isActive ? "rgba(15, 118, 110, 0.1)" : "rgba(255,255,255,0.72)",
+                          display: "grid",
+                          gap: "5px",
+                          cursor: "pointer"
+                        }}
+                        type="button"
+                      >
+                        <strong style={{ fontSize: "10px" }}>{household.name}</strong>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>{household.memberCount} integrante(s)</span>
+                      </button>
+                    );
+                  })}
+                </div>
               ) : (
                 <p style={{ margin: 0, color: "#57534e" }}>Primero crea un hogar para empezar a registrar mascotas.</p>
               )}
-            </div>
+            </article>
 
-            <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
-              <article
-                style={{
-                  borderRadius: "22px",
-                  padding: "20px",
-                  background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
-                  gap: "14px"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>{editingPetId ? "Editar mascota" : "Crear mascota"}</h3>
-                  {selectedHousehold ? (
-                    <StatusPill
-                      label={canEditSelectedHousehold ? "hogar editable" : "hogar solo lectura"}
-                      tone={canEditSelectedHousehold ? "active" : "neutral"}
-                    />
+            <article style={compactCardStyle}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "16px" }}>Mascotas</h3>
+                  <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "10px" }}>
+                    Selecciona una mascota para revisar o editar sus datos maestros.
+                  </p>
+                </div>
+                {selectedHousehold ? <StatusPill label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
+              </div>
+              <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "6px", scrollSnapType: "x proximity" }}>
+                {selectedHousehold ? (
+                  pets.length ? (
+                    pets.map((pet) => (
+                      <button
+                        key={pet.id}
+                        onClick={() => void selectPet(pet.id)}
+                        style={{
+                          minWidth: "190px",
+                          scrollSnapAlign: "start",
+                          borderRadius: "16px",
+                          padding: "12px",
+                          background: pet.id === selectedPetId ? "rgba(15, 118, 110, 0.08)" : "rgba(255,255,255,0.72)",
+                          border: pet.id === selectedPetId ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.08)",
+                          display: "grid",
+                          gridTemplateColumns: "36px 1fr",
+                          gap: "10px",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          textAlign: "left"
+                        }}
+                        type="button"
+                      >
+                        <span
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "14px",
+                            background: pet.id === selectedPetId ? "#0f766e" : "rgba(15,118,110,0.12)",
+                            color: pet.id === selectedPetId ? "#ffffff" : "#0f766e",
+                            display: "grid",
+                            placeItems: "center",
+                            fontSize: "13px",
+                            fontWeight: 800
+                          }}
+                        >
+                          {pet.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <span style={{ display: "grid", gap: "4px" }}>
+                          <strong style={{ fontSize: "11px" }}>{pet.name}</strong>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>
+                            {pet.species}
+                            {pet.breed ? ` - ${pet.breed}` : ""}
+                          </span>
+                          <span style={{ color: "#0f766e", fontSize: "8px", fontWeight: 800 }}>
+                            {pet.documentCount} documento(s)
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay mascotas en este hogar.</p>
+                  )
+                ) : (
+                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona un hogar para listar sus mascotas.</p>
+                )}
+              </div>
+            </article>
+
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 0.85fr) minmax(360px, 1.15fr)", gap: "12px", alignItems: "start" }}>
+              <article style={compactCardStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "15px" }}>{editingPetId ? "Editar datos maestros" : "Crear mascota"}</h3>
+                    <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "9px" }}>
+                      {editingPetId ? "Actualiza la ficha de la mascota seleccionada." : "Agrega una mascota al hogar activo."}
+                    </p>
+                  </div>
+                  {selectedPet && canEditSelectedHousehold ? (
+                    <Button disabled={isSubmitting} onClick={() => loadPetForm(selectedPet)} tone="secondary">
+                      Editar seleccion
+                    </Button>
                   ) : null}
                 </div>
                 {selectedHouseholdId ? (
@@ -327,8 +417,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                             "Mascota actualizada.",
                             false
                           ).then(async (pet) => {
-                            setEditingPetId(null);
-                            setPetForm(emptyPetForm);
+                            resetPetForm();
                             await refresh();
                             await selectPet(pet.id);
                           });
@@ -344,22 +433,24 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           "Mascota creada.",
                           false
                         ).then(async (pet) => {
-                          setPetForm(emptyPetForm);
+                          resetPetForm();
                           await refresh();
                           await selectPet(pet.id);
                         });
                       }}
-                      style={{ display: "grid", gap: "12px" }}
+                      style={{ display: "grid", gap: "9px" }}
                     >
                       <Field label="Nombre de la mascota" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, name: value }))} value={petForm.name ?? ""} />
-                      <Field
-                        label="Especie"
-                        onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, species: value }))}
-                        placeholder="Dog"
-                        value={petForm.species ?? ""}
-                      />
-                      <Field label="Breed" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, breed: value }))} value={petForm.breed ?? ""} />
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                        <Field
+                          label="Especie"
+                          onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, species: value }))}
+                          placeholder="Dog"
+                          value={petForm.species ?? ""}
+                        />
+                        <Field label="Breed" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, breed: value }))} value={petForm.breed ?? ""} />
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                         <SelectField<PetSex>
                           label="Sex"
                           onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, sex: value }))}
@@ -378,180 +469,87 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         />
                       </div>
                       <TextArea label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
-                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
-                          {editingPetId ? "Guardar mascota" : "Crear mascota"}
+                          {editingPetId ? "Guardar" : "Crear mascota"}
                         </Button>
                         {editingPetId ? (
-                          <Button
-                            disabled={isSubmitting}
-                            onClick={() => {
-                              setEditingPetId(null);
-                              setPetForm(emptyPetForm);
-                            }}
-                            tone="secondary"
-                          >
-                            Cancelar edicion
+                          <Button disabled={isSubmitting} onClick={resetPetForm} tone="secondary">
+                            Cancelar
                           </Button>
                         ) : null}
                       </div>
                     </form>
                   ) : (
-                    <p style={{ margin: 0, color: "#57534e" }}>
+                    <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
                       Puedes revisar las mascotas de este hogar, pero solo integrantes con `edit` o `admin` pueden modificarlas.
                     </p>
                   )
                 ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona un hogar para crear o editar mascotas.</p>
+                  <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona un hogar para crear o editar mascotas.</p>
                 )}
               </article>
 
-              <article
-                style={{
-                  borderRadius: "22px",
-                  padding: "20px",
-                  background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
-                  gap: "12px"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Mascotas</h3>
-                  {selectedHousehold ? <StatusPill label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
-                </div>
-                {selectedHousehold ? (
-                  pets.length ? (
-                    pets.map((pet) => (
-                      <article
-                        key={pet.id}
-                        style={{
-                          borderRadius: "18px",
-                          padding: "14px 16px",
-                          background: pet.id === selectedPetId ? "rgba(15, 118, 110, 0.08)" : "rgba(255,255,255,0.72)",
-                          border: pet.id === selectedPetId ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.08)",
-                          display: "grid",
-                          gap: "8px"
-                        }}
-                      >
-                        <button
-                          onClick={() => void selectPet(pet.id)}
-                          style={{ background: "transparent", border: "none", padding: 0, textAlign: "left", cursor: "pointer", display: "grid", gap: "8px" }}
-                          type="button"
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                            <strong>{pet.name}</strong>
-                            <StatusPill label={`${pet.documentCount} documento(s)`} tone="neutral" />
-                          </div>
-                          <span style={{ color: "#57534e" }}>
-                            {pet.species}
-                            {pet.breed ? ` Â· ${pet.breed}` : ""}
-                          </span>
-                        </button>
-                        {canEditSelectedHousehold ? (
-                          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                            <Button
-                              disabled={isSubmitting}
-                              onClick={() => {
-                                setEditingPetId(pet.id);
-                                setPetForm({
-                                  name: pet.name,
-                                  species: pet.species,
-                                  breed: pet.breed ?? "",
-                                  sex: pet.sex,
-                                  birthDate: pet.birthDate ?? "",
-                                  notes: pet.notes ?? ""
-                                });
-                              }}
-                              tone="secondary"
-                            >
-                              Editar
-                            </Button>
-                          </div>
-                        ) : null}
-                      </article>
-                    ))
-                  ) : (
-                    <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay mascotas en este hogar.</p>
-                  )
-                ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona un hogar para listar sus mascotas.</p>
-                )}
-              </article>
-            </div>
-
-            <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
               {selectedPetDetail ? (
-                <>
-                  <article
-                    style={{
-                      borderRadius: "22px",
-                      padding: "20px",
-                      background: "rgba(247, 242, 231, 0.72)",
-                      display: "grid",
-                      gap: "12px"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0 }}>{selectedPetDetail.pet.name}</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.8fr) minmax(260px, 1fr)", gap: "12px" }}>
+                  <article style={compactCardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "15px" }}>{selectedPetDetail.pet.name}</h3>
                       <StatusPill label={selectedPetDetail.pet.species} tone="active" />
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Breed</span>
-                        <strong>{selectedPetDetail.pet.breed ?? "No registrada"}</strong>
+                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.pet.breed ?? "No registrada"}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Sex</span>
-                        <strong>{petSexLabels[selectedPetDetail.pet.sex]}</strong>
+                        <strong style={{ fontSize: "10px" }}>{petSexLabels[selectedPetDetail.pet.sex]}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Fecha de nacimiento</span>
-                        <strong>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
+                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
+                      </div>
+                      <div style={{ display: "grid", gap: "4px" }}>
+                        <span style={fieldLabelStyle}>Documentos</span>
+                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.documents.length} total</strong>
                       </div>
                     </div>
                     <div style={{ display: "grid", gap: "4px" }}>
                       <span style={fieldLabelStyle}>Notas</span>
-                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.6 }}>
+                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
                         {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
                       </p>
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       <span style={fieldLabelStyle}>Resumen de salud</span>
                       {isHealthSummaryLoading ? (
-                        <p style={{ margin: 0, color: "#57534e" }}>Cargando resumen de salud...</p>
+                        <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Cargando resumen de salud...</p>
                       ) : selectedPetHealthSummary ? (
                         <div style={{ display: "grid", gap: "8px" }}>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "12px" }}>
-                            <strong>{selectedPetHealthSummary.vaccineCount} vacuna(s)</strong>
-                            <strong>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
-                            <strong>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
-                            <strong>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.vaccineCount} vacuna(s)</strong>
+                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
+                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
+                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
                           </div>
-                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.6 }}>
-                            Ultima vacuna: {selectedPetHealthSummary.latestVaccineDate ?? "No registrada"}.
-                            {" "}Proxima fecha: {selectedPetHealthSummary.nextVaccineDueDate ?? "No registrada"}.
+                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
+                            Ultima vacuna: {selectedPetHealthSummary.latestVaccineDate ?? "No registrada"}. Proxima fecha:{" "}
+                            {selectedPetHealthSummary.nextVaccineDueDate ?? "No registrada"}.
                           </p>
-                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.6 }}>
+                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
                             Alertas: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "Sin condiciones criticas"}.
                           </p>
                         </div>
                       ) : (
-                        <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay un resumen de salud.</p>
+                        <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Todavia no hay un resumen de salud.</p>
                       )}
                     </div>
                   </article>
 
-                  <article
-                    style={{
-                      borderRadius: "22px",
-                      padding: "20px",
-                      background: "rgba(247, 242, 231, 0.72)",
-                      display: "grid",
-                      gap: "14px"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0 }}>Documentos</h3>
+                  <article style={compactCardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "15px" }}>Documentos</h3>
                       <StatusPill label={`${selectedPetDetail.documents.length} total`} tone="neutral" />
                     </div>
                     {canEditSelectedHousehold ? (
@@ -585,7 +583,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                             await selectPet(selectedPetDetail.pet.id);
                           });
                         }}
-                        style={{ display: "grid", gap: "12px" }}
+                        style={{ display: "grid", gap: "8px" }}
                       >
                         <Field
                           label="Titulo del documento"
@@ -601,7 +599,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           }))}
                           value={documentForm.documentType}
                         />
-                        <label style={{ display: "grid", gap: "6px" }}>
+                        <label style={{ display: "grid", gap: "5px" }}>
                           <span style={fieldLabelStyle}>Archivo</span>
                           <input
                             onChange={(event) =>
@@ -610,7 +608,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                                 file: event.target.files?.[0] ?? null
                               }))
                             }
-                            style={{ ...controlStyle, padding: "10px 14px" }}
+                            style={{ ...controlStyle, padding: "8px 10px" }}
                             type="file"
                           />
                         </label>
@@ -619,48 +617,50 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         </Button>
                       </form>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>
+                      <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
                         La carga de documentos usa la misma validacion de permisos del hogar que la edicion de mascotas.
                       </p>
                     )}
 
                     {documentGroups.length ? (
-                      <div style={{ display: "grid", gap: "12px" }}>
+                      <div style={{ display: "grid", gap: "8px" }}>
                         {documentGroups.map((group) => (
-                          <section key={group.documentType} style={{ display: "grid", gap: "10px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <strong>{petDocumentTypeLabels[group.documentType]}</strong>
+                          <section key={group.documentType} style={{ display: "grid", gap: "8px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                              <strong style={{ fontSize: "10px" }}>{petDocumentTypeLabels[group.documentType]}</strong>
                               <StatusPill label={`${group.documents.length} documento(s)`} tone="neutral" />
                             </div>
                             {group.documents.map((document) => (
                               <article
                                 key={document.id}
                                 style={{
-                                  borderRadius: "18px",
-                                  padding: "14px 16px",
+                                  borderRadius: "14px",
+                                  padding: "10px 12px",
                                   background: "rgba(255,255,255,0.72)",
                                   display: "grid",
-                                  gap: "8px"
+                                  gap: "5px"
                                 }}
                               >
-                                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                                  <strong>{document.title}</strong>
+                                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                                  <strong style={{ fontSize: "10px" }}>{document.title}</strong>
                                   <StatusPill label={formatFileSize(document.fileSizeBytes)} tone="neutral" />
                                 </div>
-                                <span style={{ color: "#57534e" }}>{document.fileName}</span>
-                                <span style={{ color: "#57534e" }}>{document.mimeType ?? "Tipo de archivo desconocido"}</span>
+                                <span style={{ color: "#57534e", fontSize: "9px" }}>{document.fileName}</span>
+                                <span style={{ color: "#57534e", fontSize: "9px" }}>{document.mimeType ?? "Tipo de archivo desconocido"}</span>
                               </article>
                             ))}
                           </section>
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay documentos cargados para esta mascota.</p>
+                      <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
+                        Todavia no hay documentos cargados para esta mascota.
+                      </p>
                     )}
                   </article>
-                </>
+                </div>
               ) : (
-                <p style={{ margin: 0, color: "#57534e" }}>
+                <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
                   Selecciona una mascota para revisar su ficha resumida y sus documentos basicos.
                 </p>
               )}
@@ -671,6 +671,3 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     </div>
   );
 }
-
-
-

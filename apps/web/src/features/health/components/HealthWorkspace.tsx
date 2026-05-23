@@ -1,20 +1,122 @@
-﻿"use client";
+"use client";
 
 import { formatHouseholdPermissions, petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
 import type { UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
+import { StatusPill } from "../../core/components/StatusPill";
 import { getBrowserHealthApiClient } from "../../core/services/supabase-browser";
 import { useHealthWorkspace } from "../hooks/useHealthWorkspace";
 
-const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", padding: "18px", display: "grid", gap: "12px" } as const;
-const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
+const cardStyle: CSSProperties = {
+  borderRadius: "18px",
+  background: "rgba(247,242,231,0.78)",
+  padding: "14px",
+  display: "grid",
+  gap: "10px"
+};
+
+const inputStyle: CSSProperties = {
+  borderRadius: "10px",
+  border: "1px solid rgba(28,25,23,0.14)",
+  padding: "8px 10px",
+  background: "#fffdf8",
+  fontSize: "10px"
+};
+
+const labelStyle: CSSProperties = {
+  fontSize: "8px",
+  color: "#78716c",
+  letterSpacing: "0.04em",
+  textTransform: "uppercase"
+};
 
 const emptyVaccineForm: UpdatePetVaccineInput = { name: "", administeredOn: "", nextDueOn: "", notes: "" };
 const emptyAllergyForm: UpdatePetAllergyInput = { allergen: "", reaction: "", notes: "" };
 const emptyConditionForm: UpdatePetConditionInput = { name: "", status: "active", diagnosedOn: "", isCritical: false, notes: "" };
+
+function ActionButton({
+  children,
+  disabled,
+  onClick,
+  tone = "primary",
+  type = "button"
+}: {
+  children: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  tone?: "primary" | "secondary";
+  type?: "button" | "submit";
+}) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      type={type}
+      style={{
+        borderRadius: "999px",
+        border: tone === "primary" ? "none" : "1px solid rgba(28,25,23,0.14)",
+        background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.86)",
+        color: tone === "primary" ? "#f8fafc" : "#1c1917",
+        cursor: disabled ? "not-allowed" : "pointer",
+        fontSize: "10px",
+        fontWeight: 700,
+        opacity: disabled ? 0.65 : 1,
+        padding: "8px 12px"
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Field({
+  label,
+  onChange,
+  placeholder,
+  type = "text",
+  value
+}: {
+  label?: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: "date" | "text";
+  value: string;
+}) {
+  return (
+    <label style={{ display: "grid", gap: "5px" }}>
+      {label ? <span style={labelStyle}>{label}</span> : null}
+      <input onChange={(event) => onChange(event.target.value)} placeholder={placeholder} style={inputStyle} type={type} value={value} />
+    </label>
+  );
+}
+
+function TextArea({
+  label,
+  onChange,
+  placeholder,
+  value
+}: {
+  label?: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  value: string;
+}) {
+  return (
+    <label style={{ display: "grid", gap: "5px" }}>
+      {label ? <span style={labelStyle}>{label}</span> : null}
+      <textarea
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        rows={2}
+        style={{ ...inputStyle, resize: "vertical" }}
+        value={value}
+      />
+    </label>
+  );
+}
 
 function HealthBlock({
   title,
@@ -27,18 +129,52 @@ function HealthBlock({
 }) {
   return (
     <article style={cardStyle}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>{title}</h3>
-        <strong>{count}</strong>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+        <h3 style={{ margin: 0, fontSize: "15px" }}>{title}</h3>
+        <StatusPill label={`${count}`} tone="neutral" />
       </div>
       {children}
     </article>
   );
 }
 
+function HealthRecord({
+  children,
+  onEdit
+}: {
+  children: ReactNode;
+  onEdit?: () => void;
+}) {
+  return (
+    <article style={{ ...inputStyle, display: "grid", gap: "5px" }}>
+      {children}
+      {onEdit ? (
+        <div>
+          <ActionButton onClick={onEdit} tone="secondary">
+            Editar
+          </ActionButton>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 export function HealthWorkspace({ enabled }: { enabled: boolean }) {
-  const { householdSnapshot, pets, selectedHouseholdId, selectedPetId, selectedPetHealthDetail, errorMessage, infoMessage, isLoading, isSubmitting, clearMessages, selectHousehold, selectPet, runAction } =
-    useHealthWorkspace(enabled);
+  const {
+    householdSnapshot,
+    pets,
+    selectedHouseholdId,
+    selectedPetId,
+    selectedPetHealthDetail,
+    errorMessage,
+    infoMessage,
+    isLoading,
+    isSubmitting,
+    clearMessages,
+    selectHousehold,
+    selectPet,
+    runAction
+  } = useHealthWorkspace(enabled);
   const [editingVaccineId, setEditingVaccineId] = useState<string | null>(null);
   const [editingAllergyId, setEditingAllergyId] = useState<string | null>(null);
   const [editingConditionId, setEditingConditionId] = useState<string | null>(null);
@@ -59,154 +195,394 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
     <div style={{ display: "grid", gap: "24px" }}>
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
-      <CoreSection eyebrow="EP-04 / Salud" title="Panel simple de salud por mascota" description="Solo vacunas, alergias y condiciones, heredando los permisos del hogar y de la mascota.">
+      <CoreSection
+        eyebrow="EP-04 / Salud"
+        title="Panel simple de salud por mascota"
+        description="Solo vacunas, alergias y condiciones, heredando los permisos del hogar y de la mascota."
+      >
         {isLoading ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando registros de salud desde Supabase...</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,280px) minmax(220px,280px) minmax(0,1fr)", gap: "18px" }}>
+          <div style={{ display: "grid", gap: "12px" }}>
             <article style={cardStyle}>
-              <h3 style={{ margin: 0 }}>Hogares</h3>
-              {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
-                <button key={household.id} onClick={() => void selectHousehold(household.id)} type="button" style={{ ...inputStyle, textAlign: "left", cursor: "pointer", background: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8" }}>
-                  <strong>{household.name}</strong>
-                  <div style={{ color: "#57534e", marginTop: "6px" }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</div>
-                </button>
-              )) : <p style={{ margin: 0, color: "#57534e" }}>Crea primero un hogar.</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <h3 style={{ margin: 0, fontSize: "16px" }}>Hogares</h3>
+                {selectedHousehold ? (
+                  <StatusPill label={canEdit ? "editable" : "solo lectura"} tone={canEdit ? "active" : "neutral"} />
+                ) : null}
+              </div>
+              {householdSnapshot?.households.length ? (
+                <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "4px" }}>
+                  {householdSnapshot.households.map((household) => {
+                    const isActive = household.id === selectedHouseholdId;
+
+                    return (
+                      <button
+                        key={household.id}
+                        onClick={() => void selectHousehold(household.id)}
+                        style={{
+                          minWidth: "190px",
+                          ...inputStyle,
+                          background: isActive ? "rgba(15,118,110,0.1)" : "#fffdf8",
+                          border: isActive ? "1px solid rgba(15,118,110,0.32)" : inputStyle.border,
+                          cursor: "pointer",
+                          display: "grid",
+                          gap: "5px",
+                          textAlign: "left"
+                        }}
+                        type="button"
+                      >
+                        <strong style={{ fontSize: "10px" }}>{household.name}</strong>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>
+                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Crea primero un hogar.</p>
+              )}
             </article>
 
             <article style={cardStyle}>
-              <h3 style={{ margin: 0 }}>Mascotas</h3>
-              {selectedHousehold ? pets.length ? pets.map((pet) => (
-                <button key={pet.id} onClick={() => void selectPet(pet.id)} type="button" style={{ ...inputStyle, textAlign: "left", cursor: "pointer", background: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8" }}>
-                  <strong>{pet.name}</strong>
-                  <div style={{ color: "#57534e", marginTop: "6px" }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</div>
-                </button>
-              )) : <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay mascotas en este hogar.</p> : <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero un hogar.</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "16px" }}>Mascotas</h3>
+                  <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "10px" }}>
+                    Selecciona una mascota para mantener su salud base.
+                  </p>
+                </div>
+                {selectedHousehold ? <StatusPill label={`${pets.length} mascota(s)`} tone="neutral" /> : null}
+              </div>
+              <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "6px", scrollSnapType: "x proximity" }}>
+                {selectedHousehold ? (
+                  pets.length ? (
+                    pets.map((pet) => (
+                      <button
+                        key={pet.id}
+                        onClick={() => void selectPet(pet.id)}
+                        style={{
+                          minWidth: "190px",
+                          scrollSnapAlign: "start",
+                          ...inputStyle,
+                          background: pet.id === selectedPetId ? "rgba(15,118,110,0.1)" : "#fffdf8",
+                          border: pet.id === selectedPetId ? "1px solid rgba(15,118,110,0.32)" : inputStyle.border,
+                          cursor: "pointer",
+                          display: "grid",
+                          gridTemplateColumns: "36px 1fr",
+                          gap: "10px",
+                          textAlign: "left"
+                        }}
+                        type="button"
+                      >
+                        <span
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "14px",
+                            background: pet.id === selectedPetId ? "#0f766e" : "rgba(15,118,110,0.12)",
+                            color: pet.id === selectedPetId ? "#ffffff" : "#0f766e",
+                            display: "grid",
+                            fontSize: "13px",
+                            fontWeight: 800,
+                            placeItems: "center"
+                          }}
+                        >
+                          {pet.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <span style={{ display: "grid", gap: "4px" }}>
+                          <strong style={{ fontSize: "11px" }}>{pet.name}</strong>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>
+                            {pet.species}
+                            {pet.breed ? ` - ${pet.breed}` : ""}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Todavia no hay mascotas en este hogar.</p>
+                  )
+                ) : (
+                  <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona primero un hogar.</p>
+                )}
+              </div>
             </article>
 
-            <div style={{ display: "grid", gap: "18px" }}>
-              {selectedPet && selectedPetHealthDetail ? (
-                <>
-                  <article style={cardStyle}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <div>
-                        <h3 style={{ margin: 0 }}>{selectedPet.name}</h3>
-                        <div style={{ color: "#57534e" }}>{selectedPet.species}{selectedPet.breed ? ` - ${selectedPet.breed}` : ""}</div>
-                      </div>
-                      <strong>{canEdit ? "editable" : "solo lectura"}</strong>
+            {selectedPet && selectedPetHealthDetail ? (
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.75fr) minmax(420px, 1.25fr)", gap: "12px", alignItems: "start" }}>
+                <article style={cardStyle}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: "15px" }}>{selectedPet.name}</h3>
+                      <p style={{ color: "#57534e", fontSize: "10px", margin: "2px 0 0" }}>
+                        {selectedPet.species}
+                        {selectedPet.breed ? ` - ${selectedPet.breed}` : ""}
+                      </p>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "12px" }}>
-                      <div><strong>{selectedPetHealthDetail.dashboard.vaccineCount}</strong><div style={{ color: "#57534e" }}>Vacunas</div></div>
-                      <div><strong>{selectedPetHealthDetail.dashboard.allergyCount}</strong><div style={{ color: "#57534e" }}>Alergias</div></div>
-                      <div><strong>{selectedPetHealthDetail.dashboard.conditionCount}</strong><div style={{ color: "#57534e" }}>Condiciones</div></div>
-                      <div><strong>{selectedPetHealthDetail.dashboard.criticalConditionCount}</strong><div style={{ color: "#57534e" }}>Criticas</div></div>
+                    <StatusPill label={canEdit ? "editable" : "solo lectura"} tone={canEdit ? "active" : "neutral"} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+                    <div style={inputStyle}>
+                      <strong style={{ fontSize: "15px" }}>{selectedPetHealthDetail.dashboard.vaccineCount}</strong>
+                      <div style={{ color: "#57534e", fontSize: "9px" }}>Vacunas</div>
                     </div>
-                    <div style={{ color: "#57534e" }}>Ultima vacuna: {selectedPetHealthDetail.dashboard.latestVaccineDate ?? "Sin registro"}</div>
-                    <div style={{ color: "#57534e" }}>Proxima dosis: {selectedPetHealthDetail.dashboard.nextVaccineDueDate ?? "Sin registro"}</div>
-                    <div style={{ color: "#57534e" }}>Allergies: {selectedPetHealthDetail.dashboard.allergyNames.join(", ") || "Ninguna"}</div>
-                    <div style={{ color: "#57534e" }}>Condiciones criticas: {selectedPetHealthDetail.dashboard.criticalConditionNames.join(", ") || "Ninguna"}</div>
-                  </article>
+                    <div style={inputStyle}>
+                      <strong style={{ fontSize: "15px" }}>{selectedPetHealthDetail.dashboard.allergyCount}</strong>
+                      <div style={{ color: "#57534e", fontSize: "9px" }}>Alergias</div>
+                    </div>
+                    <div style={inputStyle}>
+                      <strong style={{ fontSize: "15px" }}>{selectedPetHealthDetail.dashboard.conditionCount}</strong>
+                      <div style={{ color: "#57534e", fontSize: "9px" }}>Condiciones</div>
+                    </div>
+                    <div style={inputStyle}>
+                      <strong style={{ fontSize: "15px" }}>{selectedPetHealthDetail.dashboard.criticalConditionCount}</strong>
+                      <div style={{ color: "#57534e", fontSize: "9px" }}>Criticas</div>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gap: "5px", color: "#57534e", fontSize: "10px", lineHeight: 1.45 }}>
+                    <span>Ultima vacuna: {selectedPetHealthDetail.dashboard.latestVaccineDate ?? "Sin registro"}</span>
+                    <span>Proxima dosis: {selectedPetHealthDetail.dashboard.nextVaccineDueDate ?? "Sin registro"}</span>
+                    <span>Alergias: {selectedPetHealthDetail.dashboard.allergyNames.join(", ") || "Ninguna"}</span>
+                    <span>Condiciones criticas: {selectedPetHealthDetail.dashboard.criticalConditionNames.join(", ") || "Ninguna"}</span>
+                  </div>
+                </article>
 
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(210px, 1fr))", gap: "12px", alignItems: "start" }}>
                   <HealthBlock title="Vacunas" count={selectedPetHealthDetail.vaccines.length}>
                     {canEdit ? (
-                      <form onSubmit={(event) => {
-                        event.preventDefault();
-                        clearMessages();
-                        const payload: UpdatePetVaccineInput = { name: vaccineForm.name.trim(), administeredOn: vaccineForm.administeredOn, nextDueOn: vaccineForm.nextDueOn || null, notes: vaccineForm.notes?.trim() || null };
-                        const action = editingVaccineId ? () => getBrowserHealthApiClient().updatePetVaccine(editingVaccineId, payload) : () => getBrowserHealthApiClient().createPetVaccine(selectedPet.id, payload);
-                        void runAction(action, editingVaccineId ? "Vacuna actualizada." : "Vacuna registrada.").then(() => { setEditingVaccineId(null); setVaccineForm(emptyVaccineForm); });
-                      }} style={{ display: "grid", gap: "10px" }}>
-                        <input style={inputStyle} placeholder="Nombre de la vacuna" value={vaccineForm.name} onChange={(event) => setVaccineForm((current) => ({ ...current, name: event.target.value }))} />
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                          <input style={inputStyle} type="date" value={vaccineForm.administeredOn} onChange={(event) => setVaccineForm((current) => ({ ...current, administeredOn: event.target.value }))} />
-                          <input style={inputStyle} type="date" value={vaccineForm.nextDueOn ?? ""} onChange={(event) => setVaccineForm((current) => ({ ...current, nextDueOn: event.target.value }))} />
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          clearMessages();
+                          const payload: UpdatePetVaccineInput = {
+                            name: vaccineForm.name.trim(),
+                            administeredOn: vaccineForm.administeredOn,
+                            nextDueOn: vaccineForm.nextDueOn || null,
+                            notes: vaccineForm.notes?.trim() || null
+                          };
+                          const action = editingVaccineId
+                            ? () => getBrowserHealthApiClient().updatePetVaccine(editingVaccineId, payload)
+                            : () => getBrowserHealthApiClient().createPetVaccine(selectedPet.id, payload);
+                          void runAction(action, editingVaccineId ? "Vacuna actualizada." : "Vacuna registrada.").then(() => {
+                            setEditingVaccineId(null);
+                            setVaccineForm(emptyVaccineForm);
+                          });
+                        }}
+                        style={{ display: "grid", gap: "8px" }}
+                      >
+                        <Field label="Vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} placeholder="Nombre de la vacuna" value={vaccineForm.name} />
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                          <Field label="Aplicada" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} type="date" value={vaccineForm.administeredOn} />
+                          <Field label="Proxima" onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))} type="date" value={vaccineForm.nextDueOn ?? ""} />
                         </div>
-                        <textarea style={inputStyle} rows={3} placeholder="Notas" value={vaccineForm.notes ?? ""} onChange={(event) => setVaccineForm((current) => ({ ...current, notes: event.target.value }))} />
-                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                          <button disabled={isSubmitting} type="submit">{editingVaccineId ? "Guardar vacuna" : "Registrar vacuna"}</button>
-                          {editingVaccineId ? <button disabled={isSubmitting} onClick={() => { setEditingVaccineId(null); setVaccineForm(emptyVaccineForm); }} type="button">Cancelar</button> : null}
+                        <TextArea onChange={(value) => setVaccineForm((current) => ({ ...current, notes: value }))} placeholder="Notas" value={vaccineForm.notes ?? ""} />
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <ActionButton disabled={isSubmitting} type="submit">
+                            {editingVaccineId ? "Guardar" : "Registrar"}
+                          </ActionButton>
+                          {editingVaccineId ? (
+                            <ActionButton
+                              disabled={isSubmitting}
+                              onClick={() => {
+                                setEditingVaccineId(null);
+                                setVaccineForm(emptyVaccineForm);
+                              }}
+                              tone="secondary"
+                            >
+                              Cancelar
+                            </ActionButton>
+                          ) : null}
                         </div>
                       </form>
-                    ) : <p style={{ margin: 0, color: "#57534e" }}>Hogar en modo solo lectura.</p>}
+                    ) : (
+                      <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Hogar en modo solo lectura.</p>
+                    )}
                     {selectedPetHealthDetail.vaccines.map((vaccine) => (
-                      <div key={vaccine.id} style={inputStyle}>
-                        <strong>{vaccine.name}</strong>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}</div>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{vaccine.notes ?? "Sin notas todavia."}</div>
-                        {canEdit ? <button style={{ marginTop: "8px" }} type="button" onClick={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); }}>Editar</button> : null}
-                      </div>
+                      <HealthRecord
+                        key={vaccine.id}
+                        onEdit={
+                          canEdit
+                            ? () => {
+                                setEditingVaccineId(vaccine.id);
+                                setVaccineForm({
+                                  name: vaccine.name,
+                                  administeredOn: vaccine.administeredOn,
+                                  nextDueOn: vaccine.nextDueOn ?? "",
+                                  notes: vaccine.notes ?? ""
+                                });
+                              }
+                            : undefined
+                        }
+                      >
+                        <strong style={{ fontSize: "10px" }}>{vaccine.name}</strong>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>
+                          Aplicada: {vaccine.administeredOn} - Proxima: {vaccine.nextDueOn ?? "Sin registro"}
+                        </span>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>{vaccine.notes ?? "Sin notas todavia."}</span>
+                      </HealthRecord>
                     ))}
                   </HealthBlock>
 
                   <HealthBlock title="Alergias" count={selectedPetHealthDetail.allergies.length}>
                     {canEdit ? (
-                      <form onSubmit={(event) => {
-                        event.preventDefault();
-                        clearMessages();
-                        const payload: UpdatePetAllergyInput = { allergen: allergyForm.allergen.trim(), reaction: allergyForm.reaction?.trim() || null, notes: allergyForm.notes?.trim() || null };
-                        const action = editingAllergyId ? () => getBrowserHealthApiClient().updatePetAllergy(editingAllergyId, payload) : () => getBrowserHealthApiClient().createPetAllergy(selectedPet.id, payload);
-                        void runAction(action, editingAllergyId ? "Alergia actualizada." : "Alergia registrada.").then(() => { setEditingAllergyId(null); setAllergyForm(emptyAllergyForm); });
-                      }} style={{ display: "grid", gap: "10px" }}>
-                        <input style={inputStyle} placeholder="Alergeno" value={allergyForm.allergen} onChange={(event) => setAllergyForm((current) => ({ ...current, allergen: event.target.value }))} />
-                        <input style={inputStyle} placeholder="Reaccion" value={allergyForm.reaction ?? ""} onChange={(event) => setAllergyForm((current) => ({ ...current, reaction: event.target.value }))} />
-                        <textarea style={inputStyle} rows={3} placeholder="Notas" value={allergyForm.notes ?? ""} onChange={(event) => setAllergyForm((current) => ({ ...current, notes: event.target.value }))} />
-                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                          <button disabled={isSubmitting} type="submit">{editingAllergyId ? "Guardar alergia" : "Registrar alergia"}</button>
-                          {editingAllergyId ? <button disabled={isSubmitting} onClick={() => { setEditingAllergyId(null); setAllergyForm(emptyAllergyForm); }} type="button">Cancelar</button> : null}
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          clearMessages();
+                          const payload: UpdatePetAllergyInput = {
+                            allergen: allergyForm.allergen.trim(),
+                            reaction: allergyForm.reaction?.trim() || null,
+                            notes: allergyForm.notes?.trim() || null
+                          };
+                          const action = editingAllergyId
+                            ? () => getBrowserHealthApiClient().updatePetAllergy(editingAllergyId, payload)
+                            : () => getBrowserHealthApiClient().createPetAllergy(selectedPet.id, payload);
+                          void runAction(action, editingAllergyId ? "Alergia actualizada." : "Alergia registrada.").then(() => {
+                            setEditingAllergyId(null);
+                            setAllergyForm(emptyAllergyForm);
+                          });
+                        }}
+                        style={{ display: "grid", gap: "8px" }}
+                      >
+                        <Field onChange={(value) => setAllergyForm((current) => ({ ...current, allergen: value }))} placeholder="Alergeno" value={allergyForm.allergen} />
+                        <Field onChange={(value) => setAllergyForm((current) => ({ ...current, reaction: value }))} placeholder="Reaccion" value={allergyForm.reaction ?? ""} />
+                        <TextArea onChange={(value) => setAllergyForm((current) => ({ ...current, notes: value }))} placeholder="Notas" value={allergyForm.notes ?? ""} />
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <ActionButton disabled={isSubmitting} type="submit">
+                            {editingAllergyId ? "Guardar" : "Registrar"}
+                          </ActionButton>
+                          {editingAllergyId ? (
+                            <ActionButton
+                              disabled={isSubmitting}
+                              onClick={() => {
+                                setEditingAllergyId(null);
+                                setAllergyForm(emptyAllergyForm);
+                              }}
+                              tone="secondary"
+                            >
+                              Cancelar
+                            </ActionButton>
+                          ) : null}
                         </div>
                       </form>
                     ) : null}
                     {selectedPetHealthDetail.allergies.map((allergy) => (
-                      <div key={allergy.id} style={inputStyle}>
-                        <strong>{allergy.allergen}</strong>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{allergy.reaction ?? "Sin reaccion registrada"}</div>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{allergy.notes ?? "Sin notas todavia."}</div>
-                        {canEdit ? <button style={{ marginTop: "8px" }} type="button" onClick={() => { setEditingAllergyId(allergy.id); setAllergyForm({ allergen: allergy.allergen, reaction: allergy.reaction ?? "", notes: allergy.notes ?? "" }); }}>Editar</button> : null}
-                      </div>
+                      <HealthRecord
+                        key={allergy.id}
+                        onEdit={
+                          canEdit
+                            ? () => {
+                                setEditingAllergyId(allergy.id);
+                                setAllergyForm({
+                                  allergen: allergy.allergen,
+                                  reaction: allergy.reaction ?? "",
+                                  notes: allergy.notes ?? ""
+                                });
+                              }
+                            : undefined
+                        }
+                      >
+                        <strong style={{ fontSize: "10px" }}>{allergy.allergen}</strong>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>{allergy.reaction ?? "Sin reaccion registrada"}</span>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>{allergy.notes ?? "Sin notas todavia."}</span>
+                      </HealthRecord>
                     ))}
                   </HealthBlock>
 
                   <HealthBlock title="Condiciones" count={selectedPetHealthDetail.conditions.length}>
                     {canEdit ? (
-                      <form onSubmit={(event) => {
-                        event.preventDefault();
-                        clearMessages();
-                        const payload: UpdatePetConditionInput = { name: conditionForm.name.trim(), status: conditionForm.status ?? "active", diagnosedOn: conditionForm.diagnosedOn || null, isCritical: Boolean(conditionForm.isCritical), notes: conditionForm.notes?.trim() || null };
-                        const action = editingConditionId ? () => getBrowserHealthApiClient().updatePetCondition(editingConditionId, payload) : () => getBrowserHealthApiClient().createPetCondition(selectedPet.id, payload);
-                        void runAction(action, editingConditionId ? "Condicion actualizada." : "Condicion registrada.").then(() => { setEditingConditionId(null); setConditionForm(emptyConditionForm); });
-                      }} style={{ display: "grid", gap: "10px" }}>
-                        <input style={inputStyle} placeholder="Nombre de la condicion" value={conditionForm.name} onChange={(event) => setConditionForm((current) => ({ ...current, name: event.target.value }))} />
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          clearMessages();
+                          const payload: UpdatePetConditionInput = {
+                            name: conditionForm.name.trim(),
+                            status: conditionForm.status ?? "active",
+                            diagnosedOn: conditionForm.diagnosedOn || null,
+                            isCritical: Boolean(conditionForm.isCritical),
+                            notes: conditionForm.notes?.trim() || null
+                          };
+                          const action = editingConditionId
+                            ? () => getBrowserHealthApiClient().updatePetCondition(editingConditionId, payload)
+                            : () => getBrowserHealthApiClient().createPetCondition(selectedPet.id, payload);
+                          void runAction(action, editingConditionId ? "Condicion actualizada." : "Condicion registrada.").then(() => {
+                            setEditingConditionId(null);
+                            setConditionForm(emptyConditionForm);
+                          });
+                        }}
+                        style={{ display: "grid", gap: "8px" }}
+                      >
+                        <Field onChange={(value) => setConditionForm((current) => ({ ...current, name: value }))} placeholder="Nombre de la condicion" value={conditionForm.name} />
                         <select style={inputStyle} value={conditionForm.status ?? "active"} onChange={(event) => setConditionForm((current) => ({ ...current, status: event.target.value as typeof current.status }))}>
-                          {petConditionStatusOrder.map((status) => <option key={status} value={status}>{petConditionStatusLabels[status]}</option>)}
+                          {petConditionStatusOrder.map((status) => (
+                            <option key={status} value={status}>
+                              {petConditionStatusLabels[status]}
+                            </option>
+                          ))}
                         </select>
-                        <input style={inputStyle} type="date" value={conditionForm.diagnosedOn ?? ""} onChange={(event) => setConditionForm((current) => ({ ...current, diagnosedOn: event.target.value }))} />
-                        <label style={{ color: "#57534e" }}><input checked={Boolean(conditionForm.isCritical)} onChange={(event) => setConditionForm((current) => ({ ...current, isCritical: event.target.checked }))} type="checkbox" /> Marcar como critica</label>
-                        <textarea style={inputStyle} rows={3} placeholder="Notas" value={conditionForm.notes ?? ""} onChange={(event) => setConditionForm((current) => ({ ...current, notes: event.target.value }))} />
-                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                          <button disabled={isSubmitting} type="submit">{editingConditionId ? "Guardar condicion" : "Registrar condicion"}</button>
-                          {editingConditionId ? <button disabled={isSubmitting} onClick={() => { setEditingConditionId(null); setConditionForm(emptyConditionForm); }} type="button">Cancelar</button> : null}
+                        <Field onChange={(value) => setConditionForm((current) => ({ ...current, diagnosedOn: value }))} type="date" value={conditionForm.diagnosedOn ?? ""} />
+                        <label style={{ color: "#57534e", fontSize: "10px" }}>
+                          <input checked={Boolean(conditionForm.isCritical)} onChange={(event) => setConditionForm((current) => ({ ...current, isCritical: event.target.checked }))} type="checkbox" /> Marcar como critica
+                        </label>
+                        <TextArea onChange={(value) => setConditionForm((current) => ({ ...current, notes: value }))} placeholder="Notas" value={conditionForm.notes ?? ""} />
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <ActionButton disabled={isSubmitting} type="submit">
+                            {editingConditionId ? "Guardar" : "Registrar"}
+                          </ActionButton>
+                          {editingConditionId ? (
+                            <ActionButton
+                              disabled={isSubmitting}
+                              onClick={() => {
+                                setEditingConditionId(null);
+                                setConditionForm(emptyConditionForm);
+                              }}
+                              tone="secondary"
+                            >
+                              Cancelar
+                            </ActionButton>
+                          ) : null}
                         </div>
                       </form>
                     ) : null}
                     {selectedPetHealthDetail.conditions.map((condition) => (
-                      <div key={condition.id} style={inputStyle}>
-                        <strong>{condition.name}</strong>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{petConditionStatusLabels[condition.status]}{condition.isCritical ? " - Critica" : ""}</div>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>Diagnosticada el: {condition.diagnosedOn ?? "Sin registro"}</div>
-                        <div style={{ color: "#57534e", marginTop: "6px" }}>{condition.notes ?? "Sin notas todavia."}</div>
-                        {canEdit ? <button style={{ marginTop: "8px" }} type="button" onClick={() => { setEditingConditionId(condition.id); setConditionForm({ name: condition.name, status: condition.status, diagnosedOn: condition.diagnosedOn ?? "", isCritical: condition.isCritical, notes: condition.notes ?? "" }); }}>Editar</button> : null}
-                      </div>
+                      <HealthRecord
+                        key={condition.id}
+                        onEdit={
+                          canEdit
+                            ? () => {
+                                setEditingConditionId(condition.id);
+                                setConditionForm({
+                                  name: condition.name,
+                                  status: condition.status,
+                                  diagnosedOn: condition.diagnosedOn ?? "",
+                                  isCritical: condition.isCritical,
+                                  notes: condition.notes ?? ""
+                                });
+                              }
+                            : undefined
+                        }
+                      >
+                        <strong style={{ fontSize: "10px" }}>{condition.name}</strong>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>
+                          {petConditionStatusLabels[condition.status]}
+                          {condition.isCritical ? " - Critica" : ""}
+                        </span>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>
+                          Diagnosticada el: {condition.diagnosedOn ?? "Sin registro"}
+                        </span>
+                        <span style={{ color: "#57534e", fontSize: "9px" }}>{condition.notes ?? "Sin notas todavia."}</span>
+                      </HealthRecord>
                     ))}
                   </HealthBlock>
-                </>
-              ) : (
-                <p style={{ margin: 0, color: "#57534e" }}>Selecciona una mascota para revisar su salud.</p>
-              )}
-            </div>
+                </div>
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona una mascota para revisar su salud.</p>
+            )}
           </div>
         )}
       </CoreSection>
     </div>
   );
 }
-
