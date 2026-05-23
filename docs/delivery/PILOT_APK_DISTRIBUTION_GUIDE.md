@@ -14,14 +14,14 @@ Distribuir la APK Android de Pet Ecosystem a usuarios piloto mediante enlace pri
 
 | Campo | Valor |
 | --- | --- |
-| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk` |
+| Archivo local | `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-hermes-env-release.apk` |
 | Fecha de preparacion | 2026-05-22 |
 | Rama | `master` |
 | Commit | `4c6f686 feat(mobile): add in-app message notices` |
-| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile + Marketplace UX + messaging notices` |
-| Ambiente | Supabase remoto configurado en mobile `.env` |
+| Referencia | `v0.3.0-booking-capacity-ops.1 + hardening QA mobile + Marketplace UX + messaging notices + Hermes runtime` |
+| Ambiente | Supabase remoto embebido desde mobile `.env` durante build release limpio |
 | Uso | Piloto controlado, no produccion comercial |
-| SHA256 | `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC` |
+| SHA256 | `510C445CD5327D94D520F762A61620D124D5E2BD6566F522CD704CB6627BBD49` |
 
 La app sigue en modo `payment-ready`: no realiza cobros reales.
 
@@ -42,7 +42,7 @@ Pet Ecosystem / Piloto / APK / v0.3.0 / 2026-05-22 /
 Archivo recomendado:
 
 ```text
-pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk
+pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-hermes-env-release.apk
 ```
 
 No subir el APK a carpetas publicas, redes sociales, grupos abiertos o enlaces sin control de acceso.
@@ -209,29 +209,33 @@ El paquete es adecuado para el Xiaomi y testers Android modernos de 64 bits. Si 
 APK generado para pruebas piloto Android con aviso emergente in-app de mensajes:
 
 ```text
-dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk
+dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-hermes-env-release.apk
 ```
 
 Verificacion:
 
-- Tamaño: `134.51 MB`
-- SHA256: `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC`
+- Tamano: `120.00 MB`
+- SHA256: `510C445CD5327D94D520F762A61620D124D5E2BD6566F522CD704CB6627BBD49`
 - Arquitectura: `arm64-v8a`
-- Motor JS: JSC para este build privado de QA/piloto
+- Motor JS: Hermes para este build privado de QA/piloto
 - Commit base: `4c6f686 feat(mobile): add in-app message notices`
 - Distribucion: enlace privado manual, no Play Store/Firebase
 
 Notas tecnicas del build:
 
-- Se uso una copia temporal local corta (`C:\b22`) para evitar limites de ruta de Windows/CMake.
+- Se uso una copia temporal local corta (`C:\b23`) para evitar limites de ruta de Windows/CMake.
 - En la copia temporal se instalo con `node-linker=hoisted`.
+- Se copio `apps/mobile/.env` a la copia temporal antes del build y se ejecuto build limpio para embeber las variables publicas `EXPO_PUBLIC_*`.
 - Comando equivalente usado:
 
 ```powershell
 corepack pnpm install --frozen-lockfile --config.node-linker=hoisted
+Copy-Item -LiteralPath apps\mobile\.env -Destination C:\b23\apps\mobile\.env -Force
 $env:NODE_ENV='production'
-cd C:\b22\apps\mobile\android
-.\gradlew.bat assembleRelease -PhermesEnabled=false -PreactNativeArchitectures=arm64-v8a --no-daemon --console=plain
+cd C:\b23\apps\mobile\android
+.\gradlew.bat clean assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --console=plain
 ```
 
 La verificacion ZIP basica confirmo `AndroidManifest.xml`, `classes.dex`, `assets/index.android.bundle` y `resources.arsc`.
+
+Nota de QA: el artefacto previo `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk`, SHA256 `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC`, queda reemplazado y no debe distribuirse. En dispositivo Android crasheaba al abrir con `Unexpected token '?'` bajo JSC. La primera reconstruccion Hermes sin clean abria, pero mostraba falta de `EXPO_PUBLIC_SUPABASE_URL` porque el bundle fue reutilizado sin variables embebidas. La APK activa validada es la version Hermes + env + clean indicada arriba.
