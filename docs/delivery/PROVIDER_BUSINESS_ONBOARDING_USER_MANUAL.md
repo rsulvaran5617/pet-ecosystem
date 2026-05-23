@@ -201,7 +201,7 @@ Buenas practicas:
 
 ![Estado de publicacion](./provider-onboarding-manual/images/08-estado-publicacion.svg)
 
-Entra a `Estado` para confirmar si el negocio esta listo para revision.
+Entra a `Estado` para confirmar si el negocio esta listo para revision. En web provider, los documentos se cargan desde el expediente del negocio: abre `Mis negocios` y presiona el lapiz de la tarjeta del negocio.
 
 Checklist esperado:
 
@@ -209,7 +209,7 @@ Checklist esperado:
 - Perfil publico completo.
 - Al menos un servicio activo y publico.
 - Horarios con cupos definidos.
-- Documentos de aprobacion cargados cuando apliquen.
+- Documentos de aprobacion cargados cuando apliquen; en web forman parte de los datos maestros del negocio.
 
 Si falta un paso, toca la tarjeta correspondiente y completa la informacion.
 

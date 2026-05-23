@@ -112,9 +112,10 @@ Modelo recomendado CAP-0:
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
-- las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` lleva a `Estado`, donde se cargan documentos de aprobacion
+- las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` abre el expediente maestro dentro de la edicion del negocio, porque son datos de aprobacion del negocio y no operativa diaria
 - el panel de Inicio del proveedor puede mostrar un carrusel compacto de negocios para cambiar el negocio activo sin entrar a la lista vertical de `Negocio`
 - la consola web del proveedor vive en `apps/web`, no en `apps/admin`; usa los mismos contratos provider existentes y agrega shell/navegacion operativa para pantallas amplias sin crear reglas nuevas
+- en web provider, los documentos de aprobacion viven dentro de la seccion de edicion de negocio abierta desde el lapiz de la tarjeta; no se presentan como modulo operativo independiente
 - la consola web provider muestra en `Agenda` gestion funcional de horarios y cupos por servicio usando `provider_availability_rules`: permite crear/editar reglas con servicio, dia, hora inicio, hora fin, capacidad y estado activo/inactivo; tambien mantiene vista read-only de slots proyectados con cupos disponibles, llenos, expirados o de ultimo cupo sin crear reservas
 - la consola web provider muestra indicadores globales de referencia operativa para todos los negocios: dinero ingresado por citas completadas, dinero pendiente por citas pendientes/confirmadas y dinero no ingresado por reservas canceladas por proveedor segun `cancelReason`; no representa captura real de pagos
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva

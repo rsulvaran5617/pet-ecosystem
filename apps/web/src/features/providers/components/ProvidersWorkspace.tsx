@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   bookingStatusLabels,
@@ -82,8 +82,7 @@ const providerConsoleSections = [
   { id: "provider-web-publication", label: "Publicacion", detail: "Que falta para aparecer" },
   { id: "provider-web-bookings", label: "Reservas", detail: "Solicitudes y atencion" },
   { id: "provider-web-services", label: "Servicios", detail: "Oferta y precios" },
-  { id: "provider-web-availability", label: "Agenda", detail: "Horarios disponibles" },
-  { id: "provider-web-documents", label: "Documentos", detail: "Archivos de aprobacion" }
+  { id: "provider-web-availability", label: "Agenda", detail: "Horarios disponibles" }
 ] as const;
 
 const emptyOrganizationForm: OrganizationFormState = {
@@ -194,14 +193,6 @@ function addDays(value: Date, days: number) {
   return nextDate;
 }
 
-function formatSlotDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    day: "2-digit",
-    month: "short",
-    weekday: "short"
-  }).format(new Date(`${value}T00:00:00`));
-}
-
 function formatCalendarDay(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
     day: "2-digit"
@@ -211,13 +202,6 @@ function formatCalendarDay(value: string) {
 function formatCalendarWeekday(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
     weekday: "short"
-  }).format(new Date(`${value}T00:00:00`));
-}
-
-function formatCalendarMonth(value: string) {
-  return new Intl.DateTimeFormat("es-PA", {
-    month: "long",
-    year: "numeric"
   }).format(new Date(`${value}T00:00:00`));
 }
 
@@ -299,7 +283,7 @@ function getProviderReadinessAction(label: string) {
   }
 
   if (label.includes("Documentos")) {
-    return { sectionId: "provider-web-documents", actionLabel: "Cargar documentos" };
+    return { sectionId: "provider-web-business", actionLabel: "Editar expediente" };
   }
 
   return { sectionId: "provider-web-business", actionLabel: "Revisar negocio" };
@@ -575,6 +559,27 @@ export function ProvidersWorkspace({
   const selectedAvailability = selectedOrganizationDetail?.availability ?? [];
   const selectedAvailabilityRules = selectedOrganizationDetail?.availabilityRules ?? [];
   const selectedDocuments = selectedOrganizationDetail?.approvalDocuments ?? [];
+  const activeCapacityService = selectedServices.find((service) => service.id === capacityServiceId) ?? selectedServices[0] ?? null;
+  const filteredAvailabilityRules = activeCapacityService
+    ? selectedAvailabilityRules.filter((rule) => rule.serviceId === activeCapacityService.id)
+    : selectedAvailabilityRules;
+  const availabilityRulesByDay = providerDayOfWeekOrder.reduce<Record<AvailabilityFormState["dayOfWeek"], typeof selectedAvailabilityRules>>(
+    (accumulator, dayOfWeek) => {
+      accumulator[dayOfWeek] = filteredAvailabilityRules
+        .filter((rule) => rule.dayOfWeek === dayOfWeek)
+        .sort((leftRule, rightRule) => leftRule.startsAt.localeCompare(rightRule.startsAt));
+      return accumulator;
+    },
+    {
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: []
+    }
+  );
   const pendingProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval");
   const confirmedProviderBookings = providerBookings.filter((booking) => booking.status === "confirmed");
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
@@ -613,7 +618,6 @@ export function ProvidersWorkspace({
     : Array.from({ length: 7 }, (_, index) => formatDateValue(addDays(new Date(), index)));
   const activeCapacityDate = selectedCapacityDate ?? capacityCalendarDates[0] ?? null;
   const activeCapacityDateSlots = activeCapacityDate ? capacitySlotsByDate[activeCapacityDate] ?? [] : [];
-  const activeCapacityMonth = activeCapacityDate ? formatCalendarMonth(activeCapacityDate) : "Proximos cupos";
   const loadCapacitySlots = async () => {
     if (!capacityServiceId) {
       setCapacitySlots([]);
@@ -723,7 +727,7 @@ export function ProvidersWorkspace({
       label: "Sin documentos",
       count: businessOverviews.filter((overview) => !overview.hasDocuments).length,
       help: "Falta soporte de aprobacion.",
-      sectionId: "provider-web-documents",
+      sectionId: "provider-web-business",
       organizationId: businessOverviews.find((overview) => !overview.hasDocuments)?.organization.id ?? null
     }
   ].filter((card) => card.count > 0);
@@ -753,10 +757,6 @@ export function ProvidersWorkspace({
       setAvailabilityForm(emptyAvailabilityForm);
       setIsAvailabilityFormOpen(true);
     }
-    if (sectionId === "provider-web-documents") {
-      setIsDocumentFormOpen(true);
-    }
-
     if (organizationId && organizationId !== selectedOrganizationId) {
       void selectOrganization(organizationId).then(() => {
         window.setTimeout(() => scrollToProviderSection(sectionId), 120);
@@ -1195,7 +1195,7 @@ export function ProvidersWorkspace({
                           fontWeight: 900
                         }}
                       >
-                        ✎
+                        âœŽ
                       </button>
                     </article>
                     ))}
@@ -1319,6 +1319,131 @@ export function ProvidersWorkspace({
                     ) : null}
                   </div>
                 </form>
+                {organizationMode === "edit" && selectedOrganization ? (
+                  <section
+                    style={{
+                      borderTop: "1px solid rgba(28, 25, 23, 0.1)",
+                      display: "grid",
+                      gap: "12px",
+                      marginTop: "6px",
+                      paddingTop: "16px"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                      <div style={{ display: "grid", gap: "4px" }}>
+                        <h4 style={{ margin: 0, fontSize: "18px" }}>Documentos de aprobacion</h4>
+                        <span style={{ color: "#57534e", fontSize: "13px" }}>Expediente maestro requerido para revision del negocio.</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                        <StatusPill label={`${selectedDocuments.length} cargados`} tone="neutral" />
+                        <button
+                          disabled={isSubmitting}
+                          onClick={() => setIsDocumentFormOpen((current) => !current)}
+                          style={{
+                            borderRadius: "999px",
+                            border: "1px solid rgba(15, 118, 110, 0.22)",
+                            background: isDocumentFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
+                            color: isDocumentFormOpen ? "#0f766e" : "#f8fafc",
+                            cursor: isSubmitting ? "not-allowed" : "pointer",
+                            fontWeight: 800,
+                            padding: "9px 13px"
+                          }}
+                          type="button"
+                        >
+                          {isDocumentFormOpen ? "Cerrar" : "+ Documento"}
+                        </button>
+                      </div>
+                    </div>
+                    {isDocumentFormOpen ? (
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          clearMessages();
+                          void runAction(
+                            async () => {
+                              const selectedArchivo = documentForm.file;
+
+                              if (!selectedArchivo) {
+                                throw new Error("Elige un archivo antes de cargarlo.");
+                              }
+
+                              const fileBytes = await selectedArchivo.arrayBuffer();
+
+                              return getBrowserProvidersApiClient().uploadProviderApprovalDocument(selectedOrganization.id, {
+                                title: documentForm.title.trim() || selectedArchivo.name,
+                                documentType: documentForm.documentType,
+                                fileName: selectedArchivo.name,
+                                mimeType: selectedArchivo.type || null,
+                                fileBytes
+                              });
+                            },
+                            "Documento de aprobacion cargado."
+                          ).then(async () => {
+                            setDocumentForm(emptyDocumentForm);
+                            await refresh(selectedOrganization.id);
+                            setIsDocumentFormOpen(false);
+                          });
+                        }}
+                        style={{ display: "grid", gap: "12px" }}
+                      >
+                        <Field label="Titulo del documento" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
+                        <SelectField<ProviderApprovalDocumentType>
+                          label="Tipo de documento"
+                          onChange={(value) => setDocumentForm((current) => ({ ...current, documentType: value }))}
+                          options={providerApprovalDocumentTypeOrder.map((documentType) => ({
+                            label: providerApprovalDocumentTypeLabels[documentType],
+                            value: documentType
+                          }))}
+                          value={documentForm.documentType}
+                        />
+                        <label style={{ display: "grid", gap: "6px" }}>
+                          <span style={fieldLabelStyle}>Archivo</span>
+                          <input
+                            onChange={(event) =>
+                              setDocumentForm((current) => ({
+                                ...current,
+                                file: event.target.files?.[0] ?? null
+                              }))
+                            }
+                            style={{ ...controlStyle, padding: "10px 14px" }}
+                            type="file"
+                          />
+                        </label>
+                        <Button disabled={isSubmitting} type="submit">
+                          Cargar documento
+                        </Button>
+                      </form>
+                    ) : null}
+
+                    {selectedDocuments.length ? (
+                      <div style={{ display: "grid", gap: "12px" }}>
+                        {selectedDocuments.map((document) => (
+                          <article
+                            key={document.id}
+                            style={{
+                              borderRadius: "18px",
+                              padding: "14px 16px",
+                              background: "rgba(255,255,255,0.72)",
+                              display: "grid",
+                              gap: "8px"
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                              <strong>{document.title}</strong>
+                              <StatusPill label={providerApprovalDocumentTypeLabels[document.documentType]} tone="neutral" />
+                            </div>
+                            <span style={{ color: "#57534e" }}>{document.fileName}</span>
+                            <span style={{ color: "#57534e" }}>
+                              {document.mimeType ?? "Tipo de archivo desconocido"}  -  {formatFileSize(document.fileSizeBytes)}
+                            </span>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay documentos de aprobacion cargados para este negocio.</p>
+                    )}
+                  </section>
+                ) : null}
               </article>
             </div>
 
@@ -1419,9 +1544,6 @@ export function ProvidersWorkspace({
                                     setAvailabilityForm(emptyAvailabilityForm);
                                     setIsAvailabilityFormOpen(true);
                                   }
-                                  if (action.sectionId === "provider-web-documents") {
-                                    setIsDocumentFormOpen(true);
-                                  }
                                   if (action.sectionId === "provider-web-business") {
                                     setOrganizationMode("edit");
                                     setIsBusinessFormOpen(true);
@@ -1445,7 +1567,7 @@ export function ProvidersWorkspace({
                                   Pendiente
                                 </span>
                                 <strong style={{ fontSize: "9px" }}>{item.label}</strong>
-                                <span style={{ color: "#0f766e", fontSize: "13px", fontWeight: 800 }}>{action.actionLabel} →</span>
+                                <span style={{ color: "#0f766e", fontSize: "13px", fontWeight: 800 }}>{action.actionLabel} â†’</span>
                               </button>
                             );
                           })}
@@ -1453,7 +1575,7 @@ export function ProvidersWorkspace({
                       ) : (
                         <div style={{ ...controlStyle, display: "grid", gap: "6px", background: "rgba(15, 118, 110, 0.08)" }}>
                           <strong>Tu negocio esta completo para revision.</strong>
-                          <span style={{ color: "#57534e" }}>Mantén servicios, agenda y documentos actualizados antes de operar nuevas reservas.</span>
+                          <span style={{ color: "#57534e" }}>MantÃ©n servicios, agenda y documentos actualizados antes de operar nuevas reservas.</span>
                         </div>
                       )}
                     </div>
@@ -1671,7 +1793,7 @@ export function ProvidersWorkspace({
                       }}
                       type="button"
                     >
-                      {isProfileFormOpen ? "Cerrar" : "✎ Editar"}
+                      {isProfileFormOpen ? "Cerrar" : "âœŽ Editar"}
                     </button>
                   </div>
                 </div>
@@ -1954,142 +2076,310 @@ export function ProvidersWorkspace({
                 id="provider-web-availability"
                 style={{
                   borderRadius: "22px",
-                  padding: "20px",
+                  padding: "18px",
                   background: "rgba(247, 242, 231, 0.72)",
                   display: "grid",
                   gap: "12px"
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
                     <h3 style={{ margin: 0, fontSize: "20px" }}>Agenda</h3>
-                    <span style={{ color: "#57534e", fontSize: "13px" }}>Horarios base en los que atiendes servicios.</span>
+                    <span style={{ color: "#57534e", fontSize: "13px" }}>Planifica horarios y cupos por servicio.</span>
                   </div>
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                    <StatusPill label={`${selectedAvailabilityRules.length} regla(s)`} tone="neutral" />
-                    <button
-                      disabled={!selectedOrganization || !selectedServices.length || isSubmitting}
-                      onClick={() => {
-                        setAvailabilityForm({
-                          ...emptyAvailabilityForm,
-                          serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
-                        });
-                        setIsAvailabilityFormOpen((current) => !current);
-                      }}
-                      style={{
-                        borderRadius: "999px",
-                        border: "1px solid rgba(15, 118, 110, 0.22)",
-                        background: isAvailabilityFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
-                        color: isAvailabilityFormOpen ? "#0f766e" : "#f8fafc",
-                        cursor: selectedOrganization && selectedServices.length ? "pointer" : "not-allowed",
-                        fontWeight: 800,
-                        padding: "9px 13px"
-                      }}
-                      type="button"
-                    >
-                      {isAvailabilityFormOpen ? "Cerrar" : "+ Horario"}
-                    </button>
-                  </div>
+                  <StatusPill label={`${selectedAvailabilityRules.length} regla(s)`} tone="neutral" />
                 </div>
                 {selectedOrganization ? (
-                  <>
-                    {isAvailabilityFormOpen ? (
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        clearMessages();
-
-                        if (availabilityForm.id) {
-                          const payload = buildAvailabilityRulePayload(availabilityForm) satisfies UpdateProviderAvailabilityRuleInput;
-                          void runAction(
-                            () =>
-                              getBrowserProvidersApiClient().updateProviderAvailabilityRule(availabilityForm.id!, payload),
-                            "Horario actualizado."
-                          ).then(async () => {
-                            setAvailabilityForm({
-                              ...emptyAvailabilityForm,
-                              serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
-                            });
-                            await refresh(selectedOrganization.id);
-                            setIsAvailabilityFormOpen(false);
-                          });
-                          return;
-                        }
-
-                        const payload = {
-                          organizationId: selectedOrganization.id,
-                          ...buildAvailabilityRulePayload(availabilityForm)
-                        } satisfies CreateProviderAvailabilityRuleInput;
-                        void runAction(
-                          () =>
-                            getBrowserProvidersApiClient().createProviderAvailabilityRule(payload),
-                          "Horario guardado."
-                        ).then(async () => {
-                          setAvailabilityForm({
-                            ...emptyAvailabilityForm,
-                            serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
-                          });
-                          await refresh(selectedOrganization.id);
-                          setIsAvailabilityFormOpen(false);
-                        });
-                      }}
-                      style={{ display: "grid", gap: "12px" }}
-                    >
-                      <SelectField<Uuid | "">
-                        label="Servicio"
-                        onChange={(value) => setAvailabilityForm((current) => ({ ...current, serviceId: value }))}
-                        options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
-                        value={availabilityForm.serviceId || selectedServices[0]?.id || ""}
-                      />
-                      <SelectField<AvailabilityFormState["dayOfWeek"]>
-                        label="Dia"
-                        onChange={(value) => setAvailabilityForm((current) => ({ ...current, dayOfWeek: value }))}
-                        options={providerDayOfWeekOrder.map((dayOfWeek) => ({ label: providerDayOfWeekLabels[dayOfWeek], value: dayOfWeek }))}
-                        value={availabilityForm.dayOfWeek}
-                      />
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                        <Field label="Empieza a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
-                        <Field label="Termina a" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
-                      </div>
-                      <Field label="Capacidad" onChange={(value) => setAvailabilityForm((current) => ({ ...current, capacity: value }))} type="number" value={availabilityForm.capacity} />
-                      <CheckField checked={availabilityForm.isActive} label="Horario activo" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
-                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-                        <Button disabled={isSubmitting} type="submit">
-                          {availabilityForm.id ? "Guardar horario" : "Crear horario"}
-                        </Button>
-                        {availabilityForm.id ? (
-                          <Button
-                            disabled={isSubmitting}
-                            onClick={() =>
-                              setAvailabilityForm({
-                                ...emptyAvailabilityForm,
-                                serviceId: selectedServices.find((service) => service.isPublic && service.isActive)?.id ?? selectedServices[0]?.id ?? ""
-                              })
-                            }
-                            tone="secondary"
-                          >
-                            Cancelar edicion
-                          </Button>
-                        ) : null}
-                      </div>
-                    </form>
-                    ) : null}
-
-                    {selectedServices.length ? (
+                  selectedServices.length ? (
+                    <>
                       <div
                         style={{
-                          borderRadius: "18px",
-                          border: "1px solid rgba(15, 118, 110, 0.16)",
-                          background: "rgba(240, 253, 250, 0.58)",
+                          alignItems: "end",
                           display: "grid",
                           gap: "10px",
-                          padding: "12px"
+                          gridTemplateColumns: "minmax(220px, 1fr) auto"
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                          <div style={{ display: "grid", gap: "3px" }}>
-                            <strong style={{ fontSize: "12px" }}>Cupos publicados</strong>
-                            <span style={{ color: "#57534e", fontSize: "10px" }}>Vista de slots reales para los proximos 14 dias.</span>
+                        <SelectField<Uuid>
+                          label="Servicio"
+                          onChange={(value) => {
+                            setCapacityServiceId(value);
+                            setCapacitySlots([]);
+                            setSelectedCapacityDate(null);
+                            setCapacitySlotsError(null);
+                            setAvailabilityForm((current) => ({ ...current, serviceId: value }));
+                          }}
+                          options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
+                          value={activeCapacityService?.id ?? selectedServices[0].id}
+                        />
+                        <Button
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            setAvailabilityForm({
+                              ...emptyAvailabilityForm,
+                              serviceId: activeCapacityService?.id ?? selectedServices[0]?.id ?? ""
+                            });
+                            setIsAvailabilityFormOpen(true);
+                          }}
+                        >
+                          + Franja
+                        </Button>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gap: "8px",
+                          gridTemplateColumns: "repeat(7, minmax(104px, 1fr))",
+                          overflowX: "auto",
+                          paddingBottom: "2px"
+                        }}
+                      >
+                        {providerDayOfWeekOrder.map((dayOfWeek) => {
+                          const dayRules = availabilityRulesByDay[dayOfWeek] ?? [];
+
+                          return (
+                            <section
+                              key={dayOfWeek}
+                              style={{
+                                background: "rgba(255,255,255,0.66)",
+                                border: "1px solid rgba(15,118,110,0.12)",
+                                borderRadius: "16px",
+                                display: "grid",
+                                gap: "8px",
+                                minHeight: "164px",
+                                padding: "8px"
+                              }}
+                            >
+                              <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "6px" }}>
+                                <strong style={{ color: "#1c1917", fontSize: "12px" }}>{providerDayOfWeekLabels[dayOfWeek].slice(0, 3)}</strong>
+                                <span style={{ color: "#0f766e", fontSize: "9px", fontWeight: 800 }}>{dayRules.length ? `${dayRules.length}` : "-"}</span>
+                              </div>
+                              {dayRules.length ? (
+                                dayRules.map((rule) => {
+                                  const tone = formatAvailabilityRuleTone(rule);
+
+                                  return (
+                                    <article
+                                      key={rule.id}
+                                      style={{
+                                        background: tone.background,
+                                        border: `1px solid ${tone.border}`,
+                                        borderRadius: "13px",
+                                        display: "grid",
+                                        gap: "5px",
+                                        padding: "8px"
+                                      }}
+                                    >
+                                      <strong style={{ color: "#1c1917", fontSize: "11px" }}>
+                                        {rule.startsAt.slice(0, 5)} - {rule.endsAt.slice(0, 5)}
+                                      </strong>
+                                      <span style={{ color: tone.color, fontSize: "9px", fontWeight: 800 }}>{tone.label}</span>
+                                      <div style={{ display: "flex", gap: "5px", flexWrap: "wrap" }}>
+                                        <button
+                                          disabled={isSubmitting}
+                                          onClick={() => {
+                                            setAvailabilityForm({
+                                              id: rule.id,
+                                              serviceId: rule.serviceId,
+                                              dayOfWeek: rule.dayOfWeek,
+                                              startsAt: rule.startsAt,
+                                              endsAt: rule.endsAt,
+                                              capacity: String(rule.capacity),
+                                              isActive: rule.isActive
+                                            });
+                                            setIsAvailabilityFormOpen(true);
+                                          }}
+                                          style={{
+                                            borderRadius: "999px",
+                                            border: "1px solid rgba(28,25,23,0.12)",
+                                            background: "rgba(255,255,255,0.82)",
+                                            color: "#1c1917",
+                                            cursor: isSubmitting ? "not-allowed" : "pointer",
+                                            fontSize: "9px",
+                                            fontWeight: 800,
+                                            padding: "5px 8px"
+                                          }}
+                                          type="button"
+                                        >
+                                          Editar
+                                        </button>
+                                        <button
+                                          disabled={isSubmitting}
+                                          onClick={() => {
+                                            clearMessages();
+                                            void runAction(
+                                              () => getBrowserProvidersApiClient().setProviderAvailabilityRuleActive(rule.id, !rule.isActive),
+                                              rule.isActive ? "Horario desactivado." : "Horario activado."
+                                            ).then(async () => {
+                                              await refresh(selectedOrganization.id);
+                                            });
+                                          }}
+                                          style={{
+                                            borderRadius: "999px",
+                                            border: "1px solid rgba(28,25,23,0.12)",
+                                            background: "rgba(255,255,255,0.82)",
+                                            color: rule.isActive ? "#b45309" : "#0f766e",
+                                            cursor: isSubmitting ? "not-allowed" : "pointer",
+                                            fontSize: "9px",
+                                            fontWeight: 800,
+                                            padding: "5px 8px"
+                                          }}
+                                          type="button"
+                                        >
+                                          {rule.isActive ? "Pausar" : "Activar"}
+                                        </button>
+                                      </div>
+                                    </article>
+                                  );
+                                })
+                              ) : (
+                                <button
+                                  disabled={isSubmitting}
+                                  onClick={() => {
+                                    setAvailabilityForm({
+                                      ...emptyAvailabilityForm,
+                                      serviceId: activeCapacityService?.id ?? selectedServices[0]?.id ?? "",
+                                      dayOfWeek
+                                    });
+                                    setIsAvailabilityFormOpen(true);
+                                  }}
+                                  style={{
+                                    alignItems: "center",
+                                    background: "rgba(255,255,255,0.46)",
+                                    border: "1px dashed rgba(15,118,110,0.28)",
+                                    borderRadius: "13px",
+                                    color: "#0f766e",
+                                    cursor: isSubmitting ? "not-allowed" : "pointer",
+                                    display: "flex",
+                                    fontSize: "10px",
+                                    fontWeight: 800,
+                                    justifyContent: "center",
+                                    minHeight: "92px",
+                                    padding: "8px",
+                                    textAlign: "center"
+                                  }}
+                                  type="button"
+                                >
+                                  + Agregar franja
+                                </button>
+                              )}
+                            </section>
+                          );
+                        })}
+                      </div>
+
+                      {isAvailabilityFormOpen ? (
+                        <form
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            clearMessages();
+
+                            if (availabilityForm.id) {
+                              const payload = buildAvailabilityRulePayload(availabilityForm) satisfies UpdateProviderAvailabilityRuleInput;
+                              void runAction(
+                                () => getBrowserProvidersApiClient().updateProviderAvailabilityRule(availabilityForm.id!, payload),
+                                "Horario actualizado."
+                              ).then(async () => {
+                                setAvailabilityForm({
+                                  ...emptyAvailabilityForm,
+                                  serviceId: activeCapacityService?.id ?? selectedServices[0]?.id ?? ""
+                                });
+                                await refresh(selectedOrganization.id);
+                                setIsAvailabilityFormOpen(false);
+                              });
+                              return;
+                            }
+
+                            const payload = {
+                              organizationId: selectedOrganization.id,
+                              ...buildAvailabilityRulePayload(availabilityForm)
+                            } satisfies CreateProviderAvailabilityRuleInput;
+                            void runAction(
+                              () => getBrowserProvidersApiClient().createProviderAvailabilityRule(payload),
+                              "Horario guardado."
+                            ).then(async () => {
+                              setAvailabilityForm({
+                                ...emptyAvailabilityForm,
+                                serviceId: activeCapacityService?.id ?? selectedServices[0]?.id ?? ""
+                              });
+                              await refresh(selectedOrganization.id);
+                              setIsAvailabilityFormOpen(false);
+                            });
+                          }}
+                          style={{
+                            background: "rgba(255,255,255,0.76)",
+                            border: "1px solid rgba(15,118,110,0.16)",
+                            borderRadius: "18px",
+                            display: "grid",
+                            gap: "10px",
+                            padding: "12px"
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                            <div style={{ display: "grid", gap: "3px" }}>
+                              <strong style={{ fontSize: "13px" }}>{availabilityForm.id ? "Editar franja" : "Crear franja"}</strong>
+                              <span style={{ color: "#57534e", fontSize: "10px" }}>Servicio, dia, horario y cupos.</span>
+                            </div>
+                            <button
+                              onClick={() => setIsAvailabilityFormOpen(false)}
+                              style={{
+                                borderRadius: "999px",
+                                border: "1px solid rgba(28,25,23,0.12)",
+                                background: "rgba(255,255,255,0.84)",
+                                cursor: "pointer",
+                                fontWeight: 900,
+                                height: "28px",
+                                width: "28px"
+                              }}
+                              type="button"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <div style={{ display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))" }}>
+                            <SelectField<Uuid | "">
+                              label="Servicio"
+                              onChange={(value) => setAvailabilityForm((current) => ({ ...current, serviceId: value }))}
+                              options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
+                              value={availabilityForm.serviceId || activeCapacityService?.id || selectedServices[0]?.id || ""}
+                            />
+                            <SelectField<AvailabilityFormState["dayOfWeek"]>
+                              label="Dia"
+                              onChange={(value) => setAvailabilityForm((current) => ({ ...current, dayOfWeek: value }))}
+                              options={providerDayOfWeekOrder.map((day) => ({ label: providerDayOfWeekLabels[day], value: day }))}
+                              value={availabilityForm.dayOfWeek}
+                            />
+                            <Field label="Inicio" onChange={(value) => setAvailabilityForm((current) => ({ ...current, startsAt: value }))} type="time" value={availabilityForm.startsAt} />
+                            <Field label="Fin" onChange={(value) => setAvailabilityForm((current) => ({ ...current, endsAt: value }))} type="time" value={availabilityForm.endsAt} />
+                            <Field label="Cupos" onChange={(value) => setAvailabilityForm((current) => ({ ...current, capacity: value }))} type="number" value={availabilityForm.capacity} />
+                          </div>
+                          <CheckField checked={availabilityForm.isActive} label="Franja activa" onChange={(value) => setAvailabilityForm((current) => ({ ...current, isActive: value }))} />
+                          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                            <Button disabled={isSubmitting} type="submit">
+                              {availabilityForm.id ? "Guardar" : "Crear"}
+                            </Button>
+                            <Button disabled={isSubmitting} onClick={() => setIsAvailabilityFormOpen(false)} tone="secondary">
+                              Cancelar
+                            </Button>
+                          </div>
+                        </form>
+                      ) : null}
+
+                      <div
+                        style={{
+                          borderRadius: "16px",
+                          border: "1px solid rgba(15, 118, 110, 0.12)",
+                          background: "rgba(240, 253, 250, 0.5)",
+                          display: "grid",
+                          gap: "8px",
+                          padding: "10px"
+                        }}
+                      >
+                        <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "10px", flexWrap: "wrap" }}>
+                          <div style={{ display: "grid", gap: "2px" }}>
+                            <strong style={{ fontSize: "12px" }}>Cupos proyectados</strong>
+                            <span style={{ color: "#57534e", fontSize: "10px" }}>Validacion de reservas reales para los proximos 14 dias.</span>
                           </div>
                           <button
                             disabled={!capacityServiceId || isLoadingCapacitySlots}
@@ -2110,36 +2400,13 @@ export function ProvidersWorkspace({
                             {isLoadingCapacitySlots ? "Consultando" : "Ver cupos"}
                           </button>
                         </div>
-                        <SelectField<Uuid>
-                          label="Servicio"
-                          onChange={(value) => {
-                            setCapacityServiceId(value);
-                            setCapacitySlots([]);
-                            setSelectedCapacityDate(null);
-                            setCapacitySlotsError(null);
-                          }}
-                          options={selectedServices.map((service) => ({ label: service.name, value: service.id }))}
-                          value={capacityServiceId ?? selectedServices[0].id}
-                        />
                         {capacitySlotsError ? <span style={{ color: "#991b1b", fontSize: "10px" }}>{capacitySlotsError}</span> : null}
                         {!capacitySlotsError && !capacitySlots.length ? (
-                          <span style={{ color: "#57534e", fontSize: "10px" }}>
-                            Selecciona un servicio y consulta sus cupos. Esta vista no crea reservas.
-                          </span>
+                          <span style={{ color: "#57534e", fontSize: "10px" }}>Consulta para validar cupos ocupados/disponibles; no crea reservas.</span>
                         ) : null}
                         {capacitySlots.length ? (
-                          <div style={{ display: "grid", gap: "10px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
-                              <strong style={{ color: "#1c1917", fontSize: "11px", textTransform: "capitalize" }}>{activeCapacityMonth}</strong>
-                              <span style={{ color: "#57534e", fontSize: "9px" }}>Calendario de cupos</span>
-                            </div>
-                            <div
-                              style={{
-                                display: "grid",
-                                gap: "6px",
-                                gridTemplateColumns: "repeat(7, minmax(0, 1fr))"
-                              }}
-                            >
+                          <div style={{ display: "grid", gap: "8px" }}>
+                            <div style={{ display: "grid", gap: "5px", gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}>
                               {capacityCalendarDates.slice(0, 7).map((dateValue) => {
                                 const dateSlots = capacitySlotsByDate[dateValue] ?? [];
                                 const totalAvailable = dateSlots.reduce((total, slot) => total + slot.availableCount, 0);
@@ -2150,309 +2417,73 @@ export function ProvidersWorkspace({
                                     key={dateValue}
                                     onClick={() => setSelectedCapacityDate(dateValue)}
                                     style={{
-                                      borderRadius: "14px",
+                                      borderRadius: "12px",
                                       border: isSelected ? "1px solid rgba(15, 118, 110, 0.36)" : "1px solid rgba(15, 118, 110, 0.12)",
                                       background: isSelected ? "#0f766e" : "rgba(255,255,255,0.72)",
                                       color: isSelected ? "#f8fafc" : "#1c1917",
                                       cursor: "pointer",
                                       display: "grid",
-                                      gap: "2px",
-                                      minHeight: "58px",
-                                      padding: "7px 4px",
+                                      gap: "1px",
+                                      minHeight: "48px",
+                                      padding: "5px 3px",
                                       textAlign: "center"
                                     }}
                                     type="button"
                                   >
-                                    <span style={{ fontSize: "8px", textTransform: "capitalize" }}>{formatCalendarWeekday(dateValue)}</span>
-                                    <strong style={{ fontSize: "14px" }}>{formatCalendarDay(dateValue)}</strong>
-                                    <span style={{ color: isSelected ? "rgba(248,250,252,0.78)" : "#0f766e", fontSize: "8px" }}>
-                                      {dateSlots.length ? `${totalAvailable} cupo(s)` : "-"}
+                                    <span style={{ fontSize: "7px", textTransform: "capitalize" }}>{formatCalendarWeekday(dateValue)}</span>
+                                    <strong style={{ fontSize: "12px" }}>{formatCalendarDay(dateValue)}</strong>
+                                    <span style={{ color: isSelected ? "rgba(248,250,252,0.78)" : "#0f766e", fontSize: "7px" }}>
+                                      {dateSlots.length ? `${totalAvailable}` : "-"}
                                     </span>
                                   </button>
                                 );
                               })}
                             </div>
-                            <div style={{ display: "grid", gap: "6px" }}>
-                              <strong style={{ color: "#0f766e", fontSize: "10px", textTransform: "capitalize" }}>
-                                {activeCapacityDate ? formatSlotDate(activeCapacityDate) : "Selecciona un dia"}
-                              </strong>
-                              {activeCapacityDateSlots.length ? (
-                                activeCapacityDateSlots.map((slot) => {
-                                  const isAvailable = slot.status === "available" || slot.status === "low_capacity";
+                            {activeCapacityDateSlots.length ? (
+                              <div style={{ display: "grid", gap: "5px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" }}>
+                                {activeCapacityDateSlots.map((slot) => {
                                   const isFull = slot.status === "full";
 
                                   return (
                                     <div
                                       key={`${slot.availabilityRuleId}-${slot.slotDate}-${slot.slotStartAt}`}
                                       style={{
-                                        borderRadius: "14px",
-                                        border: isFull
-                                          ? "1px solid rgba(220, 38, 38, 0.18)"
-                                          : isAvailable
-                                            ? "1px solid rgba(15, 118, 110, 0.18)"
-                                            : "1px solid rgba(68, 64, 60, 0.12)",
-                                        background: isFull
-                                          ? "rgba(254, 226, 226, 0.5)"
-                                          : isAvailable
-                                            ? "rgba(255,255,255,0.78)"
-                                            : "rgba(68, 64, 60, 0.05)",
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        gap: "10px",
-                                        padding: "8px 10px"
+                                        borderRadius: "12px",
+                                        border: isFull ? "1px solid rgba(220, 38, 38, 0.18)" : "1px solid rgba(15, 118, 110, 0.16)",
+                                        background: isFull ? "rgba(254, 226, 226, 0.5)" : "rgba(255,255,255,0.76)",
+                                        display: "grid",
+                                        gap: "2px",
+                                        padding: "7px 8px"
                                       }}
                                     >
-                                      <div style={{ display: "grid", gap: "2px" }}>
-                                        <strong style={{ fontSize: "10px" }}>
-                                          {formatSlotTime(slot.slotStartAt)} - {formatSlotTime(slot.slotEndAt)}
-                                        </strong>
-                                        <span style={{ color: "#57534e", fontSize: "9px" }}>
-                                          {slot.reservedCount} reservado(s) de {slot.capacityTotal}
-                                        </span>
-                                      </div>
-                                      <div style={{ display: "grid", justifyItems: "end", gap: "2px" }}>
-                                        <strong style={{ color: isFull ? "#dc2626" : "#0f766e", fontSize: "10px" }}>
-                                          {slot.availableCount} cupo(s)
-                                        </strong>
-                                        <span style={{ color: "#57534e", fontSize: "8px" }}>{bookingSlotStatusLabels[slot.status]}</span>
-                                      </div>
+                                      <strong style={{ fontSize: "9px" }}>
+                                        {formatSlotTime(slot.slotStartAt)} - {formatSlotTime(slot.slotEndAt)}
+                                      </strong>
+                                      <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                        {slot.reservedCount}/{slot.capacityTotal} reservado(s)
+                                      </span>
+                                      <span style={{ color: isFull ? "#dc2626" : "#0f766e", fontSize: "9px", fontWeight: 800 }}>
+                                        {slot.availableCount} cupo(s) · {bookingSlotStatusLabels[slot.status]}
+                                      </span>
                                     </div>
                                   );
-                                })
-                              ) : (
-                                <span style={{ color: "#57534e", fontSize: "10px" }}>No hay horarios publicados para este dia.</span>
-                              )}
-                            </div>
+                                })}
+                              </div>
+                            ) : (
+                              <span style={{ color: "#57534e", fontSize: "10px" }}>No hay horarios publicados para este dia.</span>
+                            )}
                           </div>
                         ) : null}
                       </div>
-                    ) : null}
-
-                    {selectedAvailabilityRules.length ? (
-                      <div style={{ display: "grid", gap: "12px" }}>
-                        {selectedAvailabilityRules.map((rule) => {
-                          const service = selectedServices.find((candidate) => candidate.id === rule.serviceId);
-                          const tone = formatAvailabilityRuleTone(rule);
-
-                          return (
-                            <article
-                              key={rule.id}
-                              style={{
-                                borderRadius: "18px",
-                                border: `1px solid ${tone.border}`,
-                                padding: "14px 16px",
-                                background: tone.background,
-                                display: "grid",
-                                gap: "8px"
-                              }}
-                            >
-                              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                                <div style={{ display: "grid", gap: "3px" }}>
-                                  <strong>{providerDayOfWeekLabels[rule.dayOfWeek]}</strong>
-                                  <span style={{ color: "#57534e", fontSize: "12px" }}>{service?.name ?? "Servicio no disponible"}</span>
-                                </div>
-                                <span
-                                  style={{
-                                    borderRadius: "999px",
-                                    background: "rgba(255,255,255,0.74)",
-                                    color: tone.color,
-                                    fontSize: "11px",
-                                    fontWeight: 800,
-                                    padding: "6px 10px"
-                                  }}
-                                >
-                                  {tone.label}
-                                </span>
-                              </div>
-                              <span style={{ color: "#57534e" }}>
-                                {rule.startsAt.slice(0, 5)} - {rule.endsAt.slice(0, 5)}
-                              </span>
-                              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", flexWrap: "wrap" }}>
-                                <Button
-                                  disabled={isSubmitting}
-                                  onClick={() =>
-                                    {
-                                    setAvailabilityForm({
-                                      id: rule.id,
-                                      serviceId: rule.serviceId,
-                                      dayOfWeek: rule.dayOfWeek,
-                                      startsAt: rule.startsAt,
-                                      endsAt: rule.endsAt,
-                                      capacity: String(rule.capacity),
-                                      isActive: rule.isActive
-                                    });
-                                    setIsAvailabilityFormOpen(true);
-                                    scrollToProviderSection("provider-web-availability");
-                                    }
-                                  }
-                                  tone="secondary"
-                                >
-                                  Editar
-                                </Button>
-                                <Button
-                                  disabled={isSubmitting}
-                                  onClick={() => {
-                                    clearMessages();
-                                    void runAction(
-                                      () => getBrowserProvidersApiClient().setProviderAvailabilityRuleActive(rule.id, !rule.isActive),
-                                      rule.isActive ? "Horario desactivado." : "Horario activado."
-                                    ).then(async () => {
-                                      await refresh(selectedOrganization.id);
-                                    });
-                                  }}
-                                  tone="secondary"
-                                >
-                                  {rule.isActive ? "Pausar" : "Activar"}
-                                </Button>
-                              </div>
-                            </article>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>
-                        Todavia no hay horarios con cupos configurados. Crea un servicio y luego usa + Horario.
-                      </p>
-                    )}
-                  </>
+                    </>
+                  ) : (
+                    <p style={{ margin: 0, color: "#57534e" }}>Primero crea un servicio para configurar horarios y cupos.</p>
+                  )
                 ) : (
                   <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
 
-            </div>
-
-            <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
-              <article
-                id="provider-web-documents"
-                style={{
-                  borderRadius: "22px",
-                  padding: "20px",
-                  background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
-                  gap: "12px"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "20px" }}>Documentos</h3>
-                    <span style={{ color: "#57534e", fontSize: "13px" }}>Archivos necesarios para revision y aprobacion.</span>
-                  </div>
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-                    <StatusPill label={`${selectedDocuments.length} cargados`} tone="neutral" />
-                    <button
-                      disabled={!selectedOrganization || isSubmitting}
-                      onClick={() => setIsDocumentFormOpen((current) => !current)}
-                      style={{
-                        borderRadius: "999px",
-                        border: "1px solid rgba(15, 118, 110, 0.22)",
-                        background: isDocumentFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
-                        color: isDocumentFormOpen ? "#0f766e" : "#f8fafc",
-                        cursor: selectedOrganization ? "pointer" : "not-allowed",
-                        fontWeight: 800,
-                        padding: "9px 13px"
-                      }}
-                      type="button"
-                    >
-                      {isDocumentFormOpen ? "Cerrar" : "+ Documento"}
-                    </button>
-                  </div>
-                </div>
-                {selectedOrganization ? (
-                  <>
-                    {isDocumentFormOpen ? (
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        clearMessages();
-                        void runAction(
-                          async () => {
-                            const selectedArchivo = documentForm.file;
-
-                            if (!selectedArchivo) {
-                              throw new Error("Elige un archivo antes de cargarlo.");
-                            }
-
-                            const fileBytes = await selectedArchivo.arrayBuffer();
-
-                            return getBrowserProvidersApiClient().uploadProviderApprovalDocument(selectedOrganization.id, {
-                              title: documentForm.title.trim() || selectedArchivo.name,
-                              documentType: documentForm.documentType,
-                              fileName: selectedArchivo.name,
-                              mimeType: selectedArchivo.type || null,
-                              fileBytes
-                            });
-                          },
-                          "Documento de aprobacion cargado."
-                        ).then(async () => {
-                          setDocumentForm(emptyDocumentForm);
-                          await refresh(selectedOrganization.id);
-                          setIsDocumentFormOpen(false);
-                        });
-                      }}
-                      style={{ display: "grid", gap: "12px" }}
-                    >
-                      <Field label="Titulo del documento" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
-                      <SelectField<ProviderApprovalDocumentType>
-                        label="Tipo de documento"
-                        onChange={(value) => setDocumentForm((current) => ({ ...current, documentType: value }))}
-                        options={providerApprovalDocumentTypeOrder.map((documentType) => ({
-                          label: providerApprovalDocumentTypeLabels[documentType],
-                          value: documentType
-                        }))}
-                        value={documentForm.documentType}
-                      />
-                      <label style={{ display: "grid", gap: "6px" }}>
-                        <span style={fieldLabelStyle}>Archivo</span>
-                        <input
-                          onChange={(event) =>
-                            setDocumentForm((current) => ({
-                              ...current,
-                              file: event.target.files?.[0] ?? null
-                            }))
-                          }
-                          style={{ ...controlStyle, padding: "10px 14px" }}
-                          type="file"
-                        />
-                      </label>
-                      <Button disabled={isSubmitting} type="submit">
-                        Cargar documento
-                      </Button>
-                    </form>
-                    ) : null}
-
-                    {selectedDocuments.length ? (
-                      <div style={{ display: "grid", gap: "12px" }}>
-                        {selectedDocuments.map((document) => (
-                          <article
-                            key={document.id}
-                            style={{
-                              borderRadius: "18px",
-                              padding: "14px 16px",
-                              background: "rgba(255,255,255,0.72)",
-                              display: "grid",
-                              gap: "8px"
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <strong>{document.title}</strong>
-                              <StatusPill label={providerApprovalDocumentTypeLabels[document.documentType]} tone="neutral" />
-                            </div>
-                            <span style={{ color: "#57534e" }}>{document.fileName}</span>
-                            <span style={{ color: "#57534e" }}>
-                              {document.mimeType ?? "Tipo de archivo desconocido"}  -  {formatFileSize(document.fileSizeBytes)}
-                            </span>
-                          </article>
-                        ))}
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay documentos de aprobacion cargados.</p>
-                    )}
-                  </>
-                ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
-                )}
-              </article>
             </div>
           </div>
         )}
@@ -2460,7 +2491,3 @@ export function ProvidersWorkspace({
     </div>
   );
 }
-
-
-
-

@@ -103,6 +103,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil publico
 - web provider console en `apps/web`: cabecera operativa, metricas, navegacion por secciones y acceso a Negocios, Publicacion, Reservas, Perfil publico, Servicios, Disponibilidad y Documentos sin usar admin interno
 - web provider console mantiene formularios colapsados por defecto y usa CTAs de crear/editar para abrirlos; `Mis negocios` se muestra como carrusel horizontal y cada tarjeta abre la edicion del negocio mediante un CTA de lapiz
+- web provider trata `Documentos de aprobacion` como expediente maestro del negocio: se muestran y cargan dentro de la seccion de edicion abierta con el lapiz de la tarjeta del negocio, no como seccion operativa independiente
 - cabecera web provider separa `Negocio seleccionado` de `Pendientes generales`; los pendientes globales se agregan por todos los negocios y cada caja navega al primer negocio relacionado y a la seccion que resuelve el pendiente
 - cabecera web provider incluye tres indicadores globales `payment-ready`: ingresado por citas completadas, pendiente por citas pendientes/confirmadas y no ingresado por cancelaciones atribuidas al proveedor por razon registrada; son referencia operativa, sin cobro real
 - `Publicacion` en web provider muestra un panel de pendientes accionables; cada pendiente abre la seccion que lo resuelve: perfil, servicios, agenda, documentos o negocio
