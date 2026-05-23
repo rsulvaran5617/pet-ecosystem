@@ -125,6 +125,7 @@ Modelo recomendado CAP-0:
 - la consola web provider muestra indicadores globales de referencia operativa para todos los negocios: dinero ingresado por citas completadas, dinero pendiente por citas pendientes/confirmadas y dinero no ingresado por reservas canceladas por proveedor segun `cancelReason`; no representa captura real de pagos
 - PW-0 introduce en la consola web provider una base visual local con shell, sidebar, topbar, cards, metricas, chips y botones alineados al canon; no cambia backend, Supabase, contratos API, mobile ni reglas de negocio
 - PW-1 rediseña el panel principal multinegocios en web provider con resumen ejecutivo, selector/lista de negocios, salud del negocio activo y proximas acciones usando datos ya cargados de organizaciones, servicios, reservas, documentos, ubicacion publica y readiness; no agrega entidades ni mutaciones nuevas
+- PW-1 usa visualizacion consolidada de dashboard para comparativo, embudo, capacidad, ranking, alertas y estado por negocio; las metricas no persistidas se calculan en cliente desde datos existentes y se muestran como lectura operacional
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

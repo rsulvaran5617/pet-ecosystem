@@ -292,6 +292,22 @@ function formatMoneyIndicatorValue(indicator: ProviderMoneyIndicator) {
   return currencyTotals.map(([currencyCode, totalPriceCents]) => formatMoney(totalPriceCents, currencyCode)).join(" / ");
 }
 
+function getPercentValue(value: number, total: number) {
+  if (!total) {
+    return 0;
+  }
+
+  return Math.round((value / total) * 100);
+}
+
+function getDashboardBarHeight(value: number, maxValue: number) {
+  if (!maxValue) {
+    return 12;
+  }
+
+  return Math.max(12, Math.round((value / maxValue) * 96));
+}
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
@@ -764,8 +780,7 @@ function ProviderTopbar({
         gap: "14px",
         justifyContent: "space-between",
         padding: "14px 16px",
-        position: "sticky",
-        top: "12px",
+        position: "relative",
         zIndex: 3
       }}
     >
@@ -1287,6 +1302,82 @@ export function ProvidersWorkspace({
     : selectedOrganization?.approvalStatus === "approved"
       ? "No visible"
       : "Pendiente";
+  const totalProviderBookingCount = businessOverviews.reduce(
+    (total, overview) =>
+      total +
+      overview.bookingCounts.pending_approval +
+      overview.bookingCounts.confirmed +
+      overview.bookingCounts.completed +
+      overview.bookingCounts.cancelled,
+    0
+  );
+  const totalMessageThreadCount = businessOverviews.reduce((total, overview) => total + overview.messageThreadCount, 0);
+  const averagePublicationHealth = getPercentValue(
+    businessOverviews.reduce((total, overview) => {
+      const readinessItems = [overview.hasPublicProfile, overview.hasService, overview.hasAvailability, overview.hasDocuments, overview.hasPublicLocation];
+      return total + getPercentValue(readinessItems.filter(Boolean).length, readinessItems.length);
+    }, 0),
+    Math.max(1, businessOverviews.length * 100)
+  );
+  const maxOverviewBookings = Math.max(
+    1,
+    ...businessOverviews.map(
+      (overview) =>
+        overview.bookingCounts.pending_approval +
+        overview.bookingCounts.confirmed +
+        overview.bookingCounts.completed +
+        overview.bookingCounts.cancelled
+    )
+  );
+  const selectedServiceRanking = selectedServices
+    .map((service) => ({
+      id: service.id,
+      name: service.name,
+      bookingCount: bookingCountByServiceId[service.id] ?? 0,
+      income: providerBookings
+        .filter((booking) => booking.providerServiceId === service.id)
+        .reduce((total, booking) => total + booking.totalPriceCents, 0)
+    }))
+    .sort((leftService, rightService) => rightService.bookingCount - leftService.bookingCount || rightService.income - leftService.income)
+    .slice(0, 5);
+  const dashboardAlerts = [
+    ...businessOverviews
+      .filter((overview) => !overview.hasPublicProfile)
+      .slice(0, 2)
+      .map((overview) => ({
+        id: `${overview.organization.id}-profile`,
+        label: `${overview.organization.name} - perfil incompleto`,
+        detail: "Completa la presentacion publica para mejorar visibilidad.",
+        tone: "warning" as const
+      })),
+    ...businessOverviews
+      .filter((overview) => overview.bookingCounts.pending_approval > 0)
+      .slice(0, 2)
+      .map((overview) => ({
+        id: `${overview.organization.id}-bookings`,
+        label: `${overview.organization.name} - ${overview.bookingCounts.pending_approval} reserva(s) pendiente(s)`,
+        detail: "Hay solicitudes esperando respuesta del proveedor.",
+        tone: "danger" as const
+      })),
+    ...businessOverviews
+      .filter((overview) => !overview.hasAvailability)
+      .slice(0, 2)
+      .map((overview) => ({
+        id: `${overview.organization.id}-capacity`,
+        label: `${overview.organization.name} - sin capacidad`,
+        detail: "Define horarios y cupos para recibir reservas.",
+        tone: "warning" as const
+      }))
+  ].slice(0, 4);
+  const capacityHeatmapDays = providerDayOfWeekOrder.slice(1).concat(0 as AvailabilityFormState["dayOfWeek"]);
+  const capacityHeatmapRows = ["08:00 - 10:00", "10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00"].map((slotLabel, slotIndex) => ({
+    slotLabel,
+    values: capacityHeatmapDays.map((dayOfWeek) => {
+      const dayRules = selectedAvailabilityRules.filter((rule) => rule.isActive && rule.dayOfWeek === dayOfWeek);
+      const totalCapacity = dayRules.reduce((total, rule) => total + rule.capacity, 0);
+      return Math.min(100, totalCapacity * 12 + slotIndex * 4);
+    })
+  }));
   const closeProviderForms = () => {
     setIsBusinessFormOpen(false);
     setIsProfileFormOpen(false);
@@ -1393,14 +1484,318 @@ export function ProvidersWorkspace({
             }
           >
             <div id="provider-web-panel" style={{ display: "grid", gap: "14px" }}>
+              <ProviderCard
+                style={{
+                  background: "#f8fafc",
+                  borderColor: "rgba(15, 23, 42, 0.08)",
+                  boxShadow: "0 18px 42px rgba(15, 23, 42, 0.09)",
+                  gap: "14px"
+                }}
+              >
+                <div style={{ alignItems: "center", display: "flex", gap: "16px", justifyContent: "space-between", flexWrap: "wrap" }}>
+                  <div style={{ alignItems: "center", display: "flex", gap: "12px", minWidth: 0 }}>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        alignItems: "center",
+                        background: "#eef6ff",
+                        borderRadius: "14px",
+                        color: "#0f766e",
+                        display: "inline-flex",
+                        fontSize: "20px",
+                        fontWeight: 900,
+                        height: "46px",
+                        justifyContent: "center",
+                        width: "46px"
+                      }}
+                    >
+                      PE
+                    </span>
+                    <div style={{ display: "grid", gap: "3px", minWidth: 0 }}>
+                      <h2 style={{ color: "#0b163f", fontSize: "28px", lineHeight: 1.05, margin: 0 }}>Panel de gestion multi-negocio</h2>
+                      <span style={{ color: "#667085", fontSize: "13px" }}>Vision consolidada de tus operaciones</span>
+                    </div>
+                  </div>
+                  <div style={{ alignItems: "center", display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <label style={{ display: "grid", gap: "4px" }}>
+                      <span style={{ color: "#344054", fontSize: "10px", fontWeight: 800 }}>Seleccionar negocio</span>
+                      <select
+                        aria-label="Seleccionar negocio para dashboard"
+                        onChange={(event) => {
+                          if (event.target.value) {
+                            closeProviderForms();
+                            void selectOrganization(event.target.value as Uuid);
+                          }
+                        }}
+                        style={{
+                          background: "#ffffff",
+                          border: "1px solid rgba(37, 99, 235, 0.36)",
+                          borderRadius: "8px",
+                          color: "#101828",
+                          fontSize: "12px",
+                          minHeight: "34px",
+                          minWidth: "210px",
+                          padding: "7px 10px"
+                        }}
+                        value={selectedOrganizationId ?? ""}
+                      >
+                        <option value="">Todos los negocios</option>
+                        {organizations.map((organization) => (
+                          <option key={organization.id} value={organization.id}>
+                            {organization.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <ProviderStatusChip label={`${alertCount} alertas`} tone={alertCount ? "warning" : "success"} />
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        alignItems: "center",
+                        background: "#0b163f",
+                        borderRadius: "999px",
+                        color: "#ffffff",
+                        display: "inline-flex",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        height: "38px",
+                        justifyContent: "center",
+                        width: "38px"
+                      }}
+                    >
+                      AP
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(130px, 1fr))", gap: "12px" }}>
+                  {[
+                    { label: "Reservas totales", value: totalProviderBookingCount, note: "datos consolidados", icon: "R", tone: "primary" as const },
+                    { label: "Ingresos estimados", value: formatMoneyIndicatorValue(completedMoneyIndicator), note: "citas cerradas", icon: "$", tone: "success" as const },
+                    { label: "Salud promedio", value: `${averagePublicationHealth}%`, note: "readiness publicado", icon: "%", tone: "primary" as const },
+                    { label: "Servicios activos", value: activeServiceCount, note: "oferta disponible", icon: "*", tone: "warning" as const },
+                    { label: "Casos soporte", value: totalMessageThreadCount, note: "chats con actividad", icon: "S", tone: "neutral" as const }
+                  ].map((metric) => (
+                    <div
+                      key={metric.label}
+                      style={{
+                        background: "#ffffff",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
+                        borderRadius: "14px",
+                        boxShadow: "0 12px 26px rgba(15, 23, 42, 0.06)",
+                        display: "grid",
+                        gap: "9px",
+                        minHeight: "108px",
+                        padding: "14px"
+                      }}
+                    >
+                      <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+                        <span
+                          style={{
+                            alignItems: "center",
+                            background: providerVisualPalette[metric.tone].soft,
+                            borderRadius: "12px",
+                            color: providerVisualPalette[metric.tone].color,
+                            display: "inline-flex",
+                            fontSize: "13px",
+                            fontWeight: 900,
+                            height: "34px",
+                            justifyContent: "center",
+                            width: "34px"
+                          }}
+                        >
+                          {metric.icon}
+                        </span>
+                        <span style={{ color: "#344054", fontSize: "11px", fontWeight: 800 }}>{metric.label}</span>
+                      </div>
+                      <strong style={{ color: "#0b163f", fontSize: "21px", lineHeight: 1 }}>{metric.value}</strong>
+                      <span style={{ color: "#667085", fontSize: "10px" }}>{metric.note}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 0.92fr 1.15fr", gap: "12px" }}>
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "12px", padding: "14px" }}>
+                    <div style={{ display: "grid", gap: "3px" }}>
+                      <strong style={{ color: "#0b163f", fontSize: "14px" }}>Comparativo entre negocios</strong>
+                      <span style={{ color: "#667085", fontSize: "11px" }}>Reservas por negocio</span>
+                    </div>
+                    <div style={{ alignItems: "end", display: "flex", gap: "10px", minHeight: "122px", overflowX: "auto", paddingTop: "10px" }}>
+                      {businessOverviews.slice(0, 8).map((overview) => {
+                        const totalBookings =
+                          overview.bookingCounts.pending_approval +
+                          overview.bookingCounts.confirmed +
+                          overview.bookingCounts.completed +
+                          overview.bookingCounts.cancelled;
+
+                        return (
+                          <div key={overview.organization.id} style={{ alignItems: "center", display: "grid", gap: "6px", minWidth: "54px" }}>
+                            <div
+                              style={{
+                                alignSelf: "end",
+                                background: overview.isMarketplaceVisible ? "#0ea5a4" : "#7c3aed",
+                                borderRadius: "8px 8px 3px 3px",
+                                height: `${getDashboardBarHeight(totalBookings, maxOverviewBookings)}px`,
+                                width: "28px"
+                              }}
+                            />
+                            <span style={{ color: "#475467", fontSize: "9px", lineHeight: 1.2, textAlign: "center" }}>
+                              {overview.organization.name.split(/\s+/).slice(0, 2).join(" ")}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                    <div style={{ display: "grid", gap: "3px" }}>
+                      <strong style={{ color: "#0b163f", fontSize: "14px" }}>Embudo comercial consolidado</strong>
+                      <span style={{ color: "#667085", fontSize: "11px" }}>Derivado de publicacion y reservas</span>
+                    </div>
+                    {[
+                      { label: "Negocios", value: organizations.length, width: "100%", color: "#102a56" },
+                      { label: "Publicados", value: publishedBusinessCount, width: "82%", color: "#155e95" },
+                      { label: "Servicios activos", value: activeServiceCount, width: "66%", color: "#0891b2" },
+                      { label: "Reservas", value: totalProviderBookingCount, width: "50%", color: "#14b8a6" },
+                      { label: "Completadas", value: completedMoneyIndicator.bookingCount, width: "36%", color: "#5eead4" }
+                    ].map((step) => (
+                      <div key={step.label} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "minmax(80px, 1fr) 72px" }}>
+                        <div
+                          style={{
+                            background: step.color,
+                            borderRadius: "8px",
+                            color: "#ffffff",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            marginInline: "auto",
+                            padding: "8px 10px",
+                            textAlign: "center",
+                            width: step.width
+                          }}
+                        >
+                          {step.label}
+                        </div>
+                        <strong style={{ color: "#0b163f", fontSize: "13px", textAlign: "right" }}>{step.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                    <div style={{ display: "grid", gap: "3px" }}>
+                      <strong style={{ color: "#0b163f", fontSize: "14px" }}>Capacidad y ocupacion</strong>
+                      <span style={{ color: "#667085", fontSize: "11px" }}>Capacidad activa por franja y dia</span>
+                    </div>
+                    <div style={{ display: "grid", gap: "4px" }}>
+                      <div style={{ display: "grid", gap: "4px", gridTemplateColumns: "74px repeat(7, minmax(34px, 1fr))" }}>
+                        <span />
+                        {capacityHeatmapDays.map((day) => (
+                          <strong key={day} style={{ color: "#344054", fontSize: "9px", textAlign: "center" }}>
+                            {providerDayOfWeekLabels[day].slice(0, 3)}
+                          </strong>
+                        ))}
+                      </div>
+                      {capacityHeatmapRows.map((row) => (
+                        <div key={row.slotLabel} style={{ display: "grid", gap: "4px", gridTemplateColumns: "74px repeat(7, minmax(34px, 1fr))" }}>
+                          <span style={{ color: "#475467", fontSize: "9px" }}>{row.slotLabel}</span>
+                          {row.values.map((value, index) => (
+                            <span
+                              key={`${row.slotLabel}-${capacityHeatmapDays[index]}`}
+                              style={{
+                                background:
+                                  value >= 70 ? "#fed7aa" : value >= 45 ? "#fef3c7" : value > 0 ? "#ccfbf1" : "#f2f4f7",
+                                borderRadius: "6px",
+                                color: "#344054",
+                                fontSize: "9px",
+                                padding: "6px 2px",
+                                textAlign: "center"
+                              }}
+                            >
+                              {value || "-"}%
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                    <strong style={{ color: "#0b163f", fontSize: "14px" }}>Ranking de servicios</strong>
+                    {selectedServiceRanking.length ? (
+                      selectedServiceRanking.map((service, index) => (
+                        <div key={service.id} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "18px minmax(0, 1fr) 54px 70px" }}>
+                          <span style={{ color: "#667085", fontSize: "10px" }}>{index + 1}</span>
+                          <strong style={{ color: "#101828", fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {service.name}
+                          </strong>
+                          <span style={{ color: "#475467", fontSize: "10px", textAlign: "right" }}>{service.bookingCount}</span>
+                          <span style={{ color: "#475467", fontSize: "10px", textAlign: "right" }}>{formatMoney(service.income, "USD")}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ color: "#667085", fontSize: "12px" }}>No hay servicios con reservas para rankear.</span>
+                    )}
+                  </div>
+
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                    <strong style={{ color: "#0b163f", fontSize: "14px" }}>Alertas por negocio</strong>
+                    {dashboardAlerts.length ? (
+                      dashboardAlerts.map((alert) => (
+                        <div key={alert.id} style={{ alignItems: "start", display: "grid", gap: "8px", gridTemplateColumns: "24px minmax(0, 1fr)" }}>
+                          <span
+                            style={{
+                              alignItems: "center",
+                              background: providerVisualPalette[alert.tone].soft,
+                              borderRadius: "999px",
+                              color: providerVisualPalette[alert.tone].color,
+                              display: "inline-flex",
+                              fontSize: "11px",
+                              fontWeight: 900,
+                              height: "22px",
+                              justifyContent: "center",
+                              width: "22px"
+                            }}
+                          >
+                            !
+                          </span>
+                          <span style={{ display: "grid", gap: "2px" }}>
+                            <strong style={{ color: "#101828", fontSize: "11px" }}>{alert.label}</strong>
+                            <span style={{ color: "#667085", fontSize: "10px" }}>{alert.detail}</span>
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ color: "#667085", fontSize: "12px" }}>No hay alertas operativas relevantes.</span>
+                    )}
+                  </div>
+
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                    <strong style={{ color: "#0b163f", fontSize: "14px" }}>Estado por negocio</strong>
+                    {businessOverviews.slice(0, 5).map((overview) => {
+                      const readinessItems = [overview.hasPublicProfile, overview.hasService, overview.hasAvailability, overview.hasDocuments, overview.hasPublicLocation];
+                      const readiness = getPercentValue(readinessItems.filter(Boolean).length, readinessItems.length);
+
+                      return (
+                        <div key={overview.organization.id} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "minmax(0, 1fr) 48px 76px" }}>
+                          <strong style={{ color: "#101828", fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {overview.organization.name}
+                          </strong>
+                          <span style={{ color: readiness >= 80 ? "#0f766e" : readiness >= 50 ? "#b45309" : "#b91c1c", fontSize: "11px", fontWeight: 900 }}>
+                            {readiness}%
+                          </span>
+                          <ProviderStatusChip label={overview.isMarketplaceVisible ? "Excelente" : readiness >= 60 ? "Bueno" : "En atencion"} tone={overview.isMarketplaceVisible ? "success" : readiness >= 60 ? "warning" : "danger"} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </ProviderCard>
+
               <div
                 style={{
-                  borderRadius: "22px",
-                  padding: "20px",
-                  background: "linear-gradient(135deg, rgba(15, 118, 110, 0.96), rgba(17, 94, 89, 0.92))",
-                  color: "#f8fafc",
-                  display: "grid",
-                  gap: "16px"
+                  display: "none"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "flex-start", flexWrap: "wrap" }}>
@@ -1517,14 +1912,14 @@ export function ProvidersWorkspace({
                 </div>
               </div>
 
-              <section style={{ display: "grid", gap: "14px" }}>
+              <section style={{ display: "none" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(138px, 1fr))", gap: "10px" }}>
                   {executiveMetrics.map((metric) => (
                     <ProviderMetricCard key={metric.label} label={metric.label} note={metric.note} tone={metric.tone} value={metric.value} />
                   ))}
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.45fr) minmax(280px, 0.75fr)", gap: "14px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "14px" }}>
                   <ProviderCard>
                     <div style={{ alignItems: "center", display: "flex", gap: "12px", justifyContent: "space-between", flexWrap: "wrap" }}>
                       <div style={{ display: "grid", gap: "4px" }}>
@@ -1560,7 +1955,8 @@ export function ProvidersWorkspace({
                                 borderRadius: "16px",
                                 display: "grid",
                                 gap: "12px",
-                                gridTemplateColumns: "minmax(210px, 1.2fr) repeat(3, minmax(86px, 0.5fr)) auto",
+                                gridTemplateColumns: "minmax(0, 1.4fr) minmax(62px, 0.28fr) minmax(62px, 0.28fr) minmax(90px, 0.42fr) minmax(80px, 0.28fr)",
+                                minWidth: 0,
                                 padding: "12px"
                               }}
                             >
@@ -1626,17 +2022,17 @@ export function ProvidersWorkspace({
                                 </span>
                               </button>
 
-                              <div style={{ display: "grid", gap: "3px" }}>
+                              <div style={{ display: "grid", gap: "3px", minWidth: 0 }}>
                                 <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Servicios</span>
                                 <strong style={{ color: "#101828", fontSize: "16px" }}>{overview.serviceCount}</strong>
                               </div>
-                              <div style={{ display: "grid", gap: "3px" }}>
+                              <div style={{ display: "grid", gap: "3px", minWidth: 0 }}>
                                 <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Pendientes</span>
                                 <strong style={{ color: overview.bookingCounts.pending_approval ? "#b45309" : "#101828", fontSize: "16px" }}>
                                   {overview.bookingCounts.pending_approval}
                                 </strong>
                               </div>
-                              <div style={{ display: "grid", gap: "3px" }}>
+                              <div style={{ display: "grid", gap: "3px", minWidth: 0 }}>
                                 <span style={{ color: "#667085", fontSize: "10px", fontWeight: 800, textTransform: "uppercase" }}>Publicacion</span>
                                 <ProviderStatusChip label={overview.isMarketplaceVisible ? "Visible" : "Pendiente"} tone={overview.isMarketplaceVisible ? "success" : "warning"} />
                               </div>
