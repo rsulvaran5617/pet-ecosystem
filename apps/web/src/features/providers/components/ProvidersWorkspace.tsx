@@ -15,6 +15,7 @@ import type {
   BookingSlot,
   CreateProviderAvailabilityRuleInput,
   ProviderApprovalDocumentType,
+  ProviderLocationPrecision,
   ProviderServiceCategory,
   UpdateProviderAvailabilityRuleInput,
   UpdateProviderOrganizationInput,
@@ -55,6 +56,17 @@ type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
 type PublicProfileFormState = {
   headline: string;
   bio: string;
+  isPublic: boolean;
+};
+type PublicLocationFormState = {
+  displayLabel: string;
+  addressLinePublic: string;
+  city: string;
+  stateRegion: string;
+  countryCode: string;
+  latitude: string;
+  longitude: string;
+  locationPrecision: ProviderLocationPrecision;
   isPublic: boolean;
 };
 type ServiceFormState = {
@@ -108,6 +120,38 @@ const emptyPublicProfileForm: PublicProfileFormState = {
   isPublic: true
 };
 
+const emptyPublicLocationForm: PublicLocationFormState = {
+  displayLabel: "",
+  addressLinePublic: "",
+  city: "",
+  stateRegion: "",
+  countryCode: "PA",
+  latitude: "",
+  longitude: "",
+  locationPrecision: "approximate",
+  isPublic: false
+};
+
+const providerLocationPrecisionLabels: Record<ProviderLocationPrecision, string> = {
+  exact: "Exacta",
+  approximate: "Aproximada",
+  city: "Solo ciudad"
+};
+
+const approximateProviderCityCoordinates: Record<string, { latitude: string; longitude: string; stateRegion: string }> = {
+  "ciudad de panama": { latitude: "8.9824", longitude: "-79.5199", stateRegion: "Panama" },
+  panama: { latitude: "8.9824", longitude: "-79.5199", stateRegion: "Panama" },
+  "san miguelito": { latitude: "9.0330", longitude: "-79.5000", stateRegion: "Panama" },
+  arraijan: { latitude: "8.9500", longitude: "-79.6500", stateRegion: "Panama Oeste" },
+  chorrera: { latitude: "8.8803", longitude: "-79.7833", stateRegion: "Panama Oeste" },
+  "la chorrera": { latitude: "8.8803", longitude: "-79.7833", stateRegion: "Panama Oeste" },
+  colon: { latitude: "9.3592", longitude: "-79.9014", stateRegion: "Colon" },
+  david: { latitude: "8.4273", longitude: "-82.4308", stateRegion: "Chiriqui" },
+  santiago: { latitude: "8.1000", longitude: "-80.9833", stateRegion: "Veraguas" },
+  chitre: { latitude: "7.9667", longitude: "-80.4333", stateRegion: "Herrera" },
+  penonome: { latitude: "8.5167", longitude: "-80.3667", stateRegion: "Cocle" }
+};
+
 const emptyServiceForm: ServiceFormState = {
   name: "",
   category: "walking",
@@ -146,6 +190,67 @@ function normalizeSpeciesServed(value: string) {
         .filter(Boolean)
     )
   );
+}
+
+function normalizeLocationKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getApproximateProviderCityCoordinates(city: string) {
+  return approximateProviderCityCoordinates[normalizeLocationKey(city)] ?? null;
+}
+
+function hasUsablePublicCoordinates(latitude: number, longitude: number) {
+  return Number.isFinite(latitude) && Number.isFinite(longitude) && !(latitude === 0 && longitude === 0);
+}
+
+function buildPublicLocationFormState(detail: NonNullable<ReturnType<typeof useProvidersWorkspace>["selectedOrganizationDetail"]>): PublicLocationFormState {
+  const publicLocation = detail.publicLocation;
+  const fallbackCoordinates = getApproximateProviderCityCoordinates(publicLocation?.city ?? detail.organization.city);
+  const hasStoredCoordinates = publicLocation ? hasUsablePublicCoordinates(publicLocation.latitude, publicLocation.longitude) : false;
+
+  return {
+    displayLabel: publicLocation?.displayLabel ?? detail.organization.name,
+    addressLinePublic: publicLocation?.addressLinePublic ?? "",
+    city: publicLocation?.city ?? detail.organization.city,
+    stateRegion: publicLocation?.stateRegion ?? fallbackCoordinates?.stateRegion ?? "",
+    countryCode: publicLocation?.countryCode ?? detail.organization.countryCode,
+    latitude: hasStoredCoordinates ? String(publicLocation?.latitude) : fallbackCoordinates?.latitude ?? "",
+    longitude: hasStoredCoordinates ? String(publicLocation?.longitude) : fallbackCoordinates?.longitude ?? "",
+    locationPrecision: publicLocation?.locationPrecision ?? (fallbackCoordinates ? "city" : "approximate"),
+    isPublic: publicLocation?.isPublic ?? false
+  };
+}
+
+function validatePublicLocationForm(form: PublicLocationFormState) {
+  const latitude = Number(form.latitude);
+  const longitude = Number(form.longitude);
+
+  if (!form.displayLabel.trim()) {
+    return "Indica como se mostrara esta ubicacion publica.";
+  }
+
+  if (!form.city.trim()) {
+    return "Indica la ciudad de la ubicacion publica.";
+  }
+
+  if (!form.countryCode.trim()) {
+    return "Indica el pais de la ubicacion publica.";
+  }
+
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    return "La latitud debe ser un numero entre -90 y 90.";
+  }
+
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    return "La longitud debe ser un numero entre -180 y 180.";
+  }
+
+  return null;
 }
 
 function formatMoney(priceCents: number, currencyCode: string) {
@@ -547,6 +652,7 @@ export function ProvidersWorkspace({
   const [organizationMode, setOrganizationMode] = useState<"create" | "edit">("create");
   const [organizationForm, setOrganizationForm] = useState(emptyOrganizationForm);
   const [publicProfileForm, setPublicProfileForm] = useState(emptyPublicProfileForm);
+  const [publicLocationForm, setPublicLocationForm] = useState(emptyPublicLocationForm);
   const [serviceForm, setServiceForm] = useState(emptyServiceForm);
   const [availabilityForm, setAvailabilityForm] = useState(emptyAvailabilityForm);
   const [documentForm, setDocumentForm] = useState(emptyDocumentForm);
@@ -579,6 +685,7 @@ export function ProvidersWorkspace({
       bio: selectedOrganizationDetail.publicProfile?.bio ?? "",
       isPublic: selectedOrganizationDetail.publicProfile?.isPublic ?? true
     });
+    setPublicLocationForm(buildPublicLocationFormState(selectedOrganizationDetail));
     setServiceForm(emptyServiceForm);
     setAvailabilityForm({
       ...emptyAvailabilityForm,
@@ -594,6 +701,7 @@ export function ProvidersWorkspace({
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
+  const selectedPublicLocation = selectedOrganizationDetail?.publicLocation ?? null;
   const selectedServices = selectedOrganizationDetail?.services ?? [];
   const selectedAvailability = selectedOrganizationDetail?.availability ?? [];
   const selectedAvailabilityRules = selectedOrganizationDetail?.availabilityRules ?? [];
@@ -1873,6 +1981,122 @@ export function ProvidersWorkspace({
                       </div>
                     ) : null}
                     <CheckField checked={publicProfileForm.isPublic} label="Publicar este perfil cuando la organizacion sea elegible" onChange={(value) => setPublicProfileForm((current) => ({ ...current, isPublic: value }))} />
+                    <div
+                      style={{
+                        borderRadius: "16px",
+                        border: "1px solid rgba(15, 118, 110, 0.14)",
+                        background: "rgba(240, 253, 250, 0.5)",
+                        display: "grid",
+                        gap: "10px",
+                        padding: "12px"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                        <div style={{ display: "grid", gap: "3px" }}>
+                          <strong style={{ fontSize: "12px" }}>Ubicacion publica</strong>
+                          <span style={{ color: "#57534e", fontSize: "10px" }}>
+                            Coordenadas visibles para marketplace. No se pide GPS del navegador.
+                          </span>
+                        </div>
+                        <StatusPill label={publicLocationForm.isPublic ? "publica" : "privada"} tone={publicLocationForm.isPublic ? "active" : "neutral"} />
+                      </div>
+                      {selectedPublicLocation ? (
+                        <span style={{ color: "#57534e", fontSize: "10px" }}>
+                          Actual: {selectedPublicLocation.displayLabel}, {selectedPublicLocation.city}, {selectedPublicLocation.countryCode} -{" "}
+                          {providerLocationPrecisionLabels[selectedPublicLocation.locationPrecision]}
+                        </span>
+                      ) : (
+                        <span style={{ color: "#57534e", fontSize: "10px" }}>Sin ubicacion publica configurada.</span>
+                      )}
+                      <Field
+                        label="Nombre visible"
+                        onChange={(value) => setPublicLocationForm((current) => ({ ...current, displayLabel: value }))}
+                        value={publicLocationForm.displayLabel}
+                      />
+                      <Field
+                        label="Direccion publica opcional"
+                        onChange={(value) => setPublicLocationForm((current) => ({ ...current, addressLinePublic: value }))}
+                        value={publicLocationForm.addressLinePublic}
+                      />
+                      <Button
+                        disabled={isSubmitting}
+                        onClick={() => {
+                          const cityForCoordinates = publicLocationForm.city.trim() || selectedOrganization.city;
+                          const approximateCoordinates = getApproximateProviderCityCoordinates(cityForCoordinates);
+
+                          setPublicLocationForm((current) => ({
+                            ...current,
+                            displayLabel: current.displayLabel.trim() || selectedOrganization.name,
+                            city: cityForCoordinates,
+                            stateRegion: current.stateRegion.trim() || approximateCoordinates?.stateRegion || "",
+                            countryCode: selectedOrganization.countryCode,
+                            latitude: approximateCoordinates?.latitude ?? current.latitude,
+                            longitude: approximateCoordinates?.longitude ?? current.longitude,
+                            locationPrecision: approximateCoordinates ? "city" : current.locationPrecision
+                          }));
+                        }}
+                        tone="secondary"
+                      >
+                        Usar ciudad del negocio
+                      </Button>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: "10px" }}>
+                        <Field label="Ciudad" onChange={(value) => setPublicLocationForm((current) => ({ ...current, city: value }))} value={publicLocationForm.city} />
+                        <Field label="Region" onChange={(value) => setPublicLocationForm((current) => ({ ...current, stateRegion: value }))} value={publicLocationForm.stateRegion} />
+                        <Field label="Pais" onChange={(value) => setPublicLocationForm((current) => ({ ...current, countryCode: value }))} value={publicLocationForm.countryCode} />
+                      </div>
+                      <SelectField<ProviderLocationPrecision>
+                        label="Precision publica"
+                        onChange={(value) => setPublicLocationForm((current) => ({ ...current, locationPrecision: value }))}
+                        options={[
+                          { label: providerLocationPrecisionLabels.exact, value: "exact" },
+                          { label: providerLocationPrecisionLabels.approximate, value: "approximate" },
+                          { label: providerLocationPrecisionLabels.city, value: "city" }
+                        ]}
+                        value={publicLocationForm.locationPrecision}
+                      />
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: "10px" }}>
+                        <Field label="Latitud" onChange={(value) => setPublicLocationForm((current) => ({ ...current, latitude: value }))} type="number" value={publicLocationForm.latitude} />
+                        <Field label="Longitud" onChange={(value) => setPublicLocationForm((current) => ({ ...current, longitude: value }))} type="number" value={publicLocationForm.longitude} />
+                      </div>
+                      <CheckField checked={publicLocationForm.isPublic} label="Publicar esta ubicacion en marketplace" onChange={(value) => setPublicLocationForm((current) => ({ ...current, isPublic: value }))} />
+                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                        <Button
+                          disabled={isSubmitting}
+                          onClick={() => {
+                            clearMessages();
+                            const validationError = validatePublicLocationForm(publicLocationForm);
+
+                            if (validationError) {
+                              void runAction(async () => {
+                                throw new Error(validationError);
+                              });
+                              return;
+                            }
+
+                            void runAction(
+                              () =>
+                                getBrowserProvidersApiClient().upsertProviderPublicLocation(selectedOrganization.id, {
+                                  displayLabel: publicLocationForm.displayLabel.trim(),
+                                  addressLinePublic: publicLocationForm.addressLinePublic.trim() || null,
+                                  city: publicLocationForm.city.trim(),
+                                  stateRegion: publicLocationForm.stateRegion.trim() || null,
+                                  countryCode: publicLocationForm.countryCode.trim().toUpperCase() || "PA",
+                                  latitude: Number(publicLocationForm.latitude),
+                                  longitude: Number(publicLocationForm.longitude),
+                                  locationPrecision: publicLocationForm.locationPrecision,
+                                  isPublic: publicLocationForm.isPublic
+                                }),
+                              "Ubicacion publica guardada."
+                            ).then(async () => {
+                              await refresh(selectedOrganization.id);
+                            });
+                          }}
+                          tone="secondary"
+                        >
+                          Guardar ubicacion
+                        </Button>
+                      </div>
+                    </div>
                     <Button disabled={isSubmitting} type="submit">
                       Guardar perfil publico
                     </Button>
@@ -1881,6 +2105,11 @@ export function ProvidersWorkspace({
                   <div style={{ ...controlStyle, display: "grid", gap: "6px" }}>
                     <strong>{selectedPublicProfile?.headline || "Perfil publico pendiente"}</strong>
                     <span style={{ color: "#57534e" }}>{selectedPublicProfile?.bio || "Agrega una descripcion breve para presentarte ante propietarios."}</span>
+                    <span style={{ color: "#57534e" }}>
+                      {selectedPublicLocation
+                        ? `Ubicacion: ${selectedPublicLocation.displayLabel}, ${selectedPublicLocation.city}, ${selectedPublicLocation.countryCode}`
+                        : "Agrega la ubicacion publica del negocio para marketplace."}
+                    </span>
                   </div>
                 ) : (
                   <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>

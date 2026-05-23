@@ -112,6 +112,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - formulario compacto de `Agenda` en web provider reduce tipografia y controles de hora/cupos; la capacidad no admite valores negativos ni decimales al guardar
 - `Servicios` en web provider permite eliminar servicios creados por error solo cuando no tienen reservas asociadas; los servicios con historial se conservan y se gestionan con `Servicio activo` / `Servicio publico`
 - ubicacion publica del proveedor con precision `exact`, `approximate` o `city`; captura por direccion/datos del negocio y coordenadas avanzadas sin mapa, permisos mobile ni tracking
+- `Perfil publico` en web provider expone la ubicacion publica del negocio: nombre visible, direccion publica opcional, ciudad, region, pais, latitud, longitud, precision y publicacion
 - servicios
 - disponibilidad
 - horarios y capacidad

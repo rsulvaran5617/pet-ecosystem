@@ -97,6 +97,7 @@ Ubicacion:
 - Publica solo la ubicacion que quieres mostrar en marketplace.
 - No uses direcciones privadas de clientes.
 - Si la app ofrece coordenadas aproximadas por ciudad, puedes usarlas sin activar GPS.
+- En web provider, la ubicacion publica se guarda desde `Perfil publico` e incluye latitud, longitud, precision visible y estado publico/privado.
 
 Guarda los cambios antes de continuar.
 
