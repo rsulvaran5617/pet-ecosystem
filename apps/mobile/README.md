@@ -24,6 +24,8 @@ El script `build` de este workspace valida export nativo `android + ios`. La exp
 
 ## Reglas
 
+La APK piloto Android se genera con EAS Build usando el perfil `preview`. Ver `docs/deployment/MOBILE_APK_RELEASE.md`.
+
 - no duplicar tipos ni DTOs de dominio
 - usar `packages/types`, `packages/api-client`, `packages/config` y `packages/ui`
 - no acceder directo a SQL ni reimplementar reglas del backend en UI

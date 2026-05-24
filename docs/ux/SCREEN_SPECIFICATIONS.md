@@ -49,6 +49,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - editar mascota
 - perfil mascota
 - documentos
+- owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 
 ### Health

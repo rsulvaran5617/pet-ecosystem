@@ -37,6 +37,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - un miembro con permiso de hogar `edit` o `admin` puede crear y editar mascotas
 - un miembro con permiso de hogar `edit` o `admin` puede marcar o reactivar una mascota entre `active` e `in_memory`
 - un miembro con permiso de hogar `edit` o `admin` puede cargar o reemplazar la foto/avatar de la mascota
+- mobile owner permite reemplazar la foto/avatar de mascota desde dos fuentes: tomar foto con camara o elegir una imagen de la galeria, respetando permisos del dispositivo
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`

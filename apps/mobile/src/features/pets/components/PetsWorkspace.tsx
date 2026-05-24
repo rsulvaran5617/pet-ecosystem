@@ -1,9 +1,10 @@
 import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetDocumentType, PetSummary, UpdatePetInput, Uuid } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
@@ -693,41 +694,81 @@ export function PetsWorkspace({
       await selectActivePet(petId);
     });
   };
-  const uploadPetAvatar = (petId: Uuid) => {
-    void DocumentPicker.getDocumentAsync({
-      multiple: false,
-      copyToCacheDirectory: true,
-      type: "image/*"
-    }).then((result) => {
-      if (result.canceled) {
+  const uploadPickedPetAvatar = (petId: Uuid, asset: { fileName?: string | null; mimeType?: string | null; uri: string }) => {
+    clearMessages();
+    void runAction(
+      async () => {
+        const response = await fetch(asset.uri);
+        const fileBytes = await response.arrayBuffer();
+
+        return getMobilePetsApiClient().uploadPetAvatar(petId, {
+          fileName: asset.fileName ?? `pet-avatar-${Date.now()}.jpg`,
+          mimeType: asset.mimeType ?? "image/jpeg",
+          fileBytes
+        });
+      },
+      "Foto de mascota actualizada.",
+      false
+    ).then(async () => {
+      await refresh();
+      await selectActivePet(petId);
+    });
+  };
+
+  const choosePetAvatarFromGallery = (petId: Uuid) => {
+    void ImagePicker.requestMediaLibraryPermissionsAsync().then((permission) => {
+      if (!permission.granted) {
+        Alert.alert("Permiso requerido", "Necesitamos acceso a tus fotos para elegir una imagen de la mascota.");
         return;
       }
 
-      const asset = result.assets[0];
+      void ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.82
+      }).then((result) => {
+        const asset = result.assets?.[0];
 
-      if (!asset) {
-        return;
-      }
+        if (result.canceled || !asset) {
+          return;
+        }
 
-      clearMessages();
-      void runAction(
-        async () => {
-          const response = await fetch(asset.uri);
-          const fileBytes = await response.arrayBuffer();
-
-          return getMobilePetsApiClient().uploadPetAvatar(petId, {
-            fileName: asset.name,
-            mimeType: asset.mimeType ?? null,
-            fileBytes
-          });
-        },
-        "Foto de mascota actualizada.",
-        false
-      ).then(async () => {
-        await refresh();
-        await selectActivePet(petId);
+        uploadPickedPetAvatar(petId, asset);
       });
     });
+  };
+
+  const takePetAvatarPhoto = (petId: Uuid) => {
+    void ImagePicker.requestCameraPermissionsAsync().then((permission) => {
+      if (!permission.granted) {
+        Alert.alert("Permiso requerido", "Necesitamos permiso de camara para tomar la foto de la mascota desde la app.");
+        return;
+      }
+
+      void ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.82
+      }).then((result) => {
+        const asset = result.assets?.[0];
+
+        if (result.canceled || !asset) {
+          return;
+        }
+
+        uploadPickedPetAvatar(petId, asset);
+      });
+    });
+  };
+
+  const uploadPetAvatar = (petId: Uuid) => {
+    Alert.alert("Foto de mascota", "Elige como quieres actualizar la foto.", [
+      { text: "Tomar foto", onPress: () => takePetAvatarPhoto(petId) },
+      { text: "Galeria", onPress: () => choosePetAvatarFromGallery(petId) },
+      { style: "cancel", text: "Cancelar" }
+    ]);
   };
   const selectedPetAge = selectedPet ? formatPetAge(selectedPet.birthDate) : "Edad pendiente";
   const selectedPetHome = selectedHousehold?.name ?? "Hogar principal";

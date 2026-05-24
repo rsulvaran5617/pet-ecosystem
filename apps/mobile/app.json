@@ -28,6 +28,13 @@
     },
     "plugins": [
       [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Permite a Pet Ecosystem usar la camara para tomar fotos de tus mascotas.",
+          "photosPermission": "Permite a Pet Ecosystem acceder a tus fotos para seleccionar imagenes de tus mascotas."
+        }
+      ],
+      [
         "@maplibre/maplibre-react-native",
         {
           "android": {
