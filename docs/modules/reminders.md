@@ -29,6 +29,7 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 - si una mascota queda `in_memory`, sus recordatorios historicos se conservan; crear nuevos recordatorios debe tratarse como gestion controlada, no como flujo operativo activo
 - las vacunas con proxima fecha deben generar recordatorios
 - los eventos derivados de booking no deben adelantarse ni duplicar el dominio `bookings`
+- web owner Recordatorios replica el patron funcional de mobile: selector compacto de hogar/mascota, resumen con secciones Pendientes/Completados/Calendario, formulario manual plegable y listas compactas sin cambiar contratos ni reglas
 
 ## Dependencias
 - pets

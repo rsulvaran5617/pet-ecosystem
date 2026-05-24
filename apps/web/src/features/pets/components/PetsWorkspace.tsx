@@ -21,17 +21,17 @@ const fieldLabelStyle: CSSProperties = {
 const controlStyle: CSSProperties = {
   borderRadius: "10px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "8px 10px",
-  fontSize: "10px",
+  padding: "7px 9px",
+  fontSize: "9px",
   background: "#fffdf8"
 };
 
 const compactCardStyle: CSSProperties = {
-  borderRadius: "18px",
-  padding: "14px",
+  borderRadius: "14px",
+  padding: "12px",
   background: "rgba(247, 242, 231, 0.72)",
   display: "grid",
-  gap: "10px"
+  gap: "8px"
 };
 
 const emptyPetForm: UpdatePetInput = {
@@ -78,8 +78,8 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(28, 25, 23, 0.14)",
         background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.82)",
         color: tone === "primary" ? "#f8fafc" : "#1c1917",
-        padding: "8px 12px",
-        fontSize: "10px",
+        padding: "6px 10px",
+        fontSize: "9px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
@@ -266,6 +266,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
         eyebrow="EP-03 / Mascotas"
         title="Mascotas del hogar y documentos basicos"
         description="Las mascotas heredan el acceso del hogar. Este alcance cubre listado, creacion, edicion, ficha resumida y carga basica de documentos."
+        density="compact"
       >
         {isLoading ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando hogares, mascotas y documentos desde Supabase...</p>
@@ -273,7 +274,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
           <div style={{ display: "grid", gap: "12px" }}>
             <article style={compactCardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                <h3 style={{ margin: 0, fontSize: "16px" }}>Hogares</h3>
+                  <h3 style={{ margin: 0, fontSize: "13px" }}>Hogares</h3>
                 {selectedHousehold ? (
                   <StatusPill label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
                 ) : null}
@@ -300,8 +301,8 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         }}
                         type="button"
                       >
-                        <strong style={{ fontSize: "10px" }}>{household.name}</strong>
-                        <span style={{ color: "#57534e", fontSize: "9px" }}>{household.memberCount} integrante(s)</span>
+                        <strong style={{ fontSize: "9px" }}>{household.name}</strong>
+                        <span style={{ color: "#57534e", fontSize: "8px" }}>{household.memberCount} integrante(s)</span>
                       </button>
                     );
                   })}
@@ -314,8 +315,8 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
             <article style={compactCardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "16px" }}>Mascotas</h3>
-                  <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "10px" }}>
+                  <h3 style={{ margin: 0, fontSize: "13px" }}>Mascotas</h3>
+                  <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "9px" }}>
                     Selecciona una mascota para revisar o editar sus datos maestros.
                   </p>
                 </div>
@@ -329,15 +330,15 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         key={pet.id}
                         onClick={() => void selectPet(pet.id)}
                         style={{
-                          minWidth: "190px",
+                          minWidth: "170px",
                           scrollSnapAlign: "start",
-                          borderRadius: "16px",
-                          padding: "12px",
+                          borderRadius: "14px",
+                          padding: "10px",
                           background: pet.id === selectedPetId ? "rgba(15, 118, 110, 0.08)" : "rgba(255,255,255,0.72)",
                           border: pet.id === selectedPetId ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.08)",
                           display: "grid",
-                          gridTemplateColumns: "36px 1fr",
-                          gap: "10px",
+                          gridTemplateColumns: "32px 1fr",
+                          gap: "8px",
                           alignItems: "center",
                           cursor: "pointer",
                           textAlign: "left"
@@ -346,22 +347,22 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                       >
                         <span
                           style={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "14px",
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "12px",
                             background: pet.id === selectedPetId ? "#0f766e" : "rgba(15,118,110,0.12)",
                             color: pet.id === selectedPetId ? "#ffffff" : "#0f766e",
                             display: "grid",
                             placeItems: "center",
-                            fontSize: "13px",
+                            fontSize: "11px",
                             fontWeight: 800
                           }}
                         >
                           {pet.name.slice(0, 2).toUpperCase()}
                         </span>
                         <span style={{ display: "grid", gap: "4px" }}>
-                          <strong style={{ fontSize: "11px" }}>{pet.name}</strong>
-                          <span style={{ color: "#57534e", fontSize: "9px" }}>
+                          <strong style={{ fontSize: "10px" }}>{pet.name}</strong>
+                          <span style={{ color: "#57534e", fontSize: "8px" }}>
                             {pet.species}
                             {pet.breed ? ` - ${pet.breed}` : ""}
                           </span>
@@ -384,8 +385,8 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
               <article style={compactCardStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: "15px" }}>{editingPetId ? "Editar datos maestros" : "Crear mascota"}</h3>
-                    <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "9px" }}>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>{editingPetId ? "Editar datos maestros" : "Crear mascota"}</h3>
+                    <p style={{ margin: "2px 0 0", color: "#57534e", fontSize: "8px" }}>
                       {editingPetId ? "Actualiza la ficha de la mascota seleccionada." : "Agrega una mascota al hogar activo."}
                     </p>
                   </div>
@@ -438,10 +439,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           await selectPet(pet.id);
                         });
                       }}
-                      style={{ display: "grid", gap: "9px" }}
+                      style={{ display: "grid", gap: "7px" }}
                     >
                       <Field label="Nombre de la mascota" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, name: value }))} value={petForm.name ?? ""} />
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
                         <Field
                           label="Especie"
                           onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, species: value }))}
@@ -450,7 +451,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         />
                         <Field label="Breed" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, breed: value }))} value={petForm.breed ?? ""} />
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
                         <SelectField<PetSex>
                           label="Sex"
                           onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, sex: value }))}
@@ -469,7 +470,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         />
                       </div>
                       <TextArea label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
                           {editingPetId ? "Guardar" : "Crear mascota"}
                         </Button>
@@ -494,62 +495,62 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.8fr) minmax(260px, 1fr)", gap: "12px" }}>
                   <article style={compactCardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "15px" }}>{selectedPetDetail.pet.name}</h3>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>{selectedPetDetail.pet.name}</h3>
                       <StatusPill label={selectedPetDetail.pet.species} tone="active" />
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "6px" }}>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Breed</span>
-                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.pet.breed ?? "No registrada"}</strong>
+                        <strong style={{ fontSize: "9px" }}>{selectedPetDetail.pet.breed ?? "No registrada"}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Sex</span>
-                        <strong style={{ fontSize: "10px" }}>{petSexLabels[selectedPetDetail.pet.sex]}</strong>
+                        <strong style={{ fontSize: "9px" }}>{petSexLabels[selectedPetDetail.pet.sex]}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Fecha de nacimiento</span>
-                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
+                        <strong style={{ fontSize: "9px" }}>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Documentos</span>
-                        <strong style={{ fontSize: "10px" }}>{selectedPetDetail.documents.length} total</strong>
+                        <strong style={{ fontSize: "9px" }}>{selectedPetDetail.documents.length} total</strong>
                       </div>
                     </div>
                     <div style={{ display: "grid", gap: "4px" }}>
                       <span style={fieldLabelStyle}>Notas</span>
-                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
+                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                         {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
                       </p>
                     </div>
                     <div style={{ display: "grid", gap: "8px" }}>
                       <span style={fieldLabelStyle}>Resumen de salud</span>
                       {isHealthSummaryLoading ? (
-                        <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Cargando resumen de salud...</p>
+                        <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>Cargando resumen de salud...</p>
                       ) : selectedPetHealthSummary ? (
                         <div style={{ display: "grid", gap: "8px" }}>
                           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
-                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.vaccineCount} vacuna(s)</strong>
-                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
-                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
-                            <strong style={{ fontSize: "10px" }}>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
+                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.vaccineCount} vacuna(s)</strong>
+                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
+                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
+                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
                           </div>
-                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
+                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                             Ultima vacuna: {selectedPetHealthSummary.latestVaccineDate ?? "No registrada"}. Proxima fecha:{" "}
                             {selectedPetHealthSummary.nextVaccineDueDate ?? "No registrada"}.
                           </p>
-                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.45, fontSize: "10px" }}>
+                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                             Alertas: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "Sin condiciones criticas"}.
                           </p>
                         </div>
                       ) : (
-                        <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Todavia no hay un resumen de salud.</p>
+                        <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>Todavia no hay un resumen de salud.</p>
                       )}
                     </div>
                   </article>
 
                   <article style={compactCardStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "15px" }}>Documentos</h3>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>Documentos</h3>
                       <StatusPill label={`${selectedPetDetail.documents.length} total`} tone="neutral" />
                     </div>
                     {canEditSelectedHousehold ? (
@@ -623,11 +624,11 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                     )}
 
                     {documentGroups.length ? (
-                      <div style={{ display: "grid", gap: "8px" }}>
+                      <div style={{ display: "grid", gap: "6px" }}>
                         {documentGroups.map((group) => (
                           <section key={group.documentType} style={{ display: "grid", gap: "8px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                              <strong style={{ fontSize: "10px" }}>{petDocumentTypeLabels[group.documentType]}</strong>
+                              <strong style={{ fontSize: "9px" }}>{petDocumentTypeLabels[group.documentType]}</strong>
                               <StatusPill label={`${group.documents.length} documento(s)`} tone="neutral" />
                             </div>
                             {group.documents.map((document) => (
@@ -635,18 +636,18 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                                 key={document.id}
                                 style={{
                                   borderRadius: "14px",
-                                  padding: "10px 12px",
+                                  padding: "8px 10px",
                                   background: "rgba(255,255,255,0.72)",
                                   display: "grid",
                                   gap: "5px"
                                 }}
                               >
                                 <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                                  <strong style={{ fontSize: "10px" }}>{document.title}</strong>
+                                  <strong style={{ fontSize: "9px" }}>{document.title}</strong>
                                   <StatusPill label={formatFileSize(document.fileSizeBytes)} tone="neutral" />
                                 </div>
-                                <span style={{ color: "#57534e", fontSize: "9px" }}>{document.fileName}</span>
-                                <span style={{ color: "#57534e", fontSize: "9px" }}>{document.mimeType ?? "Tipo de archivo desconocido"}</span>
+                                <span style={{ color: "#57534e", fontSize: "8px" }}>{document.fileName}</span>
+                                <span style={{ color: "#57534e", fontSize: "8px" }}>{document.mimeType ?? "Tipo de archivo desconocido"}</span>
                               </article>
                             ))}
                           </section>

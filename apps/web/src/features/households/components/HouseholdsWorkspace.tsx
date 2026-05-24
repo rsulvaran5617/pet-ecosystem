@@ -17,17 +17,26 @@ const householdPermissionOptions: Array<{ label: string; value: HouseholdPermiss
 ];
 
 const fieldLabelStyle = {
-  fontSize: "9px",
+  fontSize: "8px",
   textTransform: "uppercase" as const,
-  color: "#78716c"
+  color: "#78716c",
+  letterSpacing: "0.04em"
 };
 
 const controlStyle = {
   borderRadius: "10px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "8px 10px",
-  fontSize: "11px",
+  padding: "7px 9px",
+  fontSize: "10px",
   background: "#fffdf8"
+};
+
+const panelStyle = {
+  borderRadius: "14px",
+  padding: "12px",
+  background: "rgba(247, 242, 231, 0.72)",
+  display: "grid",
+  gap: "8px"
 };
 
 function Button({
@@ -53,9 +62,9 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(28, 25, 23, 0.14)",
         background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.82)",
         color: tone === "primary" ? "#f8fafc" : "#1c1917",
-        fontSize: "10px",
-        minHeight: "28px",
-        padding: "7px 12px",
+        fontSize: "9px",
+        minHeight: "24px",
+        padding: "6px 10px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
@@ -80,7 +89,7 @@ function Field({
   value: string;
 }) {
   return (
-    <label style={{ display: "grid", gap: "6px" }}>
+    <label style={{ display: "grid", gap: "4px" }}>
       <span style={fieldLabelStyle}>{label}</span>
       <input
         onChange={(event) => onChange(event.target.value)}
@@ -103,7 +112,7 @@ function CheckField({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label style={{ display: "flex", gap: "8px", alignItems: "center", color: "#44403c", fontSize: "11px" }}>
+    <label style={{ display: "flex", gap: "7px", alignItems: "center", color: "#44403c", fontSize: "9px" }}>
       <input checked={checked} onChange={(event) => onChange(event.target.checked)} type="checkbox" />
       <span>{label}</span>
     </label>
@@ -123,7 +132,8 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
         border: `1px solid ${palette.border}`,
         background: palette.background,
         color: palette.color,
-        padding: "14px 16px",
+        padding: "12px 14px",
+        fontSize: "11px",
         fontWeight: 600
       }}
     >
@@ -181,7 +191,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
   const canManageSelectedHousehold = selectedHouseholdDetail?.household.myPermissions.includes("admin") ?? false;
 
   return (
-    <div style={{ display: "grid", gap: "14px", fontSize: "12px" }}>
+    <div style={{ display: "grid", gap: "12px", fontSize: "11px" }}>
       {errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
@@ -196,6 +206,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
           eyebrow="EP-02 / Households"
           title="Crear un hogar"
           description="Un hogar agrupa integrantes, permisos y luego acceso a mascotas, pero este alcance del MVP se mantiene solo en la configuracion del hogar."
+          density="compact"
         >
           <form
             onSubmit={(event) => {
@@ -211,7 +222,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                 setCreateHouseholdName("");
               });
             }}
-            style={{ display: "grid", gap: "10px" }}
+            style={{ display: "grid", gap: "8px" }}
           >
             <Field
               label="Nombre del hogar"
@@ -229,15 +240,16 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
           eyebrow="Incoming"
           title="Invitaciones pendientes"
           description="En este MVP solo se invita a usuarios existentes, asi que las invitaciones se resuelven dentro de la app."
+          density="compact"
         >
-          <div style={{ display: "grid", gap: "12px" }}>
+          <div style={{ display: "grid", gap: "8px" }}>
             {snapshot?.pendingInvitations.length ? (
               snapshot.pendingInvitations.map((invitation) => (
                 <article
                   key={invitation.id}
                   style={{
-                    borderRadius: "18px",
-                    padding: "16px",
+                    borderRadius: "14px",
+                    padding: "12px",
                     background: "rgba(247, 242, 231, 0.72)",
                     display: "grid",
                     gap: "10px"
@@ -247,7 +259,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     <strong>{invitation.invitedEmail}</strong>
                     <StatusPill tone="pending" label={invitation.status} />
                   </div>
-                  <span style={{ color: "#57534e" }}>Permisos: {invitation.permissions.join(", ")}</span>
+                  <span style={{ color: "#57534e", fontSize: "10px" }}>Permisos: {invitation.permissions.join(", ")}</span>
                   <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                     <Button
                       disabled={isSubmitting}
@@ -279,7 +291,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                 </article>
               ))
             ) : (
-              <p style={{ margin: 0, color: "#57534e" }}>No hay invitaciones pendientes para esta cuenta.</p>
+              <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>No hay invitaciones pendientes para esta cuenta.</p>
             )}
           </div>
         </CoreSection>
@@ -289,6 +301,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
         eyebrow="Households"
         title="Lista de hogares y detalle basico"
         description="Esto cubre crear, listar, ver detalle, integrantes, invitaciones y permisos por integrante sin pasar todavia a mascotas."
+        density="compact"
       >
         {isLoading ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando datos del hogar desde Supabase...</p>
@@ -297,11 +310,11 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
             style={{
               display: "grid",
               alignItems: "start",
-              gridTemplateColumns: "minmax(210px, 260px) minmax(0, 1fr)",
-              gap: "14px"
+              gridTemplateColumns: "minmax(190px, 240px) minmax(0, 1fr)",
+              gap: "12px"
             }}
           >
-            <div style={{ display: "grid", gap: "10px", alignSelf: "start" }}>
+            <div style={{ display: "grid", gap: "8px", alignSelf: "start" }}>
               {snapshot?.households.length ? (
                 snapshot.households.map((household) => {
                   const isActive = household.id === selectedHouseholdId;
@@ -311,26 +324,26 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                       key={household.id}
                       onClick={() => void selectHousehold(household.id)}
                       style={{
-                        borderRadius: "14px",
+                        borderRadius: "12px",
                         border: isActive ? "1px solid rgba(15, 118, 110, 0.28)" : "1px solid rgba(28, 25, 23, 0.1)",
-                        padding: "12px",
+                        padding: "10px",
                         textAlign: "left",
                         background: isActive ? "rgba(15, 118, 110, 0.08)" : "rgba(247, 242, 231, 0.72)",
                         display: "grid",
-                        gap: "7px",
+                        gap: "5px",
                         cursor: "pointer"
                       }}
                       type="button"
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                        <strong style={{ fontSize: "11px" }}>{household.name}</strong>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                        <strong style={{ fontSize: "10px" }}>{household.name}</strong>
                         <StatusPill
                           tone={household.myPermissions.includes("admin") ? "active" : "neutral"}
                           label={household.myPermissions.includes("admin") ? "admin" : "member"}
                         />
                       </div>
-                      <span style={{ color: "#57534e", fontSize: "10px" }}>{household.memberCount} integrante(s)</span>
-                      <span style={{ color: "#57534e", fontSize: "10px" }}>
+                      <span style={{ color: "#57534e", fontSize: "9px" }}>{household.memberCount} integrante(s)</span>
+                      <span style={{ color: "#57534e", fontSize: "9px" }}>
                         {household.pendingInvitationCount} invitacion(es) pendiente(s)
                       </span>
                     </button>
@@ -341,41 +354,25 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
               )}
             </div>
 
-            <div style={{ display: "grid", gap: "12px" }}>
+            <div style={{ display: "grid", gap: "10px" }}>
               {selectedHouseholdDetail ? (
                 <>
-                  <article
-                    style={{
-                      borderRadius: "16px",
-                      padding: "14px",
-                      background: "rgba(247, 242, 231, 0.72)",
-                      display: "grid",
-                      gap: "7px"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "13px" }}>{selectedHouseholdDetail.household.name}</h3>
+                  <article style={panelStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>{selectedHouseholdDetail.household.name}</h3>
                       <StatusPill
                         tone={canManageSelectedHousehold ? "active" : "neutral"}
                         label={canManageSelectedHousehold ? "admin access" : "member access"}
                       />
                     </div>
-                    <p style={{ margin: 0, color: "#57534e", fontSize: "11px" }}>
+                    <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>
                       Tus permisos: {selectedHouseholdDetail.household.myPermissions.join(", ")}
                     </p>
                   </article>
 
-                  <article
-                    style={{
-                      borderRadius: "16px",
-                      padding: "14px",
-                      background: "rgba(247, 242, 231, 0.72)",
-                      display: "grid",
-                      gap: "10px"
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "13px" }}>Invitar integrantes</h3>
+                  <article style={panelStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>Invitar integrantes</h3>
                       <StatusPill tone="neutral" label={`${selectedHouseholdDetail.invitations.length} pendientes visibles`} />
                     </div>
                     {canManageSelectedHousehold ? (
@@ -395,7 +392,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                             setInvitePermissions(["view"]);
                           });
                         }}
-                        style={{ display: "grid", gap: "9px" }}
+                        style={{ display: "grid", gap: "7px" }}
                       >
                         <Field
                           label="Correo del integrante"
@@ -404,7 +401,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                           type="email"
                           value={inviteEmail}
                         />
-                        <div style={{ display: "grid", gap: "6px" }}>
+                        <div style={{ display: "grid", gap: "4px" }}>
                           <span style={fieldLabelStyle}>Permisos</span>
                           {householdPermissionOptions.map((permission) => (
                             <CheckField
@@ -430,23 +427,23 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     )}
 
                     {selectedHouseholdDetail.invitations.length ? (
-                      <div style={{ display: "grid", gap: "12px" }}>
+                      <div style={{ display: "grid", gap: "8px" }}>
                         {selectedHouseholdDetail.invitations.map((invitation) => (
                           <article
                             key={invitation.id}
                             style={{
-                              borderRadius: "14px",
-                              padding: "11px 12px",
+                              borderRadius: "12px",
+                              padding: "9px 10px",
                               background: "rgba(255,255,255,0.72)",
                               display: "grid",
-                              gap: "6px"
+                              gap: "5px"
                             }}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <strong style={{ fontSize: "11px" }}>{invitation.invitedEmail}</strong>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                              <strong style={{ fontSize: "10px" }}>{invitation.invitedEmail}</strong>
                               <StatusPill tone="pending" label={invitation.status} />
                             </div>
-                            <span style={{ color: "#57534e", fontSize: "10px" }}>
+                            <span style={{ color: "#57534e", fontSize: "9px" }}>
                               Permisos: {invitation.permissions.join(", ")}
                             </span>
                           </article>
@@ -455,16 +452,8 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                     ) : null}
                   </article>
 
-                  <article
-                    style={{
-                      borderRadius: "16px",
-                      padding: "14px",
-                      background: "rgba(247, 242, 231, 0.72)",
-                      display: "grid",
-                      gap: "10px"
-                    }}
-                  >
-                    <h3 style={{ margin: 0, fontSize: "13px" }}>Integrantes</h3>
+                  <article style={panelStyle}>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>Integrantes</h3>
                     {selectedHouseholdDetail.members.map((member) => {
                       const draftPermissions = memberPermissionDrafts[member.id] ?? member.permissions;
 
@@ -472,27 +461,27 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
                         <article
                           key={member.id}
                           style={{
-                            borderRadius: "14px",
-                            padding: "12px",
+                            borderRadius: "12px",
+                            padding: "10px",
                             background: "rgba(255,255,255,0.72)",
                             display: "grid",
-                            gap: "9px"
+                            gap: "7px"
                           }}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                            <div style={{ display: "grid", gap: "4px" }}>
-                              <strong style={{ fontSize: "11px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                            <div style={{ display: "grid", gap: "3px" }}>
+                              <strong style={{ fontSize: "10px" }}>
                                 {member.profile?.firstName} {member.profile?.lastName}
                               </strong>
-                              <span style={{ color: "#57534e", fontSize: "10px" }}>{member.profile?.email ?? member.userId}</span>
+                              <span style={{ color: "#57534e", fontSize: "9px" }}>{member.profile?.email ?? member.userId}</span>
                             </div>
                             <StatusPill
                               tone={member.permissions.includes("admin") ? "active" : "neutral"}
                               label={member.permissions.includes("admin") ? "admin" : "member"}
                             />
                           </div>
-                          <span style={{ color: "#57534e", fontSize: "10px" }}>Actuales: {member.permissions.join(", ")}</span>
-                          <div style={{ display: "grid", gap: "6px" }}>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>Actuales: {member.permissions.join(", ")}</span>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(86px, 1fr))", gap: "4px 8px" }}>
                             {householdPermissionOptions.map((permission) => (
                               <CheckField
                                 key={`${member.id}-${permission.value}`}

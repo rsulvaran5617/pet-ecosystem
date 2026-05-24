@@ -62,6 +62,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - calendario
 - crear reminder
 - completar o posponer
+- owner web Recordatorios usa el patron mobile con selector hogar/mascota, resumen por secciones, formulario plegable y listas compactas de pendientes, completados y calendario.
 
 ### Marketplace
 - home marketplace publico

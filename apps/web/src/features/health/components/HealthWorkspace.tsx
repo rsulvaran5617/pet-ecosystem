@@ -310,7 +310,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
             </article>
 
             {selectedPet && selectedPetHealthDetail ? (
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.75fr) minmax(420px, 1.25fr)", gap: "12px", alignItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.42fr) minmax(0, 1fr)", gap: "12px", alignItems: "start", minWidth: 0 }}>
                 <article style={cardStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                     <div>
@@ -348,7 +348,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                   </div>
                 </article>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(210px, 1fr))", gap: "12px", alignItems: "start" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", alignItems: "start", minWidth: 0 }}>
                   <HealthBlock title="Vacunas" count={selectedPetHealthDetail.vaccines.length}>
                     {canEdit ? (
                       <form
@@ -372,7 +372,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                         style={{ display: "grid", gap: "8px" }}
                       >
                         <Field label="Vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} placeholder="Nombre de la vacuna" value={vaccineForm.name} />
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))", gap: "8px" }}>
                           <Field label="Aplicada" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} type="date" value={vaccineForm.administeredOn} />
                           <Field label="Proxima" onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))} type="date" value={vaccineForm.nextDueOn ?? ""} />
                         </div>

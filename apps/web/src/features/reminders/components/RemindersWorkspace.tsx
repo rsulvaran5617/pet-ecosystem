@@ -2,14 +2,30 @@
 
 import { calendarEventStatusLabels, formatHouseholdPermissions, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
 import type { Reminder, Uuid } from "@pet/types";
+import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
+import { StatusPill } from "../../core/components/StatusPill";
 import { getBrowserRemindersApiClient } from "../../core/services/supabase-browser";
 import { useRemindersWorkspace } from "../hooks/useRemindersWorkspace";
 
-const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", padding: "18px", display: "grid", gap: "12px" } as const;
-const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
+const cardStyle: CSSProperties = {
+  borderRadius: "14px",
+  background: "rgba(247,242,231,0.78)",
+  padding: "12px",
+  display: "grid",
+  gap: "8px",
+  border: "1px solid rgba(28,25,23,0.06)"
+};
+
+const inputStyle: CSSProperties = {
+  borderRadius: "10px",
+  border: "1px solid rgba(28,25,23,0.14)",
+  padding: "7px 9px",
+  background: "#fffdf8",
+  fontSize: "9px"
+};
 
 function toDateInput(value: string | null | undefined) {
   return value ? value.slice(0, 10) : "";
@@ -39,6 +55,74 @@ function getDefaultSnoozeDate(reminder: Reminder) {
   return toDateInput(nextDate.toISOString());
 }
 
+function Button({
+  children,
+  disabled,
+  onClick,
+  tone = "primary",
+  type = "button"
+}: {
+  children: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  tone?: "primary" | "secondary";
+  type?: "button" | "submit";
+}) {
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        borderRadius: "999px",
+        border: tone === "primary" ? "none" : "1px solid rgba(15,118,110,0.22)",
+        background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.92)",
+        color: tone === "primary" ? "#f8fafc" : "#0f766e",
+        cursor: disabled ? "not-allowed" : "pointer",
+        fontSize: "9px",
+        fontWeight: 800,
+        opacity: disabled ? 0.65 : 1,
+        padding: "6px 10px"
+      }}
+      type={type}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SectionButton({
+  count,
+  detail,
+  isActive,
+  label,
+  onClick
+}: {
+  count: number;
+  detail: string;
+  isActive: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...inputStyle,
+        background: isActive ? "rgba(15,118,110,0.08)" : "rgba(255,255,255,0.86)",
+        border: isActive ? "1px solid rgba(15,118,110,0.26)" : inputStyle.border,
+        cursor: "pointer",
+        display: "grid",
+        gap: "2px",
+        textAlign: "left"
+      }}
+      type="button"
+    >
+      <strong style={{ fontSize: "10px" }}>{label}</strong>
+      <span style={{ color: "#57534e", fontSize: "8px" }}>{count} registro(s) - {detail}</span>
+    </button>
+  );
+}
+
 export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
   const {
     householdSnapshot,
@@ -61,14 +145,20 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
   const [notes, setNotes] = useState("");
   const [targetPetId, setTargetPetId] = useState<Uuid | "">("");
   const [snoozeDates, setSnoozeDates] = useState<Record<string, string>>({});
+  const [activeReminderSection, setActiveReminderSection] = useState<"pending" | "completed" | "calendar">("pending");
+  const [isReminderFormOpen, setIsReminderFormOpen] = useState(false);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
+  const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const petNameById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet.name])), [pets]);
   const canEdit =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
   const completedReminderCount = reminders.filter((reminder) => reminder.status === "completed").length;
   const vaccineReminderCount = reminders.filter((reminder) => reminder.reminderType === "vaccine").length;
+  const pendingReminders = reminders.filter((reminder) => reminder.status === "pending");
+  const completedReminders = reminders.filter((reminder) => reminder.status === "completed");
+  const activeReminders = activeReminderSection === "completed" ? completedReminders : pendingReminders;
 
   useEffect(() => {
     setTargetPetId((currentPetId) => (currentPetId && !pets.some((pet) => pet.id === currentPetId) ? "" : currentPetId));
@@ -79,161 +169,234 @@ export function RemindersWorkspace({ enabled }: { enabled: boolean }) {
   }
 
   return (
-    <div style={{ display: "grid", gap: "24px" }}>
+    <div style={{ display: "grid", gap: "12px" }}>
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
         eyebrow="EP-04 / Recordatorios"
         title="Calendario y recordatorios basicos"
-        description="Solo recordatorios manuales y derivados de vacunas. Los eventos de reservas siguen diferidos hasta EP-06."
+        description="Organiza tareas de cuidado y eventos derivados de salud en un solo lugar. Los eventos de reservas siguen diferidos hasta EP-06."
+        density="compact"
       >
         {isLoading ? (
-          <p style={{ margin: 0, color: "#57534e" }}>Cargando recordatorios desde Supabase...</p>
+          <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Cargando recordatorios desde Supabase...</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,280px) minmax(220px,280px) minmax(0,1fr)", gap: "18px" }}>
+          <div style={{ display: "grid", gap: "12px" }}>
             <article style={cardStyle}>
-              <h3 style={{ margin: 0 }}>Hogares</h3>
-              {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
-                <button key={household.id} onClick={() => void selectHousehold(household.id)} type="button" style={{ ...inputStyle, textAlign: "left", cursor: "pointer", background: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8" }}>
-                  <strong>{household.name}</strong>
-                  <div style={{ color: "#57534e", marginTop: "6px" }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</div>
-                </button>
-              )) : <p style={{ margin: 0, color: "#57534e" }}>Crea primero un hogar.</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <h3 style={{ margin: 0, fontSize: "13px" }}>Hogares</h3>
+                {selectedHousehold ? <StatusPill label={canEdit ? "editable" : "solo lectura"} tone={canEdit ? "active" : "neutral"} /> : null}
+              </div>
+              {householdSnapshot?.households.length ? (
+                <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "4px" }}>
+                  {householdSnapshot.households.map((household) => (
+                    <button
+                      key={household.id}
+                      onClick={() => void selectHousehold(household.id)}
+                      style={{
+                        ...inputStyle,
+                        minWidth: "180px",
+                        background: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8",
+                        cursor: "pointer",
+                        display: "grid",
+                        gap: "4px",
+                        textAlign: "left"
+                      }}
+                      type="button"
+                    >
+                      <strong style={{ fontSize: "9px" }}>{household.name}</strong>
+                      <span style={{ color: "#57534e", fontSize: "8px" }}>
+                        {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Crea primero un hogar.</p>
+              )}
             </article>
 
             <article style={cardStyle}>
-              <h3 style={{ margin: 0 }}>Filtro por mascota</h3>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "13px" }}>Filtro por mascota</h3>
+                  <p style={{ color: "#57534e", fontSize: "9px", margin: "2px 0 0" }}>Filtra recordatorios del hogar o de una mascota.</p>
+                </div>
+                <StatusPill label={selectedPet ? selectedPet.name : "todo el hogar"} tone="neutral" />
+              </div>
               {selectedHousehold ? (
-                <>
-                  <button onClick={() => void selectPet(null)} type="button" style={{ ...inputStyle, textAlign: "left", cursor: "pointer", background: selectedPetId === null ? "rgba(15,118,110,0.08)" : "#fffdf8" }}>
-                    <strong>Todos los recordatorios del hogar</strong>
-                    <div style={{ color: "#57534e", marginTop: "6px" }}>Incluye tareas manuales del hogar y recordatorios asociados a mascotas.</div>
+                <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "4px" }}>
+                  <button
+                    onClick={() => void selectPet(null)}
+                    style={{
+                      ...inputStyle,
+                      minWidth: "180px",
+                      background: selectedPetId === null ? "rgba(15,118,110,0.08)" : "#fffdf8",
+                      cursor: "pointer",
+                      textAlign: "left"
+                    }}
+                    type="button"
+                  >
+                    <strong style={{ fontSize: "9px" }}>Todos los recordatorios</strong>
+                    <div style={{ color: "#57534e", marginTop: "4px", fontSize: "8px" }}>Hogar y mascotas</div>
                   </button>
                   {pets.length ? pets.map((pet) => (
-                    <button key={pet.id} onClick={() => void selectPet(pet.id)} type="button" style={{ ...inputStyle, textAlign: "left", cursor: "pointer", background: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8" }}>
-                      <strong>{pet.name}</strong>
-                      <div style={{ color: "#57534e", marginTop: "6px" }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</div>
+                    <button
+                      key={pet.id}
+                      onClick={() => void selectPet(pet.id)}
+                      style={{
+                        ...inputStyle,
+                        minWidth: "150px",
+                        background: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8",
+                        cursor: "pointer",
+                        textAlign: "left"
+                      }}
+                      type="button"
+                    >
+                      <strong style={{ fontSize: "9px" }}>{pet.name}</strong>
+                      <div style={{ color: "#57534e", marginTop: "4px", fontSize: "8px" }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</div>
                     </button>
-                  )) : <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay mascotas en este hogar.</p>}
-                </>
-              ) : <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero un hogar.</p>}
+                  )) : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Todavia no hay mascotas en este hogar.</p>}
+                </div>
+              ) : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona primero un hogar.</p>}
             </article>
 
-            <div style={{ display: "grid", gap: "18px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.38fr) minmax(0, 1fr)", gap: "12px", alignItems: "start", minWidth: 0 }}>
               <article style={cardStyle}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                   <div>
-                    <h3 style={{ margin: 0 }}>Resumen del calendario</h3>
-                    <div style={{ color: "#57534e" }}>{selectedPetId ? petNameById.get(selectedPetId) ?? "Mascota seleccionada" : selectedHousehold?.name ?? "Hogar"}</div>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>{selectedPetId ? petNameById.get(selectedPetId) ?? "Mascota seleccionada" : selectedHousehold?.name ?? "Hogar"}</h3>
+                    <p style={{ color: "#57534e", fontSize: "9px", margin: "2px 0 0" }}>{canEdit ? "editable" : "solo lectura"} - {vaccineReminderCount} desde vacunas</p>
                   </div>
-                  <strong>{canEdit ? "editable" : "solo lectura"}</strong>
+                  {canEdit ? (
+                    <Button
+                      onClick={() => setIsReminderFormOpen((currentValue) => !currentValue)}
+                      tone={isReminderFormOpen ? "secondary" : "primary"}
+                    >
+                      {isReminderFormOpen ? "Cerrar" : "+ Agregar"}
+                    </Button>
+                  ) : null}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "12px" }}>
-                  <div><strong>{pendingReminderCount}</strong><div style={{ color: "#57534e" }}>Pendientes</div></div>
-                  <div><strong>{completedReminderCount}</strong><div style={{ color: "#57534e" }}>Completados</div></div>
-                  <div><strong>{vaccineReminderCount}</strong><div style={{ color: "#57534e" }}>Desde vacunas</div></div>
-                  <div><strong>{calendarEvents.length}</strong><div style={{ color: "#57534e" }}>Eventos del calendario</div></div>
-                </div>
-                <div style={{ color: "#57534e" }}>
-                  Los eventos de agenda derivados de reservas siguen diferidos hasta `EP-06 / Reservas`.
+                <div style={{ display: "grid", gap: "7px" }}>
+                  <SectionButton count={pendingReminderCount} detail="Tareas por completar" isActive={activeReminderSection === "pending"} label="Pendientes" onClick={() => setActiveReminderSection("pending")} />
+                  <SectionButton count={completedReminderCount} detail="Historial cerrado" isActive={activeReminderSection === "completed"} label="Completados" onClick={() => setActiveReminderSection("completed")} />
+                  <SectionButton count={calendarEvents.length} detail="Eventos programados" isActive={activeReminderSection === "calendar"} label="Calendario" onClick={() => setActiveReminderSection("calendar")} />
                 </div>
               </article>
 
-              <article style={cardStyle}>
-                <h3 style={{ margin: 0 }}>Crear recordatorio manual</h3>
-                {selectedHousehold ? canEdit ? (
-                  <form onSubmit={(event) => {
-                    event.preventDefault();
-                    clearMessages();
-                    void runAction(
-                      () => getBrowserRemindersApiClient().createReminder({
-                        householdId: selectedHousehold.id,
-                        petId: targetPetId || null,
-                        title: title.trim(),
-                        dueAt: toIsoDate(dueDate),
-                        notes: notes.trim() || null
-                      }),
-                      "Recordatorio creado."
-                    ).then(() => {
-                      setTitle("");
-                      setDueDate("");
-                      setNotes("");
-                      setTargetPetId("");
-                    });
-                  }} style={{ display: "grid", gap: "10px" }}>
-                    <input style={inputStyle} placeholder="Titulo del recordatorio" value={title} onChange={(event) => setTitle(event.target.value)} />
-                    <select style={inputStyle} value={targetPetId} onChange={(event) => setTargetPetId(event.target.value as Uuid | "")}>
-                      <option value="">Recordatorio para todo el hogar</option>
-                      {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
-                    </select>
-                    <input style={inputStyle} type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
-                    <textarea style={inputStyle} rows={3} placeholder="Notas" value={notes} onChange={(event) => setNotes(event.target.value)} />
-                    <button disabled={isSubmitting} type="submit">Guardar recordatorio</button>
-                  </form>
-                ) : <p style={{ margin: 0, color: "#57534e" }}>Hogar en modo solo lectura. Puedes revisar el calendario, pero no modificar recordatorios.</p> : <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero un hogar.</p>}
-              </article>
-
-              <article style={cardStyle}>
-                <h3 style={{ margin: 0 }}>Recordatorios</h3>
-                {reminders.length ? reminders.map((reminder) => (
-                  <div key={reminder.id} style={inputStyle}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                      <strong>{reminder.title}</strong>
-                      <span>{reminderTypeLabels[reminder.reminderType]} - {reminderStatusLabels[reminder.status]}</span>
-                    </div>
-                    <div style={{ color: "#57534e", marginTop: "6px" }}>
-                      Vence: {formatDate(reminder.dueAt)}
-                      {reminder.petId ? ` - ${petNameById.get(reminder.petId) ?? "Recordatorio de mascota"}` : " - Recordatorio del hogar"}
-                    </div>
-                    <div style={{ color: "#57534e", marginTop: "6px" }}>{reminder.notes ?? "Sin notas todavia."}</div>
-                    {canEdit ? (
-                      <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                          {reminder.status !== "completed" ? (
-                            <button disabled={isSubmitting} type="button" onClick={() => {
-                              clearMessages();
-                              void runAction(
-                                () => getBrowserRemindersApiClient().completeReminder(reminder.id),
-                                "Recordatorio completado."
-                              );
-                            }}>
-                              Completar
-                            </button>
-                          ) : null}
-                          <input
-                            style={inputStyle}
-                            type="date"
-                            value={snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder)}
-                            onChange={(event) => setSnoozeDates((currentDates) => ({ ...currentDates, [reminder.id]: event.target.value }))}
-                          />
-                          <button disabled={isSubmitting} type="button" onClick={() => {
-                            clearMessages();
-                            void runAction(
-                              () => getBrowserRemindersApiClient().snoozeReminder(reminder.id, {
-                                dueAt: toIsoDate(snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder))
-                              }),
-                              "Recordatorio pospuesto."
-                            );
-                          }}>
-                            Posponer
-                          </button>
+              <div style={{ display: "grid", gap: "12px", minWidth: 0 }}>
+                {isReminderFormOpen ? (
+                  <article style={cardStyle}>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>Crear recordatorio manual</h3>
+                    {selectedHousehold ? canEdit ? (
+                      <form onSubmit={(event) => {
+                        event.preventDefault();
+                        clearMessages();
+                        void runAction(
+                          () => getBrowserRemindersApiClient().createReminder({
+                            householdId: selectedHousehold.id,
+                            petId: targetPetId || null,
+                            title: title.trim(),
+                            dueAt: toIsoDate(dueDate),
+                            notes: notes.trim() || null
+                          }),
+                          "Recordatorio creado."
+                        ).then(() => {
+                          setTitle("");
+                          setDueDate("");
+                          setNotes("");
+                          setTargetPetId("");
+                          setIsReminderFormOpen(false);
+                          setActiveReminderSection("pending");
+                        });
+                      }} style={{ display: "grid", gap: "8px" }}>
+                        <input style={inputStyle} placeholder="Titulo del recordatorio" value={title} onChange={(event) => setTitle(event.target.value)} />
+                        <select style={inputStyle} value={targetPetId} onChange={(event) => setTargetPetId(event.target.value as Uuid | "")}>
+                          <option value="">Recordatorio para todo el hogar</option>
+                          {pets.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
+                        </select>
+                        <input style={inputStyle} type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+                        <textarea style={{ ...inputStyle, resize: "vertical" }} rows={2} placeholder="Notas" value={notes} onChange={(event) => setNotes(event.target.value)} />
+                        <div>
+                          <Button disabled={isSubmitting} type="submit">Guardar recordatorio</Button>
                         </div>
-                      </div>
-                    ) : null}
-                  </div>
-                )) : <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay recordatorios para este filtro.</p>}
-              </article>
+                      </form>
+                    ) : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Hogar en modo solo lectura. Puedes revisar el calendario, pero no modificar recordatorios.</p> : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona primero un hogar.</p>}
+                  </article>
+                ) : null}
 
-              <article style={cardStyle}>
-                <h3 style={{ margin: 0 }}>Calendario</h3>
-                {calendarEvents.length ? calendarEvents.map((event) => (
-                  <div key={event.id} style={inputStyle}>
-                    <strong>{event.title}</strong>
-                    <div style={{ color: "#57534e", marginTop: "6px" }}>{formatDate(event.startsAt)}</div>
-                    <div style={{ color: "#57534e", marginTop: "6px" }}>{calendarEventStatusLabels[event.status]}</div>
-                  </div>
-                )) : <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay eventos de calendario para este filtro.</p>}
-              </article>
+                {activeReminderSection !== "calendar" ? (
+                  <article style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>{activeReminderSection === "completed" ? "Completados" : "Pendientes"}</h3>
+                      <StatusPill label={`${activeReminders.length}`} tone="neutral" />
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
+                      {activeReminders.length ? activeReminders.map((reminder) => (
+                        <div key={reminder.id} style={{ ...inputStyle, display: "grid", gap: "5px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "start" }}>
+                            <strong style={{ fontSize: "10px" }}>{reminder.title}</strong>
+                            <span style={{ color: "#57534e", fontSize: "8px" }}>{reminderTypeLabels[reminder.reminderType]} - {reminderStatusLabels[reminder.status]}</span>
+                          </div>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>
+                            Vence: {formatDate(reminder.dueAt)}
+                            {reminder.petId ? ` - ${petNameById.get(reminder.petId) ?? "Recordatorio de mascota"}` : " - Recordatorio del hogar"}
+                          </span>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>{reminder.notes ?? "Sin notas todavia."}</span>
+                          {canEdit ? (
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                              {reminder.status !== "completed" ? (
+                                <Button disabled={isSubmitting} onClick={() => {
+                                  clearMessages();
+                                  void runAction(
+                                    () => getBrowserRemindersApiClient().completeReminder(reminder.id),
+                                    "Recordatorio completado."
+                                  );
+                                }}>
+                                  Completar
+                                </Button>
+                              ) : null}
+                              <input
+                                style={{ ...inputStyle, width: "128px" }}
+                                type="date"
+                                value={snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder)}
+                                onChange={(event) => setSnoozeDates((currentDates) => ({ ...currentDates, [reminder.id]: event.target.value }))}
+                              />
+                              <Button disabled={isSubmitting} onClick={() => {
+                                clearMessages();
+                                void runAction(
+                                  () => getBrowserRemindersApiClient().snoozeReminder(reminder.id, {
+                                    dueAt: toIsoDate(snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder))
+                                  }),
+                                  "Recordatorio pospuesto."
+                                );
+                              }} tone="secondary">
+                                Posponer
+                              </Button>
+                            </div>
+                          ) : null}
+                        </div>
+                      )) : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>No hay recordatorios para este filtro.</p>}
+                    </div>
+                  </article>
+                ) : (
+                  <article style={cardStyle}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                      <h3 style={{ margin: 0, fontSize: "12px" }}>Calendario</h3>
+                      <StatusPill label={`${calendarEvents.length}`} tone="neutral" />
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
+                      {calendarEvents.length ? calendarEvents.map((event) => (
+                        <div key={event.id} style={{ ...inputStyle, display: "grid", gap: "5px" }}>
+                          <strong style={{ fontSize: "10px" }}>{event.title}</strong>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>{formatDate(event.startsAt)}</span>
+                          <span style={{ color: "#57534e", fontSize: "9px" }}>{calendarEventStatusLabels[event.status]}</span>
+                        </div>
+                      )) : <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Todavia no hay eventos de calendario para este filtro.</p>}
+                    </div>
+                  </article>
+                )}
+              </div>
             </div>
           </div>
         )}

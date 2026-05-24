@@ -196,6 +196,10 @@ sudo ufw allow OpenSSH
 sudo ufw allow 'Nginx Full'
 sudo ufw --force enable
 
+if [ -f "/etc/letsencrypt/live/$RootDomain/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/$RootDomain/privkey.pem" ]; then
+  sudo certbot --nginx --non-interactive --keep-until-expiring -d "$RootDomain" -d "$AdminDomain" >/dev/null
+fi
+
 curl -fsSI --max-time 10 http://127.0.0.1:3000 >/dev/null
 curl -fsSI --max-time 10 http://127.0.0.1:3001 >/dev/null
 
