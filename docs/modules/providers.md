@@ -113,7 +113,7 @@ Modelo recomendado CAP-0:
 - al eliminar un servicio sin historial se eliminan tambien sus reglas futuras de horarios/cupos asociadas por cascada, porque siguen siendo configuracion maestra no transaccional
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
-- la consola de reservas del proveedor permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
+- la consola de reservas del proveedor inicia por defecto en `pending_approval` y permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
 - las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` abre el expediente maestro dentro de la edicion del negocio, porque son datos de aprobacion del negocio y no operativa diaria
 - el panel de Inicio del proveedor puede mostrar un carrusel compacto de negocios para cambiar el negocio activo sin entrar a la lista vertical de `Negocio`
 - la consola web del proveedor vive en `apps/web`, no en `apps/admin`; usa los mismos contratos provider existentes y agrega shell/navegacion operativa para pantallas amplias sin crear reglas nuevas
@@ -128,6 +128,7 @@ Modelo recomendado CAP-0:
 - PW-1 usa visualizacion consolidada de dashboard para comparativo, embudo, capacidad, ranking, alertas y estado por negocio; las metricas no persistidas se calculan en cliente desde datos existentes y se muestran como lectura operacional
 - en web provider, cada tarjeta de `Mis negocios` integra el checklist compacto de publicacion con estados `Listo` en verde y `Pendiente` en naranja para aprobacion, visibilidad, perfil, servicios, agenda y documentos; el panel grande de publicacion deja de ocupar espacio operativo independiente
 - en web provider, el CTA global `Citas por aprobar` abre un desglose visual de reservas `pending_approval` agrupadas por negocio antes de navegar a la seccion de reservas del negocio seleccionado
+- el panel consolidado de web provider carga detalles y reservas de negocios de forma secuencial para evitar resultados incompletos por concurrencia de multiples consultas Supabase/Auth en navegador
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

@@ -12,6 +12,7 @@ import {
 } from "@pet/config";
 import type {
   BookingMode,
+  BookingStatus,
   BookingSlot,
   CreateProviderAvailabilityRuleInput,
   ProviderApprovalDocumentType,
@@ -1202,6 +1203,7 @@ export function ProvidersWorkspace({
   const [isLoadingCapacitySlots, setIsLoadingCapacitySlots] = useState(false);
   const [activeProviderSectionId, setActiveProviderSectionId] = useState<(typeof providerConsoleSections)[number]["id"]>("provider-web-panel");
   const [isPendingBookingsBreakdownOpen, setIsPendingBookingsBreakdownOpen] = useState(false);
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatus>("pending_approval");
 
   useEffect(() => {
     if (!selectedOrganizationDetail) {
@@ -1269,6 +1271,8 @@ export function ProvidersWorkspace({
   const pendingProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval");
   const confirmedProviderBookings = providerBookings.filter((booking) => booking.status === "confirmed");
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
+  const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
+  const filteredProviderBookings = providerBookings.filter((booking) => booking.status === bookingStatusFilter);
   const hasPublishedService = selectedServices.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
     selectedOrganization?.approvalStatus === "approved" &&
@@ -3121,14 +3125,59 @@ export function ProvidersWorkspace({
                 </div>
                 {selectedOrganization ? (
                   <>
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                      <StatusPill label={`${pendingProviderBookings.length} pendientes`} tone={pendingProviderBookings.length ? "pending" : "neutral"} />
-                      <StatusPill label={`${confirmedProviderBookings.length} confirmadas`} tone={confirmedProviderBookings.length ? "active" : "neutral"} />
-                      <StatusPill label={`${completedProviderBookings.length} completadas`} tone={completedProviderBookings.length ? "active" : "neutral"} />
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {[
+                        { status: "pending_approval" as const, label: "Pendientes por aprobar", count: pendingProviderBookings.length, tone: "warning" as const },
+                        { status: "confirmed" as const, label: "Confirmadas", count: confirmedProviderBookings.length, tone: "success" as const },
+                        { status: "completed" as const, label: "Completadas", count: completedProviderBookings.length, tone: "success" as const },
+                        { status: "cancelled" as const, label: "Canceladas", count: cancelledProviderBookings.length, tone: "neutral" as const }
+                      ].map((filter) => {
+                        const isActive = bookingStatusFilter === filter.status;
+
+                        return (
+                          <button
+                            key={filter.status}
+                            onClick={() => setBookingStatusFilter(filter.status)}
+                            style={{
+                              alignItems: "center",
+                              background: isActive
+                                ? filter.status === "pending_approval"
+                                  ? "rgba(254, 243, 199, 0.88)"
+                                  : "rgba(204, 251, 241, 0.78)"
+                                : "rgba(255, 255, 255, 0.78)",
+                              border: isActive
+                                ? filter.status === "pending_approval"
+                                  ? "1px solid rgba(180, 83, 9, 0.28)"
+                                  : "1px solid rgba(15, 118, 110, 0.24)"
+                                : "1px solid rgba(28, 25, 23, 0.12)",
+                              borderRadius: "999px",
+                              color: isActive
+                                ? filter.status === "pending_approval"
+                                  ? "#b45309"
+                                  : "#0f766e"
+                                : "#57534e",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              fontSize: "9px",
+                              fontWeight: 900,
+                              gap: "5px",
+                              letterSpacing: "0.05em",
+                              minHeight: "26px",
+                              padding: "6px 10px",
+                              textTransform: "uppercase"
+                            }}
+                            type="button"
+                          >
+                            <span>{filter.count}</span>
+                            <span>{filter.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     {providerBookings.length ? (
                       <div style={{ display: "grid", gap: "10px" }}>
-                        {providerBookings.map((booking) => {
+                        {filteredProviderBookings.length ? (
+                          filteredProviderBookings.map((booking) => {
                           const isExpanded = expandedProviderBookingId === booking.id;
                           const expandedDetail =
                             isExpanded && selectedProviderBookingDetail?.booking.id === booking.id ? selectedProviderBookingDetail : null;
@@ -3266,7 +3315,25 @@ export function ProvidersWorkspace({
                               ) : null}
                             </article>
                           );
-                        })}
+                        })
+                        ) : (
+                          <div
+                            style={{
+                              background: "rgba(255, 255, 255, 0.72)",
+                              border: "1px solid rgba(28, 25, 23, 0.08)",
+                              borderRadius: "14px",
+                              color: "#57534e",
+                              display: "grid",
+                              gap: "4px",
+                              padding: "14px"
+                            }}
+                          >
+                            <strong style={{ color: "#1c1917", fontSize: "11px" }}>Sin reservas en este filtro</strong>
+                            <span style={{ fontSize: "10px" }}>
+                              No hay reservas con estado {bookingStatusLabels[bookingStatusFilter].toLowerCase()} para este negocio.
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <p style={{ margin: 0, color: "#57534e" }}>

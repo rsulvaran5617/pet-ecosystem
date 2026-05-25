@@ -139,21 +139,15 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   }
 
   async function loadBusinessOverviews(nextOrganizations: ProviderOrganization[]) {
-    const [details, bookingGroups, threads] = await Promise.all([
-      Promise.all(nextOrganizations.map((organization) => getBrowserProvidersApiClient().getProviderOrganizationDetail(organization.id))),
-      Promise.all(
-        nextOrganizations.map((organization) =>
-          getBrowserBookingsApiClient().listProviderBookings({
-            organizationId: organization.id,
-            includeCancelled: true
-          })
-        )
-      ),
-      getBrowserMessagingApiClient().listThreads()
-    ]);
+    const threads = await getBrowserMessagingApiClient().listThreads();
+    const overviews: ProviderBusinessOverview[] = [];
 
-    return details.map((detail, index) => {
-      const bookings = bookingGroups[index] ?? [];
+    for (const organization of nextOrganizations) {
+      const detail = await getBrowserProvidersApiClient().getProviderOrganizationDetail(organization.id);
+      const bookings = await getBrowserBookingsApiClient().listProviderBookings({
+        organizationId: organization.id,
+        includeCancelled: true
+      });
       const bookingCounts = bookings.reduce<Record<BookingStatus, number>>(
         (counts, booking) => {
           counts[booking.status] += 1;
@@ -196,7 +190,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         Boolean(detail.publicProfile?.isPublic) &&
         hasService;
 
-      return {
+      overviews.push({
         organization: detail.organization,
         bookingCounts,
         moneyIndicators,
@@ -212,8 +206,10 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         availabilityRuleCount: detail.availabilityRules.length,
         documentCount: detail.approvalDocuments.length,
         isMarketplaceVisible
-      };
-    });
+      });
+    }
+
+    return overviews;
   }
 
   async function refresh(preferredOrganizationId?: Uuid | null) {
