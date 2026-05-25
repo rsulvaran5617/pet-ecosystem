@@ -18,6 +18,7 @@ export interface ProviderBusinessOverview {
     pendingService: ProviderMoneyIndicator;
     providerCancelled: ProviderMoneyIndicator;
   };
+  pendingApprovalBookings: BookingSummary[];
   messageThreadCount: number;
   hasPublicProfile: boolean;
   hasService: boolean;
@@ -199,6 +200,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         organization: detail.organization,
         bookingCounts,
         moneyIndicators,
+        pendingApprovalBookings: bookings.filter((booking) => booking.status === "pending_approval"),
         messageThreadCount: threads.filter((thread) => thread.providerOrganizationId === detail.organization.id && thread.lastMessageAt).length,
         hasPublicProfile,
         hasService,

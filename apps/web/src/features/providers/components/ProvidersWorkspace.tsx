@@ -27,7 +27,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
 import { getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
-import { type ProviderMoneyIndicator, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
+import { type ProviderBusinessOverview, type ProviderMoneyIndicator, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const fieldLabelStyle = {
   fontSize: "10px",
@@ -300,14 +300,6 @@ function getPercentValue(value: number, total: number) {
   return Math.round((value / total) * 100);
 }
 
-function getDashboardBarHeight(value: number, maxValue: number) {
-  if (!maxValue) {
-    return 12;
-  }
-
-  return Math.max(12, Math.round((value / maxValue) * 96));
-}
-
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
     dateStyle: "medium",
@@ -419,6 +411,17 @@ function getProviderReadinessAction(label: string) {
   }
 
   return { sectionId: "provider-web-business", actionLabel: "Revisar negocio" };
+}
+
+function getBusinessPublicationChecklist(overview: ProviderBusinessOverview) {
+  return [
+    { label: "Aprobacion", done: overview.organization.approvalStatus === "approved" },
+    { label: "Visibilidad", done: overview.organization.isPublic },
+    { label: "Perfil", done: overview.hasPublicProfile },
+    { label: "Servicios", done: overview.hasService },
+    { label: "Agenda", done: overview.hasAvailability },
+    { label: "Docs", done: overview.hasDocuments }
+  ];
 }
 
 function validateAvailabilityRuleForm(form: AvailabilityFormState) {
@@ -807,9 +810,11 @@ function ProviderMetricCard({
 }
 
 function ProviderSidebar({
+  activeSectionId,
   onNavigate,
   sections
 }: {
+  activeSectionId: string;
   onNavigate: (sectionId: string) => void;
   sections: typeof providerConsoleSections;
 }) {
@@ -819,68 +824,73 @@ function ProviderSidebar({
         alignSelf: "start",
         background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
-        borderRadius: "22px",
+        borderRadius: "20px",
         boxShadow: "0 18px 40px rgba(15, 23, 42, 0.18)",
         display: "grid",
-        gap: "16px",
-        padding: "16px",
+        gap: "13px",
+        padding: "14px",
         position: "sticky",
-        top: "16px"
+        top: "16px",
+        width: "100%"
       }}
     >
-      <div style={{ alignItems: "center", display: "flex", gap: "10px", minWidth: 0 }}>
+      <div style={{ alignItems: "center", display: "flex", gap: "8px", minWidth: 0 }}>
         <span
           aria-hidden="true"
           style={{
             alignItems: "center",
             background: "rgba(255, 255, 255, 0.94)",
-            borderRadius: "16px",
+            borderRadius: "14px",
             display: "inline-flex",
             flexShrink: 0,
-            height: "42px",
+            height: "36px",
             justifyContent: "center",
             overflow: "hidden",
-            width: "42px"
+            width: "36px"
           }}
         >
-          <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "34px", objectFit: "contain", width: "34px" }} />
+          <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "29px", objectFit: "contain", width: "29px" }} />
         </span>
         <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
-          <strong style={{ color: "#f8fafc", fontSize: "14px", lineHeight: 1.15 }}>Pet Ecosystem</strong>
-          <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "11px" }}>Consola proveedor</span>
+          <strong style={{ color: "#f8fafc", fontSize: "11px", lineHeight: 1.12 }}>Pet Ecosystem</strong>
+          <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "8.5px" }}>Consola proveedor</span>
         </div>
       </div>
 
-      <nav aria-label="Secciones de consola proveedor" style={{ display: "grid", gap: "8px" }}>
-        {sections.map((section) => (
+      <nav aria-label="Secciones de consola proveedor" style={{ display: "grid", gap: "7px" }}>
+        {sections.map((section) => {
+          const isActive = section.id === activeSectionId;
+
+          return (
           <button
             key={section.id}
             onClick={() => onNavigate(section.id)}
             style={{
-              background: section.id === "provider-web-panel" ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "14px",
+              background: isActive ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
+              border: isActive ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "12px",
               color: "#f8fafc",
               cursor: "pointer",
               display: "grid",
               gap: "3px",
-              gridTemplateColumns: "22px minmax(0, 1fr)",
-              padding: "10px 11px",
+              gridTemplateColumns: "18px minmax(0, 1fr)",
+              padding: "8px 9px",
               textAlign: "left"
             }}
             type="button"
           >
-            <span style={{ color: section.id === "provider-web-panel" ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
-              <ProviderIcon name={providerSectionIcons[section.id]} size={16} />
+            <span style={{ color: isActive ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
+              <ProviderIcon name={providerSectionIcons[section.id]} size={14} />
             </span>
             <span style={{ display: "grid", gap: "3px" }}>
-              <strong style={{ color: section.id === "provider-web-panel" ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
+              <strong style={{ color: isActive ? "#99f6e4" : "#f8fafc", fontSize: "9.5px", lineHeight: 1.08 }}>
                 {section.label}
               </strong>
-              <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>
+              <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "7.8px", lineHeight: 1.18 }}>{section.detail}</span>
             </span>
           </button>
-        ))}
+          );
+        })}
       </nav>
     </aside>
   );
@@ -997,7 +1007,7 @@ function ProviderShell({
         borderRadius: "28px",
         display: "grid",
         gap: "18px",
-        gridTemplateColumns: "minmax(190px, 230px) minmax(0, 1fr)",
+        gridTemplateColumns: "minmax(148px, 174px) minmax(0, 1fr)",
         padding: "16px"
       }}
     >
@@ -1190,6 +1200,8 @@ export function ProvidersWorkspace({
   const [selectedCapacityDate, setSelectedCapacityDate] = useState<string | null>(null);
   const [capacitySlotsError, setCapacitySlotsError] = useState<string | null>(null);
   const [isLoadingCapacitySlots, setIsLoadingCapacitySlots] = useState(false);
+  const [activeProviderSectionId, setActiveProviderSectionId] = useState<(typeof providerConsoleSections)[number]["id"]>("provider-web-panel");
+  const [isPendingBookingsBreakdownOpen, setIsPendingBookingsBreakdownOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedOrganizationDetail) {
@@ -1405,6 +1417,13 @@ export function ProvidersWorkspace({
       organizationId: businessOverviews.find((overview) => !overview.hasDocuments)?.organization.id ?? null
     }
   ].filter((card) => card.count > 0);
+  const pendingBookingsByBusiness = businessOverviews
+    .map((overview) => ({
+      organization: overview.organization,
+      bookings: overview.pendingApprovalBookings
+    }))
+    .filter((group) => group.bookings.length > 0);
+  const pendingApprovalTotal = pendingBookingsByBusiness.reduce((total, group) => total + group.bookings.length, 0);
   const selectedBusinessOverview = selectedOrganizationId
     ? businessOverviews.find((overview) => overview.organization.id === selectedOrganizationId) ?? null
     : null;
@@ -1530,20 +1549,24 @@ export function ProvidersWorkspace({
     setIsAvailabilityFormOpen(false);
     setIsDocumentFormOpen(false);
   };
+  const navigateProviderSection = (sectionId: (typeof providerConsoleSections)[number]["id"] | string) => {
+    setActiveProviderSectionId(sectionId as (typeof providerConsoleSections)[number]["id"]);
+    scrollToProviderSection(sectionId);
+  };
   const openCreateBusiness = () => {
     clearMessages();
     closeProviderForms();
     setOrganizationMode("create");
     setOrganizationForm(emptyOrganizationForm);
     setIsBusinessFormOpen(true);
-    scrollToProviderSection("provider-web-business");
+    navigateProviderSection("provider-web-business");
   };
   const openCreateService = () => {
     clearMessages();
     closeProviderForms();
     setServiceForm(emptyServiceForm);
     setIsServiceFormOpen(true);
-    scrollToProviderSection("provider-web-services");
+    navigateProviderSection("provider-web-services");
   };
   const openGlobalAction = (sectionId: string, organizationId: Uuid | null) => {
     closeProviderForms();
@@ -1566,12 +1589,12 @@ export function ProvidersWorkspace({
     }
     if (organizationId && organizationId !== selectedOrganizationId) {
       void selectOrganization(organizationId).then(() => {
-        window.setTimeout(() => scrollToProviderSection(sectionId), 120);
+        window.setTimeout(() => navigateProviderSection(sectionId), 120);
       });
       return;
     }
 
-    scrollToProviderSection(sectionId);
+    navigateProviderSection(sectionId);
   };
   const toggleProviderBookingAccordion = (bookingId: Uuid) => {
     if (expandedProviderBookingId === bookingId) {
@@ -1607,7 +1630,7 @@ export function ProvidersWorkspace({
           <p style={{ margin: 0, color: "#57534e" }}>Cargando organizaciones de proveedores desde Supabase...</p>
         ) : (
           <ProviderShell
-            sidebar={<ProviderSidebar onNavigate={scrollToProviderSection} sections={providerConsoleSections} />}
+            sidebar={<ProviderSidebar activeSectionId={activeProviderSectionId} onNavigate={navigateProviderSection} sections={providerConsoleSections} />}
             topbar={
               <ProviderTopbar
                 approvalLabel={selectedOrganization ? providerApprovalStatusLabels[selectedOrganization.approvalStatus] : "Sin negocio activo"}
@@ -1730,74 +1753,107 @@ export function ProvidersWorkspace({
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "0.72fr 0.9fr 1.38fr", gap: "12px" }}>
-                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "8px", padding: "12px" }}>
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "8px", display: "grid", gap: "8px", padding: "10px" }}>
                     <div style={{ display: "grid", gap: "3px" }}>
-                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "6px", gap: "4px" }}>
-                        <ProviderIcon name="chart" size={12} />
+                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "5.5px", gap: "4px" }}>
+                        <ProviderIcon name="chart" size={10} />
                         Comparativo entre negocios
                       </strong>
-                      <span style={{ color: "#667085", fontSize: "6px" }}>Reservas por negocio</span>
+                      <span style={{ color: "#667085", fontSize: "5.5px" }}>Reservas por negocio</span>
                     </div>
-                    <div style={{ alignItems: "end", display: "flex", gap: "6px", minHeight: "122px", overflowX: "auto", paddingTop: "8px" }}>
+                    <div style={{ display: "grid", gap: "5px", maxHeight: "142px", overflowY: "auto", paddingRight: "2px" }}>
                       {businessOverviews.slice(0, 12).map((overview) => {
                         const totalBookings =
                           overview.bookingCounts.pending_approval +
                           overview.bookingCounts.confirmed +
                           overview.bookingCounts.completed +
                           overview.bookingCounts.cancelled;
+                        const barWidth = `${Math.max(8, Math.round((totalBookings / maxOverviewBookings) * 100))}%`;
 
                         return (
-                          <div key={overview.organization.id} style={{ alignItems: "center", display: "grid", gap: "4px", minWidth: "34px" }}>
+                          <div
+                            key={overview.organization.id}
+                            style={{
+                              alignItems: "center",
+                              display: "grid",
+                              gap: "5px",
+                              gridTemplateColumns: "minmax(48px, 0.82fr) minmax(52px, 1fr) 16px"
+                            }}
+                          >
+                            <span
+                              title={overview.organization.name}
+                              style={{
+                                color: "#475467",
+                                fontSize: "5.5px",
+                                fontWeight: 800,
+                                lineHeight: 1.12,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              {overview.organization.name}
+                            </span>
                             <div
                               style={{
-                                alignSelf: "end",
-                                background: overview.isMarketplaceVisible ? "#0ea5a4" : "#7c3aed",
-                                borderRadius: "6px 6px 3px 3px",
-                                height: `${getDashboardBarHeight(totalBookings, maxOverviewBookings)}px`,
-                                width: "19px"
+                                background: "rgba(15, 23, 42, 0.06)",
+                                borderRadius: "5px",
+                                height: "10px",
+                                overflow: "hidden"
                               }}
-                            />
-                            <span style={{ color: "#475467", fontSize: "6px", lineHeight: 1.12, textAlign: "center" }}>
-                              {overview.organization.name.split(/\s+/).slice(0, 2).join(" ")}
-                            </span>
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  background: overview.isMarketplaceVisible ? "#0ea5a4" : "#7c3aed",
+                                  borderRadius: "4px",
+                                  display: "block",
+                                  height: "100%",
+                                  width: barWidth
+                                }}
+                              />
+                            </div>
+                            <strong style={{ color: "#0b163f", fontSize: "6px", lineHeight: 1, textAlign: "right" }}>{totalBookings}</strong>
                           </div>
                         );
                       })}
                     </div>
                   </div>
 
-                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
+                  <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "10px", display: "grid", gap: "8px", padding: "12px" }}>
                     <div style={{ display: "grid", gap: "3px" }}>
-                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "9px", gap: "6px" }}>
-                        <ProviderIcon name="funnel" size={16} />
+                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "6px", gap: "4px" }}>
+                        <ProviderIcon name="funnel" size={12} />
                         Embudo comercial consolidado
                       </strong>
-                      <span style={{ color: "#667085", fontSize: "9px" }}>Derivado de publicacion y reservas</span>
+                      <span style={{ color: "#667085", fontSize: "5.5px" }}>Derivado de publicacion y reservas</span>
                     </div>
                     {[
-                      { label: "Negocios", value: organizations.length, width: "100%", color: "#102a56" },
-                      { label: "Publicados", value: publishedBusinessCount, width: "82%", color: "#155e95" },
-                      { label: "Servicios activos", value: activeServiceCount, width: "66%", color: "#0891b2" },
-                      { label: "Reservas", value: totalProviderBookingCount, width: "50%", color: "#14b8a6" },
-                      { label: "Completadas", value: completedMoneyIndicator.bookingCount, width: "36%", color: "#5eead4" }
+                      { label: "Negocios", value: organizations.length, width: "100%", color: "#102a56", shape: "polygon(4% 0, 96% 0, 88% 100%, 12% 100%)" },
+                      { label: "Publicados", value: publishedBusinessCount, width: "84%", color: "#155e95", shape: "polygon(6% 0, 94% 0, 86% 100%, 14% 100%)" },
+                      { label: "Servicios activos", value: activeServiceCount, width: "68%", color: "#0891b2", shape: "polygon(8% 0, 92% 0, 84% 100%, 16% 100%)" },
+                      { label: "Reservas", value: totalProviderBookingCount, width: "52%", color: "#14b8a6", shape: "polygon(10% 0, 90% 0, 80% 100%, 20% 100%)" },
+                      { label: "Completadas", value: completedMoneyIndicator.bookingCount, width: "38%", color: "#5eead4", shape: "polygon(14% 0, 86% 0, 74% 100%, 26% 100%)" }
                     ].map((step) => (
-                      <div key={step.label} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "minmax(80px, 1fr) 72px" }}>
+                      <div key={step.label} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "minmax(70px, 1fr) 32px" }}>
                         <div
                           style={{
                             background: step.color,
-                            borderRadius: "8px",
+                            borderRadius: "3px",
+                            clipPath: step.shape,
                             color: "#ffffff",
-                            fontSize: "11px",
+                            fontSize: "5.5px",
                             fontWeight: 800,
                             marginInline: "auto",
-                            padding: "8px 10px",
+                            minHeight: "22px",
+                            padding: "6px 10px",
                             textAlign: "center",
                             width: step.width
                           }}
                         >
                           {step.label}
                         </div>
-                        <strong style={{ color: "#0b163f", fontSize: "13px", textAlign: "right" }}>{step.value}</strong>
+                        <strong style={{ color: "#0b163f", fontSize: "7px", textAlign: "right" }}>{step.value}</strong>
                       </div>
                     ))}
                   </div>
@@ -2291,11 +2347,24 @@ export function ProvidersWorkspace({
                     {globalActionCards.map((card) => (
                       <button
                         key={card.id}
-                        onClick={() => openGlobalAction(card.sectionId, card.organizationId)}
+                        onClick={() => {
+                          if (card.id === "pending-bookings") {
+                            setIsPendingBookingsBreakdownOpen((current) => !current);
+                            return;
+                          }
+
+                          openGlobalAction(card.sectionId, card.organizationId);
+                        }}
                         style={{
                           borderRadius: "14px",
-                          border: "1px solid rgba(15, 118, 110, 0.16)",
-                          background: "linear-gradient(135deg, rgba(240, 253, 250, 0.96), rgba(255, 251, 235, 0.82))",
+                          border:
+                            card.id === "pending-bookings" && isPendingBookingsBreakdownOpen
+                              ? "1px solid rgba(15, 118, 110, 0.32)"
+                              : "1px solid rgba(15, 118, 110, 0.16)",
+                          background:
+                            card.id === "pending-bookings" && isPendingBookingsBreakdownOpen
+                              ? "linear-gradient(135deg, rgba(204, 251, 241, 0.9), rgba(255, 251, 235, 0.82))"
+                              : "linear-gradient(135deg, rgba(240, 253, 250, 0.96), rgba(255, 251, 235, 0.82))",
                           color: "#1c1917",
                           cursor: "pointer",
                           display: "grid",
@@ -2311,6 +2380,113 @@ export function ProvidersWorkspace({
                         <span style={{ color: "#57534e", fontSize: "12px", lineHeight: 1.35 }}>{card.help}</span>
                       </button>
                     ))}
+                  </div>
+                ) : null}
+                {isPendingBookingsBreakdownOpen ? (
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.96), rgba(240,253,250,0.78))",
+                      border: "1px solid rgba(15, 118, 110, 0.16)",
+                      borderRadius: "16px",
+                      display: "grid",
+                      gap: "12px",
+                      padding: "14px"
+                    }}
+                  >
+                    <div style={{ alignItems: "center", display: "flex", gap: "10px", justifyContent: "space-between", flexWrap: "wrap" }}>
+                      <div style={{ display: "grid", gap: "3px" }}>
+                        <strong style={{ color: "#0f172a", fontSize: "13px" }}>Citas pendientes por negocio</strong>
+                        <span style={{ color: "#667085", fontSize: "10px" }}>
+                          {pendingApprovalTotal} solicitud(es) esperando aprobacion en todos tus negocios.
+                        </span>
+                      </div>
+                      <ProviderStatusChip label={`${pendingBookingsByBusiness.length} negocio(s)`} tone={pendingBookingsByBusiness.length ? "warning" : "success"} />
+                    </div>
+                    {pendingBookingsByBusiness.length ? (
+                      <div style={{ display: "grid", gap: "10px" }}>
+                        {pendingBookingsByBusiness.map((group) => (
+                          <section
+                            key={group.organization.id}
+                            style={{
+                              background: "#fffdf8",
+                              border: "1px solid rgba(15, 118, 110, 0.12)",
+                              borderRadius: "12px",
+                              display: "grid",
+                              gap: "8px",
+                              padding: "10px"
+                            }}
+                          >
+                            <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "space-between" }}>
+                              <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
+                                <strong style={{ color: "#0f172a", fontSize: "10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {group.organization.name}
+                                </strong>
+                                <span style={{ color: "#667085", fontSize: "8px" }}>{group.organization.city}</span>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  void selectOrganization(group.organization.id).then(() => {
+                                    navigateProviderSection("provider-web-bookings");
+                                  });
+                                }}
+                                style={{
+                                  background: "rgba(15, 118, 110, 0.1)",
+                                  border: "1px solid rgba(15, 118, 110, 0.18)",
+                                  borderRadius: "999px",
+                                  color: "#0f766e",
+                                  cursor: "pointer",
+                                  fontSize: "7px",
+                                  fontWeight: 900,
+                                  padding: "5px 8px",
+                                  textTransform: "uppercase"
+                                }}
+                                type="button"
+                              >
+                                Ver negocio
+                              </button>
+                            </div>
+                            <div style={{ display: "grid", gap: "6px" }}>
+                              {group.bookings.slice(0, 5).map((booking) => (
+                                <article
+                                  key={booking.id}
+                                  style={{
+                                    alignItems: "center",
+                                    background: "rgba(240, 253, 250, 0.54)",
+                                    border: "1px solid rgba(15, 118, 110, 0.1)",
+                                    borderRadius: "10px",
+                                    display: "grid",
+                                    gap: "8px",
+                                    gridTemplateColumns: "minmax(0, 1fr) auto",
+                                    padding: "8px"
+                                  }}
+                                >
+                                  <div style={{ display: "grid", gap: "3px", minWidth: 0 }}>
+                                    <strong style={{ color: "#0f172a", fontSize: "9px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {booking.serviceName} - {booking.petName}
+                                    </strong>
+                                    <span style={{ color: "#667085", fontSize: "8px" }}>
+                                      {booking.customerDisplayName || booking.householdName} · {formatDateTime(booking.scheduledStartAt)}
+                                    </span>
+                                  </div>
+                                  <strong style={{ color: "#0f766e", fontSize: "9px", whiteSpace: "nowrap" }}>
+                                    {formatMoney(booking.totalPriceCents, booking.currencyCode)}
+                                  </strong>
+                                </article>
+                              ))}
+                              {group.bookings.length > 5 ? (
+                                <span style={{ color: "#b45309", fontSize: "8px", fontWeight: 800 }}>
+                                  + {group.bookings.length - 5} pendiente(s) adicional(es) en este negocio.
+                                </span>
+                              ) : null}
+                            </div>
+                          </section>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ ...controlStyle, background: "rgba(15, 118, 110, 0.08)", color: "#0f766e", fontWeight: 800 }}>
+                        No hay citas pendientes de aprobacion en tus negocios.
+                      </div>
+                    )}
                   </div>
                 ) : null}
               </ProviderCard>
@@ -2347,7 +2523,11 @@ export function ProvidersWorkspace({
                       scrollSnapType: "x proximity"
                     }}
                   >
-                    {organizations.map((organization) => (
+                    {organizations.map((organization) => {
+                      const overview = businessOverviews.find((item) => item.organization.id === organization.id);
+                      const publicationChecklist = overview ? getBusinessPublicationChecklist(overview) : [];
+
+                      return (
                     <article
                       key={organization.id}
                       style={{
@@ -2357,8 +2537,8 @@ export function ProvidersWorkspace({
                             ? "1px solid rgba(15, 118, 110, 0.28)"
                             : "1px solid rgba(28, 25, 23, 0.1)",
                         padding: "12px",
-                        minWidth: "220px",
-                        maxWidth: "250px",
+                        minWidth: "300px",
+                        maxWidth: "330px",
                         scrollSnapAlign: "start",
                         textAlign: "left",
                         background:
@@ -2455,8 +2635,50 @@ export function ProvidersWorkspace({
                         </span>
                       </div>
                       <span style={{ color: "#57534e", fontSize: "11px", paddingLeft: "46px" }}>{organization.city}</span>
-                      <span style={{ color: "#57534e", fontSize: "10px", paddingLeft: "46px" }}>{organization.isPublic ? "Visible al aprobarse" : "Privado"}</span>
                       </button>
+                      {publicationChecklist.length ? (
+                        <div
+                          aria-label={`Checklist de publicacion de ${organization.name}`}
+                          style={{
+                            display: "grid",
+                            gap: "5px",
+                            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                            paddingLeft: "46px"
+                          }}
+                        >
+                          {publicationChecklist.map((item) => (
+                            <span
+                              key={item.label}
+                              style={{
+                                alignItems: "center",
+                                color: item.done ? "#0f766e" : "#b45309",
+                                display: "inline-flex",
+                                fontSize: "8px",
+                                fontWeight: 850,
+                                gap: "5px",
+                                letterSpacing: "0.02em",
+                                minWidth: 0,
+                                textTransform: "uppercase"
+                              }}
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  background: item.done ? "rgba(15, 118, 110, 0.16)" : "rgba(245, 158, 11, 0.18)",
+                                  border: item.done ? "1px solid rgba(15, 118, 110, 0.24)" : "1px solid rgba(245, 158, 11, 0.28)",
+                                  borderRadius: "999px",
+                                  flexShrink: 0,
+                                  height: "8px",
+                                  width: "8px"
+                                }}
+                              />
+                              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {item.label}: {item.done ? "Listo" : "Pendiente"}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
                         <button
                           aria-label={`Editar ${organization.name}`}
@@ -2496,7 +2718,8 @@ export function ProvidersWorkspace({
                         </button>
                       </div>
                     </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p style={{ margin: 0, color: "#57534e" }}>Todavia no tienes negocios registrados. Crea el primero para preparar tu publicacion.</p>
@@ -2749,11 +2972,7 @@ export function ProvidersWorkspace({
               <article
                 id="provider-web-publication"
                 style={{
-                  borderRadius: "22px",
-                  padding: "20px",
-                  background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
-                  gap: "12px"
+                  display: "none"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
