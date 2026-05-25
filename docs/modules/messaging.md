@@ -40,6 +40,7 @@ Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una
 - mientras `Mensajes` esta activo en mobile, la app hace polling liviano de hilos y muestra un aviso emergente in-app con vibracion corta cuando detecta un mensaje entrante de la contraparte
 - owner mobile presenta la bandeja como una lista tipo correo: hilos ordenados de mas reciente a mas antiguo, cabecera compacta con fecha corta, negocio, mascota, servicio y preview; el detalle se despliega como acordeon dentro de la misma lista
 - el filtro visible de la bandeja owner se reduce a un selector compacto por estado de reserva, con Activas como vista inicial
+- web provider muestra conversaciones activas del negocio seleccionado dentro de `Reservas`, permite abrir el hilo y enviar respuestas de texto usando `POST /chats/{threadId}/messages`
 - push notifications en background/cerrado quedan fuera de este slice y deben abrirse como fase separada
 
 ## APIs relacionadas

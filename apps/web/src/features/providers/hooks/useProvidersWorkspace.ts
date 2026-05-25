@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingDetail, BookingStatus, BookingSummary, ProviderOrganization, ProviderOrganizationDetail, Uuid } from "@pet/types";
+import type { BookingDetail, BookingStatus, BookingSummary, ChatThreadDetail, ChatThreadSummary, ProviderOrganization, ProviderOrganizationDetail, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
 import { getBrowserBookingsApiClient, getBrowserMessagingApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
@@ -38,6 +38,9 @@ interface UseProvidersWorkspaceResult {
   selectedOrganizationId: Uuid | null;
   selectedOrganizationDetail: ProviderOrganizationDetail | null;
   providerBookings: BookingSummary[];
+  providerMessageThreads: ChatThreadSummary[];
+  selectedProviderMessageThreadDetail: ChatThreadDetail | null;
+  providerMessageDraft: string;
   selectedProviderBookingDetail: BookingDetail | null;
   errorMessage: string | null;
   infoMessage: string | null;
@@ -46,6 +49,9 @@ interface UseProvidersWorkspaceResult {
   clearMessages: () => void;
   selectOrganization: (organizationId: Uuid) => Promise<void>;
   openProviderBookingDetail: (bookingId: Uuid) => Promise<void>;
+  openProviderMessageThread: (threadId: Uuid) => Promise<void>;
+  sendProviderMessage: () => Promise<void>;
+  setProviderMessageDraft: (value: string) => void;
   approveProviderBooking: (bookingId: Uuid) => Promise<void>;
   rejectProviderBooking: (bookingId: Uuid, reason?: string | null) => Promise<void>;
   completeProviderBooking: (bookingId: Uuid) => Promise<void>;
@@ -61,6 +67,9 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   const [businessOverviews, setBusinessOverviews] = useState<ProviderBusinessOverview[]>([]);
   const [selectedOrganizationDetail, setSelectedOrganizationDetail] = useState<ProviderOrganizationDetail | null>(null);
   const [providerBookings, setProviderBookings] = useState<BookingSummary[]>([]);
+  const [providerMessageThreads, setProviderMessageThreads] = useState<ChatThreadSummary[]>([]);
+  const [selectedProviderMessageThreadDetail, setSelectedProviderMessageThreadDetail] = useState<ChatThreadDetail | null>(null);
+  const [providerMessageDraft, setProviderMessageDraft] = useState("");
   const [selectedProviderBookingDetail, setSelectedProviderBookingDetail] = useState<BookingDetail | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -104,6 +113,19 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     return detail;
   }
 
+  async function loadProviderMessageThreadDetail(threadId: Uuid) {
+    const detail = await getBrowserMessagingApiClient().getThreadDetail(threadId);
+
+    if (!mountedRef.current) {
+      return detail;
+    }
+
+    setSelectedProviderMessageThreadDetail(detail);
+    setProviderMessageDraft("");
+
+    return detail;
+  }
+
   async function loadOrganizationDetail(organizationId: Uuid) {
     const [detail, bookings] = await Promise.all([
       getBrowserProvidersApiClient().getProviderOrganizationDetail(organizationId),
@@ -120,6 +142,8 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     selectedOrganizationIdRef.current = detail.organization.id;
     setSelectedOrganizationDetail(detail);
     setProviderBookings(bookings);
+    setSelectedProviderMessageThreadDetail(null);
+    setProviderMessageDraft("");
 
     const persistedBookingId =
       bookings.find((booking) => booking.id === selectedBookingIdRef.current)?.id ??
@@ -141,6 +165,10 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   async function loadBusinessOverviews(nextOrganizations: ProviderOrganization[]) {
     const threads = await getBrowserMessagingApiClient().listThreads();
     const overviews: ProviderBusinessOverview[] = [];
+
+    if (mountedRef.current) {
+      setProviderMessageThreads(threads);
+    }
 
     for (const organization of nextOrganizations) {
       const detail = await getBrowserProvidersApiClient().getProviderOrganizationDetail(organization.id);
@@ -219,6 +247,9 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         setBusinessOverviews([]);
         setSelectedOrganizationDetail(null);
         setProviderBookings([]);
+        setProviderMessageThreads([]);
+        setSelectedProviderMessageThreadDetail(null);
+        setProviderMessageDraft("");
         setSelectedProviderBookingDetail(null);
         selectedOrganizationIdRef.current = null;
         selectedBookingIdRef.current = null;
@@ -246,6 +277,9 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
           selectedOrganizationIdRef.current = null;
           setSelectedOrganizationDetail(null);
           setBusinessOverviews([]);
+          setProviderMessageThreads([]);
+          setSelectedProviderMessageThreadDetail(null);
+          setProviderMessageDraft("");
           return;
       }
 
@@ -301,6 +335,9 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     selectedOrganizationId: selectedOrganizationIdRef.current,
     selectedOrganizationDetail,
     providerBookings,
+    providerMessageThreads,
+    selectedProviderMessageThreadDetail,
+    providerMessageDraft,
     selectedProviderBookingDetail,
     errorMessage,
     infoMessage,
@@ -316,6 +353,8 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       setIsLoading(true);
       selectedBookingIdRef.current = null;
       setSelectedProviderBookingDetail(null);
+      setSelectedProviderMessageThreadDetail(null);
+      setProviderMessageDraft("");
 
       try {
         await loadOrganizationDetail(organizationId);
@@ -350,6 +389,46 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         }
       }
     },
+    async openProviderMessageThread(threadId) {
+      setErrorMessage(null);
+      setInfoMessage(null);
+      setIsSubmitting(true);
+
+      try {
+        await loadProviderMessageThreadDetail(threadId);
+      } catch (error) {
+        if (mountedRef.current) {
+          setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar la conversacion.");
+        }
+      } finally {
+        if (mountedRef.current) {
+          setIsSubmitting(false);
+        }
+      }
+    },
+    async sendProviderMessage() {
+      const threadId = selectedProviderMessageThreadDetail?.thread.id ?? null;
+      const messageText = providerMessageDraft.trim();
+
+      if (!threadId || !messageText) {
+        return;
+      }
+
+      await runAction(async () => {
+        await getBrowserMessagingApiClient().sendMessage(threadId, { messageText });
+        const [detail, threads] = await Promise.all([
+          getBrowserMessagingApiClient().getThreadDetail(threadId),
+          getBrowserMessagingApiClient().listThreads()
+        ]);
+
+        if (mountedRef.current) {
+          setSelectedProviderMessageThreadDetail(detail);
+          setProviderMessageThreads(threads);
+          setProviderMessageDraft("");
+        }
+      }, "Mensaje enviado.");
+    },
+    setProviderMessageDraft,
     async approveProviderBooking(bookingId) {
       await runAction(async () => {
         const detail = await getBrowserBookingsApiClient().approveBooking(bookingId);
