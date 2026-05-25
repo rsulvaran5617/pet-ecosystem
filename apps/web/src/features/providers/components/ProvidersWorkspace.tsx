@@ -933,18 +933,18 @@ function ProviderTopbar({
         borderRadius: "20px",
         boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
         display: "flex",
-        gap: "12px",
+        gap: "10px",
         justifyContent: "space-between",
-        padding: "12px 14px",
+        padding: "10px 12px",
         position: "relative",
         zIndex: 3
       }}
     >
-      <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
-        <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+      <div style={{ display: "grid", gap: "3px", minWidth: "120px" }}>
+        <span style={{ color: "#0f766e", fontSize: "6px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
           Negocio activo
         </span>
-        <strong style={{ color: "#101828", fontSize: "18px", lineHeight: 1.1, overflow: "hidden", textOverflow: "ellipsis" }}>
+        <strong style={{ color: "#101828", fontSize: "11px", lineHeight: 1.05, maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis" }}>
           {selectedName}
         </strong>
       </div>
@@ -1007,7 +1007,8 @@ function ProviderShell({
         border: "1px solid rgba(15, 118, 110, 0.08)",
         borderRadius: "28px",
         display: "grid",
-        gap: "18px",
+        columnGap: "28px",
+        rowGap: "18px",
         gridTemplateColumns: "minmax(148px, 174px) minmax(0, 1fr)",
         padding: "16px"
       }}
@@ -1554,16 +1555,23 @@ export function ProvidersWorkspace({
     setIsDocumentFormOpen(false);
   };
   const navigateProviderSection = (sectionId: (typeof providerConsoleSections)[number]["id"] | string) => {
-    setActiveProviderSectionId(sectionId as (typeof providerConsoleSections)[number]["id"]);
+    const nextSectionId = sectionId === "provider-web-profile" ? "provider-web-publication" : sectionId;
+
+    if (nextSectionId === "provider-web-business") {
+      setOrganizationMode("edit");
+      setIsBusinessFormOpen(true);
+    }
+
+    setActiveProviderSectionId(nextSectionId as (typeof providerConsoleSections)[number]["id"]);
     scrollToProviderSection(sectionId);
   };
   const openCreateBusiness = () => {
     clearMessages();
     closeProviderForms();
+    navigateProviderSection("provider-web-business");
     setOrganizationMode("create");
     setOrganizationForm(emptyOrganizationForm);
     setIsBusinessFormOpen(true);
-    navigateProviderSection("provider-web-business");
   };
   const openCreateService = () => {
     clearMessages();
@@ -1655,7 +1663,7 @@ export function ProvidersWorkspace({
               />
             }
           >
-            <div id="provider-web-panel" style={{ display: "grid", gap: "14px" }}>
+            <div id="provider-web-panel" style={{ display: activeProviderSectionId === "provider-web-panel" ? "grid" : "none", gap: "14px" }}>
               <ProviderCard
                 style={{
                   background: "#f8fafc",
@@ -2233,7 +2241,7 @@ export function ProvidersWorkspace({
                                 onClick={() => {
                                   closeProviderForms();
                                   void selectOrganization(organization.id).then(() => {
-                                    window.setTimeout(() => scrollToProviderSection("provider-web-business"), 120);
+                                    window.setTimeout(() => navigateProviderSection("provider-web-business"), 120);
                                   });
                                 }}
                                 tone={isSelected ? "primary" : "secondary"}
@@ -2496,7 +2504,14 @@ export function ProvidersWorkspace({
               </ProviderCard>
             </div>
 
-            <div style={{ gridColumn: "1 / -1", display: "grid", gap: "18px", alignContent: "start" }}>
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                display: activeProviderSectionId === "provider-web-organizations" || activeProviderSectionId === "provider-web-business" ? "grid" : "none",
+                gap: "18px",
+                alignContent: "start"
+              }}
+            >
               <article
                 id="provider-web-organizations"
                 style={{
@@ -2504,7 +2519,7 @@ export function ProvidersWorkspace({
                   borderRadius: "22px",
                   padding: "20px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
+                  display: activeProviderSectionId === "provider-web-organizations" ? "grid" : "none",
                   gap: "12px"
                 }}
               >
@@ -2698,7 +2713,7 @@ export function ProvidersWorkspace({
                             });
                             setIsBusinessFormOpen(true);
                             void selectOrganization(organization.id);
-                            window.setTimeout(() => scrollToProviderSection("provider-web-business"), 120);
+                            window.setTimeout(() => navigateProviderSection("provider-web-business"), 120);
                           }}
                           style={{
                             borderRadius: "999px",
@@ -2733,10 +2748,10 @@ export function ProvidersWorkspace({
                     disabled={isSubmitting}
                     onClick={() => {
                       clearMessages();
+                      navigateProviderSection("provider-web-business");
                       setOrganizationMode("create");
                       setOrganizationForm(emptyOrganizationForm);
                       setIsBusinessFormOpen(true);
-                      scrollToProviderSection("provider-web-business");
                     }}
                     tone="secondary"
                   >
@@ -2754,7 +2769,7 @@ export function ProvidersWorkspace({
                   borderRadius: "22px",
                   padding: "20px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: isBusinessFormOpen ? "grid" : "none",
+                  display: activeProviderSectionId === "provider-web-business" && isBusinessFormOpen ? "grid" : "none",
                   gap: "12px"
                 }}
               >
@@ -2972,11 +2987,18 @@ export function ProvidersWorkspace({
               </article>
             </div>
 
-            <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
+            <div
+              style={{
+                display: activeProviderSectionId === "provider-web-publication" || activeProviderSectionId === "provider-web-bookings" ? "grid" : "none",
+                gap: "18px",
+                alignContent: "start"
+              }}
+            >
               <article
                 id="provider-web-publication"
                 style={{
-                  display: "none"
+                  display: activeProviderSectionId === "provider-web-publication" ? "grid" : "none",
+                  gap: "12px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
@@ -3069,7 +3091,7 @@ export function ProvidersWorkspace({
                                     setOrganizationMode("edit");
                                     setIsBusinessFormOpen(true);
                                   }
-                                  scrollToProviderSection(action.sectionId);
+                                  navigateProviderSection(action.sectionId);
                                 }}
                                 style={{
                                   borderRadius: "14px",
@@ -3115,13 +3137,27 @@ export function ProvidersWorkspace({
                   borderRadius: "22px",
                   padding: "20px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
+                  display: activeProviderSectionId === "provider-web-bookings" ? "grid" : "none",
                   gap: "12px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0 }}>Reservas entrantes</h3>
-                  <StatusPill label={`${providerBookings.length} en total`} tone="neutral" />
+                  <h3 style={{ margin: 0, fontSize: "15px" }}>Reservas entrantes</h3>
+                  <span
+                    style={{
+                      background: "rgba(255, 255, 255, 0.72)",
+                      border: "1px solid rgba(28, 25, 23, 0.12)",
+                      borderRadius: "999px",
+                      color: "#44403c",
+                      fontSize: "8px",
+                      fontWeight: 900,
+                      letterSpacing: "0.06em",
+                      padding: "5px 9px",
+                      textTransform: "uppercase"
+                    }}
+                  >
+                    {providerBookings.length} en total
+                  </span>
                 </div>
                 {selectedOrganization ? (
                   <>
@@ -3158,12 +3194,12 @@ export function ProvidersWorkspace({
                                 : "#57534e",
                               cursor: "pointer",
                               display: "inline-flex",
-                              fontSize: "9px",
+                              fontSize: "6.5px",
                               fontWeight: 900,
                               gap: "5px",
                               letterSpacing: "0.05em",
-                              minHeight: "26px",
-                              padding: "6px 10px",
+                              minHeight: "22px",
+                              padding: "5px 8px",
                               textTransform: "uppercase"
                             }}
                             type="button"
@@ -3208,7 +3244,7 @@ export function ProvidersWorkspace({
                                 type="button"
                               >
                                 <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                                  <strong style={{ fontSize: "12px", lineHeight: 1.15 }}>{booking.serviceName}</strong>
+                                  <strong style={{ fontSize: "8.5px", lineHeight: 1.15 }}>{booking.serviceName}</strong>
                                   <span
                                     style={{
                                       borderRadius: "999px",
@@ -3231,25 +3267,25 @@ export function ProvidersWorkspace({
                                             ? "#44403c"
                                             : "#0f766e",
                                       flexShrink: 0,
-                                      fontSize: "7px",
+                                      fontSize: "5px",
                                       fontWeight: 800,
                                       letterSpacing: "0.08em",
-                                      padding: "4px 7px",
+                                      padding: "3px 6px",
                                       textTransform: "uppercase"
                                     }}
                                   >
                                     {bookingStatusLabels[booking.status]}
                                   </span>
                                 </div>
-                                <span style={{ color: "#57534e", fontSize: "10px", lineHeight: 1.35 }}>
+                                <span style={{ color: "#57534e", fontSize: "7px", lineHeight: 1.35 }}>
                                   {booking.householdName} - {booking.customerDisplayName}
                                 </span>
-                                <span style={{ color: "#57534e", fontSize: "10px", lineHeight: 1.35 }}>
+                                <span style={{ color: "#57534e", fontSize: "7px", lineHeight: 1.35 }}>
                                   {booking.petName} - {formatDateTime(booking.scheduledStartAt)}
                                 </span>
                                 <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                                  <strong style={{ fontSize: "10px" }}>{formatMoney(booking.totalPriceCents, booking.currencyCode)}</strong>
-                                  <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 800 }}>
+                                  <strong style={{ fontSize: "7px" }}>{formatMoney(booking.totalPriceCents, booking.currencyCode)}</strong>
+                                  <span style={{ color: "#0f766e", fontSize: "7px", fontWeight: 800 }}>
                                     {isExpanded ? "Ocultar" : "Ver detalle"}
                                   </span>
                                 </div>
@@ -3352,7 +3388,7 @@ export function ProvidersWorkspace({
                   borderRadius: "22px",
                   padding: "20px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
+                  display: activeProviderSectionId === "provider-web-publication" ? "grid" : "none",
                   gap: "12px"
                 }}
               >
@@ -3546,14 +3582,20 @@ export function ProvidersWorkspace({
               </article>
             </div>
 
-            <div style={{ display: "grid", gap: "18px", alignContent: "start" }}>
+            <div
+              style={{
+                display: activeProviderSectionId === "provider-web-services" || activeProviderSectionId === "provider-web-availability" ? "grid" : "none",
+                gap: "18px",
+                alignContent: "start"
+              }}
+            >
               <article
                 id="provider-web-services"
                 style={{
                   borderRadius: "22px",
                   padding: "20px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
+                  display: activeProviderSectionId === "provider-web-services" ? "grid" : "none",
                   gap: "12px"
                 }}
               >
@@ -3751,7 +3793,7 @@ export function ProvidersWorkspace({
                                       isActive: service.isActive
                                     });
                                     setIsServiceFormOpen(true);
-                                    scrollToProviderSection("provider-web-services");
+                                    navigateProviderSection("provider-web-services");
                                   }}
                                   style={{
                                     borderRadius: "999px",
@@ -3834,7 +3876,7 @@ export function ProvidersWorkspace({
                   borderRadius: "18px",
                   padding: "14px",
                   background: "rgba(247, 242, 231, 0.72)",
-                  display: "grid",
+                  display: activeProviderSectionId === "provider-web-availability" ? "grid" : "none",
                   gap: "9px"
                 }}
               >
