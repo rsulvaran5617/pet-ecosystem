@@ -133,6 +133,7 @@ Modelo recomendado CAP-0:
 - el panel consolidado de web provider carga detalles y reservas de negocios de forma secuencial para evitar resultados incompletos por concurrencia de multiples consultas Supabase/Auth en navegador
 - la navegacion lateral de web provider funciona como consola por seccion: al seleccionar Panel, Negocios, Servicios, Reservas, Agenda/Capacidad, Publicacion o Documentos se muestra solo el contenido de esa seccion para reducir ruido operativo sin cambiar consultas ni reglas de negocio
 - web provider muestra `Conversaciones activas` dentro de Reservas como bandeja de chats vinculados a bookings del negocio activo y permite responder mensajes de texto usando el contrato existente de `messaging`
+- web provider muestra un aviso in-app minimalista cuando detecta una nueva reserva `pending_approval` mientras la consola esta abierta; el aviso usa polling controlado, no Supabase Realtime ni push web, y permite saltar a `Reservas` del negocio correspondiente
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

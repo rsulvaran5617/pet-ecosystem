@@ -12,6 +12,7 @@ import {
 } from "@pet/config";
 import type {
   BookingMode,
+  BookingSummary,
   BookingStatus,
   BookingSlot,
   CreateProviderAvailabilityRuleInput,
@@ -23,7 +24,7 @@ import type {
   UpdateProviderServiceInput,
   Uuid
 } from "@pet/types";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
@@ -52,6 +53,8 @@ const compactScheduleControlStyle = {
   padding: "6px 7px",
   width: "100%"
 };
+
+const providerBookingNoticePollMs = 30_000;
 
 type OrganizationFormState = Required<UpdateProviderOrganizationInput>;
 type PublicProfileFormState = {
@@ -97,6 +100,11 @@ type DocumentFormState = {
   title: string;
   documentType: ProviderApprovalDocumentType;
   file: File | null;
+};
+type ProviderBookingNotice = {
+  booking: BookingSummary;
+  organizationId: Uuid;
+  organizationName: string;
 };
 
 const providerConsoleSections = [
@@ -813,6 +821,88 @@ function ProviderStatusChip({ label, tone = "neutral" }: { label: string; tone?:
   );
 }
 
+function ProviderBookingNoticeToast({
+  notice,
+  onClose,
+  onOpen
+}: {
+  notice: ProviderBookingNotice;
+  onClose: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <div
+      role="status"
+      style={{
+        alignItems: "start",
+        background: "#fffdf8",
+        border: "1px solid rgba(15, 118, 110, 0.22)",
+        borderRadius: "16px",
+        bottom: "22px",
+        boxShadow: "0 18px 44px rgba(15, 23, 42, 0.18)",
+        display: "grid",
+        gap: "10px",
+        maxWidth: "340px",
+        padding: "14px",
+        position: "fixed",
+        right: "22px",
+        width: "calc(100vw - 44px)",
+        zIndex: 80
+      }}
+    >
+      <div style={{ alignItems: "start", display: "flex", gap: "10px", justifyContent: "space-between" }}>
+        <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
+          <span style={{ color: "#0f766e", fontSize: "9px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Nueva solicitud
+          </span>
+          <strong style={{ color: "#0b163f", fontSize: "13px", lineHeight: 1.2 }}>{notice.booking.serviceName}</strong>
+          <span style={{ color: "#57534e", fontSize: "11px", lineHeight: 1.35 }}>
+            {notice.organizationName} · {notice.booking.petName} · {formatDateTime(notice.booking.scheduledStartAt)}
+          </span>
+        </div>
+        <button
+          aria-label="Cerrar aviso"
+          onClick={onClose}
+          style={{
+            alignItems: "center",
+            background: "#f5f2ea",
+            border: "1px solid rgba(28, 25, 23, 0.12)",
+            borderRadius: "999px",
+            color: "#57534e",
+            cursor: "pointer",
+            display: "inline-flex",
+            fontSize: "12px",
+            fontWeight: 900,
+            height: "24px",
+            justifyContent: "center",
+            width: "24px"
+          }}
+          type="button"
+        >
+          x
+        </button>
+      </div>
+      <button
+        onClick={onOpen}
+        style={{
+          background: "#0f766e",
+          border: "1px solid #0f766e",
+          borderRadius: "999px",
+          color: "#ffffff",
+          cursor: "pointer",
+          fontSize: "11px",
+          fontWeight: 900,
+          padding: "8px 12px",
+          width: "fit-content"
+        }}
+        type="button"
+      >
+        Ver reserva
+      </button>
+    </div>
+  );
+}
+
 function ProviderCard({
   children,
   id,
@@ -1287,6 +1377,9 @@ export function ProvidersWorkspace({
   const [activeProviderSectionId, setActiveProviderSectionId] = useState<(typeof providerConsoleSections)[number]["id"]>("provider-web-panel");
   const [isPendingBookingsBreakdownOpen, setIsPendingBookingsBreakdownOpen] = useState(false);
   const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatus>("pending_approval");
+  const [bookingNotice, setBookingNotice] = useState<ProviderBookingNotice | null>(null);
+  const knownPendingBookingIdsRef = useRef<Set<string>>(new Set());
+  const hasSeededBookingNoticeRef = useRef(false);
 
   useEffect(() => {
     if (!selectedOrganizationDetail) {
@@ -1318,6 +1411,75 @@ export function ProvidersWorkspace({
     setSelectedCapacityDate(null);
     setCapacitySlotsError(null);
   }, [selectedOrganizationDetail]);
+
+  useEffect(() => {
+    if (!enabled || !hasProviderRole || !providerRoleActive || !organizations.length) {
+      knownPendingBookingIdsRef.current = new Set();
+      hasSeededBookingNoticeRef.current = false;
+      setBookingNotice(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const pollPendingBookings = async () => {
+      if (document.hidden) {
+        return;
+      }
+
+      const pendingBookings: ProviderBookingNotice[] = [];
+      const bookingsApiClient = getBrowserBookingsApiClient();
+
+      for (const organization of organizations) {
+        const bookings = await bookingsApiClient.listProviderBookings({
+          organizationId: organization.id,
+          includeCancelled: false
+        });
+
+        bookings
+          .filter((booking) => booking.status === "pending_approval")
+          .forEach((booking) => {
+            pendingBookings.push({
+              booking,
+              organizationId: organization.id,
+              organizationName: organization.name
+            });
+          });
+      }
+
+      if (isCancelled) {
+        return;
+      }
+
+      const nextPendingIds = new Set(pendingBookings.map((notice) => notice.booking.id));
+
+      if (!hasSeededBookingNoticeRef.current) {
+        knownPendingBookingIdsRef.current = nextPendingIds;
+        hasSeededBookingNoticeRef.current = true;
+        return;
+      }
+
+      const newNotices = pendingBookings
+        .filter((notice) => !knownPendingBookingIdsRef.current.has(notice.booking.id))
+        .sort((leftNotice, rightNotice) => rightNotice.booking.createdAt.localeCompare(leftNotice.booking.createdAt));
+
+      knownPendingBookingIdsRef.current = nextPendingIds;
+
+      if (newNotices[0]) {
+        setBookingNotice(newNotices[0]);
+      }
+    };
+
+    void pollPendingBookings().catch(() => undefined);
+    const intervalId = window.setInterval(() => {
+      void pollPendingBookings().catch(() => undefined);
+    }, providerBookingNoticePollMs);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [enabled, hasProviderRole, providerRoleActive, organizations]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
@@ -1723,6 +1885,29 @@ export function ProvidersWorkspace({
     setExpandedProviderBookingId(bookingId);
     void openProviderBookingDetail(bookingId);
   };
+  const openBookingNotice = () => {
+    if (!bookingNotice) {
+      return;
+    }
+
+    const nextNotice = bookingNotice;
+    setBookingNotice(null);
+    setBookingStatusFilter("pending_approval");
+    setExpandedProviderBookingId(nextNotice.booking.id);
+
+    const openNotifiedBooking = async () => {
+      if (nextNotice.organizationId !== selectedOrganizationId) {
+        await selectOrganization(nextNotice.organizationId);
+      } else {
+        await refresh(nextNotice.organizationId);
+      }
+
+      navigateProviderSection("provider-web-bookings");
+      await openProviderBookingDetail(nextNotice.booking.id);
+    };
+
+    void openNotifiedBooking();
+  };
 
   if (!enabled) {
     return null;
@@ -1734,6 +1919,9 @@ export function ProvidersWorkspace({
     <div style={{ display: "grid", gap: "24px" }}>
       {visibleErrorMessage ? <Notice message={visibleErrorMessage} tone="error" /> : null}
       {!visibleErrorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
+      {bookingNotice ? (
+        <ProviderBookingNoticeToast notice={bookingNotice} onClose={() => setBookingNotice(null)} onOpen={openBookingNotice} />
+      ) : null}
 
       <CoreSection
         eyebrow="Consola web proveedor"
@@ -2894,17 +3082,17 @@ export function ProvidersWorkspace({
               <article
                 id="provider-web-business"
                 style={{
-                  borderRadius: "22px",
-                  padding: "20px",
+                  borderRadius: "18px",
+                  padding: "14px",
                   background: "rgba(247, 242, 231, 0.72)",
                   display: activeProviderSectionId === "provider-web-business" && isBusinessFormOpen ? "grid" : "none",
-                  gap: "12px"
+                  gap: "10px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "20px" }}>{organizationMode === "create" ? "Nuevo negocio" : "Datos del negocio"}</h3>
-                    <span style={{ color: "#57534e", fontSize: "13px" }}>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>{organizationMode === "create" ? "Nuevo negocio" : "Datos del negocio"}</h3>
+                    <span style={{ color: "#57534e", fontSize: "8px" }}>
                       Edita los datos base que identifican tu negocio.
                     </span>
                   </div>
@@ -2922,8 +3110,9 @@ export function ProvidersWorkspace({
                       background: isBusinessFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
                       color: isBusinessFormOpen ? "#0f766e" : "#f8fafc",
                       cursor: "pointer",
+                      fontSize: "9px",
                       fontWeight: 800,
-                      padding: "9px 13px"
+                      padding: "6px 10px"
                     }}
                     type="button"
                   >
@@ -2961,14 +3150,14 @@ export function ProvidersWorkspace({
                       setIsBusinessFormOpen(false);
                     });
                   }}
-                  style={{ display: "grid", gap: "12px" }}
+                  style={{ display: "grid", gap: "9px" }}
                 >
-                  <Field label="Nombre del negocio" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
-                  <Field label="Identificador publico" onChange={(value) => setOrganizationForm((current) => ({ ...current, slug: value }))} value={organizationForm.slug} />
-                  <Field label="Ciudad" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
-                  <Field label="Pais" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
+                  <Field compact label="Nombre del negocio" onChange={(value) => setOrganizationForm((current) => ({ ...current, name: value }))} value={organizationForm.name} />
+                  <Field compact label="Identificador publico" onChange={(value) => setOrganizationForm((current) => ({ ...current, slug: value }))} value={organizationForm.slug} />
+                  <Field compact label="Ciudad" onChange={(value) => setOrganizationForm((current) => ({ ...current, city: value }))} value={organizationForm.city} />
+                  <Field compact label="Pais" onChange={(value) => setOrganizationForm((current) => ({ ...current, countryCode: value }))} value={organizationForm.countryCode} />
                   <CheckField checked={organizationForm.isPublic} label="Permitir publicacion publica al aprobarse" onChange={(value) => setOrganizationForm((current) => ({ ...current, isPublic: value }))} />
-                  <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     <Button disabled={isSubmitting} type="submit">
                       {organizationMode === "create" ? "Crear negocio" : "Guardar negocio"}
                     </Button>
@@ -2992,17 +3181,17 @@ export function ProvidersWorkspace({
                     style={{
                       borderTop: "1px solid rgba(28, 25, 23, 0.1)",
                       display: "grid",
-                      gap: "12px",
+                      gap: "10px",
                       marginTop: "6px",
-                      paddingTop: "16px"
+                      paddingTop: "12px"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                       <div style={{ display: "grid", gap: "4px" }}>
-                        <h4 style={{ margin: 0, fontSize: "18px" }}>Documentos de aprobacion</h4>
-                        <span style={{ color: "#57534e", fontSize: "13px" }}>Expediente maestro requerido para revision del negocio.</span>
+                        <h4 style={{ margin: 0, fontSize: "12px" }}>Documentos de aprobacion</h4>
+                        <span style={{ color: "#57534e", fontSize: "8px" }}>Expediente maestro requerido para revision del negocio.</span>
                       </div>
-                      <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: "7px", alignItems: "center", flexWrap: "wrap" }}>
                         <StatusPill label={`${selectedDocuments.length} cargados`} tone="neutral" />
                         <button
                           disabled={isSubmitting}
@@ -3013,8 +3202,9 @@ export function ProvidersWorkspace({
                             background: isDocumentFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
                             color: isDocumentFormOpen ? "#0f766e" : "#f8fafc",
                             cursor: isSubmitting ? "not-allowed" : "pointer",
+                            fontSize: "9px",
                             fontWeight: 800,
-                            padding: "9px 13px"
+                            padding: "6px 10px"
                           }}
                           type="button"
                         >
@@ -3052,10 +3242,11 @@ export function ProvidersWorkspace({
                             setIsDocumentFormOpen(false);
                           });
                         }}
-                        style={{ display: "grid", gap: "12px" }}
+                        style={{ display: "grid", gap: "9px" }}
                       >
-                        <Field label="Titulo del documento" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
+                        <Field compact label="Titulo del documento" onChange={(value) => setDocumentForm((current) => ({ ...current, title: value }))} value={documentForm.title} />
                         <SelectField<ProviderApprovalDocumentType>
+                          compact
                           label="Tipo de documento"
                           onChange={(value) => setDocumentForm((current) => ({ ...current, documentType: value }))}
                           options={providerApprovalDocumentTypeOrder.map((documentType) => ({
@@ -3073,7 +3264,7 @@ export function ProvidersWorkspace({
                                 file: event.target.files?.[0] ?? null
                               }))
                             }
-                            style={{ ...controlStyle, padding: "10px 14px" }}
+                            style={{ ...compactScheduleControlStyle, padding: "6px 7px" }}
                             type="file"
                           />
                         </label>
@@ -3084,31 +3275,31 @@ export function ProvidersWorkspace({
                     ) : null}
 
                     {selectedDocuments.length ? (
-                      <div style={{ display: "grid", gap: "12px" }}>
+                      <div style={{ display: "grid", gap: "8px" }}>
                         {selectedDocuments.map((document) => (
                           <article
                             key={document.id}
                             style={{
-                              borderRadius: "18px",
-                              padding: "14px 16px",
+                              borderRadius: "12px",
+                              padding: "10px 12px",
                               background: "rgba(255,255,255,0.72)",
                               display: "grid",
-                              gap: "8px"
+                              gap: "5px"
                             }}
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                              <strong>{document.title}</strong>
+                              <strong style={{ fontSize: "8.5px" }}>{document.title}</strong>
                               <StatusPill label={providerApprovalDocumentTypeLabels[document.documentType]} tone="neutral" />
                             </div>
-                            <span style={{ color: "#57534e" }}>{document.fileName}</span>
-                            <span style={{ color: "#57534e" }}>
+                            <span style={{ color: "#57534e", fontSize: "8px" }}>{document.fileName}</span>
+                            <span style={{ color: "#57534e", fontSize: "8px" }}>
                               {document.mimeType ?? "Tipo de archivo desconocido"}  -  {formatFileSize(document.fileSizeBytes)}
                             </span>
                           </article>
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay documentos de aprobacion cargados para este negocio.</p>
+                      <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>Todavia no hay documentos de aprobacion cargados para este negocio.</p>
                     )}
                   </section>
                 ) : null}
@@ -3126,11 +3317,11 @@ export function ProvidersWorkspace({
                 id="provider-web-publication"
                 style={{
                   display: activeProviderSectionId === "provider-web-publication" ? "grid" : "none",
-                  gap: "12px"
+                  gap: "9px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: "12px" }}>Publicacion</h3>
+                  <h3 style={{ margin: 0, fontSize: "10px" }}>Publicacion</h3>
                   {selectedOrganization ? (
                     <span
                       style={{
@@ -3153,10 +3344,10 @@ export function ProvidersWorkspace({
                             : selectedOrganization.approvalStatus === "rejected"
                               ? "#44403c"
                               : "#b45309",
-                        fontSize: "7px",
+                        fontSize: "6px",
                         fontWeight: 800,
                         letterSpacing: "0.08em",
-                        padding: "4px 7px",
+                        padding: "3px 6px",
                         textTransform: "uppercase"
                       }}
                     >
@@ -3166,29 +3357,29 @@ export function ProvidersWorkspace({
                 </div>
                 {selectedOrganization ? (
                   <>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "8px" }}>
-                      <div style={{ ...controlStyle, display: "grid", gap: "5px", padding: "10px 12px" }}>
-                        <strong style={{ fontSize: "10px" }}>Visibilidad</strong>
-                        <span style={{ color: "#57534e", fontSize: "9px" }}>{selectedOrganization.isPublic ? "Publico al aprobarse" : "Privado incluso si se aprueba"}</span>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "7px" }}>
+                      <div style={{ ...controlStyle, display: "grid", gap: "4px", padding: "8px 10px" }}>
+                        <strong style={{ fontSize: "8px" }}>Visibilidad</strong>
+                        <span style={{ color: "#57534e", fontSize: "7px" }}>{selectedOrganization.isPublic ? "Publico al aprobarse" : "Privado incluso si se aprueba"}</span>
                       </div>
-                      <div style={{ ...controlStyle, display: "grid", gap: "5px", padding: "10px 12px" }}>
-                        <strong style={{ fontSize: "10px" }}>Aparicion en busqueda</strong>
-                        <span style={{ color: "#57534e", fontSize: "9px" }}>{isMarketplaceVisible ? "Visible en el marketplace" : "Oculto en el marketplace"}</span>
+                      <div style={{ ...controlStyle, display: "grid", gap: "4px", padding: "8px 10px" }}>
+                        <strong style={{ fontSize: "8px" }}>Aparicion en busqueda</strong>
+                        <span style={{ color: "#57534e", fontSize: "7px" }}>{isMarketplaceVisible ? "Visible en el marketplace" : "Oculto en el marketplace"}</span>
                       </div>
                     </div>
-                    <div style={{ display: "grid", gap: "10px" }}>
+                    <div style={{ display: "grid", gap: "8px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                        <strong style={{ fontSize: "10px" }}>Pendientes del negocio</strong>
+                        <strong style={{ fontSize: "8px" }}>Pendientes del negocio</strong>
                         <span
                           style={{
                             borderRadius: "999px",
                             border: pendingReadinessItems.length ? "1px solid rgba(180, 83, 9, 0.24)" : "1px solid rgba(15, 118, 110, 0.24)",
                             background: pendingReadinessItems.length ? "rgba(180, 83, 9, 0.12)" : "rgba(15, 118, 110, 0.12)",
                             color: pendingReadinessItems.length ? "#b45309" : "#0f766e",
-                            fontSize: "7px",
+                            fontSize: "6px",
                             fontWeight: 800,
                             letterSpacing: "0.08em",
-                            padding: "4px 7px",
+                            padding: "3px 6px",
                             textTransform: "uppercase"
                           }}
                         >
@@ -3196,7 +3387,7 @@ export function ProvidersWorkspace({
                         </span>
                       </div>
                       {pendingReadinessItems.length ? (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "10px" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "8px" }}>
                           {pendingReadinessItems.map((item) => {
                             const action = getProviderReadinessAction(item.label);
 
@@ -3222,23 +3413,23 @@ export function ProvidersWorkspace({
                                   navigateProviderSection(action.sectionId);
                                 }}
                                 style={{
-                                  borderRadius: "14px",
+                                  borderRadius: "12px",
                                   border: "1px solid rgba(180, 83, 9, 0.16)",
                                   background: "rgba(254, 243, 199, 0.42)",
                                   color: "#1c1917",
                                   cursor: "pointer",
                                   display: "grid",
-                                  gap: "6px",
-                                  padding: "10px",
+                                  gap: "4px",
+                                  padding: "8px",
                                   textAlign: "left"
                                 }}
                                 type="button"
                               >
-                                <span style={{ color: "#b45309", fontSize: "7px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                                <span style={{ color: "#b45309", fontSize: "6px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                                   Pendiente
                                 </span>
-                                <strong style={{ fontSize: "9px" }}>{item.label}</strong>
-                                <span style={{ color: "#0f766e", fontSize: "13px", fontWeight: 800 }}>{action.actionLabel} &gt;</span>
+                                <strong style={{ fontSize: "7.5px" }}>{item.label}</strong>
+                                <span style={{ color: "#0f766e", fontSize: "9px", fontWeight: 800 }}>{action.actionLabel} &gt;</span>
                               </button>
                             );
                           })}
@@ -3250,7 +3441,7 @@ export function ProvidersWorkspace({
                         </div>
                       )}
                     </div>
-                    <p style={{ margin: 0, color: "#57534e", lineHeight: 1.7 }}>
+                    <p style={{ margin: 0, color: "#57534e", fontSize: "9px", lineHeight: 1.55 }}>
                       Tu negocio aparece para propietarios cuando esta aprobado, visible, con perfil publico y al menos un servicio activo.
                     </p>
                   </>
@@ -3660,19 +3851,19 @@ export function ProvidersWorkspace({
               <article
                 id="provider-web-profile"
                 style={{
-                  borderRadius: "22px",
-                  padding: "20px",
+                  borderRadius: "18px",
+                  padding: "14px",
                   background: "rgba(247, 242, 231, 0.72)",
                   display: activeProviderSectionId === "provider-web-publication" ? "grid" : "none",
-                  gap: "12px"
+                  gap: "10px"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "20px" }}>Perfil publico</h3>
-                    <span style={{ color: "#57534e", fontSize: "13px" }}>Presentacion que veran los propietarios.</span>
+                    <h3 style={{ margin: 0, fontSize: "12px" }}>Perfil publico</h3>
+                    <span style={{ color: "#57534e", fontSize: "8px" }}>Presentacion que veran los propietarios.</span>
                   </div>
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "7px", alignItems: "center", flexWrap: "wrap" }}>
                     {selectedPublicProfile ? <StatusPill label={selectedPublicProfile.isPublic ? "publico" : "oculto"} tone={selectedPublicProfile.isPublic ? "active" : "neutral"} /> : null}
                     <button
                       disabled={!selectedOrganization || isSubmitting}
@@ -3683,8 +3874,9 @@ export function ProvidersWorkspace({
                         background: isProfileFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
                         color: isProfileFormOpen ? "#0f766e" : "#f8fafc",
                         cursor: selectedOrganization ? "pointer" : "not-allowed",
+                        fontSize: "9px",
                         fontWeight: 800,
-                        padding: "9px 13px"
+                        padding: "6px 10px"
                       }}
                       type="button"
                     >
@@ -3842,10 +4034,10 @@ export function ProvidersWorkspace({
                     </Button>
                   </form>
                 ) : selectedOrganization ? (
-                  <div style={{ ...controlStyle, display: "grid", gap: "6px" }}>
-                    <strong>{selectedPublicProfile?.headline || "Perfil publico pendiente"}</strong>
-                    <span style={{ color: "#57534e" }}>{selectedPublicProfile?.bio || "Agrega una descripcion breve para presentarte ante propietarios."}</span>
-                    <span style={{ color: "#57534e" }}>
+                  <div style={{ ...controlStyle, display: "grid", gap: "5px", padding: "10px 12px" }}>
+                    <strong style={{ fontSize: "8.5px" }}>{selectedPublicProfile?.headline || "Perfil publico pendiente"}</strong>
+                    <span style={{ color: "#57534e", fontSize: "8px" }}>{selectedPublicProfile?.bio || "Agrega una descripcion breve para presentarte ante propietarios."}</span>
+                    <span style={{ color: "#57534e", fontSize: "8px" }}>
                       {selectedPublicLocation
                         ? `Ubicacion: ${selectedPublicLocation.displayLabel}, ${selectedPublicLocation.city}, ${selectedPublicLocation.countryCode}`
                         : "Agrega la ubicacion publica del negocio para marketplace."}
