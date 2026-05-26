@@ -49,6 +49,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - editar mascota
 - perfil mascota
 - documentos
+- V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 
@@ -64,6 +65,18 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - crear reminder
 - completar o posponer
 - owner web Recordatorios usa el patron mobile con selector hogar/mascota, resumen por secciones, formulario plegable y listas compactas de pendientes, completados y calendario.
+- V2 Pet Travel Passport futuro: recordatorios de vencimiento de vacuna, certificado, microchip/documento si aplica, ventana de desparasitacion, fecha limite de tramite y verificacion previa de requisitos oficiales.
+
+### Pet Travel Passport / Expediente Internacional V2
+- expediente de viaje dentro del detalle de mascota.
+- resumen de preparacion: incompleto, en preparacion, listo para revision, vencido.
+- checklist manual por pais/destino con fuente oficial cuando exista.
+- carpeta documental privada de viaje.
+- alertas de vencimiento y ventanas criticas.
+- accion `Compartir con veterinario` sujeta a consentimiento owner.
+- provider/veterinario puede ver expediente compartido, adjuntar documentos y sugerir faltantes en un slice futuro.
+- admin no opera documentos medicos por defecto; solo metricas, soporte justificado o moderacion de plantillas/checklists.
+- copy obligatorio: Pet Ecosystem ayuda a organizar y preparar informacion, pero no emite pasaportes oficiales ni certificados sanitarios oficiales.
 
 ### Marketplace
 - home marketplace publico

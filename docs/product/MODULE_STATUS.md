@@ -36,6 +36,7 @@
 - `controlled_avatar_media` -> `partial`
 - `pet_memory_status` -> `partial`
 - `geo_marketplace_v2` -> `partial`
+- `pet_travel_passport_v2` -> `documented_on_hold`
 - `pilot_mobile_qa_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
@@ -71,6 +72,7 @@
 - Controlled avatar media: mascotas y perfiles publicos de proveedor usan buckets privados `pet-avatars` y `provider-avatars`, metadata `storage_bucket`/`storage_path` y URLs firmadas temporales. No se agregan nuevas URLs externas arbitrarias.
 - Pet memory status: mascotas pueden alternar `active` / `in_memory` sin borrar perfil ni historial; reservas nuevas rechazan mascotas `in_memory`. La migracion `20260510123000_pet_memory_status_slice_b.sql` ya fue aplicada remoto.
 - Geo marketplace V2: Geo-0 prepara modelo tecnico/documental con `provider_public_locations`, PostGIS, precision publica controlada y contratos tipados. Geo-1 agrega UI provider minima en `Negocio` para capturar/editar ubicacion publica manual, precision y visibilidad. Geo-2 muestra ubicacion publica en marketplace owner y calcula distancia aproximada solo si llegan coordenadas de origen opcionales. Geo-3 agrega selector de origen controlado con zonas aproximadas; direcciones guardadas quedan diferidas hasta exponer coordenadas en contrato. Geo-4 agrega preview de mapa en mobile owner con MapLibre, pins de proveedores publicos usando la ubicacion exacta publicada por el proveedor y fallback de lista. No pide permisos de ubicacion ni tracking.
+- Pet Travel Passport V2 queda en `documented_on_hold`: `docs/modules/pet_travel_passport.md` define el expediente internacional de mascota como modulo documental futuro para organizar requisitos, documentos, vencimientos y comparticion autorizada con veterinarios/proveedores. No emite pasaporte oficial ni certificado sanitario oficial, no cambia Supabase, no crea migraciones y requiere validacion legal/fuentes oficiales por pais antes de automatizar checklists.
 - Baseline `v0.3.0-booking-capacity-ops.1` queda aprobado para piloto controlado sobre `master` en `a677f7b`; readiness documentado en `docs/delivery/V0_3_0_PILOT_READINESS.md`.
 - Piloto controlado real: runbook operativo creado en `docs/delivery/PILOT_CONTROLLED_RUNBOOK.md` y guia SQL no destructiva en `docs/delivery/PILOT_DATA_PREPARATION.sql` para preparar 3 proveedores, 3 propietarios y 1 admin sin borrar historicos ni ejecutar migraciones.
 - Cierre QA mobile pre-piloto: autenticacion mobile ordenada, compuerta de hogar post-login, saludo owner con nombre real, contexto de mascota persistente en navegacion inferior, mensajes tipo bandeja/acordeon, reservas owner filtradas por Activas, QR owner cerrable/auto-limpiable tras check-in/check-out, requery controlado sin Realtime y guias de APK/quick-start para owners, providers y admin.

@@ -32,6 +32,15 @@ Agregar profundidad operativa y verticales principales del ecosistema.
 - wallet de rewards
 - disputas
 - moderación de reviews
+- Pet Travel Passport / Expediente Internacional de Mascota:
+  - expediente digital de viaje por mascota
+  - carpeta documental de viaje
+  - microchip e identificacion sanitaria estructurada
+  - checklist manual de preparacion por pais/destino
+  - vencimientos y recordatorios de requisitos
+  - comparticion autorizada con veterinario/proveedor
+  - revision documental asistida no oficial
+  - exportacion PDF informativa del expediente
 
 ## No incluye
 - memberships
@@ -39,3 +48,6 @@ Agregar profundidad operativa y verticales principales del ecosistema.
 - telecare
 - farmacia regulada completa
 - presupuestos
+- emision legal de pasaportes oficiales de mascota
+- certificados sanitarios oficiales emitidos por la app
+- reglas legales por pais sin fuente oficial validada

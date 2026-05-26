@@ -69,11 +69,40 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `reviews` permite una sola review por booking completado.
 - `support_cases` permite un solo caso por booking en el MVP actual.
 - `audit_logs` registra mutaciones criticas de bookings, approvals de proveedores y soporte admin.
+- V2 Pet Travel Passport propone entidades conceptuales para expediente internacional de mascota: `pet_identifications`, `pet_travel_profiles`, `pet_travel_documents`, `pet_travel_requirements`, `pet_travel_checklists`, `pet_travel_checklist_items`, `pet_travel_events` y `pet_document_validations`. No estan implementadas ni tienen migracion; deben reutilizar `pets`, `pet_profiles`, `pet_documents`, salud y reminders cuando aplique.
 
 ## Regla de cambio
 No crear tablas fuera del modelo oficial sin actualizar esta documentacion.
 
 ## Tablas V2 propuestas pendientes de migracion
+
+### Pet Travel Passport / Expediente Internacional
+
+Entidades conceptuales propuestas para V2:
+
+- `pet_identifications`
+- `pet_travel_profiles`
+- `pet_travel_documents`
+- `pet_travel_requirements`
+- `pet_travel_checklists`
+- `pet_travel_checklist_items`
+- `pet_travel_events`
+- `pet_document_validations`
+
+Objetivo:
+
+- organizar identidad, documentos, vacunas, certificados, requisitos y vencimientos de viaje por mascota.
+- soportar checklist manual y, en un slice futuro, checklist por pais con fuentes oficiales.
+- permitir revision documental asistida sin prometer validez oficial.
+
+Reglas conceptuales:
+
+- toda entidad cuelga de `pet_id`, `household_id` o `pet_travel_profile_id`.
+- documentos deben reutilizar `pet_documents` o un modelo equivalente con bucket privado.
+- microchip, documentos sanitarios y datos de viaje son informacion sensible.
+- no exponer datos de viaje ni microchip en marketplace.
+- checklist por pais requiere `official_source_url` y `source_reviewed_at` antes de considerarse confiable.
+- la app no emite pasaporte oficial ni certificado sanitario oficial.
 
 ### provider_availability_rules
 

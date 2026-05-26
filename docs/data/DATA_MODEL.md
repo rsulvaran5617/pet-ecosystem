@@ -72,6 +72,41 @@ Consistencia:
 - para evitar sobreventa, CAP-1 debe usar bloqueo transaccional sobre la regla/slot o advisory lock por `service_id + slot_start_at + slot_end_at`.
 - no confiar en cupos mostrados previamente por mobile.
 
+## Modelo V2 Pet Travel Passport / Expediente Internacional
+
+Modelo conceptual documental. No implementado y sin migraciones asociadas.
+
+Relaciones propuestas:
+- `pets` 1:N `pet_identifications`.
+- `pets` 1:N `pet_travel_profiles`.
+- `pet_travel_profiles` 1:N `pet_travel_documents`.
+- `pet_documents` puede alimentar `pet_travel_documents` como archivo soporte.
+- `pet_travel_profiles` 1:1 o 1:N `pet_travel_checklists` segun se permita versionar viajes.
+- `pet_travel_checklists` 1:N `pet_travel_checklist_items`.
+- `pet_travel_requirements` puede actuar como catalogo de referencia para checklist items.
+- `pet_travel_profiles` 1:N `pet_travel_events` para trazabilidad.
+- `pet_document_validations` referencia documentos y expediente para revision no oficial.
+
+Datos reutilizables actuales:
+- mascota, especie, raza, sexo, fecha de nacimiento, avatar y estado desde `pets` / `pet_profiles`.
+- documentos base desde `pet_documents` y bucket privado asociado.
+- vacunas, alergias y condiciones desde `pet_vaccines`, `pet_allergies` y `pet_conditions`.
+- vencimientos de vacunas y preparacion previa desde `reminders` / `calendar_events`.
+
+Gaps conceptuales:
+- microchip estructurado.
+- peso, color y senas particulares.
+- vacunas con lote, fabricante, veterinario, centro y documento soporte.
+- documentos de viaje con tipo, pais, emisor y vencimiento.
+- viaje/destino y estado de preparacion.
+- checklist por pais con fuente oficial y fecha de ultima revision.
+- comparticion granular con provider/veterinario.
+
+Regla documental:
+- Pet Ecosystem no emite pasaporte oficial, certificado sanitario oficial ni documento gubernamental.
+- el modulo organiza informacion, vencimientos y documentos para revision.
+- cualquier validez legal depende de veterinarios certificados, autoridades sanitarias, aerolineas y pais destino.
+
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`
 - `profiles` concentra perfil base y preferencias

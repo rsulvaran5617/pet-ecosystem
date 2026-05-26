@@ -45,6 +45,21 @@ Cambiar estado `active`/`in_memory` requiere los mismos permisos de edicion del 
 Visible para miembros autorizados del hogar.
 Carga de documentos requiere permisos derivados de `edit` o `admin`.
 
+### Pet Travel Passport / Expediente Internacional (V2 conceptual)
+
+Alcance documental para futuras tablas `pet_identifications`, `pet_travel_profiles`, `pet_travel_documents`, `pet_travel_requirements`, `pet_travel_checklists`, `pet_travel_checklist_items`, `pet_travel_events` y `pet_document_validations`.
+
+Reglas esperadas:
+- owner y miembros autorizados del hogar controlan lectura y escritura del expediente.
+- microchip, documentos sanitarios y datos de viaje se tratan como informacion sensible.
+- provider/veterinario solo puede ver datos si el owner comparte el expediente o si existe un servicio autorizado que lo requiera.
+- admin no lee documentos sensibles por defecto; acceso solo para soporte, moderacion o auditoria justificada.
+- documentos deben vivir en bucket privado y exponerse con URLs firmadas temporales.
+- datos de viaje, microchip y certificados no se exponen en marketplace ni superficies publicas.
+- cualquier comparticion futura debe registrar trazabilidad de acceso, revocacion y actor.
+- checklist por pais no debe publicarse como regla confiable sin fuente oficial y fecha de ultima revision.
+- ninguna tabla futura debe permitir acceso anonimo a documentos o datos sanitarios.
+
 ### pet-avatars storage
 Bucket privado para fotos de mascotas.
 Lectura requiere `can_view_pet` derivado del hogar; carga o reemplazo requiere `can_edit_pet`.

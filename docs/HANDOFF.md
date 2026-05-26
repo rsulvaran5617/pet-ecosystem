@@ -4,6 +4,14 @@
 
 2026-05-17
 
+## Actualizacion documental V2 Pet Travel Passport 2026-05-25
+
+- Se documenta `Pet Travel Passport / Expediente Internacional de Mascota` como alcance V2 en `docs/modules/pet_travel_passport.md`.
+- El alcance es informativo y preparatorio: organiza datos, documentos, vencimientos, checklist manual y comparticion autorizada para viajes con mascotas.
+- La app no emite pasaporte oficial, certificado sanitario oficial ni documento gubernamental; la validez depende de veterinarios certificados, autoridades sanitarias, aerolineas y pais destino.
+- No se tocaron codigo funcional, Supabase, migraciones, RLS reales, pagos, booking, QR, geolocalizacion, marketplace ni mobile.
+- Se actualizan referencias documentales de modulo, V2, modelo de datos conceptual, RLS esperada y UX futura.
+
 ## Objetivo de este handoff
 
 Dejar una referencia operativa para retomar el piloto sin depender del historial conversacional.
