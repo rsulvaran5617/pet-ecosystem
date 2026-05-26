@@ -2014,7 +2014,7 @@ export function ProvidersWorkspace({
                   {[
                     { label: "Reservas totales", value: totalProviderBookingCount, note: "datos consolidados", icon: "booking" as const, tone: "primary" as const },
                     { label: "Ingresos estimados", value: formatMoneyIndicatorValue(completedMoneyIndicator), note: "citas cerradas", icon: "money" as const, tone: "success" as const },
-                    { label: "Salud promedio", value: `${averagePublicationHealth}%`, note: "readiness publicado", icon: "health" as const, tone: "primary" as const },
+                    { label: "Preparacion marketplace", value: `${averagePublicationHealth}%`, note: "perfil, servicios y agenda", icon: "health" as const, tone: "primary" as const },
                     { label: "Servicios activos", value: activeServiceCount, note: "oferta disponible", icon: "service" as const, tone: "warning" as const },
                     { label: "Conversaciones activas", value: totalMessageThreadCount, note: "chats con actividad", icon: "support" as const, tone: "neutral" as const }
                   ].map((metric) => (
@@ -2059,11 +2059,11 @@ export function ProvidersWorkspace({
                 <div style={{ display: "grid", gridTemplateColumns: "0.72fr 0.9fr 1.38fr", gap: "12px" }}>
                   <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "8px", display: "grid", gap: "8px", padding: "10px" }}>
                     <div style={{ display: "grid", gap: "3px" }}>
-                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "5.5px", gap: "4px" }}>
+                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "7px", gap: "4px" }}>
                         <ProviderIcon name="chart" size={10} />
                         Comparativo entre negocios
                       </strong>
-                      <span style={{ color: "#667085", fontSize: "5.5px" }}>Reservas por negocio</span>
+                      <span style={{ color: "#667085", fontSize: "6.5px" }}>Reservas por negocio</span>
                     </div>
                     <div style={{ display: "grid", gap: "5px", maxHeight: "142px", overflowY: "auto", paddingRight: "2px" }}>
                       {businessOverviews.slice(0, 12).map((overview) => {
@@ -2126,11 +2126,11 @@ export function ProvidersWorkspace({
 
                   <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "10px", display: "grid", gap: "8px", padding: "12px" }}>
                     <div style={{ display: "grid", gap: "3px" }}>
-                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "6px", gap: "4px" }}>
+                      <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "7.5px", gap: "4px" }}>
                         <ProviderIcon name="funnel" size={12} />
                         Embudo comercial consolidado
                       </strong>
-                      <span style={{ color: "#667085", fontSize: "5.5px" }}>Derivado de publicacion y reservas</span>
+                      <span style={{ color: "#667085", fontSize: "6.5px" }}>Derivado de publicacion y reservas</span>
                     </div>
                     {[
                       { label: "Negocios", value: organizations.length, width: "100%", color: "#102a56", shape: "polygon(4% 0, 96% 0, 88% 100%, 12% 100%)" },

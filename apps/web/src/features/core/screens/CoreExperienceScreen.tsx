@@ -766,12 +766,14 @@ function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
 
 function Button({
   children,
+  compact = false,
   disabled,
   onClick,
   tone = "primary",
   type = "button"
 }: {
   children: string;
+  compact?: boolean;
   disabled?: boolean;
   onClick?: () => void;
   tone?: "primary" | "secondary";
@@ -787,7 +789,8 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(28, 25, 23, 0.14)",
         background: tone === "primary" ? "#0f766e" : "rgba(255,255,255,0.82)",
         color: tone === "primary" ? "#f8fafc" : "#1c1917",
-        padding: "12px 18px",
+        fontSize: compact ? "12px" : undefined,
+        padding: compact ? "8px 13px" : "12px 18px",
         fontWeight: 700,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
@@ -1008,27 +1011,29 @@ export function CoreExperienceScreen() {
       <section style={{ width: "min(1180px, 100%)", margin: "0 auto", display: "grid", gap: "24px" }}>
         <header
           style={{
-            borderRadius: "22px",
-            padding: "24px 28px",
+            borderRadius: isProviderMode ? "18px" : "22px",
+            padding: isProviderMode ? "16px 22px" : "24px 28px",
             background: "rgba(28, 25, 23, 0.92)",
             color: "#f8fafc",
             boxShadow: "0 18px 46px rgba(28, 25, 23, 0.16)",
             display: "grid",
-            gap: "12px"
+            gap: isProviderMode ? "8px" : "12px"
           }}
         >
-          <p style={{ margin: 0, fontSize: "12px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#99f6e4" }}>
+          <p style={{ margin: 0, fontSize: isProviderMode ? "9px" : "12px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#99f6e4" }}>
             {shellCopy.eyebrow}
           </p>
-          <h1 style={{ margin: 0, fontSize: "34px", lineHeight: 1.08 }}>{shellCopy.title}</h1>
-          <p style={{ margin: 0, maxWidth: "780px", fontSize: "15px", lineHeight: 1.55, color: "rgba(248, 250, 252, 0.82)" }}>
+          <h1 style={{ margin: 0, fontSize: isProviderMode ? "24px" : "34px", lineHeight: 1.08 }}>{shellCopy.title}</h1>
+          <p style={{ margin: 0, maxWidth: "780px", fontSize: isProviderMode ? "11px" : "15px", lineHeight: isProviderMode ? 1.38 : 1.55, color: "rgba(248, 250, 252, 0.82)" }}>
             {shellCopy.description}
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
-            <StatusPill
-              tone={snapshot ? "active" : "pending"}
-              label={snapshot ? `${completedTasks}/${snapshot.onboardingTasks.length} pasos listos` : "acceso pendiente"}
-            />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: isProviderMode ? "8px" : "12px" }}>
+            {!isProviderMode ? (
+              <StatusPill
+                tone={snapshot ? "active" : "pending"}
+                label={snapshot ? `${completedTasks}/${snapshot.onboardingTasks.length} pasos listos` : "acceso pendiente"}
+              />
+            ) : null}
             <StatusPill tone="neutral" label={shellCopy.accent} />
             <StatusPill
               tone={coreMvpBoundaries.paymentCaptureInCore ? "pending" : "active"}
@@ -1037,11 +1042,12 @@ export function CoreExperienceScreen() {
             {authState.isAuthenticated && authState.email ? <StatusPill tone="neutral" label={authState.email} /> : null}
           </div>
           {authState.isAuthenticated ? (
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <Button disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
+            <div style={{ display: "flex", gap: isProviderMode ? "8px" : "12px", flexWrap: "wrap" }}>
+              <Button compact={isProviderMode} disabled={isSubmitting} onClick={() => void refresh()} tone="secondary">
                 Actualizar
               </Button>
               <Button
+                compact={isProviderMode}
                 disabled={isSubmitting}
                 onClick={() => {
                   void runAction(() => getBrowserCoreApiClient().logout(), "Sesion cerrada.", false);
