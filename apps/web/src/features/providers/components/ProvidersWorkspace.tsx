@@ -1518,9 +1518,7 @@ export function ProvidersWorkspace({
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
   const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
   const filteredProviderBookings = providerBookings.filter((booking) => booking.status === bookingStatusFilter);
-  const selectedOrganizationMessageThreads = providerMessageThreads.filter(
-    (thread) => thread.providerOrganizationId === selectedOrganizationId && thread.lastMessageAt
-  );
+  const selectedOrganizationMessageThreads = providerMessageThreads.filter((thread) => thread.providerOrganizationId === selectedOrganizationId);
   const hasPublishedService = selectedServices.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
     selectedOrganization?.approvalStatus === "approved" &&
@@ -3536,6 +3534,7 @@ export function ProvidersWorkspace({
                           const isExpanded = expandedProviderBookingId === booking.id;
                           const expandedDetail =
                             isExpanded && selectedProviderBookingDetail?.booking.id === booking.id ? selectedProviderBookingDetail : null;
+                          const bookingThread = providerMessageThreads.find((thread) => thread.bookingId === booking.id) ?? null;
 
                           return (
                             <article
@@ -3646,6 +3645,19 @@ export function ProvidersWorkspace({
                                     <span style={{ color: "#57534e", fontSize: "10px" }}>Cargando detalle de la reserva...</span>
                                   )}
                                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <ProviderActionButton
+                                      disabled={!bookingThread || isSubmitting}
+                                      onClick={() => {
+                                        if (!bookingThread) {
+                                          return;
+                                        }
+
+                                        void openProviderMessageThread(bookingThread.id);
+                                      }}
+                                      tone="secondary"
+                                    >
+                                      Chatear
+                                    </ProviderActionButton>
                                     {booking.status === "pending_approval" ? (
                                       <>
                                         <Button disabled={isSubmitting} onClick={() => void approveProviderBooking(booking.id)}>
@@ -3712,7 +3724,7 @@ export function ProvidersWorkspace({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                   <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "15px" }}>Conversaciones activas</h3>
+                    <h3 style={{ margin: 0, fontSize: "15px" }}>Conversaciones de reservas</h3>
                     <span style={{ color: "#57534e", fontSize: "10px" }}>Chats vinculados a reservas del negocio activo.</span>
                   </div>
                   <span
@@ -3728,7 +3740,7 @@ export function ProvidersWorkspace({
                       textTransform: "uppercase"
                     }}
                   >
-                    {selectedOrganizationMessageThreads.length} activa(s)
+                    {selectedOrganizationMessageThreads.length} vinculada(s)
                   </span>
                 </div>
                 {selectedOrganization ? (
@@ -3760,7 +3772,7 @@ export function ProvidersWorkspace({
                                 {thread.petName} - {thread.serviceName}
                               </span>
                               <span style={{ color: "#0f766e", fontSize: "8px", fontWeight: 800 }}>
-                                {thread.lastMessagePreview ?? "Sin preview disponible"}
+                                {thread.lastMessagePreview ?? "Sin mensajes todavia"}
                               </span>
                             </button>
                           );
@@ -3840,7 +3852,7 @@ export function ProvidersWorkspace({
                     </div>
                   ) : (
                     <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
-                      No hay conversaciones con actividad para este negocio.
+                      No hay conversaciones vinculadas para este negocio.
                     </p>
                   )
                 ) : (
