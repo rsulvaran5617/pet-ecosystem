@@ -28,7 +28,7 @@ import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
 import { getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
-import { type ProviderBusinessOverview, type ProviderMoneyIndicator, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
+import { type ProviderBusinessOverview, type ProviderMoneyIndicator, type ProviderServiceRankingItem, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const fieldLabelStyle = {
   fontSize: "10px",
@@ -293,6 +293,38 @@ function formatMoneyIndicatorValue(indicator: ProviderMoneyIndicator) {
   return currencyTotals.map(([currencyCode, totalPriceCents]) => formatMoney(totalPriceCents, currencyCode)).join(" / ");
 }
 
+function mergeServiceRankingItems(items: ProviderServiceRankingItem[]) {
+  const rankingByKey = new Map<string, ProviderServiceRankingItem>();
+
+  items.forEach((item) => {
+    const key = `${item.organizationName}:${item.name}`;
+    const current =
+      rankingByKey.get(key) ??
+      ({
+        id: key,
+        name: item.name,
+        organizationName: item.organizationName,
+        bookingCount: 0,
+        incomeByCurrency: {}
+      } satisfies ProviderServiceRankingItem);
+
+    current.bookingCount += item.bookingCount;
+    Object.entries(item.incomeByCurrency).forEach(([currencyCode, totalPriceCents]) => {
+      current.incomeByCurrency[currencyCode] = (current.incomeByCurrency[currencyCode] ?? 0) + totalPriceCents;
+    });
+    rankingByKey.set(key, current);
+  });
+
+  return [...rankingByKey.values()]
+    .sort(
+      (leftService, rightService) =>
+        rightService.bookingCount - leftService.bookingCount ||
+        Object.values(rightService.incomeByCurrency).reduce((total, value) => total + value, 0) -
+          Object.values(leftService.incomeByCurrency).reduce((total, value) => total + value, 0)
+    )
+    .slice(0, 5);
+}
+
 function getPercentValue(value: number, total: number) {
   if (!total) {
     return 0;
@@ -332,6 +364,50 @@ function formatCalendarWeekday(value: string) {
 
 function formatSlotTime(value: string) {
   return value.slice(0, 5);
+}
+
+function getTimeMinutes(value: string) {
+  const [hours = "0", minutes = "0"] = value.slice(0, 5).split(":");
+
+  return Number(hours) * 60 + Number(minutes);
+}
+
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number) {
+  return startA < endB && startB < endA;
+}
+
+function getBookingDayOfWeek(value: string): AvailabilityFormState["dayOfWeek"] {
+  return new Date(value).getDay() as AvailabilityFormState["dayOfWeek"];
+}
+
+function getBookingTimeMinutes(value: string) {
+  const date = new Date(value);
+
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+function getCapacityHeatmapTone(occupancyPercent: number | null, capacity: number) {
+  if (!capacity) {
+    return { background: "#f2f4f7", border: "rgba(15, 23, 42, 0.06)", color: "#667085" };
+  }
+
+  if (occupancyPercent === null || occupancyPercent === 0) {
+    return { background: "#dcfce7", border: "rgba(22, 163, 74, 0.12)", color: "#166534" };
+  }
+
+  if (occupancyPercent >= 100) {
+    return { background: "#fecaca", border: "rgba(220, 38, 38, 0.18)", color: "#991b1b" };
+  }
+
+  if (occupancyPercent >= 75) {
+    return { background: "#fed7aa", border: "rgba(234, 88, 12, 0.18)", color: "#9a3412" };
+  }
+
+  if (occupancyPercent >= 45) {
+    return { background: "#fef3c7", border: "rgba(217, 119, 6, 0.16)", color: "#92400e" };
+  }
+
+  return { background: "#ccfbf1", border: "rgba(15, 118, 110, 0.14)", color: "#0f766e" };
 }
 
 function formatAvailabilityRuleTone(rule: { capacity: number; isActive: boolean }) {
@@ -1507,17 +1583,7 @@ export function ProvidersWorkspace({
         overview.bookingCounts.cancelled
     )
   );
-  const selectedServiceRanking = selectedServices
-    .map((service) => ({
-      id: service.id,
-      name: service.name,
-      bookingCount: bookingCountByServiceId[service.id] ?? 0,
-      income: providerBookings
-        .filter((booking) => booking.providerServiceId === service.id)
-        .reduce((total, booking) => total + booking.totalPriceCents, 0)
-    }))
-    .sort((leftService, rightService) => rightService.bookingCount - leftService.bookingCount || rightService.income - leftService.income)
-    .slice(0, 5);
+  const globalServiceRanking = mergeServiceRankingItems(businessOverviews.flatMap((overview) => overview.serviceRanking));
   const dashboardAlerts = [
     ...businessOverviews
       .filter((overview) => !overview.hasPublicProfile)
@@ -1548,14 +1614,45 @@ export function ProvidersWorkspace({
       }))
   ].slice(0, 4);
   const capacityHeatmapDays = providerDayOfWeekOrder.slice(1).concat(0 as AvailabilityFormState["dayOfWeek"]);
-  const capacityHeatmapRows = ["08:00 - 10:00", "10:00 - 12:00", "12:00 - 14:00", "14:00 - 16:00", "16:00 - 18:00"].map((slotLabel, slotIndex) => ({
-    slotLabel,
-    values: capacityHeatmapDays.map((dayOfWeek) => {
-      const dayRules = selectedAvailabilityRules.filter((rule) => rule.isActive && rule.dayOfWeek === dayOfWeek);
-      const totalCapacity = dayRules.reduce((total, rule) => total + rule.capacity, 0);
-      return Math.min(100, totalCapacity * 12 + slotIndex * 4);
-    })
-  }));
+  const globalActiveCapacityRules = businessOverviews.flatMap((overview) => overview.availabilityRules).filter((rule) => rule.isActive);
+  const globalActiveCapacityBookings = businessOverviews.flatMap((overview) => overview.activeCapacityBookings);
+  const capacityHeatmapRows = [
+    { label: "08:00 - 10:00", startsAt: "08:00", endsAt: "10:00" },
+    { label: "10:00 - 12:00", startsAt: "10:00", endsAt: "12:00" },
+    { label: "12:00 - 14:00", startsAt: "12:00", endsAt: "14:00" },
+    { label: "14:00 - 16:00", startsAt: "14:00", endsAt: "16:00" },
+    { label: "16:00 - 18:00", startsAt: "16:00", endsAt: "18:00" }
+  ].map((slot) => {
+    const slotStart = getTimeMinutes(slot.startsAt);
+    const slotEnd = getTimeMinutes(slot.endsAt);
+
+    return {
+      slotLabel: slot.label,
+      values: capacityHeatmapDays.map((dayOfWeek) => {
+        const capacity = globalActiveCapacityRules
+          .filter(
+            (rule) =>
+              rule.dayOfWeek === dayOfWeek &&
+              rangesOverlap(getTimeMinutes(rule.startsAt), getTimeMinutes(rule.endsAt), slotStart, slotEnd)
+          )
+          .reduce((total, rule) => total + rule.capacity, 0);
+        const reserved = globalActiveCapacityBookings.filter((booking) => {
+          const bookingStart = getBookingTimeMinutes(booking.slotStartAt ?? booking.scheduledStartAt);
+          const bookingEnd = getBookingTimeMinutes(booking.slotEndAt ?? booking.scheduledEndAt);
+
+          return getBookingDayOfWeek(booking.slotStartAt ?? booking.scheduledStartAt) === dayOfWeek && rangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd);
+        }).length;
+        const occupancyPercent = capacity ? Math.min(100, Math.round((reserved / capacity) * 100)) : null;
+
+        return {
+          available: Math.max(0, capacity - reserved),
+          capacity,
+          occupancyPercent,
+          reserved
+        };
+      })
+    };
+  });
   const closeProviderForms = () => {
     setIsBusinessFormOpen(false);
     setIsProfileFormOpen(false);
@@ -1885,7 +1982,7 @@ export function ProvidersWorkspace({
                         <ProviderIcon name="capacity" size={16} />
                         Capacidad y ocupacion
                       </strong>
-                      <span style={{ color: "#667085", fontSize: "9px" }}>Capacidad activa por franja y dia</span>
+                      <span style={{ color: "#667085", fontSize: "9px" }}>Reservas activas / cupos publicados</span>
                     </div>
                     <div style={{ display: "grid", gap: "4px" }}>
                       <div style={{ display: "grid", gap: "4px", gridTemplateColumns: "74px repeat(7, minmax(34px, 1fr))" }}>
@@ -1899,22 +1996,37 @@ export function ProvidersWorkspace({
                       {capacityHeatmapRows.map((row) => (
                         <div key={row.slotLabel} style={{ display: "grid", gap: "4px", gridTemplateColumns: "74px repeat(7, minmax(34px, 1fr))" }}>
                           <span style={{ color: "#475467", fontSize: "9px" }}>{row.slotLabel}</span>
-                          {row.values.map((value, index) => (
+                          {row.values.map((value, index) => {
+                            const tone = getCapacityHeatmapTone(value.occupancyPercent, value.capacity);
+
+                            return (
                             <span
                               key={`${row.slotLabel}-${capacityHeatmapDays[index]}`}
+                              title={
+                                value.capacity
+                                  ? `${value.reserved} ocupado(s), ${value.available} disponible(s), ${value.capacity} cupo(s)`
+                                  : "Sin cupos publicados"
+                              }
                               style={{
-                                background:
-                                  value >= 70 ? "#fed7aa" : value >= 45 ? "#fef3c7" : value > 0 ? "#ccfbf1" : "#f2f4f7",
+                                background: tone.background,
+                                border: `1px solid ${tone.border}`,
                                 borderRadius: "6px",
-                                color: "#344054",
-                                fontSize: "9px",
-                                padding: "6px 2px",
+                                color: tone.color,
+                                display: "grid",
+                                fontSize: "8px",
+                                gap: "2px",
+                                minHeight: "35px",
+                                padding: "5px 2px",
                                 textAlign: "center"
                               }}
                             >
-                              {value || "-"}%
+                              <strong style={{ fontSize: "9px", lineHeight: 1 }}>{value.occupancyPercent === null ? "-" : `${value.occupancyPercent}%`}</strong>
+                              <span style={{ fontSize: "6px", fontWeight: 800, lineHeight: 1.1 }}>
+                                {value.capacity ? `${value.reserved}/${value.capacity}` : "sin cupos"}
+                              </span>
                             </span>
-                          ))}
+                            );
+                          })}
                         </div>
                       ))}
                     </div>
@@ -1927,15 +2039,22 @@ export function ProvidersWorkspace({
                       <ProviderIcon name="service" size={16} />
                       Ranking de servicios
                     </strong>
-                    {selectedServiceRanking.length ? (
-                      selectedServiceRanking.map((service, index) => (
+                    {globalServiceRanking.length ? (
+                      globalServiceRanking.map((service, index) => (
                         <div key={service.id} style={{ alignItems: "center", display: "grid", gap: "8px", gridTemplateColumns: "18px minmax(0, 1fr) 54px 70px" }}>
                           <span style={{ color: "#667085", fontSize: "10px" }}>{index + 1}</span>
-                          <strong style={{ color: "#101828", fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {service.name}
-                          </strong>
+                          <span style={{ display: "grid", gap: "1px", minWidth: 0 }}>
+                            <strong style={{ color: "#101828", fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {service.name}
+                            </strong>
+                            <span style={{ color: "#667085", fontSize: "8px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {service.organizationName}
+                            </span>
+                          </span>
                           <span style={{ color: "#475467", fontSize: "10px", textAlign: "right" }}>{service.bookingCount}</span>
-                          <span style={{ color: "#475467", fontSize: "10px", textAlign: "right" }}>{formatMoney(service.income, "USD")}</span>
+                          <span style={{ color: "#475467", fontSize: "10px", textAlign: "right" }}>
+                            {formatMoneyIndicatorValue({ bookingCount: service.bookingCount, totalsByCurrency: service.incomeByCurrency })}
+                          </span>
                         </div>
                       ))
                     ) : (

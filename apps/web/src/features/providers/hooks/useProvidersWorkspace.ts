@@ -1,6 +1,16 @@
 "use client";
 
-import type { BookingDetail, BookingStatus, BookingSummary, ChatThreadDetail, ChatThreadSummary, ProviderOrganization, ProviderOrganizationDetail, Uuid } from "@pet/types";
+import type {
+  BookingDetail,
+  BookingStatus,
+  BookingSummary,
+  ChatThreadDetail,
+  ChatThreadSummary,
+  ProviderAvailabilityRule,
+  ProviderOrganization,
+  ProviderOrganizationDetail,
+  Uuid
+} from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
 import { getBrowserBookingsApiClient, getBrowserMessagingApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
@@ -8,6 +18,14 @@ import { getBrowserBookingsApiClient, getBrowserMessagingApiClient, getBrowserPr
 export interface ProviderMoneyIndicator {
   bookingCount: number;
   totalsByCurrency: Record<string, number>;
+}
+
+export interface ProviderServiceRankingItem {
+  id: Uuid;
+  name: string;
+  organizationName: string;
+  bookingCount: number;
+  incomeByCurrency: Record<string, number>;
 }
 
 export interface ProviderBusinessOverview {
@@ -19,6 +37,9 @@ export interface ProviderBusinessOverview {
     providerCancelled: ProviderMoneyIndicator;
   };
   pendingApprovalBookings: BookingSummary[];
+  activeCapacityBookings: BookingSummary[];
+  availabilityRules: ProviderAvailabilityRule[];
+  serviceRanking: ProviderServiceRankingItem[];
   messageThreadCount: number;
   hasPublicProfile: boolean;
   hasService: boolean;
@@ -208,6 +229,42 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         }
       });
       const hasPublicProfile = Boolean(detail.publicProfile);
+      const serviceRankingById = new Map<string, ProviderServiceRankingItem>();
+
+      detail.services.forEach((service) => {
+        serviceRankingById.set(service.id, {
+          id: service.id,
+          name: service.name,
+          organizationName: detail.organization.name,
+          bookingCount: 0,
+          incomeByCurrency: {}
+        });
+      });
+
+      bookings.forEach((booking) => {
+        const rankingItem =
+          serviceRankingById.get(booking.providerServiceId) ??
+          ({
+            id: booking.providerServiceId,
+            name: booking.serviceName,
+            organizationName: detail.organization.name,
+            bookingCount: 0,
+            incomeByCurrency: {}
+          } satisfies ProviderServiceRankingItem);
+
+        rankingItem.bookingCount += 1;
+        rankingItem.incomeByCurrency[booking.currencyCode] =
+          (rankingItem.incomeByCurrency[booking.currencyCode] ?? 0) + booking.totalPriceCents;
+        serviceRankingById.set(booking.providerServiceId, rankingItem);
+      });
+      const serviceRanking = [...serviceRankingById.values()]
+        .filter((service) => service.bookingCount > 0)
+        .sort(
+          (leftService, rightService) =>
+            rightService.bookingCount - leftService.bookingCount ||
+            Object.values(rightService.incomeByCurrency).reduce((total, value) => total + value, 0) -
+              Object.values(leftService.incomeByCurrency).reduce((total, value) => total + value, 0)
+        );
       const hasService = detail.services.some((service) => service.isPublic && service.isActive);
       const hasAvailability = detail.availability.length > 0 || detail.availabilityRules.some((rule) => rule.isActive);
       const hasDocuments = detail.approvalDocuments.length > 0;
@@ -223,6 +280,9 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         bookingCounts,
         moneyIndicators,
         pendingApprovalBookings: bookings.filter((booking) => booking.status === "pending_approval"),
+        activeCapacityBookings: bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed"),
+        availabilityRules: detail.availabilityRules,
+        serviceRanking,
         messageThreadCount: threads.filter((thread) => thread.providerOrganizationId === detail.organization.id && thread.lastMessageAt).length,
         hasPublicProfile,
         hasService,
