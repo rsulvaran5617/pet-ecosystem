@@ -163,6 +163,7 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
     selectHousehold,
     runAction
   } = useHouseholdsWorkspace(enabled);
+  const [isCreateHouseholdOpen, setIsCreateHouseholdOpen] = useState(false);
   const [createHouseholdName, setCreateHouseholdName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitePermissions, setInvitePermissions] = useState<HouseholdPermission[]>(["view"]);
@@ -190,6 +191,11 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
 
   const canManageSelectedHousehold = selectedHouseholdDetail?.household.myPermissions.includes("admin") ?? false;
 
+  const closeCreateHousehold = () => {
+    setIsCreateHouseholdOpen(false);
+    setCreateHouseholdName("");
+  };
+
   return (
     <div style={{ display: "grid", gap: "12px", fontSize: "11px" }}>
       {errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
@@ -202,39 +208,47 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
           gap: "14px"
         }}
       >
-        <CoreSection
-          eyebrow="EP-02 / Households"
-          title="Crear un hogar"
-          description="Un hogar agrupa integrantes, permisos y luego acceso a mascotas, pero este alcance del MVP se mantiene solo en la configuracion del hogar."
-          density="compact"
-        >
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              clearMessages();
-              void runAction(
-                () =>
-                  getBrowserHouseholdsApiClient().createHousehold({
-                    name: createHouseholdName.trim()
-                  }),
-                "Hogar creado."
-              ).then(() => {
-                setCreateHouseholdName("");
-              });
-            }}
-            style={{ display: "grid", gap: "8px" }}
+        {isCreateHouseholdOpen ? (
+          <CoreSection
+            eyebrow="EP-02 / Households"
+            title="Crear un hogar"
+            description="Un hogar agrupa integrantes, permisos y luego acceso a mascotas."
+            density="compact"
           >
-            <Field
-              label="Nombre del hogar"
-              onChange={setCreateHouseholdName}
-              placeholder="Hogar Patitas"
-              value={createHouseholdName}
-            />
-            <Button disabled={isSubmitting || isLoading} type="submit">
-              Crear hogar
-            </Button>
-          </form>
-        </CoreSection>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                clearMessages();
+                void runAction(
+                  () =>
+                    getBrowserHouseholdsApiClient().createHousehold({
+                      name: createHouseholdName.trim()
+                    }),
+                  "Hogar creado."
+                ).then(() => {
+                  closeCreateHousehold();
+                });
+              }}
+              style={{ display: "grid", gap: "8px" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                <span style={{ color: "#57534e", fontSize: "10px" }}>Completa el nombre del nuevo hogar.</span>
+                <Button disabled={isSubmitting || isLoading} onClick={closeCreateHousehold} tone="secondary">
+                  Cerrar
+                </Button>
+              </div>
+              <Field
+                label="Nombre del hogar"
+                onChange={setCreateHouseholdName}
+                placeholder="Hogar Patitas"
+                value={createHouseholdName}
+              />
+              <Button disabled={isSubmitting || isLoading} type="submit">
+                Crear hogar
+              </Button>
+            </form>
+          </CoreSection>
+        ) : null}
 
         <CoreSection
           eyebrow="Incoming"
@@ -303,6 +317,11 @@ export function HouseholdsWorkspace({ enabled }: { enabled: boolean }) {
         description="Esto cubre crear, listar, ver detalle, integrantes, invitaciones y permisos por integrante sin pasar todavia a mascotas."
         density="compact"
       >
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
+          <Button disabled={isSubmitting || isLoading} onClick={() => setIsCreateHouseholdOpen(true)} tone="secondary">
+            + Nuevo hogar
+          </Button>
+        </div>
         {isLoading ? (
           <p style={{ margin: 0, color: "#57534e" }}>Cargando datos del hogar desde Supabase...</p>
         ) : (

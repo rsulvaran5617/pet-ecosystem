@@ -72,6 +72,43 @@ function ActionButton({
   );
 }
 
+function AddButton({
+  disabled,
+  label,
+  onClick
+}: {
+  disabled?: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        alignItems: "center",
+        background: disabled ? "rgba(28,25,23,0.08)" : "#0f766e",
+        border: "none",
+        borderRadius: "999px",
+        color: "#ffffff",
+        cursor: disabled ? "not-allowed" : "pointer",
+        display: "inline-flex",
+        fontSize: "14px",
+        fontWeight: 900,
+        height: "28px",
+        justifyContent: "center",
+        opacity: disabled ? 0.58 : 1,
+        width: "28px"
+      }}
+      title={label}
+      type="button"
+    >
+      +
+    </button>
+  );
+}
+
 function Field({
   label,
   onChange,
@@ -121,17 +158,22 @@ function TextArea({
 function HealthBlock({
   title,
   count,
+  onAdd,
   children
 }: {
   title: string;
   count: number;
+  onAdd?: () => void;
   children: ReactNode;
 }) {
   return (
     <article style={cardStyle}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
         <h3 style={{ margin: 0, fontSize: "15px" }}>{title}</h3>
-        <StatusPill label={`${count}`} tone="neutral" />
+        <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
+          <StatusPill label={`${count}`} tone="neutral" />
+          {onAdd ? <AddButton label={`Agregar ${title.toLowerCase()}`} onClick={onAdd} /> : null}
+        </div>
       </div>
       {children}
     </article>
@@ -178,6 +220,9 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
   const [editingVaccineId, setEditingVaccineId] = useState<string | null>(null);
   const [editingAllergyId, setEditingAllergyId] = useState<string | null>(null);
   const [editingConditionId, setEditingConditionId] = useState<string | null>(null);
+  const [isVaccineFormOpen, setIsVaccineFormOpen] = useState(false);
+  const [isAllergyFormOpen, setIsAllergyFormOpen] = useState(false);
+  const [isConditionFormOpen, setIsConditionFormOpen] = useState(false);
   const [vaccineForm, setVaccineForm] = useState(emptyVaccineForm);
   const [allergyForm, setAllergyForm] = useState(emptyAllergyForm);
   const [conditionForm, setConditionForm] = useState(emptyConditionForm);
@@ -186,6 +231,42 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const canEdit =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
+
+  const openNewVaccineForm = () => {
+    setEditingVaccineId(null);
+    setVaccineForm(emptyVaccineForm);
+    setIsVaccineFormOpen(true);
+  };
+
+  const closeVaccineForm = () => {
+    setEditingVaccineId(null);
+    setVaccineForm(emptyVaccineForm);
+    setIsVaccineFormOpen(false);
+  };
+
+  const openNewAllergyForm = () => {
+    setEditingAllergyId(null);
+    setAllergyForm(emptyAllergyForm);
+    setIsAllergyFormOpen(true);
+  };
+
+  const closeAllergyForm = () => {
+    setEditingAllergyId(null);
+    setAllergyForm(emptyAllergyForm);
+    setIsAllergyFormOpen(false);
+  };
+
+  const openNewConditionForm = () => {
+    setEditingConditionId(null);
+    setConditionForm(emptyConditionForm);
+    setIsConditionFormOpen(true);
+  };
+
+  const closeConditionForm = () => {
+    setEditingConditionId(null);
+    setConditionForm(emptyConditionForm);
+    setIsConditionFormOpen(false);
+  };
 
   if (!enabled) {
     return null;
@@ -349,8 +430,8 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                 </article>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", alignItems: "start", minWidth: 0 }}>
-                  <HealthBlock title="Vacunas" count={selectedPetHealthDetail.vaccines.length}>
-                    {canEdit ? (
+                  <HealthBlock title="Vacunas" count={selectedPetHealthDetail.vaccines.length} onAdd={canEdit ? openNewVaccineForm : undefined}>
+                    {canEdit && isVaccineFormOpen ? (
                       <form
                         onSubmit={(event) => {
                           event.preventDefault();
@@ -365,12 +446,19 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                             ? () => getBrowserHealthApiClient().updatePetVaccine(editingVaccineId, payload)
                             : () => getBrowserHealthApiClient().createPetVaccine(selectedPet.id, payload);
                           void runAction(action, editingVaccineId ? "Vacuna actualizada." : "Vacuna registrada.").then(() => {
-                            setEditingVaccineId(null);
-                            setVaccineForm(emptyVaccineForm);
+                            closeVaccineForm();
                           });
                         }}
                         style={{ display: "grid", gap: "8px" }}
                       >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                          <strong style={{ color: "#0f172a", fontSize: "10px" }}>
+                            {editingVaccineId ? "Editar vacuna" : "Nueva vacuna"}
+                          </strong>
+                          <ActionButton disabled={isSubmitting} onClick={closeVaccineForm} tone="secondary">
+                            Cerrar
+                          </ActionButton>
+                        </div>
                         <Field label="Vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} placeholder="Nombre de la vacuna" value={vaccineForm.name} />
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))", gap: "8px" }}>
                           <Field label="Aplicada" onChange={(value) => setVaccineForm((current) => ({ ...current, administeredOn: value }))} type="date" value={vaccineForm.administeredOn} />
@@ -384,10 +472,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                           {editingVaccineId ? (
                             <ActionButton
                               disabled={isSubmitting}
-                              onClick={() => {
-                                setEditingVaccineId(null);
-                                setVaccineForm(emptyVaccineForm);
-                              }}
+                              onClick={closeVaccineForm}
                               tone="secondary"
                             >
                               Cancelar
@@ -395,9 +480,9 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                           ) : null}
                         </div>
                       </form>
-                    ) : (
+                    ) : !canEdit ? (
                       <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Hogar en modo solo lectura.</p>
-                    )}
+                    ) : null}
                     {selectedPetHealthDetail.vaccines.map((vaccine) => (
                       <HealthRecord
                         key={vaccine.id}
@@ -411,6 +496,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                                   nextDueOn: vaccine.nextDueOn ?? "",
                                   notes: vaccine.notes ?? ""
                                 });
+                                setIsVaccineFormOpen(true);
                               }
                             : undefined
                         }
@@ -424,8 +510,8 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                     ))}
                   </HealthBlock>
 
-                  <HealthBlock title="Alergias" count={selectedPetHealthDetail.allergies.length}>
-                    {canEdit ? (
+                  <HealthBlock title="Alergias" count={selectedPetHealthDetail.allergies.length} onAdd={canEdit ? openNewAllergyForm : undefined}>
+                    {canEdit && isAllergyFormOpen ? (
                       <form
                         onSubmit={(event) => {
                           event.preventDefault();
@@ -439,12 +525,19 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                             ? () => getBrowserHealthApiClient().updatePetAllergy(editingAllergyId, payload)
                             : () => getBrowserHealthApiClient().createPetAllergy(selectedPet.id, payload);
                           void runAction(action, editingAllergyId ? "Alergia actualizada." : "Alergia registrada.").then(() => {
-                            setEditingAllergyId(null);
-                            setAllergyForm(emptyAllergyForm);
+                            closeAllergyForm();
                           });
                         }}
                         style={{ display: "grid", gap: "8px" }}
                       >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                          <strong style={{ color: "#0f172a", fontSize: "10px" }}>
+                            {editingAllergyId ? "Editar alergia" : "Nueva alergia"}
+                          </strong>
+                          <ActionButton disabled={isSubmitting} onClick={closeAllergyForm} tone="secondary">
+                            Cerrar
+                          </ActionButton>
+                        </div>
                         <Field onChange={(value) => setAllergyForm((current) => ({ ...current, allergen: value }))} placeholder="Alergeno" value={allergyForm.allergen} />
                         <Field onChange={(value) => setAllergyForm((current) => ({ ...current, reaction: value }))} placeholder="Reaccion" value={allergyForm.reaction ?? ""} />
                         <TextArea onChange={(value) => setAllergyForm((current) => ({ ...current, notes: value }))} placeholder="Notas" value={allergyForm.notes ?? ""} />
@@ -455,10 +548,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                           {editingAllergyId ? (
                             <ActionButton
                               disabled={isSubmitting}
-                              onClick={() => {
-                                setEditingAllergyId(null);
-                                setAllergyForm(emptyAllergyForm);
-                              }}
+                              onClick={closeAllergyForm}
                               tone="secondary"
                             >
                               Cancelar
@@ -479,6 +569,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                                   reaction: allergy.reaction ?? "",
                                   notes: allergy.notes ?? ""
                                 });
+                                setIsAllergyFormOpen(true);
                               }
                             : undefined
                         }
@@ -490,8 +581,8 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                     ))}
                   </HealthBlock>
 
-                  <HealthBlock title="Condiciones" count={selectedPetHealthDetail.conditions.length}>
-                    {canEdit ? (
+                  <HealthBlock title="Condiciones" count={selectedPetHealthDetail.conditions.length} onAdd={canEdit ? openNewConditionForm : undefined}>
+                    {canEdit && isConditionFormOpen ? (
                       <form
                         onSubmit={(event) => {
                           event.preventDefault();
@@ -507,12 +598,19 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                             ? () => getBrowserHealthApiClient().updatePetCondition(editingConditionId, payload)
                             : () => getBrowserHealthApiClient().createPetCondition(selectedPet.id, payload);
                           void runAction(action, editingConditionId ? "Condicion actualizada." : "Condicion registrada.").then(() => {
-                            setEditingConditionId(null);
-                            setConditionForm(emptyConditionForm);
+                            closeConditionForm();
                           });
                         }}
                         style={{ display: "grid", gap: "8px" }}
                       >
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                          <strong style={{ color: "#0f172a", fontSize: "10px" }}>
+                            {editingConditionId ? "Editar condicion" : "Nueva condicion"}
+                          </strong>
+                          <ActionButton disabled={isSubmitting} onClick={closeConditionForm} tone="secondary">
+                            Cerrar
+                          </ActionButton>
+                        </div>
                         <Field onChange={(value) => setConditionForm((current) => ({ ...current, name: value }))} placeholder="Nombre de la condicion" value={conditionForm.name} />
                         <select style={inputStyle} value={conditionForm.status ?? "active"} onChange={(event) => setConditionForm((current) => ({ ...current, status: event.target.value as typeof current.status }))}>
                           {petConditionStatusOrder.map((status) => (
@@ -533,10 +631,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                           {editingConditionId ? (
                             <ActionButton
                               disabled={isSubmitting}
-                              onClick={() => {
-                                setEditingConditionId(null);
-                                setConditionForm(emptyConditionForm);
-                              }}
+                              onClick={closeConditionForm}
                               tone="secondary"
                             >
                               Cancelar
@@ -559,6 +654,7 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                                   isCritical: condition.isCritical,
                                   notes: condition.notes ?? ""
                                 });
+                                setIsConditionFormOpen(true);
                               }
                             : undefined
                         }

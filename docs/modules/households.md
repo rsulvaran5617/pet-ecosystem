@@ -36,6 +36,7 @@ Permitir que varias personas compartan el cuidado de una o mas mascotas a traves
   - `admin`
 - en este MVP las invitaciones se resuelven contra usuarios ya existentes en `profiles.email`
 - todo acceso a mascotas y datos sensibles debe pasar por household membership
+- web owner debe mantener oculto el formulario de creacion de hogar por defecto y abrirlo solo desde una accion explicita de nuevo hogar
 
 ## Dependencias minimas
 - core
