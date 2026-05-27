@@ -1168,7 +1168,7 @@ export function CoreHomeScreen() {
               Entra a tu espacio de cuidado
             </Text>
             <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
-              Inicia sesion, crea tu cuenta o recupera el acceso para continuar con mascotas, reservas y proveedores.
+              Inicia sesion, crea tu cuenta o recupera tu contrasena para continuar con mascotas, reservas y proveedores.
             </Text>
           </View>
         )}
@@ -1251,7 +1251,7 @@ export function CoreHomeScreen() {
                     ? "Crear cuenta"
                     : authAccessPanel === "verify"
                       ? "Verificar correo"
-                      : "Recuperar acceso"
+                      : "Recuperar contrasena"
               }
               description={
                 authAccessPanel === "login"
@@ -1309,7 +1309,7 @@ export function CoreHomeScreen() {
                     />
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                       <Button label="Crear cuenta" onPress={() => setAuthAccessPanel("register")} tone="secondary" />
-                      <Button label="Recuperar acceso" onPress={() => setAuthAccessPanel("recover")} tone="secondary" />
+                      <Button label="Olvidaste tu contrasena?" onPress={() => setAuthAccessPanel("recover")} tone="secondary" />
                     </View>
                   </>
                 ) : null}

@@ -94,6 +94,8 @@ type RecoveryPasswordFormState = {
   confirmPassword: string;
 };
 
+type AuthAccessPanel = "login" | "register" | "verify" | "recover";
+
 type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
   expMonth: string;
   expYear: string;
@@ -956,6 +958,7 @@ export function CoreExperienceScreen() {
   const [verifyForm, setVerifyForm] = useState(emptyVerifyForm);
   const [recoverForm, setRecoverForm] = useState(emptyRecoverForm);
   const [recoveryPasswordForm, setRecoveryPasswordForm] = useState(emptyRecoveryPasswordForm);
+  const [authAccessPanel, setAuthAccessPanel] = useState<AuthAccessPanel>("register");
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
@@ -1194,183 +1197,277 @@ export function CoreExperienceScreen() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: "24px"
+              justifyItems: "center"
             }}
           >
             <CoreSection
-              eyebrow="Registro"
-              title="Crear identidad base"
-              description="Supabase Auth crea la cuenta y la metadata inicializa el perfil y el rol base del core."
+              eyebrow="Acceso Pet Ecosystem"
+              title={
+                authAccessPanel === "register"
+                  ? "Crea tu cuenta"
+                  : authAccessPanel === "login"
+                    ? "Inicia sesion"
+                    : authAccessPanel === "verify"
+                      ? "Verifica tu correo"
+                      : "Recupera tu contrasena"
+              }
+              description={
+                authAccessPanel === "register"
+                  ? "Registra tu identidad para gestionar mascotas, reservas o servicios desde un solo lugar."
+                  : authAccessPanel === "login"
+                    ? "Usa tu correo y contrasena para continuar con tu cuenta."
+                    : authAccessPanel === "verify"
+                      ? "Ingresa el codigo de 6 digitos enviado a tu correo para activar el acceso."
+                      : "Te enviaremos un enlace seguro para definir una nueva contrasena."
+              }
             >
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  clearMessages();
-                  setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
-                  setRecoverForm({ email: registerForm.email });
-                  void runAction(
-                    () =>
-                      getBrowserCoreApiClient().register({
-                        email: registerForm.email,
-                        password: registerForm.password,
-                        firstName: registerForm.firstName,
-                        lastName: registerForm.lastName,
-                        requestedRoles: [registerForm.role],
-                        emailRedirectTo: getBrowserRecoveryRedirectUrl()
-                      }),
-                    "Registro enviado. Completa la verificacion por correo si tu proyecto de Supabase lo requiere."
-                  );
-                }}
-                style={{ display: "grid", gap: "14px" }}
-              >
-                <Field
-                  label="Email"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, email: value }))}
-                  type="email"
-                  value={registerForm.email}
-                />
-                <Field
-                  label="Contrasena"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
-                  type="password"
-                  value={registerForm.password}
-                />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <Field
-                    label="Nombre"
-                    onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
-                    value={registerForm.firstName}
-                  />
-                  <Field
-                    label="Apellido"
-                    onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
-                    value={registerForm.lastName}
-                  />
+              <div style={{ display: "grid", gap: "18px", width: "min(560px, 100%)" }}>
+                <div
+                  aria-label="Opciones de acceso"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "8px",
+                    borderRadius: "999px",
+                    background: "rgba(15, 118, 110, 0.08)",
+                    border: "1px solid rgba(15, 118, 110, 0.14)",
+                    padding: "5px"
+                  }}
+                >
+                  {[
+                    { label: "Crear cuenta", value: "register" as const },
+                    { label: "Iniciar sesion", value: "login" as const }
+                  ].map((option) => {
+                    const isActive = authAccessPanel === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          clearMessages();
+                          setAuthAccessPanel(option.value);
+                        }}
+                        style={{
+                          border: "none",
+                          borderRadius: "999px",
+                          background: isActive ? "#0f766e" : "transparent",
+                          color: isActive ? "#ffffff" : "#0f766e",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          fontWeight: 800,
+                          padding: "10px 14px"
+                        }}
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <SelectField
-                  label="Rol inicial"
-                  onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, role: value }))}
-                  options={[
-                    { label: coreRoleLabels.pet_owner, value: "pet_owner" },
-                    { label: coreRoleLabels.provider, value: "provider" }
-                  ]}
-                  value={registerForm.role}
-                />
-                <Button disabled={isSubmitting} type="submit">
-                  Crear cuenta
-                </Button>
-              </form>
-            </CoreSection>
 
-            <CoreSection
-              eyebrow="Acceso"
-              title="Usar acceso existente"
-              description="El inicio de sesion por contrasena se delega en Supabase Auth y luego rehidrata los datos persistidos del core."
-            >
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  clearMessages();
-                  setVerifyForm((currentForm) => ({ ...currentForm, email: loginForm.email }));
-                  setRecoverForm({ email: loginForm.email });
-                  void runAction(
-                    () =>
-                      getBrowserCoreApiClient().login({
-                        email: loginForm.email,
-                        password: loginForm.password
-                      }),
-                    "Sesion autenticada."
-                  );
-                }}
-                style={{ display: "grid", gap: "14px" }}
-              >
-                <Field
-                  label="Email"
-                  onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
-                  type="email"
-                  value={loginForm.email}
-                />
-                <Field
-                  label="Contrasena"
-                  onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
-                  type="password"
-                  value={loginForm.password}
-                />
-                <Button disabled={isSubmitting} type="submit">
-                  Iniciar sesion
-                </Button>
-              </form>
-            </CoreSection>
+                {authAccessPanel === "register" ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      clearMessages();
+                      setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
+                      setRecoverForm({ email: registerForm.email });
+                      void runAction(
+                        () =>
+                          getBrowserCoreApiClient().register({
+                            email: registerForm.email,
+                            password: registerForm.password,
+                            firstName: registerForm.firstName,
+                            lastName: registerForm.lastName,
+                            requestedRoles: [registerForm.role],
+                            emailRedirectTo: getBrowserRecoveryRedirectUrl()
+                          }),
+                        "Registro enviado. Revisa tu correo e ingresa el codigo para verificar tu cuenta."
+                      ).then(() => setAuthAccessPanel("verify"));
+                    }}
+                    style={{ display: "grid", gap: "14px" }}
+                  >
+                    <Field
+                      label="Correo"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, email: value }))}
+                      type="email"
+                      value={registerForm.email}
+                    />
+                    <Field
+                      label="Contrasena"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
+                      type="password"
+                      value={registerForm.password}
+                    />
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px" }}>
+                      <Field
+                        label="Nombre"
+                        onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
+                        value={registerForm.firstName}
+                      />
+                      <Field
+                        label="Apellido"
+                        onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
+                        value={registerForm.lastName}
+                      />
+                    </div>
+                    <SelectField
+                      label="Rol inicial"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, role: value }))}
+                      options={[
+                        { label: coreRoleLabels.pet_owner, value: "pet_owner" },
+                        { label: coreRoleLabels.provider, value: "provider" }
+                      ]}
+                      value={registerForm.role}
+                    />
+                    <Button disabled={isSubmitting} type="submit">
+                      Crear cuenta
+                    </Button>
+                    <button
+                      onClick={() => {
+                        clearMessages();
+                        setAuthAccessPanel("verify");
+                        setVerifyForm((currentForm) => ({ ...currentForm, email: currentForm.email || registerForm.email }));
+                      }}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        color: "#0f766e",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: 800,
+                        justifySelf: "center"
+                      }}
+                      type="button"
+                    >
+                      Ya tengo un codigo de verificacion
+                    </button>
+                  </form>
+                ) : null}
 
-            <CoreSection
-              eyebrow="Verification"
-              title="Confirmar correo con OTP"
-              description="Enter the manual code from the Supabase signup email when Confirm email is enabled for MVP core."
-            >
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  clearMessages();
-                  void runAction(
-                    () =>
-                      getBrowserCoreApiClient().verifyOtp({
-                        email: verifyForm.email,
-                        token: verifyForm.token
-                      }),
-                    "Verificacion de correo completada."
-                  );
-                }}
-                style={{ display: "grid", gap: "14px" }}
-              >
-                <Field
-                  label="Email"
-                  onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
-                  type="email"
-                  value={verifyForm.email}
-                />
-                <Field
-                  label="Codigo OTP de 6 digitos"
-                  onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
-                  value={verifyForm.token}
-                />
-                <Button disabled={isSubmitting} type="submit">
-                  Verificar OTP
-                </Button>
-              </form>
-            </CoreSection>
+                {authAccessPanel === "login" ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      clearMessages();
+                      setVerifyForm((currentForm) => ({ ...currentForm, email: loginForm.email }));
+                      setRecoverForm({ email: loginForm.email });
+                      void runAction(
+                        () =>
+                          getBrowserCoreApiClient().login({
+                            email: loginForm.email,
+                            password: loginForm.password
+                          }),
+                        "Sesion autenticada."
+                      );
+                    }}
+                    style={{ display: "grid", gap: "14px" }}
+                  >
+                    <Field
+                      label="Correo"
+                      onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
+                      type="email"
+                      value={loginForm.email}
+                    />
+                    <Field
+                      label="Contrasena"
+                      onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
+                      type="password"
+                      value={loginForm.password}
+                    />
+                    <Button disabled={isSubmitting} type="submit">
+                      Iniciar sesion
+                    </Button>
+                    <button
+                      onClick={() => {
+                        clearMessages();
+                        setRecoverForm({ email: recoverForm.email || loginForm.email });
+                        setAuthAccessPanel("recover");
+                      }}
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        color: "#0f766e",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                        fontWeight: 800,
+                        justifySelf: "center"
+                      }}
+                      type="button"
+                    >
+                      Olvidaste tu contrasena?
+                    </button>
+                  </form>
+                ) : null}
 
-            <CoreSection
-              eyebrow="Recuperacion"
-              title="Trigger access recovery"
-              description="Supabase Auth sends the recovery email. This stays inside core and does not touch payments."
-            >
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  clearMessages();
-                  void runAction(
-                    () =>
-                      getBrowserCoreApiClient().recoverAccess({
-                        email: recoverForm.email,
-                        redirectTo: getBrowserRecoveryRedirectUrl()
-                      }),
-                    "Correo de recuperacion solicitado.",
-                    false
-                  );
-                }}
-                style={{ display: "grid", gap: "14px" }}
-              >
-                <Field
-                  label="Email"
-                  onChange={(value) => setRecoverForm({ email: value })}
-                  type="email"
-                  value={recoverForm.email}
-                />
-                <Button disabled={isSubmitting} type="submit">
-                  Enviar correo de recuperacion
-                </Button>
-              </form>
+                {authAccessPanel === "verify" ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      clearMessages();
+                      void runAction(
+                        () =>
+                          getBrowserCoreApiClient().verifyOtp({
+                            email: verifyForm.email,
+                            token: verifyForm.token
+                          }),
+                        "Verificacion de correo completada. Ya puedes iniciar sesion."
+                      ).then(() => setAuthAccessPanel("login"));
+                    }}
+                    style={{ display: "grid", gap: "14px" }}
+                  >
+                    <Field
+                      label="Correo de verificacion"
+                      onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
+                      type="email"
+                      value={verifyForm.email}
+                    />
+                    <Field
+                      label="Codigo de 6 digitos"
+                      onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
+                      value={verifyForm.token}
+                    />
+                    <Button disabled={isSubmitting} type="submit">
+                      Verificar codigo
+                    </Button>
+                    <Button disabled={isSubmitting} onClick={() => setAuthAccessPanel("login")} tone="secondary">
+                      Volver a iniciar sesion
+                    </Button>
+                  </form>
+                ) : null}
+
+                {authAccessPanel === "recover" ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      clearMessages();
+                      void runAction(
+                        () =>
+                          getBrowserCoreApiClient().recoverAccess({
+                            email: recoverForm.email,
+                            redirectTo: getBrowserRecoveryRedirectUrl()
+                          }),
+                        "Correo de recuperacion solicitado. Revisa tu bandeja y evita pedir varios enlaces seguidos.",
+                        false
+                      );
+                    }}
+                    style={{ display: "grid", gap: "14px" }}
+                  >
+                    <Field
+                      label="Correo de recuperacion"
+                      onChange={(value) => setRecoverForm({ email: value })}
+                      type="email"
+                      value={recoverForm.email}
+                    />
+                    <Button disabled={isSubmitting} type="submit">
+                      Enviar enlace de recuperacion
+                    </Button>
+                    <Button onClick={() => setAuthAccessPanel("login")} tone="secondary">
+                      Volver a iniciar sesion
+                    </Button>
+                  </form>
+                ) : null}
+              </div>
             </CoreSection>
           </div>
         ) : null}
