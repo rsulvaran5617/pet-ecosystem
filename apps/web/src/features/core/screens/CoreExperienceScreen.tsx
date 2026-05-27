@@ -263,11 +263,18 @@ function OwnerWebIcon({ name, size = 17 }: { name: OwnerWebIconName; size?: numb
   );
 }
 
-function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName: string }) {
+function OwnerWebShell({
+  children,
+  ownerName
+}: {
+  children: (activeSectionId: OwnerWebSectionId, onNavigate: (sectionId: OwnerWebSectionId) => void) => ReactNode;
+  ownerName: string;
+}) {
   const [activeSectionId, setActiveSectionId] = useState<OwnerWebSectionId>("owner-web-panel");
 
   return (
     <div
+      className="owner-web-shell"
       style={{
         background: "linear-gradient(180deg, #fbfaf7 0%, #f7f2e7 100%)",
         border: "1px solid rgba(15, 118, 110, 0.1)",
@@ -278,7 +285,53 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
         padding: "16px"
       }}
     >
+      <style>
+        {`
+          .owner-web-shell {
+            grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+          }
+
+          .owner-web-sidebar {
+            position: sticky;
+            top: 16px;
+          }
+
+          .owner-web-nav {
+            grid-template-columns: 1fr;
+          }
+
+          @media (max-width: 980px) {
+            .owner-web-shell {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .owner-web-sidebar {
+              position: static !important;
+            }
+
+            .owner-web-nav {
+              display: grid !important;
+              grid-auto-flow: column;
+              grid-auto-columns: minmax(130px, 1fr);
+              overflow-x: auto;
+              padding-bottom: 4px;
+            }
+          }
+
+          @media (max-width: 560px) {
+            .owner-web-shell {
+              border-radius: 20px !important;
+              padding: 10px !important;
+            }
+
+            .owner-web-nav {
+              grid-auto-columns: minmax(112px, 1fr);
+            }
+          }
+        `}
+      </style>
       <aside
+        className="owner-web-sidebar"
         style={{
           alignSelf: "start",
           background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
@@ -286,9 +339,7 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
           boxShadow: "0 18px 40px rgba(15, 23, 42, 0.16)",
           display: "grid",
           gap: "16px",
-          padding: "16px",
-          position: "sticky",
-          top: "16px"
+          padding: "16px"
         }}
       >
         <div style={{ alignItems: "center", display: "flex", gap: "10px", minWidth: 0 }}>
@@ -314,23 +365,26 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
             <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "11px" }}>{ownerName}</span>
           </div>
         </div>
-        <nav aria-label="Secciones owner web" style={{ display: "grid", gap: "8px" }}>
+        <nav aria-label="Secciones owner web" className="owner-web-nav" style={{ display: "grid", gap: "8px" }}>
           {ownerWebSections.map((section) => (
-            <a
-              href={`#${section.id}`}
+            <button
               key={section.id}
-              onClick={() => setActiveSectionId(section.id)}
+              onClick={() => {
+                setActiveSectionId(section.id);
+              }}
               style={{
                 background: section.id === activeSectionId ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
                 borderRadius: "14px",
                 color: "#f8fafc",
+                cursor: "pointer",
                 display: "grid",
                 gap: "3px",
                 gridTemplateColumns: "22px minmax(0, 1fr)",
                 padding: "10px 11px",
-                textDecoration: "none"
+                textAlign: "left"
               }}
+              type="button"
             >
               <span style={{ color: section.id === activeSectionId ? "#99f6e4" : "rgba(248,250,252,0.78)", paddingTop: "1px" }}>
                 <OwnerWebIcon name={section.icon} size={16} />
@@ -341,11 +395,11 @@ function OwnerWebShell({ children, ownerName }: { children: ReactNode; ownerName
                 </strong>
                 <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>
               </span>
-            </a>
+            </button>
           ))}
         </nav>
       </aside>
-      <div style={{ display: "grid", gap: "18px", minWidth: 0 }}>{children}</div>
+      <div style={{ display: "grid", gap: "18px", minWidth: 0 }}>{children(activeSectionId, setActiveSectionId)}</div>
     </div>
   );
 }
@@ -467,7 +521,13 @@ function OwnerDashboardMetric({
   );
 }
 
-function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
+function OwnerDashboard({
+  onNavigate,
+  snapshot
+}: {
+  onNavigate: (sectionId: OwnerWebSectionId) => void;
+  snapshot: CoreIdentitySnapshot;
+}) {
   const [dashboardData, setDashboardData] = useState<OwnerDashboardData>(emptyOwnerDashboardData);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -613,9 +673,21 @@ function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
               <strong style={{ color: "#0b163f", fontSize: "15px" }}>Mis mascotas</strong>
               <span style={{ color: "#667085", fontSize: "11px" }}>Perfil, documentos y estado general</span>
             </div>
-            <a href="#owner-web-pets" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, textDecoration: "none" }}>
+            <button
+              onClick={() => onNavigate("owner-web-pets")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#0f766e",
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: 800,
+                padding: 0
+              }}
+              type="button"
+            >
               Ver todas
-            </a>
+            </button>
           </div>
           {activePets.length ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "10px" }}>
@@ -709,9 +781,22 @@ function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
           <span style={{ color: "#667085", fontSize: "12px" }}>
             {documentCount ? `${documentCount} documento(s) cargado(s) entre tus mascotas.` : "Sin documentos cargados todavia."}
           </span>
-          <a href="#owner-web-pets" style={{ color: "#0f766e", fontSize: "11px", fontWeight: 800, textDecoration: "none" }}>
+          <button
+            onClick={() => onNavigate("owner-web-pets")}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#0f766e",
+              cursor: "pointer",
+              fontSize: "11px",
+              fontWeight: 800,
+              justifySelf: "start",
+              padding: 0
+            }}
+            type="button"
+          >
             Gestionar documentos
-          </a>
+          </button>
         </OwnerDashboardCard>
         <OwnerDashboardCard>
           <strong style={{ color: "#0b163f", fontSize: "15px" }}>Actividad reciente</strong>
@@ -738,27 +823,28 @@ function OwnerDashboard({ snapshot }: { snapshot: CoreIdentitySnapshot }) {
       <OwnerDashboardCard>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {[
-            { href: "#owner-web-marketplace", label: "Buscar servicios" },
-            { href: "#owner-web-bookings", label: "Reservar servicio" },
-            { href: "#owner-web-pets", label: "Gestionar mascotas" },
-            { href: "#owner-web-messaging", label: "Abrir mensajes" }
+            { label: "Buscar servicios", sectionId: "owner-web-marketplace" as const },
+            { label: "Reservar servicio", sectionId: "owner-web-bookings" as const },
+            { label: "Gestionar mascotas", sectionId: "owner-web-pets" as const },
+            { label: "Abrir mensajes", sectionId: "owner-web-messaging" as const }
           ].map((action) => (
-            <a
-              href={action.href}
+            <button
               key={action.label}
+              onClick={() => onNavigate(action.sectionId)}
               style={{
                 background: action.label === "Buscar servicios" ? "#0f766e" : "#ffffff",
                 border: "1px solid rgba(15, 118, 110, 0.18)",
                 borderRadius: "999px",
                 color: action.label === "Buscar servicios" ? "#ffffff" : "#0f766e",
+                cursor: "pointer",
                 fontSize: "11px",
                 fontWeight: 800,
                 padding: "8px 12px",
-                textDecoration: "none"
               }}
+              type="button"
             >
               {action.label}
-            </a>
+            </button>
           ))}
         </div>
       </OwnerDashboardCard>
@@ -1474,9 +1560,16 @@ export function CoreExperienceScreen() {
 
         {!isLoading && isOwnerMode ? (
           <OwnerWebShell ownerName={snapshot ? `${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || "Propietario" : "Propietario"}>
-            {snapshot ? (
+            {(activeOwnerWebSectionId, navigateOwnerWebSection) => (
+              <>
+            {snapshot && activeOwnerWebSectionId === "owner-web-panel" ? (
               <OwnerWebSection id="owner-web-panel">
-                <OwnerDashboard snapshot={snapshot} />
+                <OwnerDashboard onNavigate={navigateOwnerWebSection} snapshot={snapshot} />
+              </OwnerWebSection>
+            ) : null}
+
+            {snapshot && activeOwnerWebSectionId === "owner-web-account" ? (
+              <OwnerWebSection id="owner-web-account">
                 <div
                   style={{
                     display: "grid",
@@ -1586,7 +1679,6 @@ export function CoreExperienceScreen() {
               </div>
             </CoreSection>
 
-            <span id="owner-web-account" style={{ scrollMarginTop: "18px" }} />
             <CoreSection
               eyebrow="Perfil"
               title="Perfil base persistido"
@@ -2010,18 +2102,27 @@ export function CoreExperienceScreen() {
               </OwnerWebSection>
             ) : null}
 
+            {activeOwnerWebSectionId === "owner-web-households" ? (
             <OwnerWebSection id="owner-web-households">
               <HouseholdsWorkspace enabled />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-pets" ? (
             <OwnerWebSection id="owner-web-pets">
               <PetsWorkspace enabled />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-health" ? (
             <OwnerWebSection id="owner-web-health">
               <HealthWorkspace enabled />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-reminders" ? (
             <OwnerWebSection id="owner-web-reminders">
               <RemindersWorkspace enabled />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-marketplace" ? (
             <OwnerWebSection id="owner-web-marketplace">
               <MarketplaceWorkspace
                 enabled
@@ -2030,6 +2131,8 @@ export function CoreExperienceScreen() {
                 }}
               />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-bookings" ? (
             <OwnerWebSection id="owner-web-bookings">
               <BookingsWorkspace
                 enabled
@@ -2048,11 +2151,16 @@ export function CoreExperienceScreen() {
                 }}
               />
             </OwnerWebSection>
+            ) : null}
+            {activeOwnerWebSectionId === "owner-web-messaging" ? (
             <OwnerWebSection id="owner-web-messaging">
               <MessagingWorkspace enabled focusedBookingId={focusedBookingId} focusVersion={chatFocusVersion} />
               <ReviewsWorkspace enabled focusedBookingId={focusedReviewBookingId} focusVersion={reviewFocusVersion} />
               <SupportWorkspace enabled focusedBookingId={focusedSupportBookingId} focusVersion={supportFocusVersion} />
             </OwnerWebSection>
+            ) : null}
+              </>
+            )}
           </OwnerWebShell>
         ) : null}
 

@@ -45,6 +45,7 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - el acceso mobile debe presentar login por defecto y mantener registro, verificacion OTP y recuperacion como paneles separados para evitar confusion y solicitudes repetidas de correo
 - el acceso web sin sesion debe presentar registro, login, verificacion OTP y recuperacion como paneles separados; no debe mostrar todos los formularios a la vez
 - la recuperacion de contrasena debe aparecer como accion secundaria del login con una pregunta clara para el usuario
+- la experiencia owner web debe usar navegacion lateral por seccion activa; al seleccionar una opcion, solo se muestra el modulo correspondiente para evitar sobrecarga visual
 - la pantalla mobile sin sesion debe comportarse como flujo de autenticacion puro; no debe renderizar marketplace, contexto de hogar, proveedores ni modulos que requieran usuario autenticado
 - el login exitoso no debe mostrar un aviso global persistente; la app debe llevar al usuario directamente a su contexto y reservar mensajes visibles para errores o acciones que requieran atencion
 - el reenvio de OTP de registro usa Supabase Auth `resend` y debe mostrarse como accion controlada para evitar `email rate limit exceeded`
