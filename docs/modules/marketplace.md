@@ -62,6 +62,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - no hay tracking en tiempo real dentro de Geo-0/Geo-4
 - la seleccion de servicio no crea por si sola el booking
 - la seleccion deja preparado el contexto para `Bookings`
+- en web owner, la accion `Abrir vista previa de la reserva` cambia al modulo `Reservas` y conserva la seleccion importada para generar el preview transaccional.
 - cuando el owner elige un slot desde Buscar, el handoff conserva proveedor, servicio, hogar/mascota si existen y `selectedBookingSlot`; Reservas abre directamente el paso pendiente sin repetir la seleccion de horario
 - en web, el discovery puede verse sin autenticacion; reservar sigue requiriendo sesion valida
 

@@ -169,6 +169,7 @@ Riesgos:
 - todo booking debe vincular hogar, mascota, proveedor y servicio
 - las nuevas reservas solo pueden usar mascotas `active`; mascotas `in_memory` conservan historial existente pero no son bookables
 - el preview consume la seleccion real dejada por marketplace
+- en web owner, una seleccion desde Buscar navega a `Reservas` con el contexto importado; el usuario revisa hogar, mascota y metodo antes de generar o confirmar el preview.
 - el servicio publicado define `booking_mode`, precio base, moneda y ventana base de cancelacion
 - en V2 capacity, el servicio publicado tambien puede tener reglas de slot/capacidad visibles al owner
 - `instant` crea la reserva en estado `confirmed`

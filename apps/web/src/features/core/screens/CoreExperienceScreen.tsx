@@ -2128,6 +2128,7 @@ export function CoreExperienceScreen() {
                 enabled
                 onSelectBookingService={(selection) => {
                   setMarketplaceSelection(selection);
+                  navigateOwnerWebSection("owner-web-bookings");
                 }}
               />
             </OwnerWebSection>
