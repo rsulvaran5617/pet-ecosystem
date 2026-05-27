@@ -84,6 +84,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
   const mountedRef = useRef(true);
   const selectedOrganizationIdRef = useRef<Uuid | null>(null);
   const selectedBookingIdRef = useRef<Uuid | null>(null);
+  const selectedProviderMessageThreadIdRef = useRef<Uuid | null>(null);
   const [organizations, setOrganizations] = useState<ProviderOrganization[]>([]);
   const [businessOverviews, setBusinessOverviews] = useState<ProviderBusinessOverview[]>([]);
   const [selectedOrganizationDetail, setSelectedOrganizationDetail] = useState<ProviderOrganizationDetail | null>(null);
@@ -134,15 +135,19 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     return detail;
   }
 
-  async function loadProviderMessageThreadDetail(threadId: Uuid) {
+  async function loadProviderMessageThreadDetail(threadId: Uuid, options?: { resetDraft?: boolean }) {
     const detail = await getBrowserMessagingApiClient().getThreadDetail(threadId);
 
     if (!mountedRef.current) {
       return detail;
     }
 
+    selectedProviderMessageThreadIdRef.current = detail.thread.id;
     setSelectedProviderMessageThreadDetail(detail);
-    setProviderMessageDraft("");
+
+    if (options?.resetDraft ?? true) {
+      setProviderMessageDraft("");
+    }
 
     return detail;
   }
@@ -163,6 +168,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     selectedOrganizationIdRef.current = detail.organization.id;
     setSelectedOrganizationDetail(detail);
     setProviderBookings(bookings);
+    selectedProviderMessageThreadIdRef.current = null;
     setSelectedProviderMessageThreadDetail(null);
     setProviderMessageDraft("");
 
@@ -308,6 +314,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         setSelectedOrganizationDetail(null);
         setProviderBookings([]);
         setProviderMessageThreads([]);
+        selectedProviderMessageThreadIdRef.current = null;
         setSelectedProviderMessageThreadDetail(null);
         setProviderMessageDraft("");
         setSelectedProviderBookingDetail(null);
@@ -338,6 +345,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
           setSelectedOrganizationDetail(null);
           setBusinessOverviews([]);
           setProviderMessageThreads([]);
+          selectedProviderMessageThreadIdRef.current = null;
           setSelectedProviderMessageThreadDetail(null);
           setProviderMessageDraft("");
           return;
@@ -389,6 +397,38 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
     };
   }, [enabled]);
 
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void (async () => {
+        try {
+          const threads = await getBrowserMessagingApiClient().listThreads();
+
+          if (!mountedRef.current) {
+            return;
+          }
+
+          setProviderMessageThreads(threads);
+
+          const selectedThreadId = selectedProviderMessageThreadIdRef.current;
+
+          if (selectedThreadId) {
+            await loadProviderMessageThreadDetail(selectedThreadId, { resetDraft: false });
+          }
+        } catch {
+          // Background chat refresh is best-effort; foreground actions still surface errors.
+        }
+      })();
+    }, 7000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [enabled]);
+
   return {
     organizations,
     businessOverviews,
@@ -412,6 +452,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       setInfoMessage(null);
       setIsLoading(true);
       selectedBookingIdRef.current = null;
+      selectedProviderMessageThreadIdRef.current = null;
       setSelectedProviderBookingDetail(null);
       setSelectedProviderMessageThreadDetail(null);
       setProviderMessageDraft("");

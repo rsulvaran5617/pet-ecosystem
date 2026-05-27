@@ -2,7 +2,7 @@
 
 import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
 import type { BookingSlot, MarketplaceServiceSelection, Uuid } from "@pet/types";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
@@ -155,6 +155,7 @@ export function BookingsWorkspace({
     openBookingDetail,
     cancelBooking
   } = useBookingsWorkspace(enabled, marketplaceSelection);
+  const [isBookingHistoryOpen, setIsBookingHistoryOpen] = useState(false);
   const slotsByDate = useMemo(() => {
     return bookingSlots.reduce<Record<string, BookingSlot[]>>((accumulator, slot) => {
       accumulator[slot.slotDate] = [...(accumulator[slot.slotDate] ?? []), slot];
@@ -469,11 +470,22 @@ export function BookingsWorkspace({
 
               <article style={panelStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <h3 style={{ margin: 0, fontSize: "16px" }}>Historial de reservas</h3>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "16px" }}>Historial de reservas</h3>
+                    <p style={{ margin: "6px 0 0", color: "#57534e", fontSize: "12px", lineHeight: 1.5 }}>
+                      Consulta reservas anteriores solo cuando lo necesites.
+                    </p>
+                  </div>
                   <StatusPill label={`${bookings.length} reserva(s)`} tone="neutral" />
                 </div>
-                {bookings.length ? (
-                  bookings.map((booking) => (
+                <div>
+                  <Button onClick={() => setIsBookingHistoryOpen((current) => !current)} tone="secondary">
+                    {isBookingHistoryOpen ? "Ocultar historial" : "Ver historial"}
+                  </Button>
+                </div>
+                {isBookingHistoryOpen ? (
+                  bookings.length ? (
+                    bookings.map((booking) => (
                     <button
                       key={booking.id}
                       onClick={() => void openBookingDetail(booking.id)}
@@ -490,10 +502,11 @@ export function BookingsWorkspace({
                       <div style={{ color: "#57534e" }}>{formatDateTimeLabel(booking.scheduledStartAt)}</div>
                       <div style={{ color: "#57534e" }}>{formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}</div>
                     </button>
-                  ))
-                ) : (
-                  <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay reservas para el hogar y filtro de mascota actuales.</p>
-                )}
+                    ))
+                  ) : (
+                    <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay reservas para el hogar y filtro de mascota actuales.</p>
+                  )
+                ) : null}
               </article>
 
               {selectedBookingDetail ? (

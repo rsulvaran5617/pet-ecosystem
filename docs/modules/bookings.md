@@ -171,6 +171,7 @@ Riesgos:
 - el preview consume la seleccion real dejada por marketplace
 - en web owner, una seleccion desde Buscar navega a `Reservas` con el contexto importado; el usuario revisa hogar, mascota y metodo antes de generar o confirmar el preview.
 - en web owner, Reservas presenta un flujo guiado Servicio -> Mascota -> Horario -> Resumen, muestra slots/cupos publicados cuando existen y usa `create_booking_from_slot` al confirmar un horario seleccionado.
+- en web owner, el historial de reservas queda colapsado por defecto como CTA para no distraer del flujo activo; el usuario puede abrirlo solo cuando necesite consultar reservas anteriores.
 - el servicio publicado define `booking_mode`, precio base, moneda y ventana base de cancelacion
 - en V2 capacity, el servicio publicado tambien puede tener reglas de slot/capacidad visibles al owner
 - `instant` crea la reserva en estado `confirmed`
