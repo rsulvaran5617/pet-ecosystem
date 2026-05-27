@@ -2059,12 +2059,6 @@ export function CoreExperienceScreen() {
         {!isLoading && isProviderMode ? (
           <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive />
         ) : null}
-        {!isLoading && !authState.isAuthenticated ? (
-          <MarketplaceWorkspace
-            enabled
-            onSelectBookingService={undefined}
-          />
-        ) : null}
       </section>
     </main>
   );
