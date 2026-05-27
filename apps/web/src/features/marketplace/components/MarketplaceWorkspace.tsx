@@ -32,6 +32,19 @@ const inputStyle: CSSProperties = {
   fontSize: "11px"
 };
 
+const marketplacePanelStyle: CSSProperties = {
+  ...cardStyle,
+  background: "rgba(255,255,255,0.94)",
+  border: "1px solid rgba(15,118,110,0.12)",
+  boxShadow: "0 16px 42px rgba(15,23,42,0.06)"
+};
+
+const marketplaceRailStyle: CSSProperties = {
+  ...cardStyle,
+  background: "rgba(247,242,231,0.9)",
+  border: "1px solid rgba(15,118,110,0.14)"
+};
+
 const preferredSearchCategories: Array<{ category: ProviderServiceCategory; helper: string; label: string }> = [
   { category: "veterinary", label: "Veterinaria", helper: "salud" },
   { category: "walking", label: "Paseadores", helper: "paseos" },
@@ -178,15 +191,15 @@ function SearchShell({
       style={{
         alignItems: "center",
         background: "#ffffff",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: "18px",
+        border: "1px solid rgba(15,118,110,0.16)",
+        borderRadius: "16px",
         display: "flex",
         gap: "8px",
-        minHeight: "50px",
-        padding: "0 12px"
+        minHeight: "44px",
+        padding: "0 10px"
       }}
     >
-      <span style={{ color: "#78716c", fontSize: "18px", fontWeight: 700 }}>⌕</span>
+      <span style={{ color: "#0f766e", fontSize: "12px", fontWeight: 900 }}>Buscar</span>
       <input
         onChange={(event) => setValue(event.target.value)}
         onFocus={onFocus}
@@ -196,7 +209,7 @@ function SearchShell({
           }
         }}
         placeholder="Que servicio necesitas para tu mascota?"
-        style={{ border: "none", outline: "none", flex: 1, fontSize: "13px", minHeight: "46px" }}
+        style={{ border: "none", outline: "none", flex: 1, fontSize: "12px", minHeight: "40px" }}
         value={value}
       />
       {value ? (
@@ -212,14 +225,14 @@ function SearchShell({
           background: "#ffffff",
           color: "#0f766e",
           cursor: "pointer",
-          fontSize: "15px",
+          fontSize: "10px",
           fontWeight: 900,
-          height: "34px",
-          width: "34px"
+          minHeight: "30px",
+          padding: "0 10px"
         }}
         type="button"
       >
-        ≡
+        Filtros
       </button>
     </div>
   );
@@ -247,10 +260,11 @@ function ProviderVisualCard({
       style={{
         ...inputStyle,
         border: variant === "featured" ? "1px solid rgba(15,118,110,0.42)" : inputStyle.border,
+        borderRadius: "16px",
         cursor: "pointer",
         display: "grid",
-        gridTemplateColumns: "76px 1fr",
-        gap: "12px",
+        gridTemplateColumns: "58px minmax(0, 1fr)",
+        gap: "10px",
         textAlign: "left",
         background: "#ffffff"
       }}
@@ -259,26 +273,26 @@ function ProviderVisualCard({
         style={{
           alignItems: "center",
           background: "rgba(20,184,166,0.12)",
-          borderRadius: "16px",
+          borderRadius: "14px",
           color: "#0f766e",
           display: "flex",
-          fontSize: "17px",
+          fontSize: "14px",
           fontWeight: 900,
-          height: "76px",
+          height: "58px",
           justifyContent: "center",
           overflow: "hidden",
-          width: "76px"
+          width: "58px"
         }}
       >
         {provider.avatarUrl ? (
-          <img alt="" src={provider.avatarUrl} style={{ height: "76px", objectFit: "cover", width: "76px" }} />
+          <img alt="" src={provider.avatarUrl} style={{ height: "58px", objectFit: "cover", width: "58px" }} />
         ) : (
           getProviderInitials(provider.name)
         )}
       </span>
       <span style={{ display: "grid", gap: "5px", minWidth: 0 }}>
         <span style={{ display: "flex", gap: "8px", justifyContent: "space-between", alignItems: "center" }}>
-          <strong style={{ fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{provider.name}</strong>
+          <strong style={{ fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{provider.name}</strong>
           {variant === "featured" ? <StatusPill label="recomendado" tone="active" /> : null}
         </span>
         <span style={{ color: "#57534e", fontSize: "10px", fontWeight: 700 }}>{categoryLabel}</span>
@@ -286,7 +300,7 @@ function ProviderVisualCard({
           {publicLocation ? `${publicLocation.city}, ${publicLocation.countryCode}` : provider.city}
           {distanceLabel ? ` - ${distanceLabel}` : ""}
         </span>
-        <span style={{ color: "#f59e0b", fontSize: "10px", fontWeight: 800 }}>Perfil publicado - resenas en piloto</span>
+        <span style={{ color: "#b45309", fontSize: "9px", fontWeight: 800 }}>Perfil publicado - reservas en piloto</span>
         <span style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           <StatusPill label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
           {provider.availableDays.length ? <StatusPill label="disponibilidad" tone="active" /> : null}
@@ -473,6 +487,7 @@ export function MarketplaceWorkspace({
       {errorMessage ? <div style={{ ...cardStyle, color: "#991b1b" }}>{errorMessage}</div> : null}
       {!errorMessage && infoMessage ? <div style={{ ...cardStyle, color: "#0f766e" }}>{infoMessage}</div> : null}
       <CoreSection
+        density="compact"
         eyebrow="EP-05 / Marketplace"
         title="Buscar servicios"
         description="Explora proveedores aprobados, filtra por servicio, ciudad, especie y prepara una reserva sin perder el contexto del hogar."
@@ -481,7 +496,7 @@ export function MarketplaceWorkspace({
           <p style={{ margin: 0, color: "#57534e" }}>Cargando catalogo publico de servicios desde Supabase...</p>
         ) : (
           <div style={{ display: "grid", gap: "14px" }}>
-            <article style={cardStyle}>
+            <article style={marketplacePanelStyle}>
               <SearchShell
                 onClear={() => setSearchQuery("")}
                 onFocus={() => setCurrentView("search")}
@@ -533,7 +548,7 @@ export function MarketplaceWorkspace({
                 </div>
               ) : null}
               {filterPanelOpen ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(140px, 1fr))", gap: "10px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "10px" }}>
                   <select style={inputStyle} value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value as ProviderServiceCategory | "")}>
                     <option value="">Todas las categorias</option>
                     {homeSnapshot?.categoryHighlights.map((highlight) => (
@@ -576,9 +591,9 @@ export function MarketplaceWorkspace({
               ) : null}
             </article>
 
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.34fr) minmax(0, 1fr)", gap: "14px", alignItems: "start" }}>
+            <div className="marketplace-owner-grid" style={{ display: "grid", gridTemplateColumns: "minmax(190px, 250px) minmax(0, 1fr)", gap: "14px", alignItems: "start" }}>
               <div style={{ display: "grid", gap: "14px" }}>
-                <article style={cardStyle}>
+                <article style={marketplaceRailStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                     <h3 style={{ margin: 0, fontSize: "15px" }}>Contexto</h3>
                     <StatusPill label={selectedPet ? "mascota" : "hogar"} tone="neutral" />
@@ -624,21 +639,19 @@ export function MarketplaceWorkspace({
                   )}
                 </article>
 
-                <article style={cardStyle}>
-                  <h3 style={{ margin: 0, fontSize: "15px" }}>Navegacion</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    <Button disabled={currentView === "home"} onClick={() => setCurrentView("home")} tone="secondary">
-                      Inicio
-                    </Button>
-                    <Button disabled={currentView === "search"} onClick={() => setCurrentView("search")} tone="secondary">
-                      Buscar
-                    </Button>
-                    <Button disabled={!providers.length || currentView === "results"} onClick={() => setCurrentView("results")} tone="secondary">
-                      Resultados
-                    </Button>
-                    <Button disabled={!selectedProviderDetail || currentView === "provider"} onClick={() => setCurrentView("provider")} tone="secondary">
-                      Proveedor
-                    </Button>
+                <article style={marketplaceRailStyle}>
+                  <h3 style={{ margin: 0, fontSize: "13px" }}>Busquedas rapidas</h3>
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {controlledRecentSearches.map((recentSearch) => (
+                      <button
+                        key={recentSearch}
+                        onClick={() => void runSearch({ query: recentSearch })}
+                        style={{ ...inputStyle, background: "#ffffff", cursor: "pointer", fontSize: "10px", textAlign: "left" }}
+                        type="button"
+                      >
+                        {recentSearch}
+                      </button>
+                    ))}
                   </div>
                 </article>
               </div>
@@ -646,7 +659,7 @@ export function MarketplaceWorkspace({
               <div style={{ display: "grid", gap: "14px", alignContent: "start" }}>
                 {currentView === "home" ? (
                   <>
-                    <article style={cardStyle}>
+                    <article style={marketplacePanelStyle}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                         <h3 style={{ margin: 0, fontSize: "16px" }}>Explora servicios</h3>
                         <StatusPill label={homeSnapshot?.featuredProviders.length ? `${homeSnapshot.featuredProviders.length} destacados` : "catalogo vacio"} tone="active" />
@@ -664,7 +677,7 @@ export function MarketplaceWorkspace({
                       </div>
                     </article>
 
-                    <article style={cardStyle}>
+                    <article style={marketplacePanelStyle}>
                       <h3 style={{ margin: 0, fontSize: "16px" }}>Proveedores destacados</h3>
                       {homeSnapshot?.featuredProviders.length ? (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "10px" }}>
@@ -686,9 +699,9 @@ export function MarketplaceWorkspace({
                 ) : null}
 
                 {currentView === "search" ? (
-                  <article style={cardStyle}>
+                  <article style={marketplacePanelStyle}>
                     <h3 style={{ margin: 0, fontSize: "16px" }}>Busqueda enfocada</h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "minmax(220px, 0.45fr) minmax(0, 1fr)", gap: "12px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: "12px" }}>
                       <div style={{ display: "grid", gap: "8px", alignContent: "start" }}>
                         <strong style={{ fontSize: "11px" }}>Busquedas recientes</strong>
                         {controlledRecentSearches.map((recentSearch) => (
@@ -731,7 +744,7 @@ export function MarketplaceWorkspace({
                 ) : null}
 
                 {currentView === "results" ? (
-                  <article style={cardStyle}>
+                  <article style={marketplacePanelStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                       <h3 style={{ margin: 0, fontSize: "16px" }}>Resultados</h3>
                       <StatusPill label={`${visibleProviders.length} resultado(s)`} tone="neutral" />
@@ -763,7 +776,7 @@ export function MarketplaceWorkspace({
 
                 {currentView === "provider" && selectedProviderDetail ? (
                   <>
-                    <article style={cardStyle}>
+                    <article style={marketplacePanelStyle}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                         <div>
                           <h3 style={{ margin: 0, fontSize: "16px" }}>{selectedProviderDetail.name}</h3>
@@ -775,7 +788,7 @@ export function MarketplaceWorkspace({
                       <p style={{ margin: 0, color: "#57534e", fontSize: "11px", lineHeight: 1.6 }}>{selectedProviderDetail.bio}</p>
                     </article>
 
-                    <article style={cardStyle}>
+                    <article style={marketplacePanelStyle}>
                       <h3 style={{ margin: 0, fontSize: "16px" }}>Servicios</h3>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "10px" }}>
                         {selectedProviderDetail.services.map((service) => (
@@ -807,7 +820,7 @@ export function MarketplaceWorkspace({
                       </div>
                     </article>
 
-                    <article style={cardStyle}>
+                    <article style={marketplacePanelStyle}>
                       <h3 style={{ margin: 0, fontSize: "16px" }}>Disponibilidad publicada</h3>
                       {selectedProviderDetail.availability.length ? (
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: "8px" }}>
@@ -826,7 +839,7 @@ export function MarketplaceWorkspace({
                 ) : null}
 
                 {currentView === "selection" && selectedProviderDetail && selectedService ? (
-                  <article style={cardStyle}>
+                  <article style={marketplacePanelStyle}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
                       <h3 style={{ margin: 0, fontSize: "16px" }}>Servicio seleccionado</h3>
                       <StatusPill label={canOpenBookingPreview ? "lista para reserva" : "inicia sesion"} tone="active" />
@@ -894,6 +907,13 @@ export function MarketplaceWorkspace({
           </div>
         )}
       </CoreSection>
+      <style>{`
+        @media (max-width: 900px) {
+          .marketplace-owner-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
