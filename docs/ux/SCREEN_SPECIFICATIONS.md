@@ -146,6 +146,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - el dashboard multinegocio provider consolida metricas desde cada negocio cargando detalles y reservas en orden estable para que reservas, servicios, ingresos y salud no queden en cero por carga parcial
 - `Reservas entrantes` en web provider inicia filtrado por `Pendientes por aprobar` y permite alternar chips de estado para ver confirmadas, completadas y canceladas del negocio activo
 - cada tarjeta expandida de `Reservas entrantes` incluye accion `Chatear` cuando la reserva tiene hilo transaccional, reutilizando messaging existente para pedir informacion adicional o explicar una decision al owner
+- cada tarjeta expandida de `Reservas entrantes` muestra `Ejecucion operacional` con check-in, check-out, evidencia documental, estado operativo y fallback manual para piloto; la carga de evidencia aparece solo despues de check-out y no reemplaza QR mobile
 - el KPI consolidado antes llamado `Salud promedio` se presenta como `Preparacion marketplace` para evitar confusion con salud medica; sigue midiendo readiness de perfil, servicios, agenda, documentos, ubicacion y visibilidad
 - `Conversaciones activas` reemplaza el KPI anterior de soporte y se muestra en la seccion Reservas con lista de hilos, detalle del chat y respuesta de texto para el proveedor
 - web provider muestra un popup pequeno y profesional cuando llega una nueva solicitud de cita `pending_approval` mientras la consola esta abierta; el CTA lleva a `Reservas` filtrado por pendientes del negocio correspondiente

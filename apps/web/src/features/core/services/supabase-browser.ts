@@ -7,6 +7,7 @@ import {
   createHouseholdsApiClient,
   createMarketplaceApiClient,
   createMessagingApiClient,
+  createBookingOperationsApiClient,
   createPetsApiClient,
   createProvidersApiClient,
   createReviewsApiClient,
@@ -25,6 +26,7 @@ let browserHealthApiClient: ReturnType<typeof createHealthApiClient> | null = nu
 let browserRemindersApiClient: ReturnType<typeof createRemindersApiClient> | null = null;
 let browserMarketplaceApiClient: ReturnType<typeof createMarketplaceApiClient> | null = null;
 let browserMessagingApiClient: ReturnType<typeof createMessagingApiClient> | null = null;
+let browserBookingOperationsApiClient: ReturnType<typeof createBookingOperationsApiClient> | null = null;
 let browserReviewsApiClient: ReturnType<typeof createReviewsApiClient> | null = null;
 let browserSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
 let browserProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
@@ -115,6 +117,14 @@ export function getBrowserMessagingApiClient() {
   }
 
   return browserMessagingApiClient;
+}
+
+export function getBrowserBookingOperationsApiClient() {
+  if (!browserBookingOperationsApiClient) {
+    browserBookingOperationsApiClient = createBookingOperationsApiClient(getBrowserSupabaseClient());
+  }
+
+  return browserBookingOperationsApiClient;
 }
 
 export function getBrowserReviewsApiClient() {

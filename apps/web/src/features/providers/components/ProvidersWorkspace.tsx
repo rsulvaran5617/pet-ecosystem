@@ -12,6 +12,8 @@ import {
 } from "@pet/config";
 import type {
   BookingMode,
+  BookingOperationsTimeline,
+  BookingOperationalState,
   BookingSummary,
   BookingStatus,
   BookingSlot,
@@ -28,7 +30,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
-import { getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
+import { getBrowserBookingOperationsApiClient, getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
 import { type ProviderBusinessOverview, type ProviderMoneyIndicator, type ProviderServiceRankingItem, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const fieldLabelStyle = {
@@ -473,6 +475,30 @@ const bookingSlotStatusLabels: Record<BookingSlot["status"], string> = {
   low_capacity: "Ultimo cupo",
   unavailable: "No disponible"
 };
+
+const bookingOperationalStateLabels: Record<BookingOperationalState, string> = {
+  pending: "Pendiente",
+  checked_in: "Check-in registrado",
+  checked_out: "Check-out registrado",
+  evidence_pending: "Evidencia pendiente",
+  documented: "Documentado"
+};
+
+function getBookingOperationalStateTone(state: BookingOperationalState) {
+  if (state === "documented") {
+    return { background: "rgba(15, 118, 110, 0.12)", border: "rgba(15, 118, 110, 0.22)", color: "#0f766e" };
+  }
+
+  if (state === "checked_in" || state === "checked_out") {
+    return { background: "rgba(59, 130, 246, 0.1)", border: "rgba(59, 130, 246, 0.18)", color: "#1d4ed8" };
+  }
+
+  if (state === "evidence_pending") {
+    return { background: "rgba(249, 115, 22, 0.12)", border: "rgba(249, 115, 22, 0.22)", color: "#c2410c" };
+  }
+
+  return { background: "rgba(245, 158, 11, 0.12)", border: "rgba(245, 158, 11, 0.24)", color: "#b45309" };
+}
 
 function scrollToProviderSection(sectionId: string) {
   document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1369,6 +1395,10 @@ export function ProvidersWorkspace({
   const [isAvailabilityFormOpen, setIsAvailabilityFormOpen] = useState(false);
   const [isDocumentFormOpen, setIsDocumentFormOpen] = useState(false);
   const [expandedProviderBookingId, setExpandedProviderBookingId] = useState<Uuid | null>(null);
+  const [providerBookingOperationsById, setProviderBookingOperationsById] = useState<Record<string, BookingOperationsTimeline>>({});
+  const [providerBookingOperationsErrorById, setProviderBookingOperationsErrorById] = useState<Record<string, string>>({});
+  const [loadingProviderBookingOperationId, setLoadingProviderBookingOperationId] = useState<Uuid | null>(null);
+  const [submittingProviderBookingOperationId, setSubmittingProviderBookingOperationId] = useState<Uuid | null>(null);
   const [capacityServiceId, setCapacityServiceId] = useState<Uuid | null>(null);
   const [capacitySlots, setCapacitySlots] = useState<BookingSlot[]>([]);
   const [selectedCapacityDate, setSelectedCapacityDate] = useState<string | null>(null);
@@ -1882,6 +1912,60 @@ export function ProvidersWorkspace({
 
     setExpandedProviderBookingId(bookingId);
     void openProviderBookingDetail(bookingId);
+    void loadProviderBookingOperations(bookingId);
+  };
+
+  const loadProviderBookingOperations = async (bookingId: Uuid) => {
+    setLoadingProviderBookingOperationId(bookingId);
+    setProviderBookingOperationsErrorById((current) => {
+      const next = { ...current };
+      delete next[bookingId];
+      return next;
+    });
+
+    try {
+      const timeline = await getBrowserBookingOperationsApiClient().getBookingOperations(bookingId);
+      setProviderBookingOperationsById((current) => ({ ...current, [bookingId]: timeline }));
+      return timeline;
+    } catch (error) {
+      setProviderBookingOperationsErrorById((current) => ({
+        ...current,
+        [bookingId]: error instanceof Error ? error.message : "No fue posible cargar el seguimiento operacional."
+      }));
+      return null;
+    } finally {
+      setLoadingProviderBookingOperationId((current) => (current === bookingId ? null : current));
+    }
+  };
+
+  const runProviderBookingOperation = async (bookingId: Uuid, action: () => Promise<unknown>, successMessage: string) => {
+    setSubmittingProviderBookingOperationId(bookingId);
+
+    try {
+      await runAction(action, successMessage);
+      await loadProviderBookingOperations(bookingId);
+      await refresh(selectedOrganizationId);
+    } finally {
+      setSubmittingProviderBookingOperationId((current) => (current === bookingId ? null : current));
+    }
+  };
+
+  const uploadProviderBookingEvidence = async (bookingId: Uuid, file: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    await runProviderBookingOperation(
+      bookingId,
+      async () => {
+        await getBrowserBookingOperationsApiClient().uploadEvidence(bookingId, {
+          fileBytes: await file.arrayBuffer(),
+          fileName: file.name,
+          mimeType: file.type || null
+        });
+      },
+      "Evidencia documental registrada."
+    );
   };
   const openBookingNotice = () => {
     if (!bookingNotice) {
@@ -3535,6 +3619,13 @@ export function ProvidersWorkspace({
                           const expandedDetail =
                             isExpanded && selectedProviderBookingDetail?.booking.id === booking.id ? selectedProviderBookingDetail : null;
                           const bookingThread = providerMessageThreads.find((thread) => thread.bookingId === booking.id) ?? null;
+                          const operationTimeline = providerBookingOperationsById[booking.id] ?? null;
+                          const operationError = providerBookingOperationsErrorById[booking.id] ?? null;
+                          const isLoadingOperations = loadingProviderBookingOperationId === booking.id;
+                          const isSubmittingOperation = submittingProviderBookingOperationId === booking.id;
+                          const operationStateTone = operationTimeline
+                            ? getBookingOperationalStateTone(operationTimeline.operationalState)
+                            : getBookingOperationalStateTone("pending");
 
                           return (
                             <article
@@ -3640,6 +3731,200 @@ export function ProvidersWorkspace({
                                           </div>
                                         ))}
                                       </div>
+                                      <section
+                                        style={{
+                                          background: "rgba(240, 253, 250, 0.48)",
+                                          border: "1px solid rgba(15, 118, 110, 0.14)",
+                                          borderRadius: "14px",
+                                          display: "grid",
+                                          gap: "8px",
+                                          padding: "10px"
+                                        }}
+                                      >
+                                        <div style={{ alignItems: "center", display: "flex", gap: "10px", justifyContent: "space-between" }}>
+                                          <div style={{ display: "grid", gap: "2px" }}>
+                                            <strong style={{ color: "#1c1917", fontSize: "10px" }}>Ejecucion operacional</strong>
+                                            <span style={{ color: "#57534e", fontSize: "8px" }}>Check-in, check-out y evidencia del servicio.</span>
+                                          </div>
+                                          <span
+                                            style={{
+                                              background: operationStateTone.background,
+                                              border: `1px solid ${operationStateTone.border}`,
+                                              borderRadius: "999px",
+                                              color: operationStateTone.color,
+                                              fontSize: "6.5px",
+                                              fontWeight: 900,
+                                              letterSpacing: "0.06em",
+                                              padding: "4px 7px",
+                                              textTransform: "uppercase",
+                                              whiteSpace: "nowrap"
+                                            }}
+                                          >
+                                            {operationTimeline ? bookingOperationalStateLabels[operationTimeline.operationalState] : "Cargando"}
+                                          </span>
+                                        </div>
+
+                                        {operationError ? (
+                                          <span style={{ color: "#991b1b", fontSize: "9px" }}>{operationError}</span>
+                                        ) : null}
+                                        {isLoadingOperations && !operationTimeline ? (
+                                          <span style={{ color: "#57534e", fontSize: "9px" }}>Cargando seguimiento operacional...</span>
+                                        ) : null}
+
+                                        {operationTimeline ? (
+                                          <div style={{ display: "grid", gap: "6px" }}>
+                                            <div
+                                              style={{
+                                                display: "grid",
+                                                gap: "6px",
+                                                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))"
+                                              }}
+                                            >
+                                              <div style={{ ...controlStyle, display: "grid", gap: "4px", padding: "8px 10px" }}>
+                                                <strong style={{ color: operationTimeline.checkIn ? "#0f766e" : "#78716c", fontSize: "8.5px" }}>
+                                                  Llegada / Check-in
+                                                </strong>
+                                                <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                                  {operationTimeline.checkIn ? formatDateTime(operationTimeline.checkIn.createdAt) : "Pendiente por QR o fallback manual"}
+                                                </span>
+                                                {operationTimeline.checkIn?.locationLabel ? (
+                                                  <span style={{ color: "#57534e", fontSize: "8px" }}>{operationTimeline.checkIn.locationLabel}</span>
+                                                ) : null}
+                                                {booking.status === "confirmed" && !operationTimeline.checkIn ? (
+                                                  <button
+                                                    disabled={isSubmittingOperation}
+                                                    onClick={() =>
+                                                      void runProviderBookingOperation(
+                                                        booking.id,
+                                                        () => getBrowserBookingOperationsApiClient().createCheckIn(booking.id, {}),
+                                                        "Check-in registrado."
+                                                      )
+                                                    }
+                                                    style={{
+                                                      alignSelf: "flex-start",
+                                                      background: "#ffffff",
+                                                      border: "1px solid rgba(15, 118, 110, 0.22)",
+                                                      borderRadius: "999px",
+                                                      color: "#0f766e",
+                                                      cursor: isSubmittingOperation ? "not-allowed" : "pointer",
+                                                      fontSize: "7px",
+                                                      fontWeight: 900,
+                                                      padding: "4px 8px"
+                                                    }}
+                                                    type="button"
+                                                  >
+                                                    Registrar manual
+                                                  </button>
+                                                ) : null}
+                                              </div>
+                                              <div style={{ ...controlStyle, display: "grid", gap: "4px", padding: "8px 10px" }}>
+                                                <strong style={{ color: operationTimeline.checkOut ? "#0f766e" : "#78716c", fontSize: "8.5px" }}>
+                                                  Salida / Check-out
+                                                </strong>
+                                                <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                                  {operationTimeline.checkOut ? formatDateTime(operationTimeline.checkOut.createdAt) : "Pendiente despues del check-in"}
+                                                </span>
+                                                {booking.status === "confirmed" && operationTimeline.checkIn && !operationTimeline.checkOut ? (
+                                                  <button
+                                                    disabled={isSubmittingOperation}
+                                                    onClick={() =>
+                                                      void runProviderBookingOperation(
+                                                        booking.id,
+                                                        () => getBrowserBookingOperationsApiClient().createCheckOut(booking.id),
+                                                        "Check-out registrado."
+                                                      )
+                                                    }
+                                                    style={{
+                                                      alignSelf: "flex-start",
+                                                      background: "#ffffff",
+                                                      border: "1px solid rgba(15, 118, 110, 0.22)",
+                                                      borderRadius: "999px",
+                                                      color: "#0f766e",
+                                                      cursor: isSubmittingOperation ? "not-allowed" : "pointer",
+                                                      fontSize: "7px",
+                                                      fontWeight: 900,
+                                                      padding: "4px 8px"
+                                                    }}
+                                                    type="button"
+                                                  >
+                                                    Registrar manual
+                                                  </button>
+                                                ) : null}
+                                              </div>
+                                            </div>
+
+                                            <div style={{ ...controlStyle, display: "grid", gap: "6px", padding: "8px 10px" }}>
+                                              <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "10px" }}>
+                                                <strong style={{ color: operationTimeline.evidences.length ? "#0f766e" : "#78716c", fontSize: "8.5px" }}>
+                                                  Evidencia documental
+                                                </strong>
+                                                <span style={{ color: "#57534e", fontSize: "7.5px" }}>
+                                                  {operationTimeline.evidences.length ? `${operationTimeline.evidences.length} documento(s)` : "Pendiente"}
+                                                </span>
+                                              </div>
+                                              {operationTimeline.evidences.length ? (
+                                                <div style={{ display: "grid", gap: "5px" }}>
+                                                  {operationTimeline.evidences.map((evidence) => (
+                                                    <div
+                                                      key={evidence.id}
+                                                      style={{
+                                                        alignItems: "center",
+                                                        display: "flex",
+                                                        gap: "8px",
+                                                        justifyContent: "space-between"
+                                                      }}
+                                                    >
+                                                      <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                                        {evidence.fileName} · {formatFileSize(evidence.fileSizeBytes)}
+                                                      </span>
+                                                      {evidence.signedUrl ? (
+                                                        <a
+                                                          href={evidence.signedUrl}
+                                                          rel="noreferrer"
+                                                          style={{ color: "#0f766e", fontSize: "8px", fontWeight: 900, textDecoration: "none" }}
+                                                          target="_blank"
+                                                        >
+                                                          Abrir
+                                                        </a>
+                                                      ) : null}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              ) : (
+                                                <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                                  La evidencia se carga despues del check-out. No reemplaza la validacion por QR.
+                                                </span>
+                                              )}
+                                              {booking.status === "confirmed" && operationTimeline.checkIn && operationTimeline.checkOut && operationTimeline.evidences.length === 0 ? (
+                                                <label
+                                                  style={{
+                                                    alignSelf: "flex-start",
+                                                    background: "#0f766e",
+                                                    borderRadius: "999px",
+                                                    color: "#f8fafc",
+                                                    cursor: isSubmittingOperation ? "not-allowed" : "pointer",
+                                                    fontSize: "7.5px",
+                                                    fontWeight: 900,
+                                                    padding: "6px 9px"
+                                                  }}
+                                                >
+                                                  {isSubmittingOperation ? "Cargando..." : "Cargar evidencia"}
+                                                  <input
+                                                    disabled={isSubmittingOperation}
+                                                    onChange={(event) => {
+                                                      const file = event.currentTarget.files?.[0] ?? null;
+                                                      event.currentTarget.value = "";
+                                                      void uploadProviderBookingEvidence(booking.id, file);
+                                                    }}
+                                                    style={{ display: "none" }}
+                                                    type="file"
+                                                  />
+                                                </label>
+                                              ) : null}
+                                            </div>
+                                          </div>
+                                        ) : null}
+                                      </section>
                                     </>
                                   ) : (
                                     <span style={{ color: "#57534e", fontSize: "10px" }}>Cargando detalle de la reserva...</span>
