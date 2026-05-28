@@ -107,6 +107,37 @@ Regla documental:
 - el modulo organiza informacion, vencimientos y documentos para revision.
 - cualquier validez legal depende de veterinarios certificados, autoridades sanitarias, aerolineas y pais destino.
 
+## Modelo V2.5 Foster/Adoption
+
+Modelo conceptual documental. No implementado y sin migraciones asociadas.
+
+Recomendacion:
+- extender `pets` mediante tablas asociadas de acogida/adopcion, no duplicar mascotas.
+- `pets` y `pet_profiles` siguen siendo la fuente de verdad del expediente base.
+- `foster_pets` representa el contexto de custodia temporal.
+- `adoption_listings` representa la publicacion publica moderada.
+- `adoption_applications` representa la solicitud del adoptante.
+- `pet_transfer_records` registra transferencia de custodia digital.
+
+Relaciones propuestas:
+- `households` 1:N `foster_profiles`.
+- `foster_organizations` 1:N `foster_pets`.
+- `pets` 1:0..1 `foster_pets` para contexto activo de acogida.
+- `foster_pets` 1:0..1 `adoption_listings`.
+- `adoption_listings` 1:N `adoption_applications`.
+- `adoption_applications` 1:N `adoption_status_history`.
+- `adoption_applications` 1:N `adoption_documents`.
+- `adoption_applications` 1:N `adoption_screening_notes`.
+- `pet_transfer_records` referencia `pet_id`, hogar origen, hogar destino y solicitud aprobada.
+
+Reglas estructurales:
+- una mascota privada no aparece en marketplace.
+- solo mascotas bajo `foster_pets` y con listing aprobado pueden publicarse como `Busca hogar`.
+- el marketplace de adopcion es separado del marketplace de servicios.
+- adopcion no usa pagos, checkout, bookings ni disponibilidad provider.
+- la transferencia de custodia debe conservar audit trail y consentimiento de foster/adoptante.
+- documentos medicos sensibles no se transfieren automaticamente; deben marcarse como compartibles.
+
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`
 - `profiles` concentra perfil base y preferencias

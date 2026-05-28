@@ -80,6 +80,8 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 - `GET /marketplace/providers`
 - `GET /marketplace/providers/{id}`
 - `GET /marketplace/provider-locations` (V2 Geo-0)
+- `GET /marketplace/adoptions` (V2.5 Foster/Adoption, propuesto; separado de servicios)
+- `GET /marketplace/adoptions/{listingId}` (V2.5 Foster/Adoption, propuesto)
 
 ### Bookings
 
@@ -169,6 +171,37 @@ Contratos QR propuestos:
 - `POST /support-cases`
 - `GET /support-cases/{id}`
 
+### Foster / Adoption (V2.5 no financiero, propuesto)
+
+- `GET /foster/profile`
+- `POST /foster/profile`
+- `PATCH /foster/profile`
+- `GET /foster/organizations`
+- `POST /foster/organizations`
+- `PATCH /foster/organizations/{organizationId}`
+- `GET /foster/pets`
+- `POST /foster/pets`
+- `GET /foster/pets/{fosterPetId}`
+- `PATCH /foster/pets/{fosterPetId}`
+- `POST /foster/pets/{fosterPetId}/listings`
+- `PATCH /foster/adoption-listings/{listingId}`
+- `POST /foster/adoption-listings/{listingId}/submit-review`
+- `GET /foster/adoption-listings/{listingId}/applications`
+- `GET /foster/adoption-applications/{applicationId}`
+- `POST /foster/adoption-applications/{applicationId}/approve`
+- `POST /foster/adoption-applications/{applicationId}/reject`
+- `POST /foster/adoption-applications/{applicationId}/request-more-info`
+- `POST /foster/adoption-applications/{applicationId}/transfer`
+- `GET /me/adoption-applications`
+- `POST /marketplace/adoptions/{listingId}/applications`
+
+Notas:
+
+- estos contratos son propuesta documental futura y no existen en `packages/api-client`.
+- adopcion no usa checkout, pagos, bookings, provider availability ni QR.
+- el marketplace de adopcion debe leer solo publicaciones aprobadas/publicadas.
+- la transferencia de custodia debe ejecutarse por RPC transaccional con consentimiento y audit trail.
+
 ### Providers
 
 - `GET /provider/organizations`
@@ -200,3 +233,10 @@ Contratos QR propuestos:
 - `GET /admin/support-cases`
 - `GET /admin/support-cases/{id}`
 - `PATCH /admin/support-cases/{id}`
+- `GET /admin/fosters/pending` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/fosters/{id}/approve` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/fosters/{id}/reject` (V2.5 Foster/Adoption, propuesto)
+- `GET /admin/adoption-listings/pending` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/approve` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/reject` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/pause` (V2.5 Foster/Adoption, propuesto)

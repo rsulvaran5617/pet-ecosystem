@@ -86,6 +86,8 @@ No queda hueco estructural UX dentro del alcance MVP. La QA visual/manual por ro
 - disputes
 - reschedule / rebook
 - checkout con cobro real
+- foster/adoption y marketplace de adopcion
+- transferencia de custodia digital de mascotas
 
 ## Criterio de salida
 

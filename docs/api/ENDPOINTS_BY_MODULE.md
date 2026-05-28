@@ -65,6 +65,8 @@
 - `GET /marketplace/providers` (admite filtros opcionales `nearLatitude`, `nearLongitude`, `maxDistanceKm` para distancia aproximada sin tracking)
 - `GET /marketplace/providers/{id}`
 - `GET /marketplace/provider-locations` (V2 Geo-0)
+- `GET /marketplace/adoptions` (V2.5 Foster/Adoption, propuesto)
+- `GET /marketplace/adoptions/{listingId}` (V2.5 Foster/Adoption, propuesto)
 
 ## Bookings
 
@@ -113,6 +115,32 @@ Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, 
 - `POST /support-cases`
 - `GET /support-cases/{id}`
 
+## Foster / Adoption (V2.5 no financiero, propuesto)
+
+- `GET /foster/profile`
+- `POST /foster/profile`
+- `PATCH /foster/profile`
+- `GET /foster/organizations`
+- `POST /foster/organizations`
+- `PATCH /foster/organizations/{organizationId}`
+- `GET /foster/pets`
+- `POST /foster/pets`
+- `GET /foster/pets/{fosterPetId}`
+- `PATCH /foster/pets/{fosterPetId}`
+- `POST /foster/pets/{fosterPetId}/listings`
+- `PATCH /foster/adoption-listings/{listingId}`
+- `POST /foster/adoption-listings/{listingId}/submit-review`
+- `GET /foster/adoption-listings/{listingId}/applications`
+- `GET /foster/adoption-applications/{applicationId}`
+- `POST /foster/adoption-applications/{applicationId}/approve`
+- `POST /foster/adoption-applications/{applicationId}/reject`
+- `POST /foster/adoption-applications/{applicationId}/request-more-info`
+- `POST /foster/adoption-applications/{applicationId}/transfer`
+- `GET /me/adoption-applications`
+- `POST /marketplace/adoptions/{listingId}/applications`
+
+Nota: estos endpoints son propuesta documental. No existen aun en API client, no habilitan pagos, no crean bookings y no convierten adopcion en venta.
+
 ## Providers
 
 - `GET /provider/organizations`
@@ -144,3 +172,10 @@ Nota V2 booking capacity: `slots` proyecta disponibilidad/capacidad para owner, 
 - `GET /admin/support-cases`
 - `GET /admin/support-cases/{id}`
 - `PATCH /admin/support-cases/{id}`
+- `GET /admin/fosters/pending` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/fosters/{id}/approve` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/fosters/{id}/reject` (V2.5 Foster/Adoption, propuesto)
+- `GET /admin/adoption-listings/pending` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/approve` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/reject` (V2.5 Foster/Adoption, propuesto)
+- `POST /admin/adoption-listings/{listingId}/pause` (V2.5 Foster/Adoption, propuesto)

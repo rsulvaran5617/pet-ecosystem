@@ -12,6 +12,14 @@
 - No se tocaron codigo funcional, Supabase, migraciones, RLS reales, pagos, booking, QR, geolocalizacion, marketplace ni mobile.
 - Se actualizan referencias documentales de modulo, V2, modelo de datos conceptual, RLS esperada y UX futura.
 
+## Actualizacion documental V2.5 Foster/Adoption 2026-05-26
+
+- Se documenta `Hogares de acogida, rescate y adopcion de mascotas` como nodo futuro V2.5 no financiero en `docs/modules/foster_adoption.md`.
+- El alcance cubre foster owners, instituciones/fundaciones, mascotas en acogida, publicaciones `Busca hogar`, solicitudes de adopcion, moderacion admin y transferencia de custodia digital.
+- La adopcion queda separada del marketplace de servicios: no usa pagos, checkout, bookings, QR, provider availability ni venta de mascotas.
+- El modelo recomendado extiende `pets` con tablas asociadas de foster/adoption para conservar expediente y evitar duplicar mascotas.
+- No se tocaron codigo funcional, Supabase, migraciones, RLS reales, API clients, mobile ni flujos existentes.
+
 ## Objetivo de este handoff
 
 Dejar una referencia operativa para retomar el piloto sin depender del historial conversacional.

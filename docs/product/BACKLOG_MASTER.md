@@ -65,3 +65,61 @@ manda el archivo de release (`docs/delivery/MVP_SCOPE.md`, `docs/delivery/V2_SCO
   - indices geoespaciales en Supabase/Postgres
   - UX de mapa y fallback de lista
 - release: V2
+
+### EP-05-FOSTER-V2-50 - Marketplace de adopcion responsable
+
+- ID: EP-05-FOSTER-V2-50
+- epica: EP-05 Discovery y marketplace
+- actor: owner/adoptante
+- descripcion: como owner quiero descubrir mascotas en adopcion publicadas por fosters o instituciones aprobadas, para solicitar adopcion responsable sin mezclarlo con el marketplace de servicios comerciales.
+- criterios de aceptacion:
+  - el marketplace de adopcion esta separado del marketplace de servicios
+  - solo aparecen mascotas con publicacion aprobada
+  - las cards muestran foto, nombre, especie, edad aproximada, ciudad/zona y etiqueta `Busca hogar`
+  - no se publica direccion exacta ni datos sensibles del foster
+  - no hay precio, checkout ni reserva comercial
+- dependencias:
+  - foster profiles u organizaciones aprobadas
+  - modelo de mascota en acogida
+  - adoption listings
+  - moderacion admin
+- release: V2.5 no financiero
+
+### EP-03-FOSTER-V2-51 - Mascota en acogida
+
+- ID: EP-03-FOSTER-V2-51
+- epica: EP-03 Mascotas, documentos y expediente base
+- actor: foster owner / institucion
+- descripcion: como foster aprobado quiero registrar una mascota bajo custodia temporal y mantener su expediente, para prepararla para adopcion responsable.
+- criterios de aceptacion:
+  - la mascota reutiliza `pets` y expediente base
+  - se diferencia mascota privada de mascota en acogida
+  - puede tener fotos, documentos, salud, vacunas y notas de comportamiento
+  - una mascota privada no puede publicarse por accidente
+  - una mascota fallecida o archivada no puede publicarse
+- dependencias:
+  - households
+  - pets
+  - pet documents
+  - health/vaccines
+  - rol/perfil foster aprobado
+- release: V2.5 no financiero
+
+### EP-07-FOSTER-V2-52 - Solicitudes y seguimiento de adopcion
+
+- ID: EP-07-FOSTER-V2-52
+- epica: EP-07 Mensajeria, reviews, trust & support
+- actor: adoptante y foster/institucion
+- descripcion: como adoptante quiero enviar una solicitud estructurada y darle seguimiento, para que el foster pueda evaluarla con trazabilidad.
+- criterios de aceptacion:
+  - el adoptante envia datos minimos y acepta terminos
+  - el foster ve solicitudes de sus publicaciones
+  - el foster puede aprobar, rechazar o pedir informacion adicional
+  - admin puede moderar solicitudes sospechosas
+  - no se exponen solicitudes a otros adoptantes
+- dependencias:
+  - adoption listings
+  - adoption applications
+  - moderation/admin
+  - messaging opcional
+- release: V2.5 no financiero

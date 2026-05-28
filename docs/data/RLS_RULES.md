@@ -60,6 +60,25 @@ Reglas esperadas:
 - checklist por pais no debe publicarse como regla confiable sin fuente oficial y fecha de ultima revision.
 - ninguna tabla futura debe permitir acceso anonimo a documentos o datos sanitarios.
 
+### Foster/Adoption (V2.5 conceptual)
+
+Alcance documental para futuras tablas `foster_profiles`, `foster_organizations`, `foster_pets`, `adoption_listings`, `adoption_applications`, `adoption_status_history`, `adoption_documents`, `adoption_screening_notes` y `pet_transfer_records`.
+
+Reglas esperadas:
+- foster owner aprobado gestiona sus mascotas en acogida.
+- owner regular no puede publicar mascotas privadas salvo que tenga rol/perfil foster aprobado.
+- institucion/fundacion gestiona solo mascotas, listings y solicitudes de su organizacion.
+- admin puede revisar, aprobar, pausar, retirar y auditar publicaciones.
+- adoptante solo ve listings publicados y sus propias solicitudes.
+- foster/institucion solo ve solicitudes asociadas a sus listings.
+- provider comercial no tiene acceso por defecto.
+- marketplace publico solo lee `adoption_listings` publicadas y campos publicos de la mascota.
+- direccion exacta del foster nunca se expone; solo ciudad/zona aproximada.
+- documentos y salud sensible no tienen lectura publica.
+- notas internas de screening no son visibles para adoptantes.
+- transferencia de custodia debe ejecutarse con RPC/control transaccional, consentimiento y audit trail.
+- adopcion no debe habilitar pagos, checkout ni bookings.
+
 ### pet-avatars storage
 Bucket privado para fotos de mascotas.
 Lectura requiere `can_view_pet` derivado del hogar; carga o reemplazo requiere `can_edit_pet`.

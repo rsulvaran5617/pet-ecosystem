@@ -82,6 +82,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - home marketplace publico
 - resultados
 - perfil proveedor
+- V2.5 Foster/Adoption futuro: marketplace de adopcion separado del marketplace de servicios, con mascotas `Busca hogar`, filtros por especie/tamano/edad/ciudad/condicion/compatibilidad y sin precios, checkout ni reservas comerciales.
 - ubicacion publica exacta del proveedor en cards/lista con ciudad, pais y distancia aproximada solo si hay origen opcional
 - widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
@@ -116,6 +117,13 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - crear caso
 - listar mis casos
 - detalle de caso
+
+### Foster/Adoption V2.5
+- Foster mobile/web: Home foster, Mis mascotas en acogida, Crear mascota en acogida, Expediente, Publicar para adopcion, Solicitudes recibidas, Detalle de solicitud y Transferencia/adopcion.
+- Owner/adoptante: Marketplace de adopcion, Perfil de mascota, Solicitar adopcion, Mis solicitudes, Seguimiento y Mascota adoptada agregada a mi hogar.
+- Admin: Aprobar foster/institucion, Moderar publicaciones, Revisar reportes, Ver solicitudes sospechosas, Bloquear publicacion y Auditar transferencia.
+- Perfil publico de mascota en adopcion: fotos, nombre, especie, sexo, edad estimada, tamano, personalidad, historia breve, estado de salud publico, vacunas relevantes, esterilizacion si aplica, requisitos de adopcion, ciudad/zona y CTA `Solicitar adopcion`.
+- La UX debe comunicar adopcion responsable y no venta; no mostrar direccion exacta, datos sensibles ni documentos privados.
 
 ### Providers
 - organizaciones
