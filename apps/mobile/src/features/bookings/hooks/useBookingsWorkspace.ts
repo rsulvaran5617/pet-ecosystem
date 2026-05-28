@@ -63,6 +63,7 @@ export function useBookingsWorkspace(
   const selectedPetIdRef = useRef<Uuid | null>(incomingSelection?.petId ?? null);
   const selectedPaymentMethodIdRef = useRef<Uuid | null>(null);
   const selectedBookingSlotRef = useRef<BookingSlot | null>(incomingSelection?.selectedBookingSlot ?? null);
+  const realtimeChannelNameRef = useRef(`mobile-booking-updates-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const [householdSnapshot, setHouseholdSnapshot] = useState<HouseholdsSnapshot | null>(null);
   const [pets, setPets] = useState<PetSummary[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<UserPaymentMethod[]>([]);
@@ -366,7 +367,7 @@ export function useBookingsWorkspace(
       await loadBookings(selectedHouseholdIdRef.current, selectedPetIdRef.current);
     };
     const channel = getMobileSupabaseClient()
-      .channel("mobile-booking-updates")
+      .channel(realtimeChannelNameRef.current)
       .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, (payload) => {
         const nextRecord = payload.new as { household_id?: string } | null;
         const previousRecord = payload.old as { household_id?: string } | null;

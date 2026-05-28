@@ -462,6 +462,25 @@ Validacion recomendada:
 - abrir `http://localhost:3000` y confirmar landing publica.
 - abrir `http://localhost:3000/app` y confirmar experiencia autenticada por rol.
 
+## Handoff 2026-05-28 - Fix mobile owner reservas Realtime
+
+Estado:
+
+- Se corrige crash Android en owner mobile al seleccionar una mascota y navegar desde `Mascotas` hacia `Reservas`.
+- Causa: `useBookingsWorkspace` usaba el canal fijo `mobile-booking-updates`; al remontar `BookingsWorkspace`, Supabase podia reutilizar un canal ya suscrito y lanzar `cannot add postgres_changes callbacks ... after subscribe()`.
+- Solucion: el canal Realtime de bookings ahora usa nombre unico por instancia del hook, manteniendo la suscripcion a cambios de `bookings` y el polling de respaldo.
+- No se tocaron backend, Supabase, migraciones, RLS, RPCs, reglas de booking, Payments, QR ni evidencia operacional.
+- APK release generada e instalada en Xiaomi `85975329`:
+  - `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-booking-realtime-fix-20260528-universal-hermes-release.apk`
+  - SHA256 `44567F145DB06CACBF5888E53718E3E95A5ECB53EA12E252AEF0249A7D6B7F86`
+
+Validacion ejecutada:
+
+- `corepack pnpm --filter @pet/mobile typecheck` -> `PASS`
+- `corepack pnpm --filter @pet/mobile lint` -> `PASS`
+- Android release build `:app:assembleRelease` en `C:\b28` -> `PASS`
+- instalacion ADB en Xiaomi `85975329` -> `PASS`
+
 ### Prompt exacto recomendado para continuar
 
 ```text
