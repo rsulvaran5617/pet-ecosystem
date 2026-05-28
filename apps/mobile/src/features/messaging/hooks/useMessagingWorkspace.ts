@@ -1,7 +1,7 @@
 import type { ChatThreadDetail, ChatThreadSummary, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
-import { getMobileMessagingApiClient } from "../../core/services/supabase-mobile";
+import { getMobileMessagingApiClient, getMobileSupabaseClient } from "../../core/services/supabase-mobile";
 
 interface UseMessagingWorkspaceResult {
   threads: ChatThreadSummary[];
@@ -190,10 +190,44 @@ export function useMessagingWorkspace(
       void loadThreadDetail(threadId).catch(() => {
         // El polling es silencioso para no interrumpir la escritura del usuario.
       });
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [enabled, selectedThreadId]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const refreshConversations = async () => {
+      const threadId = selectedThreadIdRef.current;
+      const nextThreads = await getMobileMessagingApiClient().listThreads();
+
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setThreads(nextThreads);
+
+      if (threadId) {
+        await loadThreadDetail(threadId);
+      }
+    };
+    const channel = getMobileSupabaseClient()
+      .channel("mobile-chat-updates")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_threads" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .subscribe();
+
+    return () => {
+      void getMobileSupabaseClient().removeChannel(channel);
+    };
+  }, [enabled]);
 
   return {
     threads,

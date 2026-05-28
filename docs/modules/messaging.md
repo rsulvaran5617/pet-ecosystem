@@ -41,7 +41,9 @@ Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una
 - owner mobile presenta la bandeja como una lista tipo correo: hilos ordenados de mas reciente a mas antiguo, cabecera compacta con fecha corta, negocio, mascota, servicio y preview; el detalle se despliega como acordeon dentro de la misma lista
 - el filtro visible de la bandeja owner se reduce a un selector compacto por estado de reserva, con Activas como vista inicial
 - web provider muestra conversaciones activas del negocio seleccionado dentro de `Reservas`, permite abrir el hilo y enviar respuestas de texto usando `POST /chats/{threadId}/messages`
-- mientras provider web esta abierto, la bandeja de conversaciones y el hilo seleccionado se refrescan con polling liviano para reflejar mensajes enviados desde mobile sin obligar al usuario a recargar la pagina
+- mientras provider web esta abierto, la bandeja de conversaciones y el hilo seleccionado se refrescan por Realtime con polling liviano como respaldo para reflejar mensajes enviados desde mobile sin obligar al usuario a recargar la pagina
+- `chat_threads` y `chat_messages` estan publicados en `supabase_realtime` y la migracion `20260527152000_enable_chat_realtime.sql` esta aplicada y registrada en Supabase remoto para que owner mobile/web y provider web reciban cambios casi inmediatos mientras el chat esta abierto
+- Realtime es la via primaria para refrescar chats abiertos; el polling queda como respaldo cada 30 segundos ante reconexiones, pestañas en reposo o redes inestables
 - push notifications en background/cerrado quedan fuera de este slice y deben abrirse como fase separada
 
 ## APIs relacionadas

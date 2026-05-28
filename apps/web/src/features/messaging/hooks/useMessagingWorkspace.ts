@@ -3,7 +3,7 @@
 import type { ChatThreadDetail, ChatThreadSummary, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
-import { getBrowserMessagingApiClient } from "../../core/services/supabase-browser";
+import { getBrowserMessagingApiClient, getBrowserSupabaseClient } from "../../core/services/supabase-browser";
 
 interface UseMessagingWorkspaceResult {
   threads: ChatThreadSummary[];
@@ -159,6 +159,33 @@ export function useMessagingWorkspace(
     setInfoMessage("Se solicito el chat de la reserva. Cargando el hilo vinculado.");
     void refresh(focusedBookingId);
   }, [enabled, focusedBookingId, focusVersion]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const refreshConversations = async () => {
+      await refresh(focusedBookingIdRef.current);
+    };
+    const channel = getBrowserSupabaseClient()
+      .channel("owner-web-chat-updates")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_threads" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .subscribe();
+    const intervalId = window.setInterval(() => {
+      void refreshConversations().catch(() => undefined);
+    }, 30000);
+
+    return () => {
+      void getBrowserSupabaseClient().removeChannel(channel);
+      window.clearInterval(intervalId);
+    };
+  }, [enabled]);
 
   return {
     threads,

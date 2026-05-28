@@ -15,6 +15,7 @@ import {
   getMobileBookingsApiClient,
   getMobileCoreApiClient,
   getMobileHouseholdsApiClient,
+  getMobileSupabaseClient,
   getMobilePetsApiClient
 } from "../../core/services/supabase-mobile";
 
@@ -355,6 +356,38 @@ export function useBookingsWorkspace(
     setErrorMessage(null);
     void refresh(incomingSelection);
   }, [enabled, incomingSelection?.selectedAt]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const refreshBookings = async () => {
+      await loadBookings(selectedHouseholdIdRef.current, selectedPetIdRef.current);
+    };
+    const channel = getMobileSupabaseClient()
+      .channel("mobile-booking-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bookings" }, (payload) => {
+        const nextRecord = payload.new as { household_id?: string } | null;
+        const previousRecord = payload.old as { household_id?: string } | null;
+        const changedHouseholdId = nextRecord?.household_id ?? previousRecord?.household_id ?? null;
+
+        if (!selectedHouseholdIdRef.current || changedHouseholdId !== selectedHouseholdIdRef.current) {
+          return;
+        }
+
+        void refreshBookings().catch(() => undefined);
+      })
+      .subscribe();
+    const intervalId = setInterval(() => {
+      void refreshBookings().catch(() => undefined);
+    }, 30000);
+
+    return () => {
+      void getMobileSupabaseClient().removeChannel(channel);
+      clearInterval(intervalId);
+    };
+  }, [enabled]);
 
   return {
     householdSnapshot,

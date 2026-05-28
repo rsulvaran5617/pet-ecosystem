@@ -124,6 +124,7 @@ Modelo recomendado CAP-0:
 - el formulario web de `Agenda` usa campos compactos para servicio, dia, inicio, fin y cupos; `cupos` queda restringido a enteros positivos y se normaliza a un minimo de 1 antes de guardar para evitar capacidad negativa o decimal
 - la consola web provider muestra indicadores globales de referencia operativa para todos los negocios: dinero ingresado por citas completadas, dinero pendiente por citas pendientes/confirmadas y dinero no ingresado por reservas canceladas por proveedor segun `cancelReason`; no representa captura real de pagos
 - en web provider, cada reserva entrante expone accion `Chatear` cuando existe hilo transaccional asociado al booking; permite pedir informacion adicional o explicar decisiones sin salir de la seccion Reservas
+- en web provider, un servicio sin reservas historicas puede eliminarse mediante `delete_provider_service`; la RPC esta aplicada y registrada en Supabase remoto, valida ownership, bloquea servicios con bookings y registra auditoria antes de borrar
 - PW-0 introduce en la consola web provider una base visual local con shell, sidebar, topbar, cards, metricas, chips y botones alineados al canon; no cambia backend, Supabase, contratos API, mobile ni reglas de negocio
 - PW-1 rediseña el panel principal multinegocios en web provider con resumen ejecutivo, selector/lista de negocios, salud del negocio activo y proximas acciones usando datos ya cargados de organizaciones, servicios, reservas, documentos, ubicacion publica y readiness; no agrega entidades ni mutaciones nuevas
 - PW-1 usa visualizacion consolidada de dashboard para comparativo, embudo, capacidad, ranking, alertas y estado por negocio; las metricas no persistidas se calculan en cliente desde datos existentes y se muestran como lectura operacional
@@ -139,7 +140,7 @@ Modelo recomendado CAP-0:
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side
 - internal notes son privadas para provider/admin y no deben mostrarse al owner
-- evidencia documental puede ser visible para owner en modo lectura cuando la migracion read-only de evidencia este aplicada; notas internas siguen privadas para provider/admin
+- evidencia documental puede ser visible para owner en modo lectura porque la migracion read-only de evidencia esta aplicada; notas internas siguen privadas para provider/admin
 - evidencia operacional no es la prueba principal de presencia; sirve como fotos/documentos de actividad despues del flujo QR
 - capacidad de booking pertenece a provider availability/bookings; no modifica QR, check-in/check-out ni evidencia
 - provider operations no habilita cobro real, payouts, ingresos, refunds ni conciliacion

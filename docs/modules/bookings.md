@@ -60,7 +60,7 @@ Estado de implementacion mobile:
 - QR-2 owner mobile display esta implementado y validado manualmente en Android: el owner genera QR temporal de check-in y check-out desde reserva `confirmed`.
 - QR-3 provider scanner esta implementado y validado manualmente en Android: el provider escanea QR operacional, consume el token temporal via RPC y el timeline registra check-in/check-out.
 - Slice C evidencia documental queda implementado y validado manualmente en Android sobre el flujo QR: despues de check-in y check-out, provider puede cargar un documento de actividad al bucket privado `booking-operation-evidence` y el timeline muestra `Documento registrado`.
-- Slice C.1 owner evidence read queda preparado: el owner puede consultar en modo lectura la evidencia documental de sus propias reservas desde el detalle/historial. El acceso usa metadata controlada y URL firmada temporal; el owner no puede cargar, editar ni eliminar evidencia. Requiere aplicar la migracion `20260520164000_owner_booking_operation_evidence_read.sql` para habilitar RLS de lectura owner.
+- Slice C.1 owner evidence read queda habilitado en Supabase remoto: el owner puede consultar en modo lectura la evidencia documental de sus propias reservas desde el detalle/historial. El acceso usa metadata controlada y URL firmada temporal; el owner no puede cargar, editar ni eliminar evidencia.
 - Report card e internal notes quedan pendientes como slices separados.
 
 ## Modelo QR V2 para check-in/check-out
@@ -186,11 +186,12 @@ Riesgos:
 - report card y evidencia deben quedar vinculados al booking y al usuario proveedor que los registra
 - internal notes no deben exponerse al owner
 - evidencia debe guardar metadata relacional y archivo en storage con politicas acordes a booking/provider/admin; mientras el esquema remoto conserve `file_url not null`, el cliente escribe `file_url = storage_path` como compatibilidad privada, no como URL publica
-- owner puede consultar evidencia documental de sus propias reservas mediante lectura read-only de operaciones/evidencia y URL firmada temporal; esto requiere la migracion `20260520164000_owner_booking_operation_evidence_read.sql` aplicada en Supabase remoto
+- owner puede consultar evidencia documental de sus propias reservas mediante lectura read-only de operaciones/evidencia y URL firmada temporal; la migracion `20260520164000_owner_booking_operation_evidence_read.sql` esta aplicada y registrada en Supabase remoto
 - internal notes siguen privadas para provider/admin y no se exponen al owner aunque el timeline muestre evidencia
 - historial y detalle deben mantenerse visibles para miembros autorizados del hogar y para el provider owner involucrado
-- despues de mutaciones criticas de reserva u operaciones (`approve`, `reject`, `complete`, cancelacion, check-in/check-out QR/manual y evidencia), mobile debe ejecutar requery controlado de lista/detalle/timeline sin depender de Realtime
-- al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto
+- despues de mutaciones criticas de reserva u operaciones (`approve`, `reject`, `complete`, cancelacion, check-in/check-out QR/manual y evidencia), mobile debe reflejar cambios de estado con Realtime sobre `bookings` y conservar requery controlado como respaldo
+- `bookings` esta publicado en `supabase_realtime` para que owner mobile pueda actualizar reservas cuando provider web aprueba, rechaza, completa o modifica estado de una cita
+- al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto; si Realtime no esta disponible, el polling de respaldo mantiene convergencia
 
 ## Dependencias
 - core

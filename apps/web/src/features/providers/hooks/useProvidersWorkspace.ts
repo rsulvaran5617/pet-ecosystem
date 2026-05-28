@@ -13,7 +13,12 @@ import type {
 } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
-import { getBrowserBookingsApiClient, getBrowserMessagingApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
+import {
+  getBrowserBookingsApiClient,
+  getBrowserMessagingApiClient,
+  getBrowserProvidersApiClient,
+  getBrowserSupabaseClient
+} from "../../core/services/supabase-browser";
 
 export interface ProviderMoneyIndicator {
   bookingCount: number;
@@ -402,29 +407,42 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
       return;
     }
 
+    const refreshConversations = async () => {
+      const threads = await getBrowserMessagingApiClient().listThreads();
+
+      if (!mountedRef.current) {
+        return;
+      }
+
+      setProviderMessageThreads(threads);
+
+      const selectedThreadId = selectedProviderMessageThreadIdRef.current;
+
+      if (selectedThreadId) {
+        await loadProviderMessageThreadDetail(selectedThreadId, { resetDraft: false });
+      }
+    };
+    const channel = getBrowserSupabaseClient()
+      .channel("provider-web-chat-updates")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_threads" }, () => {
+        void refreshConversations().catch(() => undefined);
+      })
+      .subscribe();
     const intervalId = window.setInterval(() => {
       void (async () => {
         try {
-          const threads = await getBrowserMessagingApiClient().listThreads();
-
-          if (!mountedRef.current) {
-            return;
-          }
-
-          setProviderMessageThreads(threads);
-
-          const selectedThreadId = selectedProviderMessageThreadIdRef.current;
-
-          if (selectedThreadId) {
-            await loadProviderMessageThreadDetail(selectedThreadId, { resetDraft: false });
-          }
+          await refreshConversations();
         } catch {
           // Background chat refresh is best-effort; foreground actions still surface errors.
         }
       })();
-    }, 7000);
+    }, 30000);
 
     return () => {
+      void getBrowserSupabaseClient().removeChannel(channel);
       window.clearInterval(intervalId);
     };
   }, [enabled]);
