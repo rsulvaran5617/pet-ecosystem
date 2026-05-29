@@ -60,20 +60,33 @@ function Button({
 }
 
 function Field({
+  helperText,
   keyboardType,
   label,
   onChange,
+  placeholder,
   value
 }: {
+  helperText?: string;
   keyboardType?: "default" | "email-address";
   label: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   value: string;
 }) {
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
-      <TextInput autoCapitalize="none" keyboardType={keyboardType} onChangeText={onChange} style={inputStyle} value={value} />
+      <TextInput
+        autoCapitalize="none"
+        keyboardType={keyboardType}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor="#a8a29e"
+        style={inputStyle}
+        value={value}
+      />
+      {helperText ? <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
     </View>
   );
 }
@@ -161,14 +174,20 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
 
       <CoreSectionCard
         eyebrow="Hogar"
-        title="Crear un hogar"
-        description="Este alcance del MVP agrega hogares, integrantes, invitaciones y permisos sin pasar todavia a mascotas."
+        title="Crea tu hogar"
+        description="Tu hogar organiza las mascotas, las personas que pueden ayudar y las reservas familiares. Es el primer paso antes de registrar una mascota."
       >
         <View style={{ gap: 12 }}>
-          <Field label="Nombre del hogar" onChange={setCreateHouseholdName} value={createHouseholdName} />
+          <Field
+            helperText="Puedes usar un nombre familiar, por ejemplo: Hogar Sulvaran Velasco."
+            label="Nombre del hogar"
+            onChange={setCreateHouseholdName}
+            placeholder="Nombre de tu hogar"
+            value={createHouseholdName}
+          />
           <Button
-            disabled={isSubmitting || isLoading}
-            label="Crear hogar"
+            disabled={isSubmitting || isLoading || !createHouseholdName.trim()}
+            label="Crear mi hogar"
             onPress={() => {
               clearMessages();
               void runAction(
