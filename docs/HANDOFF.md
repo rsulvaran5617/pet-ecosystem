@@ -4,6 +4,31 @@
 
 2026-05-17
 
+## Handoff operativo antes de apagado 2026-05-29
+
+- Rama actual verificada: `master`.
+- Estado Git verificado: limpio y sincronizado con `origin/master`.
+- HEAD publicado actual: `7e1a19f fix(bookings): resolve provider booking participant names`.
+- Ultimos cierres publicados:
+  - `064224b feat(web): show provider booking operations timeline`.
+  - `9793f6e feat(providers): allow safe deletion of unused businesses`.
+  - `3b2bd76 fix(providers): complete safe business deletion flow`.
+  - `7e1a19f fix(bookings): resolve provider booking participant names`.
+- Supabase remoto queda al dia segun dry-run posterior al fix de participantes de reserva.
+- Ultimo bug resuelto: en web provider, algunas reservas de owners externos mostraban `Unknown household`, `Unknown customer` y `Unknown pet` porque el API intentaba leer directamente `households`, `profiles` y `pets`, protegidas por RLS. Se corrigio con RPC `get_booking_participant_summaries`, que devuelve solo hogar, cliente y mascota para reservas visibles por `can_view_booking`.
+- Web provider ya tiene:
+  - timeline operacional de reservas con check-in, check-out y evidencia documental;
+  - borrado seguro de negocios sin historial transaccional;
+  - mensajes claros de exito o bloqueo por datos transaccionales;
+  - resumen correcto de participantes de la cita sin abrir datos privados completos del owner.
+- Siguiente paso recomendado al retomar: desplegar GOTA para que el dominio tome `7e1a19f`, luego validar en web provider la cita de `sp_velasco@hotmail.com` / mascota `GINGER` y confirmar que ya no aparecen placeholders `Unknown`.
+- Script de despliegue GOTA usado en este proyecto:
+
+```powershell
+cd "C:\Users\Ramon Sulvaran\pet-ecosystem"
+.\scripts\deploy-droplet.ps1 -SshTarget "root@143.198.165.191"
+```
+
 ## Actualizacion documental V2 Pet Travel Passport 2026-05-25
 
 - Se documenta `Pet Travel Passport / Expediente Internacional de Mascota` como alcance V2 en `docs/modules/pet_travel_passport.md`.
