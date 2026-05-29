@@ -11,7 +11,8 @@ import {
   createProvidersApiClient,
   createReviewsApiClient,
   createRemindersApiClient,
-  createSupportApiClient
+  createSupportApiClient,
+  formatCoreAuthErrorMessage
 } from "@pet/api-client";
 import type { Database } from "@pet/types";
 import { createClient } from "@supabase/supabase-js";
@@ -117,14 +118,14 @@ export async function consumeMobileAuthRedirectUrl(nextUrl: string) {
   const errorDescription = getDeepLinkParam(parsedUrl, "error_description");
 
   if (errorCode) {
-    throw new Error(errorDescription ?? errorCode);
+    throw new Error(formatCoreAuthErrorMessage(errorDescription ?? errorCode, "No fue posible abrir el enlace de autenticacion."));
   }
 
   if (authCode) {
     const { data, error } = await getMobileSupabaseClient().auth.exchangeCodeForSession(authCode);
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatCoreAuthErrorMessage(error.message, "No fue posible abrir el enlace de recuperacion."));
     }
 
     return {
@@ -138,7 +139,7 @@ export async function consumeMobileAuthRedirectUrl(nextUrl: string) {
   }
 
   if (!accessToken || !refreshToken) {
-    throw new Error("Al enlace de recuperacion le faltan tokens de autenticacion.");
+    throw new Error("El enlace de recuperacion esta incompleto. Solicita uno nuevo desde Recuperar acceso.");
   }
 
   const { data, error } = await getMobileSupabaseClient().auth.setSession({
@@ -147,7 +148,7 @@ export async function consumeMobileAuthRedirectUrl(nextUrl: string) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(formatCoreAuthErrorMessage(error.message, "No fue posible abrir el enlace de recuperacion."));
   }
 
   return {

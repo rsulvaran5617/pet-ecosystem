@@ -1,4 +1,5 @@
 import type { CoreAuthState, CoreIdentitySnapshot } from "@pet/types";
+import { formatCoreAuthErrorMessage } from "@pet/api-client";
 import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
@@ -71,7 +72,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio core en mobile.");
+      setErrorMessage(formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible actualizar tu sesion."));
     }
   }
 
@@ -92,7 +93,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
 
       return result;
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "La accion de core fallo.";
+      const nextMessage = formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible completar la accion.");
 
       if (mountedRef.current) {
         setErrorMessage(nextMessage);
@@ -126,7 +127,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
 
         if (redirectResult.isRecoveryFlow) {
           setIsRecoverySession(true);
-          setInfoMessage("Recovery link opened. Set a new password below.");
+          setInfoMessage("Enlace de recuperacion abierto. Define una nueva contrasena para volver a entrar.");
         }
 
         await refresh();
@@ -135,7 +136,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : "No fue posible procesar el redireccionamiento de autenticacion en mobile.");
+        setErrorMessage(formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible procesar el enlace de autenticacion."));
       }
     }
 
@@ -173,7 +174,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         await refresh();
       } catch (error) {
         if (mountedRef.current) {
-          setConfigError(error instanceof Error ? error.message : "No fue posible inicializar la app mobile.");
+          setConfigError(formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible inicializar la app mobile."));
         }
       } finally {
         if (mountedRef.current) {

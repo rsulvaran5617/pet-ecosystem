@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCoreAuthErrorMessage } from "@pet/api-client";
 import type { CoreAuthState, CoreIdentitySnapshot } from "@pet/types";
 import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
@@ -128,7 +129,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         return;
       }
 
-      setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar tu espacio.");
+      setErrorMessage(formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible actualizar tu espacio."));
     }
   }
 
@@ -161,7 +162,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
 
       return result;
     } catch (error) {
-      const nextMessage = error instanceof Error ? error.message : "La accion de core fallo.";
+      const nextMessage = formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible completar la accion.");
 
       if (mountedRef.current) {
         setErrorMessage(isSupabaseAuthLockNoise(error) ? null : nextMessage);
@@ -215,7 +216,11 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
         };
       } catch (error) {
         if (mountedRef.current) {
-          setConfigError(isSupabaseAuthLockNoise(error) ? null : error instanceof Error ? error.message : "No fue posible inicializar Supabase en web.");
+          setConfigError(
+            isSupabaseAuthLockNoise(error)
+              ? null
+              : formatCoreAuthErrorMessage(error instanceof Error ? error.message : null, "No fue posible inicializar Supabase en web.")
+          );
         }
       } finally {
         window.clearTimeout(bootstrapFallbackTimer);

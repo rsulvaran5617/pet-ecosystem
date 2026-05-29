@@ -53,9 +53,59 @@ export interface CoreApiClient {
   setDefaultPaymentMethod(paymentMethodId: Uuid): Promise<UserPaymentMethod[]>;
 }
 
+export function formatCoreAuthErrorMessage(message: string | null | undefined, fallbackMessage = "No fue posible completar la accion. Intenta nuevamente."): string {
+  const normalizedMessage = (message ?? "").toLowerCase();
+
+  if (!normalizedMessage) {
+    return fallbackMessage;
+  }
+
+  if (normalizedMessage.includes("rate limit") || normalizedMessage.includes("too many")) {
+    return "Hiciste varios intentos en poco tiempo. Espera unos minutos antes de volver a intentarlo.";
+  }
+
+  if (normalizedMessage.includes("invalid login credentials") || normalizedMessage.includes("invalid credentials")) {
+    return "Correo o contrasena incorrectos. Revisa los datos e intenta nuevamente.";
+  }
+
+  if (normalizedMessage.includes("email not confirmed") || normalizedMessage.includes("not confirmed")) {
+    return "Tu correo aun no esta verificado. Abre la opcion Codigo y confirma el codigo enviado a tu email.";
+  }
+
+  if (normalizedMessage.includes("token has expired") || normalizedMessage.includes("otp expired") || normalizedMessage.includes("expired")) {
+    return "El codigo o enlace ya expiro. Solicita uno nuevo y usa el mas reciente.";
+  }
+
+  if (normalizedMessage.includes("invalid token") || normalizedMessage.includes("otp") || normalizedMessage.includes("token")) {
+    return "El codigo o enlace no es valido. Verifica que sea el ultimo recibido e intenta de nuevo.";
+  }
+
+  if (normalizedMessage.includes("auth session missing") || normalizedMessage.includes("authenticated user required")) {
+    return "Tu sesion no esta activa. Inicia sesion nuevamente para continuar.";
+  }
+
+  if (normalizedMessage.includes("user already registered") || normalizedMessage.includes("already registered")) {
+    return "Este correo ya tiene una cuenta. Inicia sesion o usa Recuperar acceso si olvidaste la contrasena.";
+  }
+
+  if (normalizedMessage.includes("password") && (normalizedMessage.includes("short") || normalizedMessage.includes("characters") || normalizedMessage.includes("at least"))) {
+    return "La contrasena debe tener mas caracteres. Usa una contrasena segura antes de continuar.";
+  }
+
+  if (normalizedMessage.includes("fetch") || normalizedMessage.includes("network")) {
+    return "No pudimos conectar con el servicio. Revisa tu conexion e intenta nuevamente.";
+  }
+
+  if (normalizedMessage.includes("auth-token") && normalizedMessage.includes("another request stole it")) {
+    return "Estamos actualizando tu sesion. Espera unos segundos y vuelve a intentar.";
+  }
+
+  return message ?? fallbackMessage;
+}
+
 function fail(error: { message: string } | null, fallbackMessage: string): never {
   if (error) {
-    throw new Error(error.message);
+    throw new Error(formatCoreAuthErrorMessage(error.message, fallbackMessage));
   }
 
   throw new Error(fallbackMessage);
@@ -254,7 +304,7 @@ async function requireCurrentUser(supabase: CoreSupabaseClient) {
   const user = await getCurrentUser(supabase);
 
   if (!user) {
-    throw new Error("Authenticated user required.");
+    throw new Error(formatCoreAuthErrorMessage("Authenticated user required."));
   }
 
   return user;
