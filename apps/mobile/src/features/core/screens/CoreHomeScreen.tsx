@@ -2022,6 +2022,7 @@ export function CoreHomeScreen() {
               activePanel={activePetHubPanel}
               contextPetId={activeOwnerPetContextId}
               enabled
+              ownerReminders={remindersWorkspace.reminders}
               onContextChange={(context) => {
                 setPetHubContext(context);
 
@@ -2045,6 +2046,7 @@ export function CoreHomeScreen() {
                 contextPetId={petHubContext.petId}
                 enabled
                 mode="pet-hub"
+                onRemindersChanged={remindersWorkspace.refresh}
               />
             ) : null}
           </>

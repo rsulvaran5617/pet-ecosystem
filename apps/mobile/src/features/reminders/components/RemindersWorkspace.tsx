@@ -262,12 +262,14 @@ export function RemindersWorkspace({
   contextHouseholdId,
   contextPetId,
   enabled,
-  mode = "standalone"
+  mode = "standalone",
+  onRemindersChanged
 }: {
   contextHouseholdId?: Uuid | null;
   contextPetId?: Uuid | null;
   enabled: boolean;
   mode?: "standalone" | "pet-hub";
+  onRemindersChanged?: () => void | Promise<void>;
 }) {
   const {
     householdSnapshot,
@@ -483,6 +485,7 @@ export function RemindersWorkspace({
                       }),
                       "Recordatorio creado."
                     ).then(() => {
+                      void onRemindersChanged?.();
                       setTitle("");
                       setDueDate("");
                       setNotes("");
@@ -521,7 +524,7 @@ export function RemindersWorkspace({
                           void runAction(
                             () => getMobileRemindersApiClient().completeReminder(reminder.id),
                             "Recordatorio completado."
-                          );
+                          ).then(() => void onRemindersChanged?.());
                         }}
                       />
                     ) : null}
@@ -542,7 +545,7 @@ export function RemindersWorkspace({
                             dueAt: toIsoDate(snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder))
                           }),
                           "Recordatorio pospuesto."
-                        );
+                        ).then(() => void onRemindersChanged?.());
                       }}
                       tone="secondary"
                     />

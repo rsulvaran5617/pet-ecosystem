@@ -1,8 +1,8 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
+import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetDocumentType, PetSummary, UpdatePetInput, Uuid } from "@pet/types";
+import type { PetDocumentType, PetSummary, Reminder, UpdatePetInput, Uuid } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -523,12 +523,14 @@ export function PetsWorkspace({
   activePanel = "detalle",
   contextPetId,
   enabled,
+  ownerReminders = [],
   onContextChange,
   onPanelChange
 }: {
   activePanel?: PetHubPanel;
   contextPetId?: Uuid | null;
   enabled: boolean;
+  ownerReminders?: Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">[];
   onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
   onPanelChange?: (panel: PetHubPanel) => void;
 }) {
@@ -575,6 +577,14 @@ export function PetsWorkspace({
   const { summary: selectedPetHealthSummary, isLoading: isHealthSummaryLoading } = usePetHealthSummary(
     selectedPetDetail?.pet.id ?? null,
     enabled
+  );
+  const selectedPetPendingReminders = useMemo(
+    () =>
+      ownerReminders
+        .filter((reminder) => reminder.petId === selectedPetDetail?.pet.id && reminder.status === "pending")
+        .sort((firstReminder, secondReminder) => new Date(firstReminder.dueAt).getTime() - new Date(secondReminder.dueAt).getTime())
+        .slice(0, 3),
+    [ownerReminders, selectedPetDetail?.pet.id]
   );
 
   useEffect(() => {
@@ -1473,42 +1483,100 @@ export function PetsWorkspace({
                       <Text style={{ color: "#475569", fontSize: 11, fontWeight: "800" }}>Ver todos</Text>
                     </Pressable>
                   </View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <View
-                      style={{
-                        height: 34,
-                        width: 34,
-                        borderRadius: 12,
-                        backgroundColor: "rgba(249,115,22,0.12)",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
-                      <PetLineIcon color="#f97316" name="calendar" size={16} />
-                    </View>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>
-                        {isSelectedPetInMemory ? "Recordatorios pausados" : `Recordatorios de ${selectedPetDetail.pet.name}`}
-                      </Text>
-                      <Text style={{ color: "#64748b", fontSize: 10 }}>
-                        {isSelectedPetInMemory
-                          ? "El historial se conserva, pero no se crean tareas operativas para esta mascota."
-                          : "Gestiona vacunas, controles y tareas desde su panel."}
-                      </Text>
-                    </View>
-                    {!isSelectedPetInMemory ? (
-                      <Pressable
-                        onPress={() => onPanelChange?.("recordatorios")}
-                        style={{
-                          borderRadius: 999,
-                          backgroundColor: "rgba(15,118,110,0.1)",
-                          paddingHorizontal: 10,
-                          paddingVertical: 7
-                        }}
-                      >
-                        <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Ver detalles</Text>
-                      </Pressable>
-                    ) : null}
+                  <View style={{ gap: 8 }}>
+                    {isSelectedPetInMemory ? (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                        <View
+                          style={{
+                            height: 34,
+                            width: 34,
+                            borderRadius: 12,
+                            backgroundColor: "rgba(249,115,22,0.12)",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <PetLineIcon color="#f97316" name="calendar" size={16} />
+                        </View>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>Recordatorios pausados</Text>
+                          <Text style={{ color: "#64748b", fontSize: 10 }}>
+                            El historial se conserva, pero no se crean tareas operativas para esta mascota.
+                          </Text>
+                        </View>
+                      </View>
+                    ) : selectedPetPendingReminders.length ? (
+                      selectedPetPendingReminders.map((reminder) => (
+                        <Pressable
+                          key={reminder.id}
+                          onPress={() => onPanelChange?.("recordatorios")}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: "rgba(255,247,237,0.78)",
+                            borderColor: "rgba(249,115,22,0.16)",
+                            borderRadius: 14,
+                            borderWidth: 1,
+                            flexDirection: "row",
+                            gap: 10,
+                            padding: 10
+                          }}
+                        >
+                          <View
+                            style={{
+                              alignItems: "center",
+                              backgroundColor: "rgba(249,115,22,0.12)",
+                              borderRadius: 12,
+                              height: 34,
+                              justifyContent: "center",
+                              width: 34
+                            }}
+                          >
+                            <PetLineIcon color="#f97316" name="calendar" size={16} />
+                          </View>
+                          <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                            <Text numberOfLines={1} style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>
+                              {reminder.title}
+                            </Text>
+                            <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 10 }}>
+                              {reminderTypeLabels[reminder.reminderType]} - {formatShortDate(reminder.dueAt)}
+                            </Text>
+                          </View>
+                          <PetLineIcon color="#94a3b8" name="chevron" size={14} />
+                        </Pressable>
+                      ))
+                    ) : (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                        <View
+                          style={{
+                            height: 34,
+                            width: 34,
+                            borderRadius: 12,
+                            backgroundColor: "rgba(15,118,110,0.1)",
+                            alignItems: "center",
+                            justifyContent: "center"
+                          }}
+                        >
+                          <PetLineIcon color="#0f766e" name="calendar" size={16} />
+                        </View>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>Sin recordatorios pendientes</Text>
+                          <Text style={{ color: "#64748b", fontSize: 10 }}>
+                            Crea un recordatorio para {selectedPetDetail.pet.name} cuando necesites seguimiento.
+                          </Text>
+                        </View>
+                        <Pressable
+                          onPress={() => onPanelChange?.("recordatorios")}
+                          style={{
+                            borderRadius: 999,
+                            backgroundColor: "rgba(15,118,110,0.1)",
+                            paddingHorizontal: 10,
+                            paddingVertical: 7
+                          }}
+                        >
+                          <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Crear</Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
                 </View>
               </>
