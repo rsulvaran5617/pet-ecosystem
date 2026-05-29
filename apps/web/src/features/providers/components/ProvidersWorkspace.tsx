@@ -1549,6 +1549,7 @@ export function ProvidersWorkspace({
   const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
   const filteredProviderBookings = providerBookings.filter((booking) => booking.status === bookingStatusFilter);
   const selectedOrganizationMessageThreads = providerMessageThreads.filter((thread) => thread.providerOrganizationId === selectedOrganizationId);
+  const selectedOrganizationHasBookings = providerBookings.length > 0;
   const hasPublishedService = selectedServices.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
     selectedOrganization?.approvalStatus === "approved" &&
@@ -1966,6 +1967,37 @@ export function ProvidersWorkspace({
       },
       "Evidencia documental registrada."
     );
+  };
+  const requestDeleteSelectedOrganization = () => {
+    if (!selectedOrganization) {
+      return;
+    }
+
+    if (selectedOrganizationHasBookings) {
+      window.alert("Este negocio tiene reservas asociadas. Ocultalo o pausalo para conservar la trazabilidad operacional.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Vas a eliminar "${selectedOrganization.name}" y sus datos maestros asociados. Esta accion solo procede si no tiene historial operacional. ¿Quieres continuar?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    clearMessages();
+    const nextOrganizationId = organizations.find((organization) => organization.id !== selectedOrganization.id)?.id ?? null;
+
+    void runAction(
+      () => getBrowserProvidersApiClient().deleteProviderOrganization(selectedOrganization.id),
+      "Negocio eliminado."
+    ).then(async () => {
+      setOrganizationMode("create");
+      setOrganizationForm(emptyOrganizationForm);
+      setIsBusinessFormOpen(false);
+      await refresh(nextOrganizationId);
+    });
   };
   const openBookingNotice = () => {
     if (!bookingNotice) {
@@ -3178,28 +3210,50 @@ export function ProvidersWorkspace({
                       Edita los datos base que identifican tu negocio.
                     </span>
                   </div>
-                  <button
-                    disabled={isSubmitting}
-                    onClick={() => {
-                      if (!isBusinessFormOpen && selectedOrganization) {
-                        setOrganizationMode("edit");
-                      }
-                      setIsBusinessFormOpen((current) => !current);
-                    }}
-                    style={{
-                      borderRadius: "999px",
-                      border: "1px solid rgba(15, 118, 110, 0.22)",
-                      background: isBusinessFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
-                      color: isBusinessFormOpen ? "#0f766e" : "#f8fafc",
-                      cursor: "pointer",
-                      fontSize: "9px",
-                      fontWeight: 800,
-                      padding: "6px 10px"
-                    }}
-                    type="button"
-                  >
-                    Cerrar
-                  </button>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {organizationMode === "edit" && selectedOrganization ? (
+                      <button
+                        disabled={isSubmitting || selectedOrganizationHasBookings}
+                        onClick={requestDeleteSelectedOrganization}
+                        style={{
+                          borderRadius: "999px",
+                          border: selectedOrganizationHasBookings ? "1px solid rgba(120, 113, 108, 0.2)" : "1px solid rgba(220, 38, 38, 0.24)",
+                          background: selectedOrganizationHasBookings ? "rgba(255, 255, 255, 0.7)" : "#991b1b",
+                          color: selectedOrganizationHasBookings ? "#78716c" : "#fff7ed",
+                          cursor: isSubmitting || selectedOrganizationHasBookings ? "not-allowed" : "pointer",
+                          fontSize: "8px",
+                          fontWeight: 900,
+                          padding: "6px 10px"
+                        }}
+                        title={selectedOrganizationHasBookings ? "No se puede eliminar un negocio con reservas." : "Eliminar negocio sin historial operacional"}
+                        type="button"
+                      >
+                        Eliminar
+                      </button>
+                    ) : null}
+                    <button
+                      disabled={isSubmitting}
+                      onClick={() => {
+                        if (!isBusinessFormOpen && selectedOrganization) {
+                          setOrganizationMode("edit");
+                        }
+                        setIsBusinessFormOpen((current) => !current);
+                      }}
+                      style={{
+                        borderRadius: "999px",
+                        border: "1px solid rgba(15, 118, 110, 0.22)",
+                        background: isBusinessFormOpen ? "rgba(15, 118, 110, 0.1)" : "#0f766e",
+                        color: isBusinessFormOpen ? "#0f766e" : "#f8fafc",
+                        cursor: "pointer",
+                        fontSize: "9px",
+                        fontWeight: 800,
+                        padding: "6px 10px"
+                      }}
+                      type="button"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
                 </div>
                 <form
                   onSubmit={(event) => {
@@ -3258,6 +3312,48 @@ export function ProvidersWorkspace({
                     ) : null}
                   </div>
                 </form>
+                {organizationMode === "edit" && selectedOrganization ? (
+                  <section
+                    style={{
+                      background: selectedOrganizationHasBookings ? "rgba(255, 247, 237, 0.72)" : "rgba(254, 242, 242, 0.58)",
+                      border: selectedOrganizationHasBookings ? "1px solid rgba(217, 119, 6, 0.16)" : "1px solid rgba(220, 38, 38, 0.16)",
+                      borderRadius: "14px",
+                      display: "grid",
+                      gap: "8px",
+                      padding: "10px"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                      <div style={{ display: "grid", gap: "3px" }}>
+                        <strong style={{ color: selectedOrganizationHasBookings ? "#92400e" : "#991b1b", fontSize: "9px" }}>
+                          Eliminacion segura del negocio
+                        </strong>
+                        <span style={{ color: "#57534e", fontSize: "8px", lineHeight: 1.45 }}>
+                          {selectedOrganizationHasBookings
+                            ? "Este negocio tiene reservas asociadas. Para conservar trazabilidad, ocultalo o pausalo en lugar de eliminarlo."
+                            : "Solo se permite eliminar negocios sin reservas, conversaciones, resenas ni soporte asociado."}
+                        </span>
+                      </div>
+                      <button
+                        disabled={isSubmitting || selectedOrganizationHasBookings}
+                        onClick={requestDeleteSelectedOrganization}
+                        style={{
+                          borderRadius: "999px",
+                          border: selectedOrganizationHasBookings ? "1px solid rgba(120, 113, 108, 0.2)" : "1px solid rgba(220, 38, 38, 0.24)",
+                          background: selectedOrganizationHasBookings ? "rgba(255, 255, 255, 0.7)" : "#991b1b",
+                          color: selectedOrganizationHasBookings ? "#78716c" : "#fff7ed",
+                          cursor: isSubmitting || selectedOrganizationHasBookings ? "not-allowed" : "pointer",
+                          fontSize: "8px",
+                          fontWeight: 900,
+                          padding: "6px 10px"
+                        }}
+                        type="button"
+                      >
+                        Eliminar negocio
+                      </button>
+                    </div>
+                  </section>
+                ) : null}
                 {organizationMode === "edit" && selectedOrganization ? (
                   <section
                     style={{

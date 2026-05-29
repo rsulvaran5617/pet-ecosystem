@@ -1818,6 +1818,12 @@ export interface Database {
         };
         Returns: boolean;
       };
+      delete_provider_organization: {
+        Args: {
+          target_organization_id: string;
+        };
+        Returns: boolean;
+      };
       add_provider_availability_slot: {
         Args: {
           target_organization_id: string;

@@ -27,6 +27,12 @@
 - Web provider mantiene acciones manuales de check-in/check-out como fallback piloto y permite cargar evidencia despues del check-out usando el bucket/metadata existente.
 - No se tocaron Supabase, migraciones, RLS, QR mobile, booking capacity, evidencia mobile ni reglas de negocio.
 
+## Actualizacion web provider borrado seguro de negocios 2026-05-28
+
+- Se agrega RPC local `delete_provider_organization` para borrar negocios creados por error solo si no tienen reservas, conversaciones, resenas ni casos de soporte asociados.
+- La RPC valida ownership, registra auditoria, limpia documentos/avatar en storage y elimina datos maestros via cascada; negocios con historial deben ocultarse/desactivarse.
+- Web provider expone `Eliminar negocio` dentro de `Datos del negocio`; el boton queda bloqueado si la organizacion seleccionada tiene reservas cargadas.
+
 ## Objetivo de este handoff
 
 Dejar una referencia operativa para retomar el piloto sin depender del historial conversacional.

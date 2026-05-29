@@ -98,6 +98,8 @@ Las lecturas publicas de marketplace solo pueden ver organizaciones con `approva
 Servicios y disponibilidad requieren ademas flags publicos y `is_active` cuando aplica.
 Los documentos de aprobacion no son publicos.
 La gestion privada de estos registros pertenece al owner de la organizacion o a admin en el slice de revision.
+`delete_provider_organization` es una RPC `security definer` para owners autenticados: valida ownership, bloquea borrado si existen reservas, conversaciones, resenas o casos de soporte y solo elimina datos maestros de negocios sin historial operacional.
+Los negocios con historial deben ocultarse/desactivarse en lugar de borrarse para preservar trazabilidad.
 
 ### provider_public_locations (V2 Geo-0)
 La ubicacion publica de proveedor solo puede leerse en marketplace si:

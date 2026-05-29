@@ -42,6 +42,7 @@ export interface ProvidersApiClient {
   getProviderOrganizationDetail(organizationId: Uuid): Promise<ProviderOrganizationDetail>;
   createProviderOrganization(input: CreateProviderOrganizationInput): Promise<ProviderOrganization>;
   updateProviderOrganization(organizationId: Uuid, input: UpdateProviderOrganizationInput): Promise<ProviderOrganization>;
+  deleteProviderOrganization(organizationId: Uuid): Promise<void>;
   upsertProviderPublicProfile(organizationId: Uuid, input: UpsertProviderPublicProfileInput): Promise<ProviderPublicProfile>;
   upsertProviderPublicLocation(organizationId: Uuid, input: UpsertProviderPublicLocationInput): Promise<ProviderPublicLocation>;
   createProviderService(input: CreateProviderServiceInput): Promise<ProviderService>;
@@ -420,6 +421,15 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       }
 
       return mapProviderOrganization(data);
+    },
+    async deleteProviderOrganization(organizationId) {
+      const { error } = await supabase.rpc("delete_provider_organization", {
+        target_organization_id: organizationId
+      });
+
+      if (error) {
+        fail(error, "Unable to delete the provider organization.");
+      }
     },
     async upsertProviderPublicProfile(organizationId, input) {
       const { data, error } = await supabase.rpc("upsert_provider_public_profile", {

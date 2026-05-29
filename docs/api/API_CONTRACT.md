@@ -208,6 +208,7 @@ Notas:
 - `POST /provider/organizations`
 - `GET /provider/organizations/{id}`
 - `PATCH /provider/organizations/{id}`
+- `DELETE /provider/organizations/{id}` solo si no tiene reservas, conversaciones, resenas ni casos de soporte asociados; si tiene historial debe ocultarse/desactivarse
 - `PUT /provider/organizations/{id}/public-profile`
 - `POST /provider/organizations/{id}/public-profile/avatar`
 - `PUT /provider/organizations/{id}/public-location` (V2 Geo-0)

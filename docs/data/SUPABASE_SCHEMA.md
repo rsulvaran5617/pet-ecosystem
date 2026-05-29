@@ -56,6 +56,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `payment_methods` almacena solo metodos guardados del usuario. El MVP queda en modo `payment-ready`; no existe captura real de pago.
 - `provider_organizations` controla ownership, estado de aprobacion y visibilidad base.
 - `provider_public_profiles`, `provider_services` y `provider_availability` alimentan discovery publico.
+- `delete_provider_organization` permite borrar solo negocios sin historial operacional; bloquea reservas, conversaciones, resenas y soporte, registra auditoria y elimina datos maestros/storage asociado.
 - `provider_public_locations` prepara marketplace geolocalizado V2 con PostGIS y precision publica controlada; no usa ni expone direcciones privadas de owners.
 - `pet_profiles` puede referenciar avatar privado mediante `avatar_storage_bucket` y `avatar_storage_path` en bucket `pet-avatars`.
 - `pets.status` permite `active` e `in_memory`; `in_memory_at` registra el cierre sensible sin borrar datos ni historial.

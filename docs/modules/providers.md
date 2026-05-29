@@ -111,6 +111,8 @@ Modelo recomendado CAP-0:
 - el owner proveedor ve y gestiona solo su propia organizacion
 - la consola web permite eliminar un servicio solo cuando no tiene historial de reservas; si ya tiene reservas, debe conservarse para trazabilidad y el proveedor solo puede desactivarlo u ocultarlo del marketplace
 - al eliminar un servicio sin historial se eliminan tambien sus reglas futuras de horarios/cupos asociadas por cascada, porque siguen siendo configuracion maestra no transaccional
+- la consola web permite eliminar un negocio completo solo si no tiene reservas, conversaciones, resenas ni casos de soporte asociados. La eliminacion se ejecuta por RPC `delete_provider_organization`, valida ownership, registra auditoria, limpia storage de documentos/avatar y borra solo datos maestros no transaccionales.
+- si un negocio tuvo actividad real, debe ocultarse/desactivarse en lugar de borrarse para conservar trazabilidad operacional.
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - la consola de reservas del proveedor inicia por defecto en `pending_approval` y permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
@@ -126,6 +128,7 @@ Modelo recomendado CAP-0:
 - en web provider, cada reserva entrante expone accion `Chatear` cuando existe hilo transaccional asociado al booking; permite pedir informacion adicional o explicar decisiones sin salir de la seccion Reservas
 - en web provider, el acordeon de cada reserva carga el seguimiento operacional existente: check-in, check-out, evidencia documental y estado operativo. Los botones manuales de check-in/check-out quedan como fallback piloto y la evidencia se puede cargar despues del check-out sin cambiar el flujo QR mobile.
 - en web provider, un servicio sin reservas historicas puede eliminarse mediante `delete_provider_service`; la RPC esta aplicada y registrada en Supabase remoto, valida ownership, bloquea servicios con bookings y registra auditoria antes de borrar
+- en web provider, un negocio sin historial operacional puede eliminarse mediante `delete_provider_organization`; la RPC bloquea reservas, chats, reviews y soporte antes de borrar datos maestros.
 - PW-0 introduce en la consola web provider una base visual local con shell, sidebar, topbar, cards, metricas, chips y botones alineados al canon; no cambia backend, Supabase, contratos API, mobile ni reglas de negocio
 - PW-1 rediseña el panel principal multinegocios en web provider con resumen ejecutivo, selector/lista de negocios, salud del negocio activo y proximas acciones usando datos ya cargados de organizaciones, servicios, reservas, documentos, ubicacion publica y readiness; no agrega entidades ni mutaciones nuevas
 - PW-1 usa visualizacion consolidada de dashboard para comparativo, embudo, capacidad, ranking, alertas y estado por negocio; las metricas no persistidas se calculan en cliente desde datos existentes y se muestran como lectura operacional
