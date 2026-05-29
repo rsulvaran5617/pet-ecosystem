@@ -25,7 +25,8 @@
 - `apps/web` ahora muestra `Ejecucion operacional` dentro del acordeon de Reservas entrantes del proveedor.
 - El panel consulta el API existente de booking operations y muestra check-in, check-out, estado operacional y evidencia documental con enlaces firmados cuando existen.
 - Web provider mantiene acciones manuales de check-in/check-out como fallback piloto y permite cargar evidencia despues del check-out usando el bucket/metadata existente.
-- No se tocaron Supabase, migraciones, RLS, QR mobile, booking capacity, evidencia mobile ni reglas de negocio.
+- Se agrega `get_booking_participant_summaries` para que provider web muestre hogar, cliente y mascota de reservas visibles sin abrir lectura directa completa de datos privados del owner.
+- No se tocaron QR mobile, booking capacity, evidencia mobile ni reglas de negocio.
 
 ## Actualizacion web provider borrado seguro de negocios 2026-05-28
 

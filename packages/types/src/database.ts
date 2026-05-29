@@ -1940,6 +1940,17 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["bookings"]["Row"];
       };
+      get_booking_participant_summaries: {
+        Args: {
+          target_booking_ids: string[];
+        };
+        Returns: {
+          booking_id: string;
+          household_name: string;
+          customer_display_name: string;
+          pet_name: string;
+        }[];
+      };
       approve_booking: {
         Args: {
           target_booking_id: string;

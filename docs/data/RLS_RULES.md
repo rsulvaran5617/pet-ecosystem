@@ -128,6 +128,7 @@ Aprobar o rechazar un booking `pending_approval` exige ownership de la organizac
 Marcar un booking `confirmed` como `completed` exige ownership del proveedor involucrado.
 Adjuntar un `payment_method` exige permiso `pay` o `admin`.
 No se habilita insercion ni edicion directa por tabla para usuarios autenticados.
+`get_booking_participant_summaries` expone solo nombres minimos de hogar, cliente y mascota para bookings visibles via `can_view_booking`; evita abrir lectura directa completa de `households`, `profiles` o `pets` al proveedor.
 
 ### provider_availability_rules / provider_availability_exceptions (V2 booking capacity, propuesto)
 

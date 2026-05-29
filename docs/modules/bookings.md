@@ -189,6 +189,7 @@ Riesgos:
 - owner puede consultar evidencia documental de sus propias reservas mediante lectura read-only de operaciones/evidencia y URL firmada temporal; la migracion `20260520164000_owner_booking_operation_evidence_read.sql` esta aplicada y registrada en Supabase remoto
 - internal notes siguen privadas para provider/admin y no se exponen al owner aunque el timeline muestre evidencia
 - historial y detalle deben mantenerse visibles para miembros autorizados del hogar y para el provider owner involucrado
+- provider web debe resolver nombres minimos de hogar, cliente y mascota por `get_booking_participant_summaries`, no por lectura directa de tablas owner protegidas por RLS.
 - despues de mutaciones criticas de reserva u operaciones (`approve`, `reject`, `complete`, cancelacion, check-in/check-out QR/manual y evidencia), mobile debe reflejar cambios de estado con Realtime sobre `bookings` y conservar requery controlado como respaldo
 - `bookings` esta publicado en `supabase_realtime` para que owner mobile pueda actualizar reservas cuando provider web aprueba, rechaza, completa o modifica estado de una cita
 - al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto; si Realtime no esta disponible, el polling de respaldo mantiene convergencia
@@ -206,6 +207,7 @@ Riesgos:
 - `POST /bookings`
 - `GET /bookings`
 - `GET /bookings/{id}`
+- `RPC get_booking_participant_summaries(booking_ids)` para resumen minimo de participantes en reservas visibles
 - `POST /bookings/{id}/approve`
 - `POST /bookings/{id}/reject`
 - `POST /bookings/{id}/complete`

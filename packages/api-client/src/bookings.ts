@@ -26,6 +26,7 @@ type PaymentMethodRow = Database["public"]["Tables"]["payment_methods"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type PreviewBookingRow = Database["public"]["Functions"]["preview_booking"]["Returns"][number];
 type BookingSlotRow = Database["public"]["Functions"]["get_service_booking_slots"]["Returns"][number];
+type BookingParticipantSummaryRow = Database["public"]["Functions"]["get_booking_participant_summaries"]["Returns"][number];
 
 export interface BookingsApiClient {
   previewBooking(input: CreateBookingPreviewInput): Promise<BookingPreview>;
@@ -216,6 +217,22 @@ async function loadCustomerNamesById(supabase: BookingsSupabaseClient, userIds: 
   );
 }
 
+async function loadBookingParticipantSummariesByBookingId(supabase: BookingsSupabaseClient, bookingIds: string[]) {
+  if (bookingIds.length === 0) {
+    return new Map<string, BookingParticipantSummaryRow>();
+  }
+
+  const { data, error } = await supabase.rpc("get_booking_participant_summaries", {
+    target_booking_ids: bookingIds
+  });
+
+  if (error) {
+    fail(error, "Unable to load booking participant summaries.");
+  }
+
+  return new Map((data ?? []).map((row) => [row.booking_id, row] as const));
+}
+
 async function loadPaymentMethodSummariesById(supabase: BookingsSupabaseClient, paymentMethodIds: string[]) {
   if (paymentMethodIds.length === 0) {
     return new Map<string, BookingPaymentMethodSummary>();
@@ -241,9 +258,11 @@ function buildBookingSummary(
   householdNamesById: Map<string, string>,
   customerNamesById: Map<string, string>,
   petNamesById: Map<string, string>,
-  providerNamesById: Map<string, string>
+  providerNamesById: Map<string, string>,
+  participantSummariesByBookingId: Map<string, BookingParticipantSummaryRow>
 ): BookingSummary {
   const pricing = pricingByBookingId.get(bookingRow.id);
+  const participantSummary = participantSummariesByBookingId.get(bookingRow.id);
 
   if (!pricing) {
     throw new Error(`Missing booking pricing snapshot for booking ${bookingRow.id}.`);
@@ -268,9 +287,9 @@ function buildBookingSummary(
     slotEndAt: bookingRow.slot_end_at,
     cancelledAt: bookingRow.cancelled_at,
     cancelReason: bookingRow.cancel_reason,
-    householdName: householdNamesById.get(bookingRow.household_id) ?? "Unknown household",
-    customerDisplayName: customerNamesById.get(bookingRow.booked_by_user_id) ?? "Unknown customer",
-    petName: petNamesById.get(bookingRow.pet_id) ?? "Unknown pet",
+    householdName: participantSummary?.household_name ?? householdNamesById.get(bookingRow.household_id) ?? "Hogar",
+    customerDisplayName: participantSummary?.customer_display_name ?? customerNamesById.get(bookingRow.booked_by_user_id) ?? "Cliente",
+    petName: participantSummary?.pet_name ?? petNamesById.get(bookingRow.pet_id) ?? "Mascota",
     providerName: providerNamesById.get(bookingRow.provider_organization_id) ?? "Unknown provider",
     serviceName: pricing.serviceName,
     currencyCode: pricing.currencyCode,
@@ -286,18 +305,31 @@ async function buildBookingSummaryMap(supabase: BookingsSupabaseClient, bookingR
   const customerIds = Array.from(new Set(bookingRows.map((row) => row.booked_by_user_id)));
   const petIds = Array.from(new Set(bookingRows.map((row) => row.pet_id)));
   const providerIds = Array.from(new Set(bookingRows.map((row) => row.provider_organization_id)));
-  const [pricingByBookingId, householdNamesById, customerNamesById, petNamesById, providerNamesById] = await Promise.all([
-    loadPricingByBookingId(supabase, bookingIds),
-    loadHouseholdNamesById(supabase, householdIds),
-    loadCustomerNamesById(supabase, customerIds),
-    loadPetNamesById(supabase, petIds),
-    loadProviderNamesById(supabase, providerIds)
-  ]);
+  const [pricingByBookingId, householdNamesById, customerNamesById, petNamesById, providerNamesById, participantSummariesByBookingId] =
+    await Promise.all([
+      loadPricingByBookingId(supabase, bookingIds),
+      loadHouseholdNamesById(supabase, householdIds),
+      loadCustomerNamesById(supabase, customerIds),
+      loadPetNamesById(supabase, petIds),
+      loadProviderNamesById(supabase, providerIds),
+      loadBookingParticipantSummariesByBookingId(supabase, bookingIds)
+    ]);
 
   return new Map(
     bookingRows.map(
       (row) =>
-        [row.id, buildBookingSummary(row, pricingByBookingId, householdNamesById, customerNamesById, petNamesById, providerNamesById)] as const
+        [
+          row.id,
+          buildBookingSummary(
+            row,
+            pricingByBookingId,
+            householdNamesById,
+            customerNamesById,
+            petNamesById,
+            providerNamesById,
+            participantSummariesByBookingId
+          )
+        ] as const
     )
   );
 }
