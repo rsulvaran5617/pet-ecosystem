@@ -679,6 +679,37 @@ export function PetsWorkspace({
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
+  const contextPetIsMissing = Boolean(contextPetId) && !isLoading && !pets.some((pet) => pet.id === contextPetId);
+  const contextPetIsLoading =
+    Boolean(contextPetId) &&
+    !contextPetIsMissing &&
+    (isLoading || pendingContextPetIdRef.current === contextPetId || (selectedPetId === contextPetId && selectedPetDetail?.pet.id !== contextPetId));
+
+  useEffect(() => {
+    if (!enabled || isLoading || !contextPetId || pets.some((pet) => pet.id === contextPetId)) {
+      return;
+    }
+
+    pendingContextPetIdRef.current = null;
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setIsBirthDatePickerOpen(false);
+    setIsDocumentFormOpen(false);
+    setPetMemoryConfirmationId(null);
+    setPetView(selectedPetId ? "detalle" : "lista");
+    onPanelChange?.("detalle");
+    onContextChangeRef.current?.({ householdId: selectedHouseholdId, petId: selectedPetId ?? null });
+  }, [contextPetId, enabled, isLoading, pets, selectedHouseholdId, selectedPetId, onPanelChange]);
+
+  useEffect(() => {
+    if (!isSelectedPetInMemory || activePanel !== "recordatorios") {
+      return;
+    }
+
+    setPetView("detalle");
+    onPanelChange?.("detalle");
+  }, [activePanel, isSelectedPetInMemory, onPanelChange]);
+
   const updatePetMemoryStatus = (petId: Uuid, status: "active" | "in_memory") => {
     clearMessages();
     void runAction(
@@ -797,6 +828,15 @@ export function PetsWorkspace({
         </View>
 
         {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando mascotas, documentos y permisos del hogar...</Text> : null}
+        {contextPetIsLoading ? (
+          <Notice message="Estamos abriendo la mascota seleccionada y conservando el contexto del hogar." tone="info" />
+        ) : null}
+        {contextPetIsMissing ? (
+          <Notice
+            message="La mascota seleccionada desde otra seccion ya no esta disponible en este hogar. Elige una mascota de la lista para continuar."
+            tone="error"
+          />
+        ) : null}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 10, paddingRight: 4 }}>
@@ -921,11 +961,20 @@ export function PetsWorkspace({
             const isActive = activePanel === option.value;
             const iconName: PetIconName =
               option.value === "detalle" ? "paw" : option.value === "salud" ? "heart" : option.value === "documentos" ? "file" : "bell";
+            const isOperationalMemoryPanel = isSelectedPetInMemory && option.value === "recordatorios";
 
             return (
               <Pressable
                 key={option.value}
                 onPress={() => {
+                  if (isOperationalMemoryPanel) {
+                    clearMessages();
+                    setPetMemoryConfirmationId(null);
+                    setPetView("detalle");
+                    onPanelChange?.("detalle");
+                    return;
+                  }
+
                   setPetView("detalle");
                   onPanelChange?.(option.value);
                 }}
@@ -935,6 +984,7 @@ export function PetsWorkspace({
                   borderBottomWidth: isActive ? 2 : 0,
                   borderBottomColor: "#0f9f8f",
                   gap: 4,
+                  opacity: isOperationalMemoryPanel ? 0.55 : 1,
                   paddingVertical: 12
                 }}
               >
@@ -1243,10 +1293,30 @@ export function PetsWorkspace({
                     </View>
                   ) : null}
                   {isSelectedPetInMemory ? (
-                    <View style={{ borderRadius: 14, backgroundColor: "rgba(124,58,237,0.08)", padding: 11 }}>
-                      <Text style={{ color: "#5b21b6", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
-                        Este perfil queda como recuerdo del hogar. Sus documentos e historial se conservan, pero no aparecera para nuevas reservas.
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(124,58,237,0.08)", borderColor: "rgba(124,58,237,0.18)", borderWidth: 1, gap: 8, padding: 12 }}>
+                      <Text style={{ color: "#4c1d95", fontSize: 12, fontWeight: "900" }}>
+                        Modo recuerdo del hogar
                       </Text>
+                      <Text style={{ color: "#5b21b6", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                        Este perfil queda en un espacio especial. Conserva documentos, salud e historial, pero no aparecera en nuevas reservas ni en recordatorios operativos.
+                      </Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                        {["Historial conservado", "Reservas bloqueadas", "Recordatorios pausados"].map((label) => (
+                          <View
+                            key={label}
+                            style={{
+                              borderRadius: 999,
+                              backgroundColor: "rgba(255,255,255,0.72)",
+                              borderColor: "rgba(124,58,237,0.16)",
+                              borderWidth: 1,
+                              paddingHorizontal: 8,
+                              paddingVertical: 5
+                            }}
+                          >
+                            <Text style={{ color: "#5b21b6", fontSize: 9, fontWeight: "900" }}>{label}</Text>
+                          </View>
+                        ))}
+                      </View>
                     </View>
                   ) : null}
                   {selectedPetDetail.pet.notes ? (
@@ -1417,20 +1487,28 @@ export function PetsWorkspace({
                       <PetLineIcon color="#f97316" name="calendar" size={16} />
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>Recordatorios de {selectedPetDetail.pet.name}</Text>
-                      <Text style={{ color: "#64748b", fontSize: 10 }}>Gestiona vacunas, controles y tareas desde su panel.</Text>
+                      <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>
+                        {isSelectedPetInMemory ? "Recordatorios pausados" : `Recordatorios de ${selectedPetDetail.pet.name}`}
+                      </Text>
+                      <Text style={{ color: "#64748b", fontSize: 10 }}>
+                        {isSelectedPetInMemory
+                          ? "El historial se conserva, pero no se crean tareas operativas para esta mascota."
+                          : "Gestiona vacunas, controles y tareas desde su panel."}
+                      </Text>
                     </View>
-                    <Pressable
-                      onPress={() => onPanelChange?.("recordatorios")}
-                      style={{
-                        borderRadius: 999,
-                        backgroundColor: "rgba(15,118,110,0.1)",
-                        paddingHorizontal: 10,
-                        paddingVertical: 7
-                      }}
-                    >
-                      <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Ver detalles</Text>
-                    </Pressable>
+                    {!isSelectedPetInMemory ? (
+                      <Pressable
+                        onPress={() => onPanelChange?.("recordatorios")}
+                        style={{
+                          borderRadius: 999,
+                          backgroundColor: "rgba(15,118,110,0.1)",
+                          paddingHorizontal: 10,
+                          paddingVertical: 7
+                        }}
+                      >
+                        <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Ver detalles</Text>
+                      </Pressable>
+                    ) : null}
                   </View>
                 </View>
               </>
