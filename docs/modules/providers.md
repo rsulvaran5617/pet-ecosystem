@@ -111,7 +111,8 @@ Modelo recomendado CAP-0:
 - el owner proveedor ve y gestiona solo su propia organizacion
 - la consola web permite eliminar un servicio solo cuando no tiene historial de reservas; si ya tiene reservas, debe conservarse para trazabilidad y el proveedor solo puede desactivarlo u ocultarlo del marketplace
 - al eliminar un servicio sin historial se eliminan tambien sus reglas futuras de horarios/cupos asociadas por cascada, porque siguen siendo configuracion maestra no transaccional
-- la consola web permite eliminar un negocio completo solo si no tiene reservas, conversaciones, resenas ni casos de soporte asociados. La eliminacion se ejecuta por RPC `delete_provider_organization`, valida ownership, registra auditoria, limpia storage de documentos/avatar y borra solo datos maestros no transaccionales.
+- la consola web permite eliminar un negocio completo solo si no tiene reservas, conversaciones, resenas ni casos de soporte asociados. La eliminacion se ejecuta por RPC `delete_provider_organization`, valida ownership, registra auditoria y borra solo datos maestros no transaccionales; la limpieza de documentos/avatar usa Supabase Storage API desde el cliente tipado porque no se permite borrar directo de `storage.objects`.
+- si el borrado se bloquea por datos transaccionales, la UI debe mostrar un mensaje claro orientado a usuario e indicar que el negocio debe ocultarse o pausarse para conservar trazabilidad.
 - si un negocio tuvo actividad real, debe ocultarse/desactivarse en lugar de borrarse para conservar trazabilidad operacional.
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`

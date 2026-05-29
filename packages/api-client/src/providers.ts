@@ -84,6 +84,18 @@ function isMissingProviderPublicLocationsError(error: { code?: string; message: 
   );
 }
 
+function isProviderOrganizationDeleteBlockedError(error: { message: string } | null) {
+  const message = error?.message.toLowerCase() ?? "";
+
+  return (
+    message.includes("historial de reservas") ||
+    message.includes("conversaciones asociadas") ||
+    message.includes("resenas asociadas") ||
+    message.includes("casos de soporte asociados") ||
+    message.includes("violates foreign key constraint")
+  );
+}
+
 async function getCurrentUser(supabase: ProvidersSupabaseClient) {
   const { data, error } = await supabase.auth.getUser();
 
@@ -349,6 +361,30 @@ async function getProviderOrganizationDetailById(
   } satisfies ProviderOrganizationDetail;
 }
 
+async function removeStorageObjectsBestEffort(
+  supabase: ProvidersSupabaseClient,
+  objects: Array<{ bucket: string | null; path: string | null }>
+) {
+  const pathsByBucket = objects.reduce<Map<string, string[]>>((bucketMap, object) => {
+    if (!object.bucket || !object.path) {
+      return bucketMap;
+    }
+
+    bucketMap.set(object.bucket, [...(bucketMap.get(object.bucket) ?? []), object.path]);
+    return bucketMap;
+  }, new Map<string, string[]>());
+
+  await Promise.all(
+    [...pathsByBucket.entries()].map(async ([bucket, paths]) => {
+      if (!paths.length) {
+        return;
+      }
+
+      await supabase.storage.from(bucket).remove(paths).catch(() => undefined);
+    })
+  );
+}
+
 export function createProvidersApiClient(supabase: ProvidersSupabaseClient): ProvidersApiClient {
   return {
     async listMyProviderOrganizations() {
@@ -423,13 +459,33 @@ export function createProvidersApiClient(supabase: ProvidersSupabaseClient): Pro
       return mapProviderOrganization(data);
     },
     async deleteProviderOrganization(organizationId) {
+      const user = await requireCurrentUser(supabase);
+      const detail = await getProviderOrganizationDetailById(supabase, organizationId, { ownerUserId: user.id });
+      const storageObjects = [
+        ...detail.approvalDocuments.map((document) => ({
+          bucket: document.storageBucket,
+          path: document.storagePath
+        })),
+        {
+          bucket: detail.publicProfile?.avatarStorageBucket ?? null,
+          path: detail.publicProfile?.avatarStoragePath ?? null
+        }
+      ];
       const { error } = await supabase.rpc("delete_provider_organization", {
         target_organization_id: organizationId
       });
 
       if (error) {
+        if (isProviderOrganizationDeleteBlockedError(error)) {
+          throw new Error(
+            "No se puede eliminar este negocio porque tiene datos transaccionales asociados. Ocultalo o pausalo para conservar la trazabilidad operacional."
+          );
+        }
+
         fail(error, "Unable to delete the provider organization.");
       }
+
+      await removeStorageObjectsBestEffort(supabase, storageObjects);
     },
     async upsertProviderPublicProfile(organizationId, input) {
       const { data, error } = await supabase.rpc("upsert_provider_public_profile", {

@@ -1987,16 +1987,18 @@ export function ProvidersWorkspace({
     }
 
     clearMessages();
+    const deletedOrganizationName = selectedOrganization.name;
     const nextOrganizationId = organizations.find((organization) => organization.id !== selectedOrganization.id)?.id ?? null;
 
     void runAction(
       () => getBrowserProvidersApiClient().deleteProviderOrganization(selectedOrganization.id),
-      "Negocio eliminado."
+      `Negocio "${deletedOrganizationName}" eliminado correctamente.`
     ).then(async () => {
       setOrganizationMode("create");
       setOrganizationForm(emptyOrganizationForm);
       setIsBusinessFormOpen(false);
       await refresh(nextOrganizationId);
+      window.alert(`Negocio "${deletedOrganizationName}" eliminado correctamente.`);
     });
   };
   const openBookingNotice = () => {

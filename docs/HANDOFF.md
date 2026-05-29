@@ -30,8 +30,9 @@
 ## Actualizacion web provider borrado seguro de negocios 2026-05-28
 
 - Se agrega RPC local `delete_provider_organization` para borrar negocios creados por error solo si no tienen reservas, conversaciones, resenas ni casos de soporte asociados.
-- La RPC valida ownership, registra auditoria, limpia documentos/avatar en storage y elimina datos maestros via cascada; negocios con historial deben ocultarse/desactivarse.
+- La RPC valida ownership, registra auditoria y elimina datos maestros via cascada; el API client limpia documentos/avatar mediante Supabase Storage API porque Supabase bloquea borrado directo sobre `storage.objects`.
 - Web provider expone `Eliminar negocio` dentro de `Datos del negocio`; el boton queda bloqueado si la organizacion seleccionada tiene reservas cargadas.
+- Al borrar con exito, web provider muestra confirmacion explicita; si el backend bloquea por datos transaccionales, muestra un mensaje claro y recomienda ocultar/pausar el negocio.
 
 ## Objetivo de este handoff
 
