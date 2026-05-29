@@ -29,6 +29,18 @@ cd "C:\Users\Ramon Sulvaran\pet-ecosystem"
 .\scripts\deploy-droplet.ps1 -SshTarget "root@143.198.165.191"
 ```
 
+## Actualizacion mobile owner reservas 2026-05-29
+
+- Se corrige un caso de QA donde owner mobile mantenia abierto el detalle de una reserva como `Pendiente de aprobacion` despues de que provider web la aprobaba.
+- Causa: el hook de reservas ya refrescaba la lista por Realtime/polling, pero no recargaba `selectedBookingDetail` cuando el detalle permanecia abierto en pantalla.
+- Solucion: `useBookingsWorkspace` conserva el id del detalle abierto y, durante cada refresco de reservas, recarga tambien el detalle seleccionado si sigue perteneciendo al hogar/filtro actual.
+- No se tocaron backend, Supabase, migraciones, RLS, RPCs, QR, evidencia operacional, Payments ni reglas de booking.
+- Validaciones ejecutadas: `@pet/mobile lint`, `@pet/mobile typecheck` y `git diff --check` en `PASS`.
+- APK QA generada para validar en Xiaomi:
+  - `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-booking-detail-refresh-20260529-arm64-hermes-release.apk`
+  - SHA256 `EDBB3185A6BD4C27C77E5493EE19982CC2B1286D8E870C15F9217A27D712EB10`
+- Prueba recomendada: abrir el detalle de una reserva owner `pending_approval`, aprobarla desde web provider y confirmar que el detalle mobile cambia a `Confirmada/Aprobada` sin salir y volver a entrar.
+
 ## Actualizacion documental V2 Pet Travel Passport 2026-05-25
 
 - Se documenta `Pet Travel Passport / Expediente Internacional de Mascota` como alcance V2 en `docs/modules/pet_travel_passport.md`.

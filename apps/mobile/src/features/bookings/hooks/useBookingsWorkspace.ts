@@ -63,6 +63,7 @@ export function useBookingsWorkspace(
   const selectedPetIdRef = useRef<Uuid | null>(incomingSelection?.petId ?? null);
   const selectedPaymentMethodIdRef = useRef<Uuid | null>(null);
   const selectedBookingSlotRef = useRef<BookingSlot | null>(incomingSelection?.selectedBookingSlot ?? null);
+  const selectedBookingDetailIdRef = useRef<Uuid | null>(null);
   const realtimeChannelNameRef = useRef(`mobile-booking-updates-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const [householdSnapshot, setHouseholdSnapshot] = useState<HouseholdsSnapshot | null>(null);
   const [pets, setPets] = useState<PetSummary[]>([]);
@@ -94,6 +95,11 @@ export function useBookingsWorkspace(
   function resetSlotSelection() {
     selectedBookingSlotRef.current = null;
     setSelectedBookingSlot(null);
+  }
+
+  function setCurrentBookingDetail(detail: BookingDetail | null) {
+    selectedBookingDetailIdRef.current = detail?.booking.id ?? null;
+    setSelectedBookingDetail(detail);
   }
 
   function getActionErrorMessage(error: unknown, fallbackMessage: string) {
@@ -181,7 +187,7 @@ export function useBookingsWorkspace(
     if (!householdId) {
       if (mountedRef.current) {
         setBookings([]);
-        setSelectedBookingDetail(null);
+        setCurrentBookingDetail(null);
       }
 
       return;
@@ -198,6 +204,19 @@ export function useBookingsWorkspace(
     }
 
     setBookings(nextBookings);
+
+    const selectedBookingId = selectedBookingDetailIdRef.current;
+    if (selectedBookingId && nextBookings.some((booking) => booking.id === selectedBookingId)) {
+      try {
+        const detail = await getMobileBookingsApiClient().getBookingDetail(selectedBookingId);
+
+        if (mountedRef.current && selectedBookingDetailIdRef.current === selectedBookingId) {
+          setCurrentBookingDetail(detail);
+        }
+      } catch {
+        // Keep the visible detail during transient refresh failures.
+      }
+    }
   }
 
   async function loadPets(householdId: Uuid | null, preferredPetId: Uuid | null) {
@@ -207,7 +226,7 @@ export function useBookingsWorkspace(
         setSelectedPetId(null);
         selectedPetIdRef.current = null;
         setBookings([]);
-        setSelectedBookingDetail(null);
+        setCurrentBookingDetail(null);
       }
 
       return;
@@ -239,7 +258,7 @@ export function useBookingsWorkspace(
         setPaymentMethods([]);
         setBookings([]);
         setPreview(null);
-        setSelectedBookingDetail(null);
+        setCurrentBookingDetail(null);
         setActiveSelection(null);
         setSelectedHouseholdId(null);
         setSelectedPetId(null);
@@ -348,7 +367,7 @@ export function useBookingsWorkspace(
     selectedPetIdRef.current = incomingSelection.petId ?? null;
     setActiveSelection(incomingSelection);
     setPreview(null);
-    setSelectedBookingDetail(null);
+    setCurrentBookingDetail(null);
     setBookingSlots(incomingSelection.selectedBookingSlot ? [incomingSelection.selectedBookingSlot] : []);
     setSelectedSlotDate(incomingSelection.selectedBookingSlot?.slotDate ?? null);
     selectedBookingSlotRef.current = incomingSelection.selectedBookingSlot ?? null;
@@ -543,7 +562,7 @@ export function useBookingsWorkspace(
 
           if (mountedRef.current) {
             setPreview(nextPreview);
-            setSelectedBookingDetail(null);
+            setCurrentBookingDetail(null);
           }
 
           return nextPreview;
@@ -590,7 +609,7 @@ export function useBookingsWorkspace(
           setBookingSlots([]);
           setSelectedBookingSlot(null);
           setSelectedSlotDate(null);
-          setSelectedBookingDetail(detail);
+          setCurrentBookingDetail(detail);
         }
 
         return detail;
@@ -604,7 +623,7 @@ export function useBookingsWorkspace(
         const detail = await getMobileBookingsApiClient().getBookingDetail(bookingId);
 
         if (mountedRef.current) {
-          setSelectedBookingDetail(detail);
+          setCurrentBookingDetail(detail);
           setInfoMessage(`Detalle de la reserva cargado para ${detail.booking.serviceName}.`);
         }
       } catch (error) {
@@ -622,7 +641,7 @@ export function useBookingsWorkspace(
         const detail = await getMobileBookingsApiClient().cancelBooking(bookingId, reason);
 
         if (mountedRef.current) {
-          setSelectedBookingDetail(detail);
+          setCurrentBookingDetail(detail);
         }
 
         return detail;
