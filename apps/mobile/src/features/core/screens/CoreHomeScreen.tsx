@@ -1108,6 +1108,8 @@ export function CoreHomeScreen() {
 
   const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
+  const assignedAccountRoles = snapshot?.roles.map((role) => role.role) ?? [];
+  const missingAccountRoles = (["pet_owner", "provider"] as CoreRole[]).filter((role) => !assignedAccountRoles.includes(role));
   const isProviderMode = activeRole === "provider" && hasProviderRole;
   const isRoleSwitchInfoMessage = infoMessage?.startsWith("Rol activo cambiado a ") ?? false;
   const petsWorkspace = usePetsWorkspace(authState.isAuthenticated && !isProviderMode);
@@ -1685,9 +1687,30 @@ export function CoreHomeScreen() {
             <CoreSectionCard
               eyebrow="Roles"
               title="Modo de uso"
-              description="Cambia entre propietario y proveedor cuando lo necesites."
+              description="Revisa tu rol activo y los modos disponibles para esta cuenta."
             >
-              <View style={{ gap: 8 }}>
+              <View style={{ gap: 10 }}>
+                <View
+                  style={{
+                    backgroundColor: "rgba(15,118,110,0.08)",
+                    borderColor: "rgba(15,118,110,0.18)",
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    padding: 10,
+                    gap: 4
+                  }}
+                >
+                  <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900", letterSpacing: 0.7, textTransform: "uppercase" }}>
+                    Rol activo
+                  </Text>
+                  <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                    {coreRoleLabels[activeRole]}
+                  </Text>
+                  <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                    Solo veras las opciones y tareas correspondientes al modo activo.
+                  </Text>
+                </View>
+
                 {snapshot.roles.map((role) => (
                   <View
                     key={role.id}
@@ -1702,6 +1725,11 @@ export function CoreHomeScreen() {
                       <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{coreRoleLabels[role.role]}</Text>
                       <StatusChip label={role.isActive ? "En uso" : "Disponible"} tone={role.isActive ? "active" : "neutral"} />
                     </View>
+                    <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                      {role.role === "provider"
+                        ? "Modo para gestionar negocios, servicios, horarios y reservas entrantes."
+                        : "Modo para gestionar hogar, mascotas, busqueda de servicios y reservas."}
+                    </Text>
                     {!role.isActive ? (
                       <Button
                         disabled={isSubmitting}
@@ -1718,9 +1746,28 @@ export function CoreHomeScreen() {
                     ) : null}
                   </View>
                 ))}
+
+                {missingAccountRoles.length ? (
+                  <View
+                    style={{
+                      backgroundColor: "rgba(255,247,237,0.84)",
+                      borderColor: "rgba(249,115,22,0.22)",
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      padding: 10,
+                      gap: 5
+                    }}
+                  >
+                    <Text style={{ color: "#9a3412", fontSize: 11, fontWeight: "900", lineHeight: 15 }}>
+                      Necesitas agregar otro rol?
+                    </Text>
+                    <Text style={{ color: "#57534e", fontSize: 10, lineHeight: 15 }}>
+                      Esta cuenta aun no tiene {missingAccountRoles.map((role) => coreRoleLabels[role]).join(" ni ")}. Para el piloto, solicita al equipo interno que habilite el rol antes de usar ese modo.
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             </CoreSectionCard>
-
             <CoreSectionCard
               eyebrow="Direcciones"
               title="Direcciones"
