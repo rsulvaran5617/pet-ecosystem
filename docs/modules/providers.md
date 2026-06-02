@@ -141,6 +141,7 @@ Modelo recomendado CAP-0:
 - la navegacion lateral de web provider funciona como consola por seccion: al seleccionar Panel, Negocios, Servicios, Reservas, Agenda/Capacidad, Publicacion o Documentos se muestra solo el contenido de esa seccion para reducir ruido operativo sin cambiar consultas ni reglas de negocio
 - web provider muestra `Conversaciones activas` dentro de Reservas como bandeja de chats vinculados a bookings del negocio activo y permite responder mensajes de texto usando el contrato existente de `messaging`
 - web provider muestra un aviso in-app minimalista cuando detecta una nueva reserva `pending_approval` mientras la consola esta abierta; el aviso usa polling controlado, no Supabase Realtime ni push web, y permite saltar a `Reservas` del negocio correspondiente
+- web provider muestra un aviso in-app minimalista cuando detecta un nuevo mensaje entrante del owner en un hilo de reserva; el aviso reutiliza `chat_threads/chat_messages`, ignora mensajes enviados por el propio proveedor y permite saltar a la cita y conversacion correspondiente.
 - check-in/check-out, evidencia, report card y notas internas pertenecen al contexto de una reserva
 - el flujo principal futuro de check-in/check-out sera escanear QR temporal del owner; los botones manuales existentes quedan como fallback piloto/soporte
 - el proveedor no debe consumir tokens de reservas de otra organizacion ni registrar operaciones sin validacion server-side

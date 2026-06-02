@@ -4,6 +4,40 @@
 
 2026-05-17
 
+## Handoff operativo antes de apagado 2026-06-01
+
+- Rama actual verificada: `master`.
+- Estado Git antes de este handoff: limpio y sincronizado con `origin/master`.
+- HEAD publicado actual: `ca08104 fix(profile): clarify account role modes`.
+- Ultimos cierres publicados:
+  - `d2d890e fix(reminders): align pet reminder summaries`.
+  - `ca08104 fix(profile): clarify account role modes`.
+- `REM-001` queda implementado, publicado y validado manualmente en Xiaomi:
+  - Inicio, ficha de mascota y Recordatorios comparten la misma fuente visible de recordatorios.
+  - La ficha de mascota muestra recordatorios pendientes reales o empty state especifico.
+  - Al crear/completar/posponer desde Recordatorios se refresca el resumen compartido.
+  - QA usuario confirmada: los recordatorios aparecen para la mascota.
+- `PROF-001` queda implementado, publicado e instalado en Xiaomi:
+  - `Cuenta > Modo de uso` muestra rol activo, roles disponibles y descripcion de cada modo.
+  - Si falta `pet_owner` o `provider`, se muestra instruccion clara para solicitar habilitacion al equipo interno durante piloto.
+  - No se crean roles automaticamente, no se tocan permisos, Supabase, DB ni contratos.
+- Validaciones ejecutadas para los cierres recientes:
+  - `corepack pnpm --filter @pet/mobile lint` PASS.
+  - `corepack pnpm --filter @pet/mobile typecheck` PASS.
+  - `corepack pnpm --filter @pet/mobile build` PASS.
+  - `git diff --check` PASS.
+- APK QA generada e instalada en Xiaomi `85975329`:
+  - `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-profile-roles-prof001-20260601-arm64-hermes-release.apk`
+  - SHA256 `9B34599860CC2F2F36BAEC7D82B7FE561603EC4C6111F378CEBF3557C89A789D`
+- Tema nuevo planteado antes de apagar:
+  - En `Salud > Vacunas`, seria valioso adjuntar una foto del sticker/datos de la vacuna como evidencia documental fidedigna.
+  - Recomendacion inicial: implementar primero como slice pequeno sin migracion, reutilizando documentos existentes de mascota/storage actual. Desde la vacuna se agregaria accion `Cargar foto del sticker`, guardandola como documento tipo cartilla/registro medico y mostrandola como evidencia asociada visualmente.
+  - Alternativa posterior mas trazable: entidad especifica por vacuna (`pet_vaccine_evidence`) con migracion/RLS/API, solo si piloto confirma necesidad.
+- Siguiente paso recomendado al retomar:
+  1. Confirmar si se implementa el slice `HEALTH vaccine sticker evidence` sin DB nueva.
+  2. Revisar `docs/modules/health.md`, `docs/modules/pets.md`, `apps/mobile/src/features/health/components/HealthWorkspace.tsx`, `apps/mobile/src/features/pets/components/PetsWorkspace.tsx` y storage/documentos actuales.
+  3. Mantener fuera de alcance Supabase/migraciones/RLS/contratos hasta que el usuario lo apruebe.
+
 ## Handoff operativo antes de apagado 2026-05-29
 
 - Rama actual verificada: `master`.
@@ -532,6 +566,29 @@ Validacion ejecutada:
 - `corepack pnpm --filter @pet/mobile lint` -> `PASS`
 - Android release build `:app:assembleRelease` en `C:\b28` -> `PASS`
 - instalacion ADB en Xiaomi `85975329` -> `PASS`
+
+## Handoff 2026-06-01 - Web provider message notices
+
+Estado:
+
+- Se agrega aviso emergente in-app en la consola web provider cuando llega un mensaje entrante del owner en un hilo de reserva.
+- El aviso muestra cliente, mascota, servicio y preview del mensaje, con CTA `Responder`.
+- Al presionar `Responder`, la consola:
+  - cambia al negocio correcto si el hilo pertenece a otro negocio del proveedor;
+  - navega a `Reservas`;
+  - expande la cita asociada;
+  - abre la conversacion vinculada para responder.
+- La deteccion reutiliza `chat_threads.last_message_at` y consulta el detalle del hilo solo cuando hay actividad nueva para confirmar que el ultimo mensaje vino del customer.
+- Se ignoran mensajes enviados por el propio provider para evitar avisos sobre respuestas propias.
+- No se agregan backend, Supabase, migraciones, RLS, RPCs, contratos API ni push notifications.
+- El aviso funciona solo con la web provider abierta; background/cerrado queda fuera de alcance.
+
+Validacion ejecutada:
+
+- `corepack pnpm --filter @pet/web typecheck` -> `PASS`
+- `corepack pnpm --filter @pet/web lint` -> `PASS`
+- `corepack pnpm --filter @pet/web build` -> `PASS`
+- `git diff --check` -> `PASS`
 
 ### Prompt exacto recomendado para continuar
 

@@ -16,6 +16,7 @@ import type {
   BookingOperationalState,
   BookingSummary,
   BookingStatus,
+  ChatThreadSummary,
   BookingSlot,
   CreateProviderAvailabilityRuleInput,
   ProviderApprovalDocumentType,
@@ -30,7 +31,12 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 
 import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
-import { getBrowserBookingOperationsApiClient, getBrowserBookingsApiClient, getBrowserProvidersApiClient } from "../../core/services/supabase-browser";
+import {
+  getBrowserBookingOperationsApiClient,
+  getBrowserBookingsApiClient,
+  getBrowserMessagingApiClient,
+  getBrowserProvidersApiClient
+} from "../../core/services/supabase-browser";
 import { type ProviderBusinessOverview, type ProviderMoneyIndicator, type ProviderServiceRankingItem, useProvidersWorkspace } from "../hooks/useProvidersWorkspace";
 
 const fieldLabelStyle = {
@@ -107,6 +113,10 @@ type ProviderBookingNotice = {
   booking: BookingSummary;
   organizationId: Uuid;
   organizationName: string;
+};
+type ProviderMessageNotice = {
+  thread: ChatThreadSummary;
+  messagePreview: string;
 };
 
 const providerConsoleSections = [
@@ -929,6 +939,91 @@ function ProviderBookingNoticeToast({
   );
 }
 
+function ProviderMessageNoticeToast({
+  notice,
+  onClose,
+  onOpen
+}: {
+  notice: ProviderMessageNotice;
+  onClose: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <div
+      role="status"
+      style={{
+        alignItems: "start",
+        background: "#fffdf8",
+        border: "1px solid rgba(15, 118, 110, 0.22)",
+        borderRadius: "16px",
+        bottom: "22px",
+        boxShadow: "0 18px 44px rgba(15, 23, 42, 0.18)",
+        display: "grid",
+        gap: "10px",
+        maxWidth: "360px",
+        padding: "14px",
+        position: "fixed",
+        right: "22px",
+        width: "calc(100vw - 44px)",
+        zIndex: 82
+      }}
+    >
+      <div style={{ alignItems: "start", display: "flex", gap: "10px", justifyContent: "space-between" }}>
+        <div style={{ display: "grid", gap: "4px", minWidth: 0 }}>
+          <span style={{ color: "#0f766e", fontSize: "9px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Nuevo mensaje
+          </span>
+          <strong style={{ color: "#0b163f", fontSize: "13px", lineHeight: 1.2 }}>{notice.thread.customerDisplayName}</strong>
+          <span style={{ color: "#57534e", fontSize: "11px", lineHeight: 1.35 }}>
+            {notice.thread.petName} · {notice.thread.serviceName}
+          </span>
+          <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 800, lineHeight: 1.35 }}>
+            {notice.messagePreview}
+          </span>
+        </div>
+        <button
+          aria-label="Cerrar aviso de mensaje"
+          onClick={onClose}
+          style={{
+            alignItems: "center",
+            background: "#f5f2ea",
+            border: "1px solid rgba(28, 25, 23, 0.12)",
+            borderRadius: "999px",
+            color: "#57534e",
+            cursor: "pointer",
+            display: "inline-flex",
+            fontSize: "12px",
+            fontWeight: 900,
+            height: "24px",
+            justifyContent: "center",
+            width: "24px"
+          }}
+          type="button"
+        >
+          x
+        </button>
+      </div>
+      <button
+        onClick={onOpen}
+        style={{
+          background: "#0f766e",
+          border: "1px solid #0f766e",
+          borderRadius: "999px",
+          color: "#ffffff",
+          cursor: "pointer",
+          fontSize: "11px",
+          fontWeight: 900,
+          padding: "8px 12px",
+          width: "fit-content"
+        }}
+        type="button"
+      >
+        Responder
+      </button>
+    </div>
+  );
+}
+
 function ProviderCard({
   children,
   id,
@@ -1408,8 +1503,11 @@ export function ProvidersWorkspace({
   const [isPendingBookingsBreakdownOpen, setIsPendingBookingsBreakdownOpen] = useState(false);
   const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatus>("pending_approval");
   const [bookingNotice, setBookingNotice] = useState<ProviderBookingNotice | null>(null);
+  const [messageNotice, setMessageNotice] = useState<ProviderMessageNotice | null>(null);
   const knownPendingBookingIdsRef = useRef<Set<string>>(new Set());
   const hasSeededBookingNoticeRef = useRef(false);
+  const knownThreadActivityRef = useRef<Map<string, string | null>>(new Map());
+  const hasSeededMessageNoticeRef = useRef(false);
 
   useEffect(() => {
     if (!selectedOrganizationDetail) {
@@ -1447,6 +1545,9 @@ export function ProvidersWorkspace({
       knownPendingBookingIdsRef.current = new Set();
       hasSeededBookingNoticeRef.current = false;
       setBookingNotice(null);
+      knownThreadActivityRef.current = new Map();
+      hasSeededMessageNoticeRef.current = false;
+      setMessageNotice(null);
       return;
     }
 
@@ -1510,6 +1611,58 @@ export function ProvidersWorkspace({
       window.clearInterval(intervalId);
     };
   }, [enabled, hasProviderRole, providerRoleActive, organizations]);
+
+  useEffect(() => {
+    if (!enabled || !hasProviderRole || !providerRoleActive) {
+      knownThreadActivityRef.current = new Map();
+      hasSeededMessageNoticeRef.current = false;
+      setMessageNotice(null);
+      return;
+    }
+
+    const nextThreadActivity = new Map(providerMessageThreads.map((thread) => [thread.id, thread.lastMessageAt] as const));
+
+    if (!hasSeededMessageNoticeRef.current) {
+      knownThreadActivityRef.current = nextThreadActivity;
+      hasSeededMessageNoticeRef.current = true;
+      return;
+    }
+
+    const changedThreads = providerMessageThreads
+      .filter((thread) => thread.lastMessageAt && knownThreadActivityRef.current.get(thread.id) !== thread.lastMessageAt)
+      .sort((leftThread, rightThread) => (rightThread.lastMessageAt ?? "").localeCompare(leftThread.lastMessageAt ?? ""));
+
+    knownThreadActivityRef.current = nextThreadActivity;
+
+    if (!changedThreads[0]) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const inspectLatestInboundMessage = async () => {
+      for (const thread of changedThreads) {
+        const detail = await getBrowserMessagingApiClient().getThreadDetail(thread.id);
+        const latestMessage = detail.messages[detail.messages.length - 1] ?? null;
+
+        if (isCancelled || !latestMessage || latestMessage.senderRole !== "customer") {
+          continue;
+        }
+
+        setMessageNotice({
+          thread: detail.thread,
+          messagePreview: latestMessage.messageText
+        });
+        return;
+      }
+    };
+
+    void inspectLatestInboundMessage().catch(() => undefined);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [enabled, hasProviderRole, providerRoleActive, providerMessageThreads]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
   const selectedPublicProfile = selectedOrganizationDetail?.publicProfile ?? null;
@@ -2024,6 +2177,31 @@ export function ProvidersWorkspace({
 
     void openNotifiedBooking();
   };
+  const openMessageNotice = () => {
+    if (!messageNotice) {
+      return;
+    }
+
+    const nextNotice = messageNotice;
+    setMessageNotice(null);
+    setBookingStatusFilter(nextNotice.thread.bookingStatus);
+    setExpandedProviderBookingId(nextNotice.thread.bookingId);
+
+    const openNotifiedMessage = async () => {
+      if (nextNotice.thread.providerOrganizationId !== selectedOrganizationId) {
+        await selectOrganization(nextNotice.thread.providerOrganizationId);
+      } else {
+        await refresh(nextNotice.thread.providerOrganizationId);
+      }
+
+      navigateProviderSection("provider-web-bookings");
+      await openProviderBookingDetail(nextNotice.thread.bookingId);
+      await openProviderMessageThread(nextNotice.thread.id);
+      void loadProviderBookingOperations(nextNotice.thread.bookingId);
+    };
+
+    void openNotifiedMessage();
+  };
 
   if (!enabled) {
     return null;
@@ -2037,6 +2215,9 @@ export function ProvidersWorkspace({
       {!visibleErrorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
       {bookingNotice ? (
         <ProviderBookingNoticeToast notice={bookingNotice} onClose={() => setBookingNotice(null)} onOpen={openBookingNotice} />
+      ) : null}
+      {messageNotice ? (
+        <ProviderMessageNoticeToast notice={messageNotice} onClose={() => setMessageNotice(null)} onOpen={openMessageNotice} />
       ) : null}
 
       <CoreSection
