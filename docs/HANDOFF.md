@@ -590,6 +590,31 @@ Validacion ejecutada:
 - `corepack pnpm --filter @pet/web build` -> `PASS`
 - `git diff --check` -> `PASS`
 
+## Handoff 2026-06-02 - Preparacion iOS Beta Privada
+
+Estado:
+
+- Se prepara configuracion inicial para EAS iOS + TestFlight sin generar build ni subir a Apple.
+- `apps/mobile/app.json` queda con:
+  - version `0.3.1`;
+  - `ios.bundleIdentifier` `com.petecosystem.mobile`;
+  - `ios.buildNumber` inicial `1`;
+  - scheme `petecosystem`;
+  - textos iOS para camara, fotos y guardado en fototeca;
+  - declaracion `usesNonExemptEncryption: false` para uso de cifrado estandar de plataforma/HTTPS.
+- `apps/mobile/eas.json` explicita `ios.simulator: false` en perfiles `preview` y `production`.
+- Se crea `docs/deployment/IOS_TESTFLIGHT_BETA.md` con prerequisitos Apple, comandos EAS, submit a TestFlight, checklist QA y riesgos.
+- No se tocaron backend, Supabase, migraciones, RLS, RPCs, Payments ni flujos funcionales.
+- No se genero build iOS ni se ejecuto submit; queda pendiente aprobacion explicita.
+
+Validacion recomendada:
+
+- `corepack pnpm --filter @pet/mobile lint`
+- `corepack pnpm --filter @pet/mobile typecheck`
+- `corepack pnpm --filter @pet/mobile build`
+- `git diff --check`
+- luego, con aprobacion: `corepack pnpm --filter @pet/mobile exec eas build --platform ios --profile production`
+
 ### Prompt exacto recomendado para continuar
 
 ```text
