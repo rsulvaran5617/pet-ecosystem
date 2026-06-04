@@ -20,6 +20,7 @@ Preparar una beta privada iOS de Pet Ecosystem mediante EAS Build y TestFlight, 
 - Scheme/deep link: `petecosystem`.
 - EAS project id configurado en `apps/mobile/app.json`.
 - Perfil EAS iOS `production` usa imagen `latest` para cumplir el requisito vigente de App Store Connect de compilar con iOS 26 SDK / Xcode 26 o superior.
+- App Store Connect App ID para submit: `6776460841`.
 - Variables esperadas:
   - `EXPO_PUBLIC_SUPABASE_URL`
   - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
@@ -80,6 +81,8 @@ Cuando el build termine:
 cd "C:\Users\Ramon Sulvaran\pet-ecosystem\apps\mobile"
 eas submit --platform ios --profile production --latest
 ```
+
+El perfil `production` ya incluye `ascAppId` para evitar que EAS tenga que descubrir la app de forma interactiva.
 
 Si EAS solicita credenciales, usar cuenta Apple Developer o App Store Connect API Key segun la politica del proyecto.
 
