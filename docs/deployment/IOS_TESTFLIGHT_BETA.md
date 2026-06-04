@@ -15,7 +15,7 @@ Preparar una beta privada iOS de Pet Ecosystem mediante EAS Build y TestFlight, 
 
 - Expo SDK: 51.
 - App version: `0.3.1`.
-- iOS bundle identifier: `com.petecosystem.mobile`.
+- iOS bundle identifier: `com.petecosyst.mobile`.
 - iOS build number inicial: `1`.
 - Scheme/deep link: `petecosystem`.
 - EAS project id configurado en `apps/mobile/app.json`.
@@ -37,7 +37,7 @@ La app no debe pedir ubicacion GPS en este baseline iOS. El marketplace geolocal
 
 1. Cuenta Apple Developer activa.
 2. App creada en App Store Connect.
-3. Bundle ID registrado: `com.petecosystem.mobile`.
+3. Bundle ID registrado: `com.petecosyst.mobile`.
 4. Acceso a App Store Connect para subir builds.
 5. Testers internos o externos definidos.
 6. Variables `EXPO_PUBLIC_*` disponibles para EAS.

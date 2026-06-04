@@ -597,7 +597,7 @@ Estado:
 - Se prepara configuracion inicial para EAS iOS + TestFlight sin generar build ni subir a Apple.
 - `apps/mobile/app.json` queda con:
   - version `0.3.1`;
-  - `ios.bundleIdentifier` `com.petecosystem.mobile`;
+  - `ios.bundleIdentifier` `com.petecosyst.mobile`;
   - `ios.buildNumber` inicial `1`;
   - scheme `petecosystem`;
   - textos iOS para camara, fotos y guardado en fototeca;
