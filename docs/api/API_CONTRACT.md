@@ -137,6 +137,7 @@ Notas:
 Contratos V2 booking capacity propuestos:
 - `GET /bookings/services/{serviceId}/slots?from=YYYY-MM-DD&to=YYYY-MM-DD` proyecta slots desde reglas de disponibilidad/capacidad y devuelve solo informacion bookable para owner: `slot_start_at`, `slot_end_at`, `availability_rule_id`, `capacity_total`, `available_count`, `status`.
 - `POST /bookings/from-slot` crea una reserva desde un slot elegido. Debe ejecutarse como RPC transaccional y validar household/pet, servicio publico, provider aprobado, regla activa, capacidad disponible, precio snapshot y permisos de payment method opcional.
+- Los horarios de reglas/cupos se interpretan como horario local `America/Panama` para el piloto; el contrato sigue devolviendo fechas ISO `timestamptz` y los clientes las formatean con la zona de producto.
 - `POST /bookings/preview` y `POST /bookings` quedan como flujo legacy/compatibilidad hasta que la UI owner migre totalmente a slots.
 - `get_booking_participant_summaries(booking_ids)` devuelve solo `booking_id`, `household_name`, `customer_display_name` y `pet_name` para reservas visibles por `can_view_booking`; se usa para que provider web muestre participantes sin abrir lectura directa completa de hogares, perfiles o mascotas.
 - `validate_slot_capacity` queda como helper interno; no debe exponerse como mutacion confiable para UI.

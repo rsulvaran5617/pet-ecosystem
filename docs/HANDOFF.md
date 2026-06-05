@@ -166,6 +166,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - CAP-3 owner UI queda implementado localmente: owner selecciona fecha/slot con `react-native-calendars` como capa visual, tarjetas propias de cupo y `create_booking_from_slot` como unica mutacion final cuando hay slot elegido.
 - Fix CAP-3 aplicado: `Generar preview` con slot seleccionado construye una vista previa local y no consume cupo; solo `Confirmar reserva` llama `create_booking_from_slot` y consume capacidad.
 - El flujo legacy de preview/create booking se conserva como fallback piloto cuando no hay slots publicados.
+- Fix timezone preparado localmente: `supabase/migrations/20260604073000_booking_capacity_panama_timezone.sql` reemplaza el uso de `current_setting('TimeZone')` por `America/Panama` en los RPCs de slots/cupos, manteniendo Supabase en UTC. Pendiente de aplicar remoto con `supabase db push` controlado despues de aprobacion.
 - Validaciones tecnicas desde `master` publicado estan en PASS y los flujos criticos Android quedan validados manualmente para piloto controlado.
 
 ## Actualizacion Mascota En memoria

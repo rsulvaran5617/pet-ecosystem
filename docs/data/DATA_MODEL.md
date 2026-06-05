@@ -70,6 +70,7 @@ Decision pendiente:
 Consistencia:
 - `get_service_booking_slots` calcula disponibilidad para UI.
 - `create_booking_from_slot` valida y crea booking en transaccion.
+- Supabase/Postgres se mantiene en UTC; las reglas de horario/capacidad se interpretan como horario local `America/Panama` para proyectar `slot_start_at` / `slot_end_at` como `timestamptz`.
 - para evitar sobreventa, CAP-1 debe usar bloqueo transaccional sobre la regla/slot o advisory lock por `service_id + slot_start_at + slot_end_at`.
 - no confiar en cupos mostrados previamente por mobile.
 

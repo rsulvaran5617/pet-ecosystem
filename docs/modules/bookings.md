@@ -142,7 +142,7 @@ RPCs propuestas:
 - `hold_booking_slot(...)` queda diferido; solo justificarlo si pagos reales o checkout largo requieren retener cupo antes de crear booking.
 
 Riesgos:
-- timezone entre fecha local de negocio y `timestamptz`.
+- timezone entre fecha local de negocio y `timestamptz`: mitigado en la migracion `20260604073000_booking_capacity_panama_timezone.sql`, que mantiene Supabase/Postgres en UTC y calcula slots de booking capacity con zona operacional explicita `America/Panama` en `get_service_booking_slots` y `create_booking_from_slot`.
 - dos owners intentando tomar el ultimo cupo simultaneamente.
 - reservas `pending_approval` que bloquean cupos demasiado tiempo.
 - duraciones variables por servicio dentro de una misma franja.
@@ -174,6 +174,7 @@ Riesgos:
 - en web owner, el historial de reservas queda colapsado por defecto como CTA para no distraer del flujo activo; el usuario puede abrirlo solo cuando necesite consultar reservas anteriores.
 - el servicio publicado define `booking_mode`, precio base, moneda y ventana base de cancelacion
 - en V2 capacity, el servicio publicado tambien puede tener reglas de slot/capacidad visibles al owner
+- las reglas de horario/capacidad representan horario local del negocio en Panama para el piloto; el backend convierte esos horarios a instantes `timestamptz` usando `America/Panama`, no la zona de sesion de Supabase
 - `instant` crea la reserva en estado `confirmed`
 - `approval_required` crea la reserva en estado `pending_approval`
 - `pending_approval` y `confirmed` consumen cupo de slot; `completed` mantiene el cupo consumido historicamente
