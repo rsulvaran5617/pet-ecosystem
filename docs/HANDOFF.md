@@ -97,7 +97,7 @@ cd "C:\Users\Ramon Sulvaran\pet-ecosystem"
 - El panel consulta el API existente de booking operations y muestra check-in, check-out, estado operacional y evidencia documental con enlaces firmados cuando existen.
 - Web provider mantiene acciones manuales de check-in/check-out como fallback piloto y permite cargar evidencia despues del check-out usando el bucket/metadata existente.
 - Se agrega `get_booking_participant_summaries` para que provider web muestre hogar, cliente y mascota de reservas visibles sin abrir lectura directa completa de datos privados del owner.
-- Fix provider web pendientes: el CTA `Ver negocio` desde `Citas por aprobar` ahora selecciona/refresca el negocio, activa el filtro `Pendientes por aprobar` y abre la primera cita pendiente para evitar llegar a una lista vacia o a otro negocio.
+- Fix provider web pendientes: el CTA `Ver negocio` desde `Citas por aprobar` ahora selecciona/refresca el negocio, activa el filtro `Pendientes por aprobar`, abre la primera cita pendiente y enfoca la tarjeta de la cita para evitar caer visualmente en la bandeja de mensajes.
 - Web provider `Operacion general` muestra indicadores economicos globales `payment-ready`: ganado por citas cerradas, por ganarse por citas pendientes/confirmadas y dejado de ganar por cancelaciones del negocio/proveedor. Son sumas derivadas de bookings de todos los negocios y no representan cobro real.
 - No se tocaron QR mobile, booking capacity, evidencia mobile ni reglas de negocio.
 

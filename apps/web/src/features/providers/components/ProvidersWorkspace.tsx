@@ -514,6 +514,12 @@ function scrollToProviderSection(sectionId: string) {
   document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function scrollToProviderBooking(bookingId: Uuid) {
+  window.setTimeout(() => {
+    document.getElementById(`provider-booking-${bookingId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 180);
+}
+
 function getProviderReadinessAction(label: string) {
   if (label.includes("Perfil")) {
     return { sectionId: "provider-web-profile", actionLabel: "Editar perfil" };
@@ -2078,6 +2084,7 @@ export function ProvidersWorkspace({
       if (bookingId) {
         await openProviderBookingDetail(bookingId);
         void loadProviderBookingOperations(bookingId);
+        scrollToProviderBooking(bookingId);
       }
     };
 
@@ -3968,6 +3975,7 @@ export function ProvidersWorkspace({
 
                           return (
                             <article
+                              id={`provider-booking-${booking.id}`}
                               key={booking.id}
                               style={{
                                 borderRadius: "16px",
