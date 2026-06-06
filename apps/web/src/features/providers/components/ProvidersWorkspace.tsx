@@ -1773,23 +1773,23 @@ export function ProvidersWorkspace({
   const globalMoneyIndicatorCards = [
     {
       id: "completed-money",
-      label: "Ingresado",
+      label: "Ganado",
       value: formatMoneyIndicatorValue(completedMoneyIndicator),
       detail: `${completedMoneyIndicator.bookingCount} cita(s) cerrada(s)`,
       tone: "success"
     },
     {
       id: "pending-money",
-      label: "Pendiente por atender",
+      label: "Por ganarse",
       value: formatMoneyIndicatorValue(pendingServiceMoneyIndicator),
-      detail: `${pendingServiceMoneyIndicator.bookingCount} cita(s) pendiente(s)`,
+      detail: `${pendingServiceMoneyIndicator.bookingCount} cita(s) pendiente(s) o confirmada(s)`,
       tone: "warning"
     },
     {
       id: "provider-cancelled-money",
-      label: "No ingresado",
+      label: "Dejado de ganar",
       value: formatMoneyIndicatorValue(providerCancelledMoneyIndicator),
-      detail: `${providerCancelledMoneyIndicator.bookingCount} cancelada(s) por proveedor`,
+      detail: `${providerCancelledMoneyIndicator.bookingCount} cancelada(s) por el negocio`,
       tone: "danger"
     }
   ] as const;
@@ -2057,6 +2057,31 @@ export function ProvidersWorkspace({
     }
 
     navigateProviderSection(sectionId);
+  };
+  const openPendingBookingsForBusiness = (organizationId: Uuid, bookingId?: Uuid) => {
+    closeProviderForms();
+    setBookingStatusFilter("pending_approval");
+
+    if (bookingId) {
+      setExpandedProviderBookingId(bookingId);
+    }
+
+    const openPendingBookings = async () => {
+      if (organizationId !== selectedOrganizationId) {
+        await selectOrganization(organizationId);
+      } else {
+        await refresh(organizationId);
+      }
+
+      navigateProviderSection("provider-web-bookings");
+
+      if (bookingId) {
+        await openProviderBookingDetail(bookingId);
+        void loadProviderBookingOperations(bookingId);
+      }
+    };
+
+    void openPendingBookings();
   };
   const toggleProviderBookingAccordion = (bookingId: Uuid) => {
     if (expandedProviderBookingId === bookingId) {
@@ -2967,6 +2992,45 @@ export function ProvidersWorkspace({
                     {globalActionCards.length ? "Toca una caja para ir al negocio relacionado." : "No hay pendientes operativos relevantes."}
                   </span>
                 </div>
+                <div style={{ display: "grid", gap: "7px" }}>
+                  <div style={{ alignItems: "center", display: "flex", gap: "10px", justifyContent: "space-between", flexWrap: "wrap" }}>
+                    <strong style={{ color: "#101828", fontSize: "12px" }}>Indicadores economicos globales</strong>
+                    <span style={{ color: "#667085", fontSize: "10px", fontWeight: 700 }}>
+                      Suma de todos tus negocios. Referencia payment-ready, sin cobro real.
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(178px, 1fr))", gap: "10px" }}>
+                    {globalMoneyIndicatorCards.map((indicator) => {
+                      const palette =
+                        indicator.tone === "success"
+                          ? { background: "rgba(204, 251, 241, 0.62)", border: "rgba(15, 118, 110, 0.22)", color: "#0f766e" }
+                          : indicator.tone === "warning"
+                            ? { background: "rgba(254, 243, 199, 0.62)", border: "rgba(180, 83, 9, 0.22)", color: "#b45309" }
+                            : { background: "rgba(254, 226, 226, 0.58)", border: "rgba(185, 28, 28, 0.2)", color: "#b91c1c" };
+
+                      return (
+                        <article
+                          key={indicator.id}
+                          style={{
+                            background: palette.background,
+                            border: `1px solid ${palette.border}`,
+                            borderRadius: "14px",
+                            display: "grid",
+                            gap: "6px",
+                            minHeight: "92px",
+                            padding: "12px"
+                          }}
+                        >
+                          <span style={{ color: palette.color, fontSize: "8.5px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                            {indicator.label}
+                          </span>
+                          <strong style={{ color: "#101828", fontSize: "20px", lineHeight: 1 }}>{indicator.value}</strong>
+                          <span style={{ color: "#57534e", fontSize: "10px", lineHeight: 1.35 }}>{indicator.detail}</span>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
                 {globalActionCards.length ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "10px" }}>
                     {globalActionCards.map((card) => (
@@ -3049,11 +3113,7 @@ export function ProvidersWorkspace({
                                 <span style={{ color: "#667085", fontSize: "8px" }}>{group.organization.city}</span>
                               </div>
                               <button
-                                onClick={() => {
-                                  void selectOrganization(group.organization.id).then(() => {
-                                    navigateProviderSection("provider-web-bookings");
-                                  });
-                                }}
+                                onClick={() => openPendingBookingsForBusiness(group.organization.id, group.bookings[0]?.id)}
                                 style={{
                                   background: "rgba(15, 118, 110, 0.1)",
                                   border: "1px solid rgba(15, 118, 110, 0.18)",
