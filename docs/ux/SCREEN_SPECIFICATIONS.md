@@ -51,6 +51,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - documentos
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
+- owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 
 ### Health
@@ -58,12 +59,14 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - vacunas
 - alergias
 - condiciones
+- formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos.
 - owner web Salud usa carrusel superior de mascotas y ficha inferior compacta con resumen, vacunas, alergias y condiciones para evitar columnas altas y mantener controles pequenos
 
 ### Reminders
 - calendario
 - crear reminder
 - completar o posponer
+- formularios de recordatorios usan selector de fecha con salto directo por ano respetando fecha minima cuando aplica.
 - owner web Recordatorios usa el patron mobile con selector hogar/mascota, resumen por secciones, formulario plegable y listas compactas de pendientes, completados y calendario.
 - V2 Pet Travel Passport futuro: recordatorios de vencimiento de vacuna, certificado, microchip/documento si aplica, ventana de desparasitacion, fecha limite de tramite y verificacion previa de requisitos oficiales.
 
@@ -86,6 +89,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - ubicacion publica exacta del proveedor en cards/lista con ciudad, pais y distancia aproximada solo si hay origen opcional
 - widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
+- Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
 - owner web Buscar queda alineado funcionalmente con owner mobile: busqueda enfocada, recientes, sugerencias, chips rapidos, filtros bajo demanda, contexto hogar/mascota y seleccion enriquecida hacia Reservas.
 - modo Lista/Mapa en resultados; el mapa usa pins de proveedores con ubicacion publica y card inferior para abrir proveedor, sin GPS ni tracking
 - seleccion de servicio
@@ -102,6 +106,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - owner Buscar -> Reservas: si el usuario toca `Abrir vista previa de la reserva` con slot elegido, Reservas conserva proveedor/servicio/slot y salta al paso pendiente de mascota/metodo sin consumir cupo.
 - owner Reservas: flujo de preparacion usa stepper horizontal tipo etiquetas con estados completado, activo y pendiente para Servicio, Mascota, Horario, Resumen y Confirmar.
 - owner Reservas preview: mostrar resumen tipo ticket compacto con estado, proveedor/servicio, mascota, horario, precio, metodo y CTA principal `Confirmar reserva`.
+- owner Reservas mantiene el bloque QR operacional compacto: texto de accion legible en dos lineas y boton QR iconografico para evitar cortes en mobile pequeno.
 
 ### Messaging
 - inbox
@@ -168,6 +173,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - detalle operativo del booking con acciones `approve`, `reject` y `complete`
 - V2 provider booking operations: scanner QR en detalle de reserva confirmada para check-in/check-out; botones manuales quedan fallback piloto
 - provider reservas: los contadores Pendientes, Confirmadas, Completadas y Canceladas actuan como filtros tactiles; el detalle de una reserva se muestra como acordeon debajo de la card seleccionada
+- provider reservas usa cards compactas con titulos de servicio en hasta dos lineas y datos de mascota/cliente ajustados para evitar truncados criticos en pantallas pequenas
 - owner mensajes: bandeja tipo correo con hilos de reserva ordenados por actividad reciente, cabeceras compactas y detalle desplegable por acordeon; el filtro queda simplificado a un dropdown de estado de reserva
 - owner mascotas: la mascota seleccionada se conserva como contexto activo al navegar por el menu inferior y se rehidrata al volver a Mascotas, Salud, Documentos o Recordatorios
 - provider negocio: la ubicacion publica puede heredar coordenadas aproximadas desde ciudad/zona soportada sin solicitar GPS ni publicar direccion privada.

@@ -334,8 +334,8 @@ function ProviderVisualCard({
         borderWidth: 1,
         backgroundColor: "#ffffff",
         flexDirection: "row",
-        gap: 12,
-        padding: 12,
+        gap: 9,
+        padding: 10,
         ...visualTokens.mobile.softShadow
       }}
     >
@@ -343,34 +343,38 @@ function ProviderVisualCard({
         style={{
           alignItems: "center",
           backgroundColor: "rgba(20,184,166,0.12)",
-          borderRadius: 18,
-          height: 92,
+          borderRadius: 16,
+          height: 68,
           justifyContent: "center",
           overflow: "hidden",
-          width: 92
+          width: 68
         }}
       >
         {provider.avatarUrl ? (
-          <Image source={{ uri: provider.avatarUrl }} style={{ height: 92, width: 92 }} />
+          <Image source={{ uri: provider.avatarUrl }} style={{ height: 68, width: 68 }} />
         ) : (
-          <Text style={{ color: colorTokens.accentDark, fontSize: 18, fontWeight: "900" }}>{getProviderInitials(provider.name)}</Text>
+          <Text style={{ color: colorTokens.accentDark, fontSize: 14, fontWeight: "900" }}>{getProviderInitials(provider.name)}</Text>
         )}
       </View>
-      <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
+      <View style={{ flex: 1, gap: 4, minWidth: 0 }}>
+        {variant === "featured" ? (
+          <View style={{ alignSelf: "flex-start" }}>
+            <StatusChip label="Recomendado" tone="active" />
+          </View>
+        ) : null}
         <View style={{ flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
-          <Text numberOfLines={1} style={{ color: "#1c1917", flex: 1, fontSize: 15, fontWeight: "900" }}>
+          <Text numberOfLines={2} style={{ color: "#1c1917", flex: 1, fontSize: 13, fontWeight: "900", lineHeight: 16 }}>
             {provider.name}
           </Text>
-          {variant === "featured" ? <StatusChip label="Recomendado" tone="active" /> : null}
         </View>
-        <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 12, fontWeight: "700" }}>
+        <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10.5, fontWeight: "700" }}>
           {categoryLabel}
         </Text>
-        <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>
+        <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
           {publicLocation ? `${publicLocation.city}, ${publicLocation.countryCode}` : provider.city}
           {distanceLabel ? ` - ${distanceLabel}` : ""}
         </Text>
-        <Text numberOfLines={1} style={{ color: "#f59e0b", fontSize: 11, fontWeight: "900" }}>
+        <Text numberOfLines={1} style={{ color: "#f59e0b", fontSize: 9.5, fontWeight: "900" }}>
           Perfil publicado - reseñas en piloto
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>

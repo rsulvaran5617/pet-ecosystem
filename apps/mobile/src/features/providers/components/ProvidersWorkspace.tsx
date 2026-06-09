@@ -2402,19 +2402,21 @@ export function ProvidersWorkspace({
                             width: "100%"
                           }}
                         >
-                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                            <View style={{ flex: 1, gap: 3 }}>
-                              <Text style={{ fontSize: 13, fontWeight: "800", color: "#1c1917", lineHeight: 17 }} numberOfLines={1}>
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                            <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+                              <Text style={{ fontSize: 11.5, fontWeight: "800", color: "#1c1917", lineHeight: 14 }} numberOfLines={2}>
                                 {displayBookingValue(booking.serviceName, "Servicio no disponible")}
                               </Text>
-                              <Text style={{ fontSize: 10, color: colorTokens.muted, lineHeight: 14 }} numberOfLines={1}>
+                              <Text style={{ fontSize: 9, color: colorTokens.muted, lineHeight: 12 }} numberOfLines={2}>
                                 {displayBookingValue(booking.petName, "Mascota no disponible")} - {displayBookingValue(booking.customerDisplayName, "Cliente no disponible")}
                               </Text>
                             </View>
-                            <StatusChip
-                              label={bookingStatusLabels[booking.status]}
-                              tone={booking.status === "pending_approval" ? "pending" : booking.status === "cancelled" ? "neutral" : "active"}
-                            />
+                            <View style={{ maxWidth: 118 }}>
+                              <StatusChip
+                                label={bookingStatusLabels[booking.status]}
+                                tone={booking.status === "pending_approval" ? "pending" : booking.status === "cancelled" ? "neutral" : "active"}
+                              />
+                            </View>
                           </View>
                           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
                             <View style={{ flex: 1, gap: 2 }}>

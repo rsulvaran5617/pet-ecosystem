@@ -79,6 +79,35 @@ function formatDatePickerLabel(value: string) {
   });
 }
 
+function formatMonthYearPickerLabel(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString(productLocale, {
+    month: "long",
+    timeZone: productTimeZone,
+    year: "numeric"
+  });
+}
+
+function shiftDateYear(dateKey: string, deltaYears: number, minDate?: string, maxDate?: string) {
+  const date = new Date(`${dateKey}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return dateKey;
+  }
+
+  date.setFullYear(date.getFullYear() + deltaYears);
+  let nextDateKey = date.toISOString().slice(0, 10);
+
+  if (minDate && nextDateKey < minDate) {
+    nextDateKey = minDate;
+  }
+
+  if (maxDate && nextDateKey > maxDate) {
+    nextDateKey = maxDate;
+  }
+
+  return nextDateKey;
+}
+
 function getDefaultSnoozeDate(reminder: Reminder) {
   const nextDate = new Date(reminder.dueAt);
   nextDate.setUTCDate(nextDate.getUTCDate() + 1);
@@ -187,6 +216,13 @@ function DatePickerField({
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const selectedDate = value || minDate || today;
+  const [visibleDate, setVisibleDate] = useState(selectedDate);
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisibleDate(selectedDate);
+    }
+  }, [isOpen, selectedDate]);
 
   return (
     <View style={{ gap: 6 }}>
@@ -222,8 +258,28 @@ function DatePickerField({
             ...visualTokens.mobile.softShadow
           }}
         >
+          <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(28,25,23,0.08)", flexDirection: "row", gap: 8, justifyContent: "space-between", padding: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, minDate))}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año anterior</Text>
+            </Pressable>
+            <Text style={{ color: colorTokens.ink, flex: 1, fontSize: 12, fontWeight: "900", textAlign: "center" }}>
+              {formatMonthYearPickerLabel(visibleDate)}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, minDate))}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año siguiente</Text>
+            </Pressable>
+          </View>
           <Calendar
-            current={selectedDate}
+            current={visibleDate}
+            key={`reminder-${visibleDate.slice(0, 7)}`}
             markedDates={{
               [selectedDate]: {
                 selected: true,
@@ -236,6 +292,7 @@ function DatePickerField({
               onChange(day.dateString);
               onToggle();
             }}
+            onMonthChange={(month: { dateString: string }) => setVisibleDate(month.dateString)}
             theme={{
               arrowColor: colorTokens.accent,
               calendarBackground: "#ffffff",

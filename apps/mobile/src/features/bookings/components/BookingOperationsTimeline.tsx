@@ -714,13 +714,15 @@ export function BookingOperationsTimeline({
                 borderRadius: 10,
                 borderWidth: 1,
                 flexDirection: "row",
-                gap: 10,
-                padding: 10
+                gap: 8,
+                padding: 9
               }}
             >
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>{getQrActionLabel(ownerQrOperationType)}</Text>
-                <Text style={{ color: "#64748b", fontSize: 10, lineHeight: 14 }}>
+              <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 10.5, fontWeight: "900", lineHeight: 13 }}>
+                  {getQrActionLabel(ownerQrOperationType)}
+                </Text>
+                <Text numberOfLines={2} style={{ color: "#64748b", fontSize: 9, lineHeight: 12 }}>
                   Genera el codigo temporal para que el proveedor lo escanee.
                 </Text>
               </View>
@@ -735,15 +737,12 @@ export function BookingOperationsTimeline({
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: isGeneratingOperationQr ? "#99f6e4" : "#0f766e",
-                  borderRadius: 12,
-                  height: 48,
-                  width: 56
+                  borderRadius: 11,
+                  height: 44,
+                  width: 48
                 }}
               >
-                <QrIcon color="#ffffff" size={22} />
-                <Text style={{ color: "#ffffff", fontSize: 8, fontWeight: "900", marginTop: 2 }}>
-                  {isGeneratingOperationQr ? "..." : "QR"}
-                </Text>
+                <QrIcon color="#ffffff" size={21} />
               </Pressable>
             </View>
             {qrErrorMessage ? <Text style={actionErrorStyle}>{qrErrorMessage}</Text> : null}

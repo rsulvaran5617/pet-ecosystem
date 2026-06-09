@@ -295,6 +295,34 @@ function MultilineField({
   );
 }
 
+function formatMonthYearLabel(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString("es-PA", {
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function shiftDateYear(dateKey: string, deltaYears: number, minDate?: string, maxDate?: string) {
+  const date = new Date(`${dateKey}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return dateKey;
+  }
+
+  date.setFullYear(date.getFullYear() + deltaYears);
+  let nextDateKey = date.toISOString().slice(0, 10);
+
+  if (minDate && nextDateKey < minDate) {
+    nextDateKey = minDate;
+  }
+
+  if (maxDate && nextDateKey > maxDate) {
+    nextDateKey = maxDate;
+  }
+
+  return nextDateKey;
+}
+
 function BirthDatePickerField({
   isOpen,
   onChange,
@@ -309,6 +337,13 @@ function BirthDatePickerField({
   const today = new Date().toISOString().slice(0, 10);
   const selectedDate = value || today;
   const selectedDateLabel = value ? formatShortDate(value) : "Seleccionar fecha";
+  const [visibleDate, setVisibleDate] = useState(selectedDate);
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisibleDate(selectedDate);
+    }
+  }, [isOpen, selectedDate]);
 
   return (
     <View style={{ gap: 8 }}>
@@ -343,8 +378,28 @@ function BirthDatePickerField({
             ...visualTokens.mobile.softShadow
           }}
         >
+          <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(15,23,42,0.06)", flexDirection: "row", gap: 8, justifyContent: "space-between", padding: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, undefined, today))}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año anterior</Text>
+            </Pressable>
+            <Text style={{ color: colorTokens.ink, flex: 1, fontSize: 12, fontWeight: "900", textAlign: "center" }}>
+              {formatMonthYearLabel(visibleDate)}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, undefined, today))}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año siguiente</Text>
+            </Pressable>
+          </View>
           <Calendar
-            current={selectedDate}
+            current={visibleDate}
+            key={`birth-${visibleDate.slice(0, 7)}`}
             maxDate={today}
             markedDates={{
               [selectedDate]: {
@@ -357,6 +412,7 @@ function BirthDatePickerField({
               onChange(day.dateString);
               onToggle();
             }}
+            onMonthChange={(month: { dateString: string }) => setVisibleDate(month.dateString)}
             theme={{
               arrowColor: colorTokens.accent,
               calendarBackground: "#ffffff",
