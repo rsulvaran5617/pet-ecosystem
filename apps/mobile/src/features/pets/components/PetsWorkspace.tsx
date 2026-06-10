@@ -30,8 +30,47 @@ const emptyPetForm: UpdatePetInput = {
   breed: "",
   sex: "unknown",
   birthDate: "",
+  isSterilized: null,
   notes: ""
 };
+
+type SterilizedFormValue = "unknown" | "yes" | "no";
+
+function toSterilizedFormValue(value: boolean | null | undefined): SterilizedFormValue {
+  if (value === true) {
+    return "yes";
+  }
+
+  if (value === false) {
+    return "no";
+  }
+
+  return "unknown";
+}
+
+function fromSterilizedFormValue(value: SterilizedFormValue) {
+  if (value === "yes") {
+    return true;
+  }
+
+  if (value === "no") {
+    return false;
+  }
+
+  return null;
+}
+
+function formatSterilizedLabel(value: boolean | null) {
+  if (value === true) {
+    return "Esterilizada";
+  }
+
+  if (value === false) {
+    return "No esterilizada";
+  }
+
+  return "Esterilizacion pendiente";
+}
 
 type PickedDocument = {
   fileName: string;
@@ -712,6 +751,7 @@ export function PetsWorkspace({
       breed: pet.breed ?? "",
       sex: pet.sex,
       birthDate: pet.birthDate ?? "",
+      isSterilized: pet.isSterilized,
       notes: pet.notes ?? ""
     });
     setIsBirthDatePickerOpen(false);
@@ -1087,6 +1127,15 @@ export function PetsWorkspace({
                     ]}
                     value={petForm.sex ?? "unknown"}
                   />
+                  <ChoiceBar<SterilizedFormValue>
+                    onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, isSterilized: fromSterilizedFormValue(value) }))}
+                    options={[
+                      { label: "Sin indicar", value: "unknown" },
+                      { label: "Esterilizada", value: "yes" },
+                      { label: "No esterilizada", value: "no" }
+                    ]}
+                    value={toSterilizedFormValue(petForm.isSterilized)}
+                  />
                   <BirthDatePickerField
                     isOpen={isBirthDatePickerOpen}
                     onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, birthDate: value }))}
@@ -1108,6 +1157,7 @@ export function PetsWorkspace({
                           breed: petForm.breed?.trim() || null,
                           sex: petForm.sex ?? "unknown",
                           birthDate: petForm.birthDate || null,
+                          isSterilized: petForm.isSterilized ?? null,
                           notes: petForm.notes?.trim() || null
                         } satisfies UpdatePetInput;
 
@@ -1275,6 +1325,7 @@ export function PetsWorkspace({
 
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     <StatusChip label={petSexLabels[selectedPetDetail.pet.sex]} tone="neutral" />
+                    <StatusChip label={formatSterilizedLabel(selectedPetDetail.pet.isSterilized)} tone={selectedPetDetail.pet.isSterilized ? "active" : "neutral"} />
                     <StatusChip label={selectedPetDetail.pet.species} tone="active" />
                     <StatusChip label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
                     {canEditSelectedHousehold ? (

@@ -90,7 +90,7 @@ Relaciones propuestas:
 - `pet_document_validations` referencia documentos y expediente para revision no oficial.
 
 Datos reutilizables actuales:
-- mascota, especie, raza, sexo, fecha de nacimiento, avatar y estado desde `pets` / `pet_profiles`.
+- mascota, especie, raza, sexo, fecha de nacimiento, esterilizacion, avatar y estado desde `pets` / `pet_profiles`.
 - documentos base desde `pet_documents` y bucket privado asociado.
 - vacunas, alergias y condiciones desde `pet_vaccines`, `pet_allergies` y `pet_conditions`.
 - vencimientos de vacunas y preparacion previa desde `reminders` / `calendar_events`.

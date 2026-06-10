@@ -218,6 +218,7 @@ Dejar una referencia operativa para retomar el piloto sin depender del historial
 - Owner `Reservas` preview queda redisenado como ticket compacto para validacion final: conserva el mismo preview/confirmacion y mantiene payment-ready sin cobro real.
 - Mobile UX polish: cards de Owner `Buscar`, QR operacional en Owner `Reservas` y cards de Provider `Reservas` quedan compactadas para evitar solapes/truncados en pantallas pequenas sin cambiar backend, Supabase, QR ni reglas de booking.
 - Mobile date UX: selectores de fecha en Mascotas, Salud y Recordatorios agregan salto directo por ano para evitar navegar mes a mes; se mantienen restricciones de fecha minima/maxima existentes.
+- Mascotas perfil: se agrega estado descriptivo de esterilizacion (`Esterilizada`, `No esterilizada`, `Sin indicar`) en mobile/web owner mediante `pet_profiles.is_sterilized`. Migracion local pendiente de aplicar remoto: `20260609110000_pet_sterilization_profile_field.sql`.
 - Owner `Reservas` abre por defecto en `Activas`; el QR operacional temporal se limpia cuando el timeline confirma check-in/check-out y tambien puede cerrarse manualmente.
 - Owner `Mensajes` queda como bandeja tipo correo: lista de hilos por reserva, orden reciente a antiguo, cabecera compacta y detalle en acordeon; filtro reducido a selector por estado de reserva.
 - Owner `Mascotas` conserva el contexto activo de mascota al navegar por el menu inferior y rehidrata la ficha al volver.

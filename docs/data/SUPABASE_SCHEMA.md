@@ -59,6 +59,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `delete_provider_organization` permite borrar solo negocios sin historial operacional; bloquea reservas, conversaciones, resenas y soporte, registra auditoria y elimina datos maestros. La limpieza de storage asociado se realiza mediante Supabase Storage API desde el cliente tipado.
 - `provider_public_locations` prepara marketplace geolocalizado V2 con PostGIS y precision publica controlada; no usa ni expone direcciones privadas de owners.
 - `pet_profiles` puede referenciar avatar privado mediante `avatar_storage_bucket` y `avatar_storage_path` en bucket `pet-avatars`.
+- `pet_profiles.is_sterilized` guarda estado descriptivo nullable de esterilizacion para mascotas existentes y nuevas.
 - `pets.status` permite `active` e `in_memory`; `in_memory_at` registra el cierre sensible sin borrar datos ni historial.
 - `provider_public_profiles` puede referenciar avatar publico controlado mediante `avatar_storage_bucket` y `avatar_storage_path` en bucket privado `provider-avatars`; `avatar_url` queda solo como compatibilidad legacy.
 - Geo-0 habilita extension PostGIS y `provider_public_locations.geo_point geography(Point, 4326)` para futura busqueda por cercania/mapa.

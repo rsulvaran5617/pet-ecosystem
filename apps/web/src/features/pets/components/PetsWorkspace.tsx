@@ -40,8 +40,47 @@ const emptyPetForm: UpdatePetInput = {
   breed: "",
   sex: "unknown",
   birthDate: "",
+  isSterilized: null,
   notes: ""
 };
+
+type SterilizedFormValue = "unknown" | "yes" | "no";
+
+function toSterilizedFormValue(value: boolean | null | undefined): SterilizedFormValue {
+  if (value === true) {
+    return "yes";
+  }
+
+  if (value === false) {
+    return "no";
+  }
+
+  return "unknown";
+}
+
+function fromSterilizedFormValue(value: SterilizedFormValue) {
+  if (value === "yes") {
+    return true;
+  }
+
+  if (value === "no") {
+    return false;
+  }
+
+  return null;
+}
+
+function formatSterilizedLabel(value: boolean | null) {
+  if (value === true) {
+    return "Esterilizada";
+  }
+
+  if (value === false) {
+    return "No esterilizada";
+  }
+
+  return "No registrada";
+}
 
 type DocumentFormState = {
   title: string;
@@ -283,6 +322,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
       breed: pet.breed ?? "",
       sex: pet.sex,
       birthDate: pet.birthDate ?? "",
+      isSterilized: pet.isSterilized,
       notes: pet.notes ?? ""
     });
   };
@@ -494,6 +534,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           breed: petForm.breed?.trim() || null,
                           sex: petForm.sex ?? "unknown",
                           birthDate: petForm.birthDate || null,
+                          isSterilized: petForm.isSterilized ?? null,
                           notes: petForm.notes?.trim() || null
                         } satisfies UpdatePetInput;
 
@@ -554,6 +595,16 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           value={petForm.birthDate ?? ""}
                         />
                       </div>
+                      <SelectField<SterilizedFormValue>
+                        label="Esterilizacion"
+                        onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, isSterilized: fromSterilizedFormValue(value) }))}
+                        options={[
+                          { label: "Sin indicar", value: "unknown" },
+                          { label: "Esterilizada", value: "yes" },
+                          { label: "No esterilizada", value: "no" }
+                        ]}
+                        value={toSterilizedFormValue(petForm.isSterilized)}
+                      />
                       <TextArea label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <Button disabled={isSubmitting} type="submit">
@@ -596,6 +647,10 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Fecha de nacimiento</span>
                         <strong style={{ fontSize: "9px" }}>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
+                      </div>
+                      <div style={{ display: "grid", gap: "4px" }}>
+                        <span style={fieldLabelStyle}>Esterilizacion</span>
+                        <strong style={{ fontSize: "9px" }}>{formatSterilizedLabel(selectedPetDetail.pet.isSterilized)}</strong>
                       </div>
                       <div style={{ display: "grid", gap: "4px" }}>
                         <span style={fieldLabelStyle}>Documentos</span>

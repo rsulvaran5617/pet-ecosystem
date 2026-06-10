@@ -103,6 +103,7 @@ function mapPetSummary(
     breed: petProfile?.breed ?? null,
     sex: petProfile?.sex ?? "unknown",
     birthDate: petProfile?.birth_date ?? null,
+    isSterilized: petProfile?.is_sterilized ?? null,
     notes: petProfile?.notes ?? null,
     avatarUrl: avatarUrlByPetId.get(petRow.id) ?? null,
     avatarStorageBucket: petProfile?.avatar_storage_bucket ?? null,
@@ -246,7 +247,8 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         next_breed: input.breed ?? null,
         next_sex: input.sex ?? "unknown",
         next_birth_date: input.birthDate ?? null,
-        next_notes: input.notes ?? null
+        next_notes: input.notes ?? null,
+        next_is_sterilized: input.isSterilized ?? null
       });
 
       if (error) {
@@ -263,7 +265,8 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         next_breed: input.breed ?? null,
         next_sex: input.sex ?? "unknown",
         next_birth_date: input.birthDate ?? null,
-        next_notes: input.notes ?? null
+        next_notes: input.notes ?? null,
+        next_is_sterilized: input.isSterilized ?? null
       });
 
       if (error) {

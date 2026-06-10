@@ -48,6 +48,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - crear mascota
 - editar mascota
 - perfil mascota
+- perfil mascota muestra esterilizacion como dato maestro descriptivo editable, con opcion sin indicar para historicos
 - documentos
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
