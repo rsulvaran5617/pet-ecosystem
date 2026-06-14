@@ -35,6 +35,7 @@
 - `booking_capacity_v2` -> `partial`
 - `controlled_avatar_media` -> `partial`
 - `pet_memory_status` -> `partial`
+- `pet_document_expiration` -> `partial`
 - `geo_marketplace_v2` -> `partial`
 - `pet_travel_passport_v2` -> `documented_on_hold`
 - `foster_adoption_v2_5` -> `documented_on_hold`
@@ -74,6 +75,7 @@
 - Booking capacity timezone fix: migracion local `20260604073000_booking_capacity_panama_timezone.sql` mantiene Supabase/Postgres en UTC y fuerza `America/Panama` al proyectar y validar slots en `get_service_booking_slots` / `create_booking_from_slot`, evitando que la hora configurada por el proveedor dependa de la zona de sesion de Supabase.
 - Controlled avatar media: mascotas y perfiles publicos de proveedor usan buckets privados `pet-avatars` y `provider-avatars`, metadata `storage_bucket`/`storage_path` y URLs firmadas temporales. No se agregan nuevas URLs externas arbitrarias.
 - Pets profile hardening: se agrega campo descriptivo nullable de esterilizacion en `pet_profiles` y UI owner mobile/web para indicar `Esterilizada`, `No esterilizada` o `Sin indicar`. Requiere aplicar migracion local `20260609110000_pet_sterilization_profile_field.sql` antes de usar contra Supabase remoto.
+- Pet document expiration: slice local agrega metadata de vigencia a `pet_documents`, helper compartido de estado, UI mobile/web owner para cargar/editar vigencia y alertas dentro del expediente de mascota. Requiere aplicar migracion local `20260614110000_pet_document_expiration.sql` antes de usar contra Supabase remoto.
 - Pet memory status: mascotas pueden alternar `active` / `in_memory` sin borrar perfil ni historial; reservas nuevas rechazan mascotas `in_memory`. La migracion `20260510123000_pet_memory_status_slice_b.sql` ya fue aplicada remoto.
 - UX audit Pets P0/P1: mobile owner refuerza el contexto activo de mascota al navegar desde otras secciones y muestra estado explicito cuando la mascota solicitada esta cargando o ya no esta disponible. El modo `En memoria` ahora separa acciones operativas de consulta/historial, pausa recordatorios operativos visibles y comunica que reservas nuevas quedan bloqueadas sin borrar documentos, salud ni historial.
 - Geo marketplace V2: Geo-0 prepara modelo tecnico/documental con `provider_public_locations`, PostGIS, precision publica controlada y contratos tipados. Geo-1 agrega UI provider minima en `Negocio` para capturar/editar ubicacion publica manual, precision y visibilidad. Geo-2 muestra ubicacion publica en marketplace owner y calcula distancia aproximada solo si llegan coordenadas de origen opcionales. Geo-3 agrega selector de origen controlado con zonas aproximadas; direcciones guardadas quedan diferidas hasta exponer coordenadas en contrato. Geo-4 agrega preview de mapa en mobile owner con MapLibre, pins de proveedores publicos usando la ubicacion exacta publicada por el proveedor y fallback de lista. No pide permisos de ubicacion ni tracking.

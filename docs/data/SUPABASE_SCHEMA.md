@@ -101,6 +101,7 @@ Reglas conceptuales:
 
 - toda entidad cuelga de `pet_id`, `household_id` o `pet_travel_profile_id`.
 - documentos deben reutilizar `pet_documents` o un modelo equivalente con bucket privado.
+- `pet_documents` soporta vigencia documental con `has_expiration`, `issued_at`, `expires_at` y `expiration_warning_days`; el archivo sigue viviendo en storage privado y la metadata respeta permisos del hogar.
 - microchip, documentos sanitarios y datos de viaje son informacion sensible.
 - no exponer datos de viaje ni microchip en marketplace.
 - checklist por pais requiere `official_source_url` y `source_reviewed_at` antes de considerarse confiable.

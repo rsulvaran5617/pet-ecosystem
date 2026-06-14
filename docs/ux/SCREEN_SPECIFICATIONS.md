@@ -50,10 +50,12 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil mascota
 - perfil mascota muestra esterilizacion como dato maestro descriptivo editable, con opcion sin indicar para historicos
 - documentos
+- documentos de mascota muestran vigencia con chips `Sin vencimiento`, `Fecha pendiente`, `Vigente`, `Por vencer` o `Vencido`; owner mobile/web permite editar vigencia sin reemplazar el archivo
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
+- owner mobile/web Mascotas muestra un bloque de atencion documental para documentos vencidos, por vencer o con fecha pendiente
 
 ### Health
 - dashboard de salud

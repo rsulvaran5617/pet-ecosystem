@@ -44,6 +44,8 @@ Cambiar estado `active`/`in_memory` requiere los mismos permisos de edicion del 
 ### pet_documents
 Visible para miembros autorizados del hogar.
 Carga de documentos requiere permisos derivados de `edit` o `admin`.
+Edicion de metadata documental, incluyendo vigencia, requiere permisos derivados de `edit` o `admin`.
+Lectura de vigencia documental requiere el mismo acceso de lectura a la mascota/hogar.
 
 ### Pet Travel Passport / Expediente Internacional (V2 conceptual)
 

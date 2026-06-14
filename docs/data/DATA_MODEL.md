@@ -17,6 +17,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - una mascota puede tener avatar privado en `pet-avatars` referenciado por metadata controlada
 - una mascota puede estar `active` o `in_memory`; `in_memory` conserva historial y bloquea nuevas reservas
 - una mascota puede tener multiples documentos y registros de salud
+- los documentos de mascota pueden tener vigencia controlada con fecha de emision, fecha de vencimiento y ventana de aviso configurable
 - los registros de salud base del MVP viven en `pet_vaccines`, `pet_allergies` y `pet_conditions`
 - un reminder pertenece a un hogar y opcionalmente a una mascota
 - `calendar_events` refleja los reminders visibles en agenda para el MVP
@@ -154,6 +155,7 @@ Reglas estructurales:
 - la visibilidad de datos depende de household membership y organization scoping
 - las mascotas heredan visibilidad y capacidad de edicion desde los permisos del hogar
 - los documentos de mascota guardan metadata relacional y archivo en storage privado
+- la vigencia de documentos de mascota se guarda como metadata en `pet_documents`; no crea recordatorios automaticos ni bloqueos operativos por defecto
 - los registros de salud heredan visibilidad desde la misma membresia del hogar
 - las reservas heredan permiso de lectura desde el hogar y desde el owner de la organizacion proveedora involucrada
 - la creacion de booking desde slot debe validar permisos del hogar, mascota, servicio y cupo en backend

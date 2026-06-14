@@ -34,11 +34,19 @@ export interface PetDocument extends TimestampedEntity {
   storagePath: string;
   mimeType: string | null;
   fileSizeBytes: number | null;
+  hasExpiration: boolean;
+  issuedAt: string | null;
+  expiresAt: string | null;
+  expirationWarningDays: number;
 }
 
 export interface PetDetail {
   pet: PetSummary;
   documents: PetDocument[];
+}
+
+export interface PetDocumentWithPet extends PetDocument {
+  petName: string;
 }
 
 export interface CreatePetInput {
@@ -68,6 +76,19 @@ export interface UploadPetDocumentInput {
   fileName: string;
   mimeType?: string | null;
   fileBytes: ArrayBuffer;
+  hasExpiration?: boolean;
+  issuedAt?: string | null;
+  expiresAt?: string | null;
+  expirationWarningDays?: number;
+}
+
+export interface UpdatePetDocumentInput {
+  title?: string;
+  documentType?: PetDocumentType;
+  hasExpiration?: boolean;
+  issuedAt?: string | null;
+  expiresAt?: string | null;
+  expirationWarningDays?: number;
 }
 
 export interface UploadPetAvatarInput {

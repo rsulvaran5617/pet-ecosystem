@@ -1,10 +1,11 @@
-import type { HouseholdsSnapshot, PetDetail, PetSummary, Uuid } from "@pet/types";
+import type { HouseholdsSnapshot, PetDetail, PetDocumentWithPet, PetSummary, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
 import { getMobileHouseholdsApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 
 interface UsePetsWorkspaceResult {
   householdSnapshot: HouseholdsSnapshot | null;
+  householdDocuments: PetDocumentWithPet[];
   pets: PetSummary[];
   selectedHouseholdId: Uuid | null;
   selectedPetId: Uuid | null;
@@ -25,6 +26,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
   const selectedHouseholdIdRef = useRef<Uuid | null>(null);
   const selectedPetIdRef = useRef<Uuid | null>(null);
   const [householdSnapshot, setHouseholdSnapshot] = useState<HouseholdsSnapshot | null>(null);
+  const [householdDocuments, setHouseholdDocuments] = useState<PetDocumentWithPet[]>([]);
   const [pets, setPets] = useState<PetSummary[]>([]);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(null);
   const [selectedPetId, setSelectedPetId] = useState<Uuid | null>(null);
@@ -56,6 +58,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
     if (!householdId) {
       if (mountedRef.current) {
         setPets([]);
+        setHouseholdDocuments([]);
         setSelectedPetId(null);
         selectedPetIdRef.current = null;
         setSelectedPetDetail(null);
@@ -64,13 +67,17 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
       return;
     }
 
-    const nextPets = await getMobilePetsApiClient().listHouseholdPets(householdId);
+    const [nextPets, nextHouseholdDocuments] = await Promise.all([
+      getMobilePetsApiClient().listHouseholdPets(householdId),
+      getMobilePetsApiClient().listHouseholdPetDocuments(householdId)
+    ]);
 
     if (!mountedRef.current) {
       return;
     }
 
     setPets(nextPets);
+    setHouseholdDocuments(nextHouseholdDocuments);
 
     const nextSelectedPetId = nextPets.find((pet) => pet.id === selectedPetIdRef.current)?.id ?? nextPets[0]?.id ?? null;
 
@@ -84,6 +91,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
       if (mountedRef.current) {
         setHouseholdSnapshot(null);
         setPets([]);
+        setHouseholdDocuments([]);
         setSelectedHouseholdId(null);
         setSelectedPetId(null);
         selectedHouseholdIdRef.current = null;
@@ -170,6 +178,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
 
   return {
     householdSnapshot,
+    householdDocuments,
     pets,
     selectedHouseholdId,
     selectedPetId,

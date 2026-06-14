@@ -3,6 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetDocumentType, PetHealthDashboard, PetSummary, Reminder, UpdatePetInput, Uuid } from "@pet/types";
+import { getPetDocumentValidityStatus } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -79,12 +80,20 @@ type PickedDocument = {
 };
 
 type DocumentFormState = {
+  expirationWarningDays: number;
+  expiresAt: string;
+  hasExpiration: boolean;
+  issuedAt: string;
   title: string;
   documentType: PetDocumentType;
   selectedDocument: PickedDocument | null;
 };
 
 const emptyDocumentForm: DocumentFormState = {
+  expirationWarningDays: 30,
+  expiresAt: "",
+  hasExpiration: false,
+  issuedAt: "",
   title: "",
   documentType: "other",
   selectedDocument: null
@@ -364,11 +373,15 @@ function shiftDateYear(dateKey: string, deltaYears: number, minDate?: string, ma
 
 function BirthDatePickerField({
   isOpen,
+  label = "Fecha de nacimiento",
   onChange,
   onToggle,
-  value
+  value,
+  maxDate
 }: {
   isOpen: boolean;
+  label?: string;
+  maxDate?: string;
   onChange: (value: string) => void;
   onToggle: () => void;
   value: string;
@@ -386,7 +399,7 @@ function BirthDatePickerField({
 
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>Fecha de nacimiento</Text>
+      <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>{label}</Text>
       <Pressable
         onPress={onToggle}
         style={{
@@ -420,7 +433,7 @@ function BirthDatePickerField({
           <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(15,23,42,0.06)", flexDirection: "row", gap: 8, justifyContent: "space-between", padding: 10 }}>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, undefined, today))}
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, undefined, maxDate))}
               style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
             >
               <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año anterior</Text>
@@ -430,7 +443,7 @@ function BirthDatePickerField({
             </Text>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, undefined, today))}
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, undefined, maxDate))}
               style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
             >
               <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año siguiente</Text>
@@ -439,7 +452,7 @@ function BirthDatePickerField({
           <Calendar
             current={visibleDate}
             key={`birth-${visibleDate.slice(0, 7)}`}
-            maxDate={today}
+            maxDate={maxDate}
             markedDates={{
               [selectedDate]: {
                 selected: true,
@@ -678,6 +691,48 @@ function getDocumentStatus(documentType: PetDocumentType, index: number) {
   return "Guardado";
 }
 
+function getDocumentValidityBadge(document: { expirationWarningDays: number; expiresAt: string | null; hasExpiration: boolean }) {
+  const validity = getPetDocumentValidityStatus(document);
+
+  if (validity.status === "no_expiration") {
+    return { label: "Sin vencimiento", tone: "neutral" as const };
+  }
+
+  if (validity.status === "missing_expiration_date") {
+    return { label: "Fecha pendiente", tone: "pending" as const };
+  }
+
+  if (validity.status === "expired") {
+    return { label: document.expiresAt ? `Vencido ${formatShortDate(document.expiresAt)}` : "Vencido", tone: "pending" as const };
+  }
+
+  if (validity.status === "expiring_soon") {
+    return { label: validity.daysUntilExpiration === 0 ? "Vence hoy" : `Vence en ${validity.daysUntilExpiration} dias`, tone: "pending" as const };
+  }
+
+  return { label: document.expiresAt ? `Vigente hasta ${formatShortDate(document.expiresAt)}` : "Vigente", tone: "active" as const };
+}
+
+function getDocumentAttentionText(document: { expirationWarningDays: number; expiresAt: string | null; hasExpiration: boolean; title: string }) {
+  const validity = getPetDocumentValidityStatus(document);
+
+  if (validity.status === "expired") {
+    return `${document.title} vencio el ${formatShortDate(document.expiresAt)}.`;
+  }
+
+  if (validity.status === "expiring_soon") {
+    return validity.daysUntilExpiration === 0
+      ? `${document.title} vence hoy.`
+      : `${document.title} vence en ${validity.daysUntilExpiration} dias.`;
+  }
+
+  if (validity.status === "missing_expiration_date") {
+    return `${document.title} tiene vencimiento sin fecha registrada.`;
+  }
+
+  return null;
+}
+
 export function PetsWorkspace({
   activePanel = "detalle",
   contextPetId,
@@ -712,8 +767,10 @@ export function PetsWorkspace({
   const [petView, setPetView] = useState<PetWorkspaceView>("lista");
   const [petForm, setPetForm] = useState(emptyPetForm);
   const [documentForm, setDocumentForm] = useState(emptyDocumentForm);
+  const [editingDocumentId, setEditingDocumentId] = useState<Uuid | null>(null);
   const [activeDocumentType, setActiveDocumentType] = useState<PetDocumentType>(petDocumentTypeOrder[0]);
   const [isDocumentFormOpen, setIsDocumentFormOpen] = useState(false);
+  const [openDocumentDatePicker, setOpenDocumentDatePicker] = useState<"expiresAt" | "issuedAt" | null>(null);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
@@ -844,6 +901,29 @@ export function PetsWorkspace({
     setIsBirthDatePickerOpen(false);
     setPetMemoryConfirmationId(null);
     setPetView(selectedPetId ? "detalle" : "lista");
+  };
+
+  const closeDocumentForm = () => {
+    setDocumentForm(emptyDocumentForm);
+    setEditingDocumentId(null);
+    setIsDocumentFormOpen(false);
+    setOpenDocumentDatePicker(null);
+  };
+
+  const openDocumentValidityEditor = (document: (typeof selectedDocuments)[number]) => {
+    setActiveDocumentType(document.documentType);
+    setEditingDocumentId(document.id);
+    setDocumentForm({
+      documentType: document.documentType,
+      expirationWarningDays: document.expirationWarningDays,
+      expiresAt: document.expiresAt ?? "",
+      hasExpiration: document.hasExpiration,
+      issuedAt: document.issuedAt ?? "",
+      selectedDocument: null,
+      title: document.title
+    });
+    setOpenDocumentDatePicker(null);
+    setIsDocumentFormOpen(true);
   };
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -982,6 +1062,24 @@ export function PetsWorkspace({
     documentType: activeDocumentType,
     documents: []
   };
+  const documentAttentionItems = selectedDocuments
+    .map((document) => ({
+      document,
+      text: getDocumentAttentionText(document),
+      validity: getPetDocumentValidityStatus(document)
+    }))
+    .filter((item) => item.text)
+    .sort((left, right) => {
+      const priority = {
+        expired: 0,
+        expiring_soon: 1,
+        missing_expiration_date: 2,
+        no_expiration: 3,
+        valid: 4
+      } as const;
+
+      return priority[left.validity.status] - priority[right.validity.status];
+    });
 
   if (!enabled) {
     return null;
@@ -1202,6 +1300,7 @@ export function PetsWorkspace({
                   />
                   <BirthDatePickerField
                     isOpen={isBirthDatePickerOpen}
+                    maxDate={new Date().toISOString().slice(0, 10)}
                     onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, birthDate: value }))}
                     onToggle={() => setIsBirthDatePickerOpen((currentValue) => !currentValue)}
                     value={petForm.birthDate ?? ""}
@@ -1759,6 +1858,19 @@ export function PetsWorkspace({
                   <Text style={{ fontSize: 11, fontWeight: "900", color: "#111827", flex: 1 }}>Documentos de {selectedPetDetail.pet.name}</Text>
                   <StatusChip label={`${selectedPetDetail.documents.length} total`} tone="neutral" />
                 </View>
+                <View style={{ borderRadius: 16, backgroundColor: documentAttentionItems.length ? "rgba(255,247,237,0.92)" : "rgba(240,253,250,0.92)", padding: 10, gap: 6 }}>
+                  <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>Documentos que requieren atencion</Text>
+                  {documentAttentionItems.length ? (
+                    documentAttentionItems.slice(0, 3).map((item) => (
+                      <View key={item.document.id} style={{ gap: 2 }}>
+                        <Text style={{ color: "#7c2d12", fontSize: 11, fontWeight: "800" }}>{item.text}</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10 }}>{petDocumentTypeLabels[item.document.documentType]}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "800" }}>Todos los documentos estan al dia.</Text>
+                  )}
+                </View>
                 <View style={{ gap: 8 }}>
                   {documentGroups.map((group) => {
                     const isActive = activeDocumentType === group.documentType;
@@ -1796,7 +1908,9 @@ export function PetsWorkspace({
                             label={isFormOpen ? "Cerrar" : "+ Agregar"}
                             onPress={() => {
                               setActiveDocumentType(group.documentType);
-                              setDocumentForm((currentForm) => ({ ...currentForm, documentType: group.documentType }));
+                              setEditingDocumentId(null);
+                              setOpenDocumentDatePicker(null);
+                              setDocumentForm({ ...emptyDocumentForm, documentType: group.documentType });
                               setIsDocumentFormOpen((currentValue) => !(currentValue && documentForm.documentType === group.documentType));
                             }}
                             tone={isFormOpen ? "secondary" : "primary"}
@@ -1811,7 +1925,7 @@ export function PetsWorkspace({
                   <>
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
                       <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>
-                        Nuevo documento - {petDocumentTypeLabels[documentForm.documentType]}
+                        {editingDocumentId ? "Editar vigencia" : "Nuevo documento"} - {petDocumentTypeLabels[documentForm.documentType]}
                       </Text>
                       <Field label="Titulo del documento" onChange={(value) => setDocumentForm((currentForm) => ({ ...currentForm, title: value }))} value={documentForm.title} />
                       <ChoiceBar
@@ -1825,52 +1939,125 @@ export function PetsWorkspace({
                         }))}
                         value={documentForm.documentType}
                       />
-                    {documentForm.selectedDocument ? (
+                      <View style={{ borderRadius: 14, backgroundColor: "#ffffff", padding: 10, gap: 8 }}>
+                        <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900" }}>Vigencia del documento</Text>
+                        <ChoiceBar<"no" | "yes">
+                          onChange={(value) =>
+                            setDocumentForm((currentForm) => ({
+                              ...currentForm,
+                              expiresAt: value === "yes" ? currentForm.expiresAt : "",
+                              hasExpiration: value === "yes"
+                            }))
+                          }
+                          options={[
+                            { label: "Sin vencimiento", value: "no" },
+                            { label: "Tiene vencimiento", value: "yes" }
+                          ]}
+                          value={documentForm.hasExpiration ? "yes" : "no"}
+                        />
+                        <BirthDatePickerField
+                          isOpen={openDocumentDatePicker === "issuedAt"}
+                          label="Fecha de emision"
+                          onChange={(value) => {
+                            setDocumentForm((currentForm) => ({ ...currentForm, issuedAt: value }));
+                            setOpenDocumentDatePicker(null);
+                          }}
+                          onToggle={() => setOpenDocumentDatePicker((currentValue) => (currentValue === "issuedAt" ? null : "issuedAt"))}
+                          value={documentForm.issuedAt}
+                        />
+                        {documentForm.hasExpiration ? (
+                          <>
+                            <BirthDatePickerField
+                              isOpen={openDocumentDatePicker === "expiresAt"}
+                              label="Fecha de vencimiento"
+                              onChange={(value) => {
+                                setDocumentForm((currentForm) => ({ ...currentForm, expiresAt: value }));
+                                setOpenDocumentDatePicker(null);
+                              }}
+                              onToggle={() => setOpenDocumentDatePicker((currentValue) => (currentValue === "expiresAt" ? null : "expiresAt"))}
+                              value={documentForm.expiresAt}
+                            />
+                            <ChoiceBar<"7" | "15" | "30" | "60" | "90">
+                              onChange={(value) =>
+                                setDocumentForm((currentForm) => ({ ...currentForm, expirationWarningDays: Number(value) }))
+                              }
+                              options={(["7", "15", "30", "60", "90"] as const).map((days) => ({ label: `${days} dias`, value: days }))}
+                              value={String(documentForm.expirationWarningDays) as "7" | "15" | "30" | "60" | "90"}
+                            />
+                          </>
+                        ) : null}
+                      </View>
+                    {!editingDocumentId && documentForm.selectedDocument ? (
                       <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>
                         Archivo: {documentForm.selectedDocument.fileName}
                       </Text>
                     ) : null}
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      <CompactActionButton
-                        disabled={isSubmitting}
-                        label="Elegir documento"
-                        onPress={() => {
-                          void DocumentPicker.getDocumentAsync({
-                            multiple: false,
-                            copyToCacheDirectory: true,
-                            type: "*/*"
-                          }).then((result) => {
-                            if (result.canceled) {
-                              return;
-                            }
-
-                            const asset = result.assets[0];
-
-                            if (!asset) {
-                              return;
-                            }
-
-                            setDocumentForm((currentForm) => ({
-                              ...currentForm,
-                              selectedDocument: {
-                                fileName: asset.name,
-                                mimeType: asset.mimeType ?? null,
-                                uri: asset.uri
+                      {!editingDocumentId ? (
+                        <CompactActionButton
+                          disabled={isSubmitting}
+                          label="Elegir documento"
+                          onPress={() => {
+                            void DocumentPicker.getDocumentAsync({
+                              multiple: false,
+                              copyToCacheDirectory: true,
+                              type: "*/*"
+                            }).then((result) => {
+                              if (result.canceled) {
+                                return;
                               }
-                            }));
-                          });
-                        }}
-                        tone="secondary"
-                      />
+
+                              const asset = result.assets[0];
+
+                              if (!asset) {
+                                return;
+                              }
+
+                              setDocumentForm((currentForm) => ({
+                                ...currentForm,
+                                selectedDocument: {
+                                  fileName: asset.name,
+                                  mimeType: asset.mimeType ?? null,
+                                  uri: asset.uri
+                                }
+                              }));
+                            });
+                          }}
+                          tone="secondary"
+                        />
+                      ) : null}
                       <CompactActionButton
                         disabled={isSubmitting}
-                        label="Cargar documento"
+                        label={editingDocumentId ? "Guardar vigencia" : "Cargar documento"}
                         onPress={() => {
                           clearMessages();
                           const selectedDocument = documentForm.selectedDocument;
 
                           void runAction(
                             async () => {
+                              if (!documentForm.title.trim()) {
+                                throw new Error("Indica un titulo para el documento.");
+                              }
+
+                              if (documentForm.hasExpiration && !documentForm.expiresAt) {
+                                throw new Error("Indica la fecha de vencimiento del documento.");
+                              }
+
+                              if (documentForm.issuedAt && documentForm.expiresAt && documentForm.expiresAt < documentForm.issuedAt) {
+                                throw new Error("La fecha de vencimiento no puede ser anterior a la fecha de emision.");
+                              }
+
+                              if (editingDocumentId) {
+                                return getMobilePetsApiClient().updatePetDocument(editingDocumentId, {
+                                  documentType: documentForm.documentType,
+                                  expirationWarningDays: documentForm.expirationWarningDays,
+                                  expiresAt: documentForm.hasExpiration ? documentForm.expiresAt : null,
+                                  hasExpiration: documentForm.hasExpiration,
+                                  issuedAt: documentForm.issuedAt || null,
+                                  title: documentForm.title.trim()
+                                });
+                              }
+
                               if (!selectedDocument) {
                                 throw new Error("Elige un documento antes de cargarlo.");
                               }
@@ -1881,16 +2068,19 @@ export function PetsWorkspace({
                               return getMobilePetsApiClient().uploadPetDocument(selectedPetDetail.pet.id, {
                                 title: documentForm.title.trim() || selectedDocument.fileName,
                                 documentType: documentForm.documentType,
+                                expirationWarningDays: documentForm.expirationWarningDays,
+                                expiresAt: documentForm.hasExpiration ? documentForm.expiresAt : null,
                                 fileName: selectedDocument.fileName,
+                                hasExpiration: documentForm.hasExpiration,
+                                issuedAt: documentForm.issuedAt || null,
                                 mimeType: selectedDocument.mimeType,
                                 fileBytes
                               });
                             },
-                            "Documento cargado.",
+                            editingDocumentId ? "Vigencia actualizada." : "Documento cargado.",
                             false
                           ).then(async () => {
-                            setDocumentForm(emptyDocumentForm);
-                            setIsDocumentFormOpen(false);
+                            closeDocumentForm();
                             await refresh();
                             await selectActivePet(selectedPetDetail.pet.id);
                           });
@@ -1910,17 +2100,34 @@ export function PetsWorkspace({
                     {petDocumentTypeLabels[activeDocumentGroup.documentType]} ({activeDocumentGroup.documents.length})
                   </Text>
                   {activeDocumentGroup.documents.length ? (
-                    activeDocumentGroup.documents.map((document, index) => (
+                    activeDocumentGroup.documents.map((document, index) => {
+                      const validityBadge = getDocumentValidityBadge(document);
+
+                      return (
                         <View key={document.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 10, gap: 4 }}>
                           <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                             <Text style={{ fontSize: 11, fontWeight: "800", color: "#1c1917", flex: 1 }}>{document.title}</Text>
-                            <StatusChip label={getDocumentStatus(document.documentType, index)} tone={index === 1 ? "pending" : "active"} />
+                            <StatusChip label={validityBadge.label} tone={validityBadge.tone} />
                           </View>
+                          <Text numberOfLines={1} style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800" }}>
+                            {getDocumentStatus(document.documentType, index)} - {document.hasExpiration ? `Aviso ${document.expirationWarningDays} dias antes` : "No genera alerta"}
+                          </Text>
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{document.fileName}</Text>
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{formatFileSize(document.fileSizeBytes)}</Text>
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{document.mimeType ?? "Tipo de archivo desconocido"}</Text>
+                          {canEditSelectedHousehold ? (
+                            <View style={{ alignItems: "flex-start", paddingTop: 3 }}>
+                              <CompactActionButton
+                                disabled={isSubmitting}
+                                label="Editar vigencia"
+                                onPress={() => openDocumentValidityEditor(document)}
+                                tone="secondary"
+                              />
+                            </View>
+                          ) : null}
                         </View>
-                    ))
+                      );
+                    })
                   ) : (
                     <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
                       Aun no hay documentos de este tipo. Usa + Agregar para cargar el primero.
