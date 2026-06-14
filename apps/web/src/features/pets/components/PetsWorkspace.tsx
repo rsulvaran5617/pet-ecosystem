@@ -1,7 +1,7 @@
 "use client";
 
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels } from "@pet/config";
-import type { PetDocumentType, PetSex, UpdatePetInput } from "@pet/types";
+import type { PetDocumentType, PetHealthDashboard, PetSex, UpdatePetInput } from "@pet/types";
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 
@@ -80,6 +80,90 @@ function formatSterilizedLabel(value: boolean | null) {
   }
 
   return "No registrada";
+}
+
+function formatShortDate(date: string | null) {
+  if (!date) {
+    return "No registrada";
+  }
+
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("es-PA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getTodayDateKey() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, "0");
+  const day = `${today.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDaysUntilDate(date: string) {
+  const today = new Date(`${getTodayDateKey()}T00:00:00`);
+  const targetDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(targetDate.getTime())) {
+    return null;
+  }
+
+  return Math.ceil((targetDate.getTime() - today.getTime()) / 86_400_000);
+}
+
+function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined) {
+  if (!summary || summary.vaccineCount === 0) {
+    return {
+      detail: "Sin vacunas registradas.",
+      value: "Sin registro"
+    };
+  }
+
+  if (!summary.nextVaccineDueDate) {
+    return {
+      detail: summary.latestVaccineDate
+        ? `Ultima vacuna: ${formatShortDate(summary.latestVaccineDate)}. Falta proxima dosis.`
+        : "Falta proxima dosis.",
+      value: "Revisar"
+    };
+  }
+
+  const daysUntilDue = getDaysUntilDate(summary.nextVaccineDueDate);
+
+  if (daysUntilDue === null) {
+    return {
+      detail: `Proxima fecha: ${summary.nextVaccineDueDate}.`,
+      value: "Revisar"
+    };
+  }
+
+  if (daysUntilDue < 0) {
+    return {
+      detail: `Vencio: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+      value: "Vencida"
+    };
+  }
+
+  if (daysUntilDue <= 30) {
+    return {
+      detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+      value: "Por vencer"
+    };
+  }
+
+  return {
+    detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+    value: "Al dia"
+  };
 }
 
 type DocumentFormState = {
@@ -312,6 +396,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     selectedPetDetail?.pet.id ?? null,
     enabled
   );
+  const selectedVaccineSummaryStatus = getVaccineSummaryStatus(selectedPetHealthSummary);
 
   const loadPetForm = (pet: typeof pets[number]) => {
     setEditingPetId(pet.id);
@@ -670,14 +755,13 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                       ) : selectedPetHealthSummary ? (
                         <div style={{ display: "grid", gap: "8px" }}>
                           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
-                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.vaccineCount} vacuna(s)</strong>
+                            <strong style={{ fontSize: "9px" }}>Vacunas: {selectedVaccineSummaryStatus.value}</strong>
                             <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
                             <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
                             <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
                           </div>
                           <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
-                            Ultima vacuna: {selectedPetHealthSummary.latestVaccineDate ?? "No registrada"}. Proxima fecha:{" "}
-                            {selectedPetHealthSummary.nextVaccineDueDate ?? "No registrada"}.
+                            {selectedVaccineSummaryStatus.detail}
                           </p>
                           <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                             Alertas: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "Sin condiciones criticas"}.

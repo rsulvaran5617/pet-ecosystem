@@ -42,6 +42,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - listar requiere acceso de lectura a la mascota
 - registrar o editar requiere permisos derivados de `edit` o `admin` en el hogar
 - las condiciones criticas deben resaltarse en el dashboard simple
+- el resumen de vacunas no debe marcar `Al dia` solo por existir registros: usa `next_due_on` para mostrar `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`
 - web owner presenta salud con selector compacto de hogares, carrusel superior de mascotas y ficha inferior por mascota con resumen, vacunas, alergias y condiciones en tarjetas compactas; los formularios de alta/edicion se abren bajo demanda desde acciones `+` o desde `Editar`
 - en MVP no existe share activo hacia proveedores o clinica
 

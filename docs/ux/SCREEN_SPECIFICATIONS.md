@@ -60,6 +60,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - vacunas
 - alergias
 - condiciones
+- resumen de vacunas en ficha de mascota usa vigencia basada en `next_due_on`: `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`
 - formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos.
 - owner web Salud usa carrusel superior de mascotas y ficha inferior compacta con resumen, vacunas, alergias y condiciones para evitar columnas altas y mantener controles pequenos
 

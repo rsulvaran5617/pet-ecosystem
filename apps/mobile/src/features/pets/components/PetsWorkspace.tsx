@@ -2,7 +2,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetDocumentType, PetSummary, Reminder, UpdatePetInput, Uuid } from "@pet/types";
+import type { PetDocumentType, PetHealthDashboard, PetSummary, Reminder, UpdatePetInput, Uuid } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -602,6 +602,70 @@ function formatShortDate(date: string | null) {
   });
 }
 
+function getTodayDateKey() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, "0");
+  const day = `${today.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDaysUntilDate(date: string) {
+  const today = new Date(`${getTodayDateKey()}T00:00:00`);
+  const targetDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(targetDate.getTime())) {
+    return null;
+  }
+
+  return Math.ceil((targetDate.getTime() - today.getTime()) / 86_400_000);
+}
+
+function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined) {
+  if (!summary || summary.vaccineCount === 0) {
+    return {
+      detail: "Sin registro",
+      value: "Sin registro"
+    };
+  }
+
+  if (!summary.nextVaccineDueDate) {
+    return {
+      detail: summary.latestVaccineDate ? `Ultima: ${formatShortDate(summary.latestVaccineDate)}. Falta proxima dosis.` : "Falta proxima dosis",
+      value: "Revisar"
+    };
+  }
+
+  const daysUntilDue = getDaysUntilDate(summary.nextVaccineDueDate);
+
+  if (daysUntilDue === null) {
+    return {
+      detail: `Proxima: ${summary.nextVaccineDueDate}`,
+      value: "Revisar"
+    };
+  }
+
+  if (daysUntilDue < 0) {
+    return {
+      detail: `Vencio: ${formatShortDate(summary.nextVaccineDueDate)}`,
+      value: "Vencida"
+    };
+  }
+
+  if (daysUntilDue <= 30) {
+    return {
+      detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}`,
+      value: "Por vencer"
+    };
+  }
+
+  return {
+    detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}`,
+    value: "Al dia"
+  };
+}
+
 function getDocumentStatus(documentType: PetDocumentType, index: number) {
   if (documentType === "vaccination_record" || documentType === "medical_record") {
     return index === 0 ? "Actualizado" : "Revisar";
@@ -910,7 +974,7 @@ export function PetsWorkspace({
   const selectedPetAge = selectedPet ? formatPetAge(selectedPet.birthDate) : "Edad pendiente";
   const selectedPetHome = selectedHousehold?.name ?? "Hogar principal";
   const selectedPetBreed = selectedPet ? getPetDescription(selectedPet) : "Mascota";
-  const vaccineCount = selectedPetHealthSummary?.vaccineCount ?? 0;
+  const vaccineSummaryStatus = getVaccineSummaryStatus(selectedPetHealthSummary);
   const allergyCount = selectedPetHealthSummary?.allergyCount ?? 0;
   const conditionCount = selectedPetHealthSummary?.conditionCount ?? 0;
   const latestDocuments = selectedDocuments.slice(0, 3);
@@ -1494,8 +1558,8 @@ export function PetsWorkspace({
                       {
                         icon: "shield" as const,
                         title: "Vacunas",
-                        value: isHealthSummaryLoading ? "Cargando" : vaccineCount ? "Al dia" : "Pendiente",
-                        detail: selectedPetHealthSummary?.latestVaccineDate ? `Ultima: ${formatShortDate(selectedPetHealthSummary.latestVaccineDate)}` : "Sin registro"
+                        value: isHealthSummaryLoading ? "Cargando" : vaccineSummaryStatus.value,
+                        detail: isHealthSummaryLoading ? "Validando vigencia" : vaccineSummaryStatus.detail
                       },
                       {
                         icon: "warning" as const,
