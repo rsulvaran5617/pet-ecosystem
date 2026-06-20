@@ -153,6 +153,14 @@ Reglas estructurales:
 - documentos medicos sensibles no se transfieren automaticamente; deben marcarse como compartibles.
 - el primer slice recomendado no abre marketplace de adopcion: solo familia protectora aprobada y transferencia privada de mascota.
 - al aceptar transferencia, la identidad `pets.id` debe conservarse; no se duplica mascota.
+
+Foster-2A implementacion local:
+
+- `pet_custody_contexts` queda como historial de custodia con un unico contexto `active` por mascota.
+- `pet_transfer_records` queda como registro transaccional de invitacion, consentimiento, receptor, estado y fechas.
+- aceptar transferencia actualiza `pets.household_id`; no se crean nuevas filas en `pets`.
+- `pet_documents`, salud, vacunas, alergias y condiciones siguen asociados a `pet_id` y viajan por la nueva custodia.
+- `bookings`, `chat_threads`, pagos, soporte y recordatorios conservan su `household_id` original y no se transfieren automaticamente.
 - reservas, chats, soporte y datos privados del hogar anterior no viajan automaticamente al nuevo hogar.
 
 ## Reglas estructurales

@@ -2,6 +2,19 @@
 
 ## Actualizacion UX selectores de fecha mobile 2026-06-20
 
+## Foster-2A transferencia privada de mascota 2026-06-20
+
+- Slice implementado y aplicado remoto: transferencia privada de mascota desde familia protectora aprobada hacia familia receptora con consentimiento explicito.
+- Migracion aplicada en Supabase remoto: `supabase/migrations/20260620153000_foster_2a_private_pet_transfers.sql`; dry-run posterior reporto base remota al dia.
+- Modelo: `pet_custody_contexts` para historial de custodia y `pet_transfer_records` para invitacion, consentimiento y estado.
+- RPCs: `create_pet_transfer_invitation`, `accept_pet_transfer`, `reject_pet_transfer`, `cancel_pet_transfer`, mas funciones de listado incoming/outgoing/historial/auditoria admin.
+- Regla central: aceptar transferencia mueve `pets.household_id` de forma transaccional y conserva `pets.id`; no se duplica mascota.
+- UI owner mobile: `Mascotas` permite transferir solo desde familia protectora aprobada; `Hogares` muestra invitaciones recibidas para aceptar/rechazar.
+- UI admin web: `Familias protectoras` suma auditoria read-only de transferencias privadas.
+- No se transfieren reservas, chats, pagos, soporte ni recordatorios futuros; salud/documentos permitidos viajan por `pet_id` y RLS existente al cambiar custodia.
+- Fuera de alcance: marketplace publico de adopcion, Payments, booking, QR, evidencia operacional, provider services y geolocalizacion.
+- Pendiente operativo: QA manual mobile/admin de invitacion, aceptacion, rechazo y cancelacion antes de promoverlo a pilotos reales.
+
 - Rama actual: `master`.
 - Slice cerrado: ajuste visual de selectores de fecha en owner mobile para Mascotas, Salud y Recordatorios.
 - Cambio aplicado: los controles de salto anual pasan a botones compactos `-1 ano` / `+1 ano` y el encabezado central usa formato numerico `MM/YYYY`, evitando que los botones grandes tapen el mes/ano en pantallas pequenas.

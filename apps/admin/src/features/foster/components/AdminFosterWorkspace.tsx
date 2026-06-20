@@ -1,6 +1,6 @@
 "use client";
 
-import type { AdminProtectiveHouseholdProfile, ProtectiveHouseholdReviewDecision, Uuid } from "@pet/types";
+import type { AdminProtectiveHouseholdProfile, PetTransferRecord, ProtectiveHouseholdReviewDecision, Uuid } from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 import { useEffect, useMemo, useState } from "react";
 
@@ -38,6 +38,14 @@ const organizationTypeLabels: Record<AdminProtectiveHouseholdProfile["organizati
   individual_rescuer: "Rescatista",
   other: "Otro",
   temporary_home: "Familia de acogida"
+};
+
+const transferStatusLabels: Record<PetTransferRecord["status"], string> = {
+  accepted: "Aceptada",
+  cancelled: "Cancelada",
+  expired: "Expirada",
+  pending: "Pendiente",
+  rejected: "Rechazada"
 };
 
 function Button({
@@ -87,6 +95,7 @@ export function AdminFosterWorkspace({
   variant?: "full" | "home";
 }) {
   const [profiles, setProfiles] = useState<AdminProtectiveHouseholdProfile[]>([]);
+  const [transfers, setTransfers] = useState<PetTransferRecord[]>([]);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -104,8 +113,12 @@ export function AdminFosterWorkspace({
     setErrorMessage(null);
 
     try {
-      const nextProfiles = await getAdminFosterApiClient().listPendingProtectiveHouseholdProfiles();
+      const [nextProfiles, nextTransfers] = await Promise.all([
+        getAdminFosterApiClient().listPendingProtectiveHouseholdProfiles(),
+        getAdminFosterApiClient().listAdminPetTransfers()
+      ]);
       setProfiles(nextProfiles);
+      setTransfers(nextTransfers);
       setSelectedHouseholdId(
         preferredHouseholdId && nextProfiles.some((profile) => profile.householdId === preferredHouseholdId)
           ? preferredHouseholdId
@@ -170,6 +183,7 @@ export function AdminFosterWorkspace({
             {profiles.length}
           </strong>
         </div>
+        <p style={{ margin: 0, color: "#52525b" }}>{transfers.length} transferencia(s) privadas auditables.</p>
         {isLoading && !profiles.length ? <p style={{ margin: 0, color: "#52525b" }}>Cargando solicitudes...</p> : null}
         {errorMessage ? <p style={{ margin: 0, color: "#991b1b" }}>{errorMessage}</p> : null}
         {!profiles.length && !isLoading ? (
@@ -301,6 +315,49 @@ export function AdminFosterWorkspace({
           )}
         </article>
       </div>
+      <section style={cardStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "24px" }}>Auditoria de transferencias</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+              Transferencias privadas de mascota entre familias protectoras y receptoras.
+            </p>
+          </div>
+          <span style={{ color: "#52525b" }}>{transfers.length} registro(s)</span>
+        </div>
+        {transfers.length ? (
+          <div style={{ display: "grid", gap: "10px" }}>
+            {transfers.map((transfer) => (
+              <div key={transfer.id} style={{ ...inputStyle, display: "grid", gap: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                  <strong>{transfer.petName}</strong>
+                  <span
+                    style={{
+                      borderRadius: "999px",
+                      background: transfer.status === "accepted" ? "rgba(0,138,151,0.12)" : "rgba(217,119,6,0.12)",
+                      color: transfer.status === "accepted" ? colorTokens.adminAccent : "#b45309",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      padding: "6px 10px"
+                    }}
+                  >
+                    {transferStatusLabels[transfer.status]}
+                  </span>
+                </div>
+                <span style={{ color: "#52525b" }}>
+                  {transfer.fromHouseholdName} {"->"} {transfer.toHouseholdName ?? transfer.recipientEmail}
+                </span>
+                <span style={{ color: "#71717a", fontSize: "13px" }}>
+                  Creada: {new Date(transfer.createdAt).toLocaleString("es-PA")}
+                  {transfer.acceptedAt ? ` - Aceptada: ${new Date(transfer.acceptedAt).toLocaleString("es-PA")}` : ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ margin: 0, color: "#52525b" }}>Aun no hay transferencias privadas registradas.</p>
+        )}
+      </section>
     </section>
   );
 }

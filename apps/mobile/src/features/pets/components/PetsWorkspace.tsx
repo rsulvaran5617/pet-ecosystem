@@ -2,7 +2,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderTypeLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetDocumentType, PetHealthDashboard, PetSummary, Reminder, UpdatePetInput, Uuid } from "@pet/types";
+import type { PetDocumentType, PetHealthDashboard, PetSummary, PetTransferRecord, ProtectiveHouseholdProfile, Reminder, UpdatePetInput, Uuid } from "@pet/types";
 import { getPetDocumentValidityStatus } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -10,7 +10,7 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { StatusChip } from "../../core/components/StatusChip";
-import { getMobilePetsApiClient } from "../../core/services/supabase-mobile";
+import { getMobileFosterApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 import { usePetHealthSummary } from "../../health/hooks/usePetHealthSummary";
 import { usePetsWorkspace } from "../hooks/usePetsWorkspace";
 
@@ -304,7 +304,7 @@ function Field({
 }: {
   label: string;
   helperText?: string;
-  keyboardType?: "default" | "numeric";
+  keyboardType?: "default" | "email-address" | "numeric";
   onChange: (value: string) => void;
   placeholder?: string;
   value: string;
@@ -772,6 +772,12 @@ export function PetsWorkspace({
   const [openDocumentDatePicker, setOpenDocumentDatePicker] = useState<"expiresAt" | "issuedAt" | null>(null);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
+  const [protectiveProfile, setProtectiveProfile] = useState<ProtectiveHouseholdProfile | null>(null);
+  const [isProtectiveProfileLoading, setIsProtectiveProfileLoading] = useState(false);
+  const [transferPetId, setTransferPetId] = useState<Uuid | null>(null);
+  const [transferRecipientEmail, setTransferRecipientEmail] = useState("");
+  const [transferNotes, setTransferNotes] = useState("");
+  const [outgoingTransfers, setOutgoingTransfers] = useState<PetTransferRecord[]>([]);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
@@ -780,6 +786,8 @@ export function PetsWorkspace({
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
+  const canManageSelectedHousehold = selectedHousehold?.myPermissions.includes("admin") ?? false;
+  const isApprovedProtectiveHousehold = protectiveProfile?.status === "approved";
   const documentGroups = useMemo(
     () =>
       petDocumentTypeOrder
@@ -805,6 +813,43 @@ export function PetsWorkspace({
   useEffect(() => {
     onContextChangeRef.current = onContextChange;
   }, [onContextChange]);
+
+  useEffect(() => {
+    if (!enabled || !selectedHouseholdId) {
+      setProtectiveProfile(null);
+      setOutgoingTransfers([]);
+      return;
+    }
+
+    let isCurrent = true;
+    setIsProtectiveProfileLoading(true);
+
+    Promise.all([
+      getMobileFosterApiClient().getProtectiveHouseholdProfile(selectedHouseholdId),
+      getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId)
+    ])
+      .then(([profile, transfers]) => {
+        if (isCurrent) {
+          setProtectiveProfile(profile);
+          setOutgoingTransfers(transfers);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setProtectiveProfile(null);
+          setOutgoingTransfers([]);
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsProtectiveProfileLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [enabled, selectedHouseholdId]);
 
   useEffect(() => {
     const lastReportedContext = lastReportedContextRef.current;
@@ -928,6 +973,12 @@ export function PetsWorkspace({
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
+  const canTransferSelectedPet =
+    Boolean(selectedPetDetail) &&
+    Boolean(selectedHouseholdId) &&
+    canManageSelectedHousehold &&
+    isApprovedProtectiveHousehold &&
+    !isSelectedPetInMemory;
   const contextPetIsMissing = Boolean(contextPetId) && !isLoading && !pets.some((pet) => pet.id === contextPetId);
   const contextPetIsLoading =
     Boolean(contextPetId) &&
@@ -972,6 +1023,47 @@ export function PetsWorkspace({
       setPetMemoryConfirmationId(null);
       await refresh();
       await selectActivePet(petId);
+    });
+  };
+
+  const closeTransferForm = () => {
+    setTransferPetId(null);
+    setTransferRecipientEmail("");
+    setTransferNotes("");
+  };
+
+  const createPetTransferInvitation = (petId: Uuid) => {
+    if (!selectedHouseholdId) {
+      return;
+    }
+
+    clearMessages();
+    void runAction(
+      () =>
+        getMobileFosterApiClient().createPetTransferInvitation({
+          petId,
+          fromHouseholdId: selectedHouseholdId,
+          recipientEmail: transferRecipientEmail.trim(),
+          transferNotes: transferNotes.trim() || null
+        }),
+      "Invitacion de transferencia enviada. La familia receptora debe aceptar para mover la mascota.",
+      false
+    ).then(() => {
+      closeTransferForm();
+      void getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId).then(setOutgoingTransfers);
+    });
+  };
+
+  const cancelPetTransfer = (transferId: Uuid) => {
+    clearMessages();
+    void runAction(
+      () => getMobileFosterApiClient().cancelPetTransfer(transferId),
+      "Invitacion de transferencia cancelada.",
+      false
+    ).then(() => {
+      if (selectedHouseholdId) {
+        void getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId).then(setOutgoingTransfers);
+      }
     });
   };
   const uploadPickedPetAvatar = (petId: Uuid, asset: { fileName?: string | null; mimeType?: string | null; uri: string }) => {
@@ -1600,6 +1692,116 @@ export function PetsWorkspace({
                   ) : null}
                   {selectedPetDetail.pet.notes ? (
                     <Text style={{ color: "#64748b", fontSize: 12, lineHeight: 17 }}>{selectedPetDetail.pet.notes}</Text>
+                  ) : null}
+                  {isProtectiveProfileLoading ? (
+                    <Text style={{ color: colorTokens.muted, fontSize: 11 }}>Validando permisos de familia protectora...</Text>
+                  ) : null}
+                  {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+                    <View
+                      style={{
+                        borderColor: "rgba(15,118,110,0.18)",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        backgroundColor: "rgba(240,253,250,0.82)",
+                        gap: 10,
+                        padding: 12
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                        <View style={{ flex: 1, gap: 3 }}>
+                          <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "900" }}>Transferencia privada</Text>
+                          <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                            Invita a una familia receptora. La mascota conserva su identidad y expediente permitido; reservas, chats, pagos y recordatorios futuros no se transfieren.
+                          </Text>
+                        </View>
+                        <StatusChip label="protector" tone="active" />
+                      </View>
+                      {transferPetId === selectedPetDetail.pet.id ? (
+                        <View style={{ gap: 9 }}>
+                          <Field
+                            keyboardType="email-address"
+                            label="Correo de la familia receptora"
+                            onChange={setTransferRecipientEmail}
+                            placeholder="correo@ejemplo.com"
+                            value={transferRecipientEmail}
+                          />
+                          <MultilineField
+                            label="Nota para la familia receptora"
+                            onChange={setTransferNotes}
+                            value={transferNotes}
+                          />
+                          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                            <Button
+                              disabled={isSubmitting || !transferRecipientEmail.trim()}
+                              label="Enviar invitacion"
+                              labelSize={11}
+                              onPress={() => createPetTransferInvitation(selectedPetDetail.pet.id)}
+                            />
+                            <Button disabled={isSubmitting} label="Cancelar" labelSize={11} onPress={closeTransferForm} tone="secondary" />
+                          </View>
+                        </View>
+                      ) : (
+                        <Pressable
+                          disabled={!canTransferSelectedPet || isSubmitting}
+                          onPress={() => {
+                            setTransferPetId(selectedPetDetail.pet.id);
+                            setTransferRecipientEmail("");
+                            setTransferNotes("");
+                          }}
+                          style={{
+                            alignSelf: "flex-start",
+                            borderRadius: 999,
+                            backgroundColor: "#0f766e",
+                            opacity: canTransferSelectedPet && !isSubmitting ? 1 : 0.55,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8
+                          }}
+                        >
+                          <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>
+                            {isSelectedPetInMemory ? "No disponible En memoria" : "Transferir mascota"}
+                          </Text>
+                        </Pressable>
+                      )}
+                      {outgoingTransfers.filter((transfer) => transfer.petId === selectedPetDetail.pet.id).length ? (
+                        <View style={{ gap: 7 }}>
+                          {outgoingTransfers
+                            .filter((transfer) => transfer.petId === selectedPetDetail.pet.id)
+                            .slice(0, 3)
+                            .map((transfer) => (
+                              <View
+                                key={transfer.id}
+                                style={{
+                                  borderColor: "rgba(15,118,110,0.14)",
+                                  borderRadius: 14,
+                                  borderWidth: 1,
+                                  backgroundColor: "rgba(255,255,255,0.7)",
+                                  gap: 5,
+                                  padding: 10
+                                }}
+                              >
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                                  <Text style={{ color: "#115e59", flex: 1, fontSize: 11, fontWeight: "900" }}>
+                                    Invitacion a {transfer.recipientEmail}
+                                  </Text>
+                                  <StatusChip
+                                    label={transfer.status === "pending" ? "pendiente" : transfer.status}
+                                    tone={transfer.status === "accepted" ? "active" : transfer.status === "pending" ? "pending" : "neutral"}
+                                  />
+                                </View>
+                                {transfer.status === "pending" ? (
+                                  <Pressable
+                                    disabled={isSubmitting}
+                                    onPress={() => cancelPetTransfer(transfer.id)}
+                                    style={{ alignSelf: "flex-start", paddingVertical: 4 }}
+                                  >
+                                    <Text style={{ color: "#991b1b", fontSize: 10, fontWeight: "900" }}>Cancelar invitacion</Text>
+                                  </Pressable>
+                                ) : null}
+                              </View>
+                            ))}
+                        </View>
+                      ) : null}
+                    </View>
                   ) : null}
                 </View>
 

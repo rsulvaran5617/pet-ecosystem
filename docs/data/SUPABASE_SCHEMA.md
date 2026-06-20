@@ -81,11 +81,11 @@ No crear tablas fuera del modelo oficial sin actualizar esta documentacion.
 
 ### Familias protectoras / transferencia privada de mascota (V2.5)
 
-Entidades conceptuales propuestas, no implementadas:
+Entidades Foster:
 
-- `protective_household_profiles`
-- `pet_custody_contexts`
-- `pet_transfer_records`
+- `protective_household_profiles`: implementada/aplicada por Foster-1A.
+- `pet_custody_contexts`: implementada/aplicada por Foster-2A.
+- `pet_transfer_records`: implementada/aplicada por Foster-2A.
 
 Objetivo:
 
@@ -97,7 +97,7 @@ Reglas conceptuales:
 
 - `households` sigue siendo el hogar base; la capacidad protectora vive en perfil adicional.
 - la transferencia no duplica mascotas y conserva `pets.id`.
-- el RPC futuro de aceptacion debe actualizar custodias/ownership de forma transaccional y registrar audit trail.
+- el RPC de aceptacion Foster-2A actualiza custodias/ownership de forma transaccional y registra audit trail.
 - documentos medicos y salud pueden viajar con consentimiento; reservas, chats, soporte y datos privados del hogar anterior no se comparten automaticamente.
 - admin debe poder aprobar/suspender perfiles protectores y auditar transferencias.
 
@@ -126,6 +126,46 @@ Constraints esperados:
 - `submitted_at` requerido para `pending_review`.
 - `reviewed_by_user_id` y `reviewed_at` requeridos para `approved`, `rejected` o `suspended`.
 - no borrar perfiles aprobados/suspendidos desde cliente; usar cambio de estado.
+
+Foster-2A `pet_custody_contexts`:
+
+- `id uuid primary key default gen_random_uuid()`
+- `pet_id uuid not null references pets(id) on delete cascade`
+- `household_id uuid not null references households(id) on delete restrict`
+- `custody_type text check (owner | foster | rescue | temporary)`
+- `status text check (active | ended | transferred | cancelled)`
+- `started_at timestamptz`
+- `ended_at timestamptz null`
+- `created_by_user_id uuid`
+- timestamps.
+- indice unico parcial: una custodia `active` por mascota.
+
+Foster-2A `pet_transfer_records`:
+
+- `id uuid primary key default gen_random_uuid()`
+- `pet_id uuid not null references pets(id) on delete restrict`
+- `from_household_id uuid not null`
+- `to_household_id uuid null`
+- `recipient_email text not null`
+- `recipient_user_id uuid null`
+- `initiated_by_user_id uuid not null`
+- `accepted_by_user_id uuid null`
+- `status text check (pending | accepted | rejected | cancelled | expired)`
+- `consent_snapshot jsonb`
+- `transfer_notes text null`
+- `expires_at`, `accepted_at`, `rejected_at`, `cancelled_at`, `expired_at`.
+- indice unico parcial: una transferencia `pending` por mascota.
+
+RPCs Foster-2A:
+
+- `create_pet_transfer_invitation`
+- `accept_pet_transfer`
+- `reject_pet_transfer`
+- `cancel_pet_transfer`
+- `list_incoming_pet_transfer_invitations`
+- `list_outgoing_pet_transfer_records`
+- `list_pet_custody_history`
+- `list_pet_transfer_records_for_admin`
 
 ### Pet Travel Passport / Expediente Internacional
 

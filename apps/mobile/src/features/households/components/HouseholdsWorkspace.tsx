@@ -1,5 +1,5 @@
 import { colorTokens } from "@pet/ui";
-import type { HouseholdPermission, ProtectiveHouseholdOrganizationType, ProtectiveHouseholdProfile } from "@pet/types";
+import type { HouseholdPermission, PetTransferRecord, ProtectiveHouseholdOrganizationType, ProtectiveHouseholdProfile } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 
@@ -178,6 +178,8 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
   const [protectiveCountryCode, setProtectiveCountryCode] = useState("PA");
   const [protectiveContactNotes, setProtectiveContactNotes] = useState("");
   const [protectivePublicNotes, setProtectivePublicNotes] = useState("");
+  const [incomingPetTransfers, setIncomingPetTransfers] = useState<PetTransferRecord[]>([]);
+  const [isTransfersLoading, setIsTransfersLoading] = useState(false);
 
   async function loadProtectiveProfile(householdId: string | null) {
     if (!householdId) {
@@ -195,6 +197,17 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
     }
   }
 
+  async function loadIncomingPetTransfers() {
+    setIsTransfersLoading(true);
+
+    try {
+      const nextTransfers = await getMobileFosterApiClient().listIncomingPetTransfers();
+      setIncomingPetTransfers(nextTransfers);
+    } finally {
+      setIsTransfersLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!selectedHouseholdDetail) {
       setMemberPermissionDrafts({});
@@ -209,6 +222,15 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
   useEffect(() => {
     void loadProtectiveProfile(selectedHouseholdId);
   }, [selectedHouseholdId]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setIncomingPetTransfers([]);
+      return;
+    }
+
+    void loadIncomingPetTransfers();
+  }, [enabled]);
 
   useEffect(() => {
     if (protectiveProfile) {
@@ -325,6 +347,107 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
             ))
           ) : (
             <Text style={{ color: colorTokens.muted }}>No hay invitaciones pendientes para esta cuenta.</Text>
+          )}
+        </View>
+      </CoreSectionCard>
+
+      <CoreSectionCard
+        eyebrow="Custodia"
+        title="Invitaciones de mascota"
+        description="Acepta o rechaza transferencias privadas enviadas por una familia protectora aprobada."
+      >
+        <View style={{ gap: 12 }}>
+          {isTransfersLoading ? <Text style={{ color: colorTokens.muted }}>Cargando invitaciones de mascota...</Text> : null}
+          {incomingPetTransfers.length ? (
+            incomingPetTransfers.map((transfer) => {
+              const canAcceptInSelectedHousehold = Boolean(selectedHouseholdDetail?.household.myPermissions.includes("admin"));
+              const isPending = transfer.status === "pending";
+              const snapshot = transfer.consentSnapshot as {
+                document_count?: number;
+                vaccine_count?: number;
+                allergy_count?: number;
+                condition_count?: number;
+                pending_reminder_count?: number;
+              };
+
+              return (
+                <View key={transfer.id} style={{ borderRadius: 18, backgroundColor: "rgba(240,253,250,0.72)", padding: 14, gap: 9 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                    <View style={{ flex: 1, gap: 3 }}>
+                      <Text style={{ fontSize: 16, fontWeight: "800", color: "#1c1917" }}>{transfer.petName}</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 12 }}>
+                        De {transfer.fromHouseholdName} - {transfer.petSpecies}
+                      </Text>
+                    </View>
+                    <StatusChip
+                      label={
+                        transfer.status === "pending"
+                          ? "pendiente"
+                          : transfer.status === "accepted"
+                            ? "aceptada"
+                            : transfer.status === "rejected"
+                              ? "rechazada"
+                              : transfer.status
+                      }
+                      tone={transfer.status === "accepted" ? "active" : transfer.status === "pending" ? "pending" : "neutral"}
+                    />
+                  </View>
+                  <Text style={{ color: "#115e59", fontSize: 12, lineHeight: 17 }}>
+                    La mascota conserva su expediente permitido. No se transfieren reservas, chats, pagos, soporte ni recordatorios futuros.
+                  </Text>
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                    Incluye {snapshot.document_count ?? 0} documento(s), {snapshot.vaccine_count ?? 0} vacuna(s), {snapshot.allergy_count ?? 0} alergia(s) y {snapshot.condition_count ?? 0} condicion(es). Recordatorios pendientes: {snapshot.pending_reminder_count ?? 0}.
+                  </Text>
+                  {transfer.transferNotes ? (
+                    <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "700" }}>Nota: {transfer.transferNotes}</Text>
+                  ) : null}
+                  {isPending ? (
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                      <Button
+                        disabled={isSubmitting || !canAcceptInSelectedHousehold || !selectedHouseholdId}
+                        label="Aceptar en este hogar"
+                        onPress={() => {
+                          if (!selectedHouseholdId) {
+                            return;
+                          }
+
+                          clearMessages();
+                          void runAction(
+                            () => getMobileFosterApiClient().acceptPetTransfer(transfer.id, selectedHouseholdId),
+                            "Transferencia aceptada. La mascota ahora pertenece al hogar seleccionado.",
+                            false
+                          ).then(async () => {
+                            await loadIncomingPetTransfers();
+                          });
+                        }}
+                      />
+                      <Button
+                        disabled={isSubmitting}
+                        label="Rechazar"
+                        onPress={() => {
+                          clearMessages();
+                          void runAction(
+                            () => getMobileFosterApiClient().rejectPetTransfer(transfer.id),
+                            "Transferencia rechazada.",
+                            false
+                          ).then(async () => {
+                            await loadIncomingPetTransfers();
+                          });
+                        }}
+                        tone="secondary"
+                      />
+                    </View>
+                  ) : null}
+                  {!canAcceptInSelectedHousehold && isPending ? (
+                    <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                      Selecciona un hogar donde tengas permiso administrador para aceptar esta transferencia.
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })
+          ) : (
+            <Text style={{ color: colorTokens.muted }}>No tienes invitaciones de transferencia de mascota.</Text>
           )}
         </View>
       </CoreSectionCard>

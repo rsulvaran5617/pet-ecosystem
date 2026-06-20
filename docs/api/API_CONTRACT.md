@@ -226,6 +226,17 @@ Notas:
 - el marketplace de adopcion debe leer solo publicaciones aprobadas/publicadas.
 - la transferencia de custodia debe ejecutarse por RPC transaccional con consentimiento y audit trail.
 
+Foster-2A API client local:
+- `createPetTransferInvitation(input)` -> RPC `create_pet_transfer_invitation`.
+- `acceptPetTransfer(transferId, targetHouseholdId)` -> RPC `accept_pet_transfer`.
+- `rejectPetTransfer(transferId)` -> RPC `reject_pet_transfer`.
+- `cancelPetTransfer(transferId)` -> RPC `cancel_pet_transfer`.
+- `listIncomingPetTransfers()` -> RPC `list_incoming_pet_transfer_invitations`.
+- `listOutgoingPetTransfers(householdId)` -> RPC `list_outgoing_pet_transfer_records`.
+- `listPetCustodyHistory(petId)` -> RPC `list_pet_custody_history`.
+- `listAdminPetTransfers()` -> RPC `list_pet_transfer_records_for_admin`.
+- Ningun endpoint/RPC Foster-2A crea bookings, pagos, chats ni publicaciones publicas de adopcion.
+
 ### Providers
 
 - `GET /provider/organizations`

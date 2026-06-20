@@ -1069,3 +1069,129 @@ Foster-2A debera validar:
 - Definir flujo exacto de transferencia de custodia.
 - Definir si mensajeria entra en Foster-6 o se mantiene fuera inicialmente.
 - Definir si la primera version permite solo solicitudes, no transferencia digital.
+
+## W. Foster-2A: transferencia privada de mascota
+
+Estado: implementacion local preparada. Incluye migracion, RLS, RPCs, tipos compartidos, API client, UI owner mobile minima y auditoria admin web. No se aplica remoto sin dry-run/aprobacion.
+
+### W.1 Alcance
+
+Foster-2A permite que una familia protectora aprobada invite a otra familia a recibir una mascota existente. La mascota conserva `pets.id` y su expediente permitido. No se duplica mascota y no se abre marketplace publico de adopcion.
+
+Fuera de alcance:
+
+- marketplace publico de adopcion.
+- pagos, checkout o cobros.
+- booking, QR, evidencia operacional o provider services.
+- transferencia automatica de reservas, chats, pagos, soporte o recordatorios futuros.
+- consentimiento granular avanzado por documento.
+
+### W.2 Modelo implementado
+
+`pet_custody_contexts` registra custodias historicas de una mascota:
+
+- `pet_id`.
+- `household_id`.
+- `custody_type`: `owner | foster | rescue | temporary`.
+- `status`: `active | ended | transferred | cancelled`.
+- `started_at` / `ended_at`.
+- `created_by_user_id`.
+
+`pet_transfer_records` registra invitaciones y consentimiento:
+
+- `pet_id`.
+- `from_household_id`.
+- `to_household_id`.
+- `recipient_email`.
+- `recipient_user_id`.
+- `initiated_by_user_id`.
+- `accepted_by_user_id`.
+- `status`: `pending | accepted | rejected | cancelled | expired`.
+- `consent_snapshot`.
+- `transfer_notes`.
+- fechas de expiracion, aceptacion, rechazo y cancelacion.
+
+### W.3 RPCs
+
+- `create_pet_transfer_invitation(target_pet_id, target_from_household_id, target_recipient_email, notes)`
+  - exige familia protectora aprobada.
+  - exige permiso admin del hogar emisor.
+  - bloquea mascotas `in_memory`.
+  - evita mas de una transferencia pendiente por mascota.
+  - crea snapshot de consentimiento con conteos de documentos/salud y exclusiones.
+
+- `accept_pet_transfer(target_transfer_id, target_to_household_id)`
+  - exige invitacion pendiente y no expirada.
+  - exige que el receptor coincida por usuario o email.
+  - exige permiso admin sobre el hogar receptor.
+  - actualiza `pets.household_id` transaccionalmente.
+  - cierra custodia anterior y abre custodia nueva.
+
+- `reject_pet_transfer(target_transfer_id)`
+  - permite al receptor rechazar una invitacion dirigida a su cuenta/email.
+
+- `cancel_pet_transfer(target_transfer_id)`
+  - permite al hogar emisor cancelar una invitacion pendiente.
+
+Funciones de consulta:
+
+- `list_incoming_pet_transfer_invitations()`.
+- `list_outgoing_pet_transfer_records(target_household_id)`.
+- `list_pet_custody_history(target_pet_id)`.
+- `list_pet_transfer_records_for_admin()`.
+
+### W.4 RLS
+
+- `pet_transfer_records` se lee solo por hogares emisores, hogares receptores, receptor por email/usuario o admin.
+- `pet_custody_contexts` se lee por hogares involucrados, custodio actual o admin.
+- escrituras directas cliente no se conceden; las mutaciones ocurren por RPC transaccional.
+- el receptor ve antes de aceptar un resumen minimo, no expediente completo.
+- al aceptar, RLS existente sobre `pets.household_id` da acceso al expediente permitido.
+
+### W.5 Politica de datos
+
+Viaja con la mascota:
+
+- datos base de mascota.
+- perfil.
+- avatar.
+- esterilizacion.
+- vacunas.
+- alergias.
+- condiciones.
+- documentos visibles por politica inicial del expediente.
+
+No viaja automaticamente:
+
+- reservas historicas.
+- conversaciones.
+- pagos/metodos.
+- soporte.
+- recordatorios futuros.
+- datos privados del hogar anterior.
+
+Los recordatorios futuros quedan como tarea posterior de confirmacion/recreacion en Foster-4A.
+
+### W.6 UX owner/admin
+
+Owner mobile:
+
+- en Mascotas, una familia protectora aprobada ve `Transferir mascota`.
+- el formulario pide email receptor y nota.
+- el copy explica que la mascota conserva expediente permitido y que reservas/chats/pagos/recordatorios no se transfieren.
+- Hogares muestra bandeja `Invitaciones de mascota` para aceptar o rechazar.
+
+Admin web:
+
+- `Familias protectoras` incluye auditoria read-only de transferencias privadas.
+
+### W.7 Criterios de aceptacion
+
+- una familia protectora aprobada puede crear invitacion para una mascota propia activa.
+- una familia no aprobada no puede iniciar transferencia.
+- una mascota `in_memory` no puede transferirse.
+- no puede haber dos transferencias pendientes para la misma mascota.
+- receptor acepta desde un hogar donde tiene permiso admin.
+- aceptar mueve `pets.household_id` y conserva `pets.id`.
+- reservas, chats, pagos y soporte no cambian de hogar.
+- admin puede auditar transferencias.

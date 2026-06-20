@@ -98,6 +98,15 @@ Reglas esperadas:
 - transferencia de custodia debe ejecutarse con RPC/control transaccional, consentimiento y audit trail.
 - adopcion no debe habilitar pagos, checkout ni bookings.
 
+Foster-2A implementacion local:
+- `pet_transfer_records` permite lectura a hogar emisor, hogar receptor cuando exista, receptor por email/usuario y admin.
+- `pet_custody_contexts` permite lectura a hogares involucrados, custodio actual por `can_view_pet` y admin.
+- no se conceden escrituras directas cliente sobre `pet_transfer_records` ni `pet_custody_contexts`; las mutaciones quedan encapsuladas en RPC.
+- `create_pet_transfer_invitation` exige familia protectora aprobada, permiso admin del hogar emisor, mascota propia activa y ausencia de otra transferencia pendiente.
+- `accept_pet_transfer` valida receptor, hogar receptor administrable, invitacion no expirada y mueve `pets.household_id` transaccionalmente.
+- `reject_pet_transfer` y `cancel_pet_transfer` limitan actores a receptor/emisor respectivamente.
+- reservas, chats, pagos, soporte y recordatorios futuros no se transfieren por RLS ni por RPC.
+
 ### pet-avatars storage
 Bucket privado para fotos de mascotas.
 Lectura requiere `can_view_pet` derivado del hogar; carga o reemplazo requiere `can_edit_pet`.

@@ -7,6 +7,9 @@ import type {
 } from "./core";
 import type { PetConditionStatus } from "./health";
 import type {
+  PetCustodyStatus,
+  PetCustodyType,
+  PetTransferStatus,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfileStatus,
   ProtectiveHouseholdReviewDecision
@@ -891,6 +894,108 @@ export interface Database {
         };
         Relationships: [];
       };
+      pet_custody_contexts: {
+        Row: {
+          id: string;
+          pet_id: string;
+          household_id: string;
+          custody_type: PetCustodyType;
+          status: PetCustodyStatus;
+          started_at: string;
+          ended_at: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          pet_id: string;
+          household_id: string;
+          custody_type?: PetCustodyType;
+          status?: PetCustodyStatus;
+          started_at?: string;
+          ended_at?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          pet_id?: string;
+          household_id?: string;
+          custody_type?: PetCustodyType;
+          status?: PetCustodyStatus;
+          started_at?: string;
+          ended_at?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      pet_transfer_records: {
+        Row: {
+          id: string;
+          pet_id: string;
+          from_household_id: string;
+          to_household_id: string | null;
+          recipient_email: string;
+          recipient_user_id: string | null;
+          initiated_by_user_id: string;
+          accepted_by_user_id: string | null;
+          status: PetTransferStatus;
+          consent_snapshot: Record<string, unknown>;
+          transfer_notes: string | null;
+          expires_at: string;
+          accepted_at: string | null;
+          rejected_at: string | null;
+          cancelled_at: string | null;
+          expired_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          pet_id: string;
+          from_household_id: string;
+          to_household_id?: string | null;
+          recipient_email: string;
+          recipient_user_id?: string | null;
+          initiated_by_user_id: string;
+          accepted_by_user_id?: string | null;
+          status?: PetTransferStatus;
+          consent_snapshot?: Record<string, unknown>;
+          transfer_notes?: string | null;
+          expires_at?: string;
+          accepted_at?: string | null;
+          rejected_at?: string | null;
+          cancelled_at?: string | null;
+          expired_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          pet_id?: string;
+          from_household_id?: string;
+          to_household_id?: string | null;
+          recipient_email?: string;
+          recipient_user_id?: string | null;
+          initiated_by_user_id?: string;
+          accepted_by_user_id?: string | null;
+          status?: PetTransferStatus;
+          consent_snapshot?: Record<string, unknown>;
+          transfer_notes?: string | null;
+          expires_at?: string;
+          accepted_at?: string | null;
+          rejected_at?: string | null;
+          cancelled_at?: string | null;
+          expired_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       pets: {
         Row: {
           id: string;
@@ -1647,6 +1752,126 @@ export interface Database {
           Database["public"]["Tables"]["protective_household_profiles"]["Row"] & {
             household_name: string | null;
             created_by_email: string | null;
+          }
+        >;
+      };
+      create_pet_transfer_invitation: {
+        Args: {
+          target_pet_id: string;
+          target_from_household_id: string;
+          target_recipient_email: string;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
+      };
+      accept_pet_transfer: {
+        Args: {
+          target_transfer_id: string;
+          target_to_household_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
+      };
+      reject_pet_transfer: {
+        Args: {
+          target_transfer_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
+      };
+      cancel_pet_transfer: {
+        Args: {
+          target_transfer_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
+      };
+      list_incoming_pet_transfer_invitations: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Pick<
+            Database["public"]["Tables"]["pet_transfer_records"]["Row"],
+            | "accepted_at"
+            | "cancelled_at"
+            | "consent_snapshot"
+            | "created_at"
+            | "expires_at"
+            | "from_household_id"
+            | "id"
+            | "pet_id"
+            | "recipient_email"
+            | "recipient_user_id"
+            | "rejected_at"
+            | "status"
+            | "to_household_id"
+            | "transfer_notes"
+          > & {
+            pet_name: string;
+            pet_species: string;
+            from_household_name: string;
+          }
+        >;
+      };
+      list_outgoing_pet_transfer_records: {
+        Args: {
+          target_household_id?: string | null;
+        };
+        Returns: Array<
+          Pick<
+            Database["public"]["Tables"]["pet_transfer_records"]["Row"],
+            | "accepted_at"
+            | "cancelled_at"
+            | "consent_snapshot"
+            | "created_at"
+            | "expires_at"
+            | "from_household_id"
+            | "id"
+            | "pet_id"
+            | "recipient_email"
+            | "recipient_user_id"
+            | "rejected_at"
+            | "status"
+            | "to_household_id"
+            | "transfer_notes"
+          > & {
+            pet_name: string;
+            pet_species: string;
+            from_household_name: string;
+            to_household_name: string | null;
+          }
+        >;
+      };
+      list_pet_custody_history: {
+        Args: {
+          target_pet_id: string;
+        };
+        Returns: Array<
+          Database["public"]["Tables"]["pet_custody_contexts"]["Row"] & {
+            household_name: string;
+          }
+        >;
+      };
+      list_pet_transfer_records_for_admin: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Pick<
+            Database["public"]["Tables"]["pet_transfer_records"]["Row"],
+            | "accepted_at"
+            | "cancelled_at"
+            | "consent_snapshot"
+            | "created_at"
+            | "expires_at"
+            | "from_household_id"
+            | "id"
+            | "pet_id"
+            | "recipient_email"
+            | "recipient_user_id"
+            | "rejected_at"
+            | "status"
+            | "to_household_id"
+            | "transfer_notes"
+          > & {
+            pet_name: string;
+            pet_species: string;
+            from_household_name: string;
+            to_household_name: string | null;
           }
         >;
       };
