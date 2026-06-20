@@ -13,6 +13,7 @@ import type {
   HouseholdsSnapshot,
   MarketplaceServiceSelection,
   PaymentMethodBrand,
+  PetDocumentWithPet,
   PetSummary,
   Reminder,
   UpdatePreferencesInput,
@@ -20,6 +21,7 @@ import type {
   UpsertAddressInput,
   Uuid
 } from "@pet/types";
+import { getPetDocumentValidityStatus } from "@pet/types";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { CoreSection } from "../components/CoreSection";
@@ -415,6 +417,7 @@ function OwnerWebSection({ children, id }: { children: ReactNode; id: OwnerWebSe
 type OwnerDashboardData = {
   householdSnapshot: HouseholdsSnapshot | null;
   pets: PetSummary[];
+  petDocuments: PetDocumentWithPet[];
   bookings: BookingSummary[];
   reminders: Reminder[];
   calendarEvents: CalendarEvent[];
@@ -424,6 +427,7 @@ type OwnerDashboardData = {
 const emptyOwnerDashboardData: OwnerDashboardData = {
   householdSnapshot: null,
   pets: [],
+  petDocuments: [],
   bookings: [],
   reminders: [],
   calendarEvents: [],
@@ -456,6 +460,16 @@ function getPetAgeLabel(birthDate: string | null) {
   }
 
   return `${years} ano(s)`;
+}
+
+function formatOwnerDashboardDate(value: string | null) {
+  if (!value) {
+    return "sin fecha";
+  }
+
+  return new Intl.DateTimeFormat("es-PA", {
+    dateStyle: "medium"
+  }).format(new Date(`${value}T00:00:00`));
 }
 
 function OwnerDashboardCard({ children }: { children: ReactNode }) {
@@ -543,6 +557,9 @@ function OwnerDashboard({
         const householdSnapshot = await getBrowserHouseholdsApiClient().getHouseholdsSnapshot();
         const householdIds = householdSnapshot.households.map((household) => household.id);
         const petsByHousehold = await Promise.all(householdIds.map((householdId) => getBrowserPetsApiClient().listHouseholdPets(householdId)));
+        const petDocumentsByHousehold = await Promise.all(
+          householdIds.map((householdId) => getBrowserPetsApiClient().listHouseholdPetDocuments(householdId))
+        );
         const bookingsByHousehold = await Promise.all(
           householdIds.map((householdId) =>
             getBrowserBookingsApiClient().listBookings({
@@ -576,6 +593,7 @@ function OwnerDashboard({
         setDashboardData({
           householdSnapshot,
           pets: petsByHousehold.flat(),
+          petDocuments: petDocumentsByHousehold.flat(),
           bookings: bookingsByHousehold.flat(),
           reminders: remindersByHousehold.flat(),
           calendarEvents: calendarEventsByHousehold.flat(),
@@ -610,6 +628,30 @@ function OwnerDashboard({
     .sort((left, right) => left.dueAt.localeCompare(right.dueAt));
   const vaccineReminders = pendingReminders.filter((reminder) => reminder.reminderType === "vaccine");
   const documentCount = dashboardData.pets.reduce((total, pet) => total + pet.documentCount, 0);
+  const documentAttentionItems = dashboardData.petDocuments
+    .map((document) => {
+      const validity = getPetDocumentValidityStatus({
+        expirationWarningDays: document.expirationWarningDays,
+        expiresAt: document.expiresAt,
+        hasExpiration: document.hasExpiration
+      });
+      const priority =
+        validity.status === "expired" ? 0 : validity.status === "expiring_soon" ? 1 : validity.status === "missing_expiration_date" ? 2 : 3;
+      const detail =
+        validity.status === "expired"
+          ? `${document.petName} - ${document.title} vencido el ${formatOwnerDashboardDate(document.expiresAt)}`
+          : validity.status === "expiring_soon"
+            ? `${document.petName} - ${document.title} vence en ${validity.daysUntilExpiration ?? 0} dia(s)`
+            : validity.status === "missing_expiration_date"
+              ? `${document.petName} - ${document.title} requiere fecha de vencimiento`
+              : null;
+
+      return { detail, document, priority, status: validity.status };
+    })
+    .filter((item): item is { detail: string; document: PetDocumentWithPet; priority: number; status: "expired" | "expiring_soon" | "missing_expiration_date" } =>
+      Boolean(item.detail)
+    )
+    .sort((left, right) => left.priority - right.priority || left.document.title.localeCompare(right.document.title));
   const recentActivity = [
     ...dashboardData.bookings.map((booking) => ({
       id: `booking-${booking.id}`,
@@ -778,9 +820,30 @@ function OwnerDashboard({
         </OwnerDashboardCard>
         <OwnerDashboardCard>
           <strong style={{ color: "#0b163f", fontSize: "15px" }}>Documentos</strong>
-          <span style={{ color: "#667085", fontSize: "12px" }}>
-            {documentCount ? `${documentCount} documento(s) cargado(s) entre tus mascotas.` : "Sin documentos cargados todavia."}
-          </span>
+          {documentAttentionItems.length ? (
+            <div style={{ display: "grid", gap: "7px" }}>
+              {documentAttentionItems.slice(0, 4).map((item) => (
+                <div
+                  key={item.document.id}
+                  style={{
+                    background: item.status === "expired" ? "rgba(254,242,242,0.9)" : "rgba(255,251,235,0.88)",
+                    border: `1px solid ${item.status === "expired" ? "rgba(185,28,28,0.18)" : "rgba(180,83,9,0.18)"}`,
+                    borderRadius: "12px",
+                    color: item.status === "expired" ? "#7f1d1d" : "#78350f",
+                    fontSize: "11px",
+                    lineHeight: 1.35,
+                    padding: "8px 10px"
+                  }}
+                >
+                  {item.detail}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span style={{ color: "#667085", fontSize: "12px" }}>
+              {documentCount ? "Todos los documentos estan al dia." : "Sin documentos cargados todavia."}
+            </span>
+          )}
           <button
             onClick={() => onNavigate("owner-web-pets")}
             style={{

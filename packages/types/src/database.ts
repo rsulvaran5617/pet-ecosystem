@@ -916,6 +916,10 @@ export interface Database {
           storage_path: string;
           mime_type: string | null;
           file_size_bytes: number | null;
+          has_expiration: boolean;
+          issued_at: string | null;
+          expires_at: string | null;
+          expiration_warning_days: number;
           created_at: string;
           updated_at: string;
         };
@@ -930,6 +934,10 @@ export interface Database {
           storage_path: string;
           mime_type?: string | null;
           file_size_bytes?: number | null;
+          has_expiration?: boolean;
+          issued_at?: string | null;
+          expires_at?: string | null;
+          expiration_warning_days?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -944,6 +952,10 @@ export interface Database {
           storage_path?: string;
           mime_type?: string | null;
           file_size_bytes?: number | null;
+          has_expiration?: boolean;
+          issued_at?: string | null;
+          expires_at?: string | null;
+          expiration_warning_days?: number;
           created_at?: string;
           updated_at?: string;
         };

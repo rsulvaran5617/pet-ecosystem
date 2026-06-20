@@ -1,5 +1,19 @@
 # HANDOFF.md
 
+## Handoff operativo 2026-06-14 - PET-DOC-EXPIRATION
+
+- Rama de trabajo: `feature/pet-doc-expiration`.
+- Slice en curso: control de vigencia documental del expediente de mascota.
+- Cambios locales implementados:
+  - nueva migracion local `supabase/migrations/20260614110000_pet_document_expiration.sql`;
+  - metadata de vigencia en `pet_documents`: `has_expiration`, `issued_at`, `expires_at`, `expiration_warning_days`;
+  - helper compartido `getPetDocumentValidityStatus`;
+  - API client para listar documentos de hogar con nombre de mascota y editar metadata documental;
+  - mobile/web owner permiten cargar documentos con vigencia y editarla sin reemplazar archivo;
+  - mobile/web owner muestran alertas y chips de vigencia en el expediente de mascota.
+- Fuera de alcance confirmado: no se tocaron Payments, booking, QR, evidencia operacional, adoption/foster, provider capacity ni marketplace.
+- Supabase remoto: migracion `20260614110000_pet_document_expiration.sql` aplicada correctamente; dry-run posterior reporto base remota al dia.
+
 ## Fecha de publicacion documentada
 
 2026-05-17

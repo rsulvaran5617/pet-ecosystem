@@ -3,8 +3,10 @@ import type {
   Database,
   PetDetail,
   PetDocument,
+  PetDocumentWithPet,
   PetSummary,
   SetPetMemoryStatusInput,
+  UpdatePetDocumentInput,
   UpdatePetInput,
   UploadPetAvatarInput,
   UploadPetDocumentInput,
@@ -26,9 +28,11 @@ export interface PetsApiClient {
   updatePet(petId: Uuid, input: UpdatePetInput): Promise<PetSummary>;
   setPetMemoryStatus(petId: Uuid, input: SetPetMemoryStatusInput): Promise<PetSummary>;
   getPetDetail(petId: Uuid): Promise<PetDetail>;
+  listHouseholdPetDocuments(householdId: Uuid): Promise<PetDocumentWithPet[]>;
   listPetDocuments(petId: Uuid): Promise<PetDocument[]>;
   uploadPetAvatar(petId: Uuid, input: UploadPetAvatarInput): Promise<PetSummary>;
   uploadPetDocument(petId: Uuid, input: UploadPetDocumentInput): Promise<PetDocument>;
+  updatePetDocument(documentId: Uuid, input: UpdatePetDocumentInput): Promise<PetDocument>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -79,8 +83,43 @@ function mapPetDocument(row: PetDocumentRow): PetDocument {
     storagePath: row.storage_path,
     mimeType: row.mime_type,
     fileSizeBytes: row.file_size_bytes,
+    hasExpiration: row.has_expiration,
+    issuedAt: row.issued_at,
+    expiresAt: row.expires_at,
+    expirationWarningDays: row.expiration_warning_days,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function normalizeDocumentExpirationInput(input: {
+  expirationWarningDays?: number;
+  expiresAt?: string | null;
+  hasExpiration?: boolean;
+  issuedAt?: string | null;
+}) {
+  const hasExpiration = input.hasExpiration ?? false;
+  const issuedAt = input.issuedAt || null;
+  const expiresAt = hasExpiration ? input.expiresAt || null : null;
+  const expirationWarningDays = input.expirationWarningDays ?? 30;
+
+  if (![7, 15, 30, 60, 90].includes(expirationWarningDays)) {
+    throw new Error("El aviso de vencimiento debe ser de 7, 15, 30, 60 o 90 dias.");
+  }
+
+  if (hasExpiration && !expiresAt) {
+    throw new Error("Indica la fecha de vencimiento del documento.");
+  }
+
+  if (issuedAt && expiresAt && expiresAt < issuedAt) {
+    throw new Error("La fecha de vencimiento no puede ser anterior a la fecha de emision.");
+  }
+
+  return {
+    expirationWarningDays,
+    expiresAt,
+    hasExpiration,
+    issuedAt
   };
 }
 
@@ -301,6 +340,17 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
 
       return documentRows.map(mapPetDocument);
     },
+    async listHouseholdPetDocuments(householdId) {
+      const petRows = await listHouseholdPetRows(supabase, householdId);
+      const petIds = petRows.map((pet) => pet.id);
+      const documentRows = await listPetDocumentsRows(supabase, petIds);
+      const petNameById = new Map(petRows.map((pet) => [pet.id, pet.name]));
+
+      return documentRows.map((row) => ({
+        ...mapPetDocument(row),
+        petName: petNameById.get(row.pet_id) ?? "Mascota"
+      }));
+    },
     async uploadPetAvatar(petId, input) {
       await requireCurrentUser(supabase);
 
@@ -338,6 +388,7 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
     },
     async uploadPetDocument(petId, input) {
       const user = await requireCurrentUser(supabase);
+      const expirationInput = normalizeDocumentExpirationInput(input);
 
       if (input.fileBytes.byteLength === 0) {
         throw new Error("Document file is empty.");
@@ -365,7 +416,11 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
           storage_bucket: petDocumentsBucketId,
           storage_path: storagePath,
           mime_type: input.mimeType ?? null,
-          file_size_bytes: input.fileBytes.byteLength
+          file_size_bytes: input.fileBytes.byteLength,
+          has_expiration: expirationInput.hasExpiration,
+          issued_at: expirationInput.issuedAt,
+          expires_at: expirationInput.expiresAt,
+          expiration_warning_days: expirationInput.expirationWarningDays
         })
         .select("*")
         .single();
@@ -373,6 +428,37 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
       if (error) {
         await supabase.storage.from(petDocumentsBucketId).remove([storagePath]).catch(() => undefined);
         fail(error, "Unable to save the pet document record.");
+      }
+
+      return mapPetDocument(data);
+    },
+    async updatePetDocument(documentId, input) {
+      const expirationInput = normalizeDocumentExpirationInput({
+        expirationWarningDays: input.expirationWarningDays,
+        expiresAt: input.expiresAt,
+        hasExpiration: input.hasExpiration,
+        issuedAt: input.issuedAt
+      });
+
+      const updatePayload: Database["public"]["Tables"]["pet_documents"]["Update"] = {
+        has_expiration: expirationInput.hasExpiration,
+        issued_at: expirationInput.issuedAt,
+        expires_at: expirationInput.expiresAt,
+        expiration_warning_days: expirationInput.expirationWarningDays
+      };
+
+      if (input.title !== undefined) {
+        updatePayload.title = input.title;
+      }
+
+      if (input.documentType !== undefined) {
+        updatePayload.document_type = input.documentType;
+      }
+
+      const { data, error } = await supabase.from("pet_documents").update(updatePayload).eq("id", documentId).select("*").single();
+
+      if (error) {
+        fail(error, "No fue posible actualizar la vigencia del documento.");
       }
 
       return mapPetDocument(data);

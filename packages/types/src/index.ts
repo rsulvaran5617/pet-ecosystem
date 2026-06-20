@@ -2,6 +2,7 @@ export * from "./base";
 export * from "./core";
 export * from "./households";
 export * from "./pets";
+export * from "./pet-document-expiration";
 export * from "./health";
 export * from "./reminders";
 export * from "./marketplace";
