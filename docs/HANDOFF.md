@@ -8,6 +8,13 @@
 - Alcance: solo capa visual mobile; no se tocaron Supabase, migraciones, contratos API, reglas de negocio, Payments, QR ni evidencia.
 - Validaciones esperadas antes de publicar: `@pet/mobile lint`, `@pet/mobile typecheck`, `@pet/mobile build` y `git diff --check`.
 
+## Actualizacion Salud sticker de vacunas 2026-06-20
+
+- Slice implementado: owner mobile puede cargar foto/PDF del sticker desde cada vacuna registrada en Salud.
+- Modelo usado: se reutiliza `pet_documents` con `document_type = vaccination_record`, titulo `Sticker vacuna - {nombre} - {fecha}` y metadata de vigencia derivada de la proxima dosis cuando existe.
+- UI: cada tarjeta de vacuna muestra bloque `Sticker / soporte documental`, estado vacio o documentos asociados, y CTA `Cargar sticker`.
+- Alcance: sin migraciones, sin cambios Supabase, sin contratos nuevos y sin alterar calculo clinico de vacunas.
+
 ## Handoff operativo 2026-06-14 - PET-DOC-EXPIRATION
 
 - Rama de trabajo: `feature/pet-doc-expiration`.
@@ -376,9 +383,13 @@ Validaciones ejecutadas durante cierre QA mobile pre-piloto 2026-05-17:
 
 ## Pendientes reales
 
-- ejecutar smoke manual del piloto con 3 owners / 3 providers / 1 admin usando las guias nuevas
-- subir manualmente el APK release a enlace privado controlado
-- registrar evidencia visual final si se requiere paquete auditable
+- generar y distribuir nueva build Android/iOS solo cuando se requiera validar en dispositivo el ultimo commit mobile (`75c18be` compacta selectores de fecha).
+- ejecutar smoke manual del piloto con 3 owners / 3 providers / 1 admin usando las guias nuevas.
+- registrar evidencia visual final si se requiere paquete auditable.
+- validar visualmente en Android/iOS el slice de sticker de vacuna en Salud antes de cerrar QA.
+- mantener `Payments MVP+` en pausa documental hasta decidir proveedor/sandbox y politica final de cobro.
+- mantener `Report card` e `internal notes` fuera de alcance hasta cerrar piloto operativo.
+- mantener `Pet Travel Passport` y `Foster/Adoption` en `documented_on_hold` hasta abrir frente V2/V2.5 separado.
 
 ## BLOCK por entorno
 

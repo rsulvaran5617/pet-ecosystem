@@ -1,11 +1,12 @@
 import { formatHouseholdPermissions, petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetConditionStatus, UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
+import type { PetConditionStatus, PetDocument, PetVaccine, UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
+import * as DocumentPicker from "expo-document-picker";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
-import { getMobileHealthApiClient } from "../../core/services/supabase-mobile";
+import { getMobileHealthApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 import { useHealthWorkspace } from "../hooks/useHealthWorkspace";
 
 const inputStyle = {
@@ -137,6 +138,23 @@ function formatDateLabel(value: string) {
     day: "2-digit",
     month: "short",
     year: "numeric"
+  });
+}
+
+function normalizeEvidenceText(value: string) {
+  return value.trim().toLocaleLowerCase("es-PA");
+}
+
+function getVaccineEvidenceDocuments(vaccine: PetVaccine, documents: PetDocument[]) {
+  const vaccineName = normalizeEvidenceText(vaccine.name);
+
+  return documents.filter((document) => {
+    if (document.documentType !== "vaccination_record") {
+      return false;
+    }
+
+    const title = normalizeEvidenceText(document.title);
+    return title.includes(vaccineName) || title.includes(vaccine.administeredOn);
   });
 }
 
@@ -310,6 +328,8 @@ export function HealthWorkspace({
   const [openDatePicker, setOpenDatePicker] = useState<"administeredOn" | "nextDueOn" | "diagnosedOn" | null>(null);
   const [activeHealthSection, setActiveHealthSection] = useState<"vaccine" | "allergy" | "condition">("vaccine");
   const [activeHealthForm, setActiveHealthForm] = useState<"vaccine" | "allergy" | "condition" | null>(null);
+  const [vaccineEvidenceDocuments, setVaccineEvidenceDocuments] = useState<PetDocument[]>([]);
+  const [isLoadingVaccineEvidence, setIsLoadingVaccineEvidence] = useState(false);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -332,6 +352,87 @@ export function HealthWorkspace({
 
     void selectPet(contextPetId);
   }, [contextPetId, enabled, pets, selectPet, selectedPetId]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadVaccineEvidence() {
+      if (!enabled || !selectedPetId) {
+        setVaccineEvidenceDocuments([]);
+        return;
+      }
+
+      setIsLoadingVaccineEvidence(true);
+
+      try {
+        const documents = await getMobilePetsApiClient().listPetDocuments(selectedPetId);
+
+        if (isActive) {
+          setVaccineEvidenceDocuments(documents.filter((document) => document.documentType === "vaccination_record"));
+        }
+      } catch {
+        if (isActive) {
+          setVaccineEvidenceDocuments([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingVaccineEvidence(false);
+        }
+      }
+    }
+
+    void loadVaccineEvidence();
+
+    return () => {
+      isActive = false;
+    };
+  }, [enabled, selectedPetId, selectedPetHealthDetail?.vaccines.length]);
+
+  async function uploadVaccineSticker(vaccine: PetVaccine) {
+    clearMessages();
+
+    const result = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: true,
+      multiple: false,
+      type: ["image/*", "application/pdf"]
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    const asset = result.assets[0];
+
+    if (!asset) {
+      return;
+    }
+
+    await runAction(
+      async () => {
+        const response = await fetch(asset.uri);
+        const fileBytes = await response.arrayBuffer();
+
+        return getMobilePetsApiClient().uploadPetDocument(vaccine.petId, {
+          documentType: "vaccination_record",
+          expirationWarningDays: 30,
+          expiresAt: vaccine.nextDueOn,
+          fileBytes,
+          fileName: asset.name,
+          hasExpiration: Boolean(vaccine.nextDueOn),
+          issuedAt: vaccine.administeredOn,
+          mimeType: asset.mimeType ?? null,
+          title: `Sticker vacuna - ${vaccine.name} - ${vaccine.administeredOn}`
+        });
+      },
+      "Sticker de vacuna cargado como documento.",
+      false
+    );
+
+    if (selectedPetId) {
+      const documents = await getMobilePetsApiClient().listPetDocuments(selectedPetId);
+      setVaccineEvidenceDocuments(documents.filter((document) => document.documentType === "vaccination_record"));
+    }
+  }
 
   if (!enabled) {
     return null;
@@ -499,14 +600,41 @@ export function HealthWorkspace({
                     }} />
                   </>
                 ) : !canEdit ? <Text style={{ color: colorTokens.muted }}>Hogar en modo solo lectura.</Text> : null}
-                {selectedPetHealthDetail.vaccines.map((vaccine) => (
-                  <View key={vaccine.id} style={inputStyle}>
-                    <Text style={{ fontWeight: "600", color: "#1c1917" }}>{vaccine.name}</Text>
-                    <Text style={{ color: colorTokens.muted }}>Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}</Text>
-                    <Text style={{ color: colorTokens.muted }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
-                    {canEdit ? <SmallButton label="Editar" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); setActiveHealthSection("vaccine"); setOpenDatePicker(null); setActiveHealthForm("vaccine"); }} /> : null}
-                  </View>
-                ))}
+                {selectedPetHealthDetail.vaccines.map((vaccine) => {
+                  const evidenceDocuments = getVaccineEvidenceDocuments(vaccine, vaccineEvidenceDocuments);
+
+                  return (
+                    <View key={vaccine.id} style={[inputStyle, { gap: 6 }]}>
+                      <Text style={{ fontWeight: "600", color: "#1c1917" }}>{vaccine.name}</Text>
+                      <Text style={{ color: colorTokens.muted }}>Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}</Text>
+                      <Text style={{ color: colorTokens.muted }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
+                      <View style={{ borderRadius: 12, backgroundColor: evidenceDocuments.length ? "rgba(15,118,110,0.08)" : "rgba(250,250,249,0.88)", padding: 8, gap: 4 }}>
+                        <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900" }}>Sticker / soporte documental</Text>
+                        {isLoadingVaccineEvidence ? (
+                          <Text style={{ color: colorTokens.muted, fontSize: 11 }}>Consultando documentos...</Text>
+                        ) : evidenceDocuments.length ? (
+                          evidenceDocuments.slice(0, 2).map((document) => (
+                            <Text key={document.id} numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>
+                              {document.title} - {document.fileName}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>
+                            Aun no hay foto o archivo del sticker asociado a esta vacuna.
+                          </Text>
+                        )}
+                      </View>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        {canEdit ? (
+                          <>
+                            <SmallButton label="Editar" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); setActiveHealthSection("vaccine"); setOpenDatePicker(null); setActiveHealthForm("vaccine"); }} />
+                            <SmallButton label="Cargar sticker" onPress={() => { void uploadVaccineSticker(vaccine); }} />
+                          </>
+                        ) : null}
+                      </View>
+                    </View>
+                  );
+                })}
               </View> : null}
 
               {activeHealthSection === "allergy" ? <View style={cardStyle}>
