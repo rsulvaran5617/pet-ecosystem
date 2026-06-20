@@ -12,7 +12,7 @@
   - mobile/web owner permiten cargar documentos con vigencia y editarla sin reemplazar archivo;
   - mobile/web owner muestran alertas y chips de vigencia en el expediente de mascota.
 - Fuera de alcance confirmado: no se tocaron Payments, booking, QR, evidencia operacional, adoption/foster, provider capacity ni marketplace.
-- Pendiente antes de aplicar remoto: revisar validaciones finales y ejecutar solo dry-run de Supabase; no hacer `supabase db push` real sin aprobacion.
+- Supabase remoto: migracion `20260614110000_pet_document_expiration.sql` aplicada correctamente; dry-run posterior reporto base remota al dia.
 
 ## Fecha de publicacion documentada
 
