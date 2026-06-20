@@ -72,11 +72,60 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `support_cases` permite un solo caso por booking en el MVP actual.
 - `audit_logs` registra mutaciones criticas de bookings, approvals de proveedores y soporte admin.
 - V2 Pet Travel Passport propone entidades conceptuales para expediente internacional de mascota: `pet_identifications`, `pet_travel_profiles`, `pet_travel_documents`, `pet_travel_requirements`, `pet_travel_checklists`, `pet_travel_checklist_items`, `pet_travel_events` y `pet_document_validations`. No estan implementadas ni tienen migracion; deben reutilizar `pets`, `pet_profiles`, `pet_documents`, salud y reminders cuando aplique.
+- V2.5 Familias Protectoras/Foster prepara `protective_household_profiles` como Foster-1A local mediante migracion `20260620133000_foster_1a_protective_household_profiles.sql`; `pet_custody_contexts` y `pet_transfer_records` siguen conceptuales para slices posteriores. La migracion Foster-1A requiere dry-run/aprobacion antes de aplicarse remoto.
 
 ## Regla de cambio
 No crear tablas fuera del modelo oficial sin actualizar esta documentacion.
 
 ## Tablas V2 propuestas pendientes de migracion
+
+### Familias protectoras / transferencia privada de mascota (V2.5)
+
+Entidades conceptuales propuestas, no implementadas:
+
+- `protective_household_profiles`
+- `pet_custody_contexts`
+- `pet_transfer_records`
+
+Objetivo:
+
+- permitir que un hogar/familia aprobado por admin actue como familia protectora, fundacion, rescatista u hogar temporal.
+- transferir una mascota existente hacia otra familia con consentimiento y trazabilidad, conservando expediente permitido.
+- preparar el camino para foster/adoption publico sin abrir marketplace de adopcion todavia.
+
+Reglas conceptuales:
+
+- `households` sigue siendo el hogar base; la capacidad protectora vive en perfil adicional.
+- la transferencia no duplica mascotas y conserva `pets.id`.
+- el RPC futuro de aceptacion debe actualizar custodias/ownership de forma transaccional y registrar audit trail.
+- documentos medicos y salud pueden viajar con consentimiento; reservas, chats, soporte y datos privados del hogar anterior no se comparten automaticamente.
+- admin debe poder aprobar/suspender perfiles protectores y auditar transferencias.
+
+Foster-1A `protective_household_profiles`:
+
+- `household_id uuid primary key references households(id) on delete cascade`
+- `status text not null default 'draft' check (status in ('draft', 'pending_review', 'approved', 'rejected', 'suspended'))`
+- `display_name text not null`
+- `organization_type text not null check (organization_type in ('individual_rescuer', 'foster_home', 'foundation', 'temporary_home', 'other'))`
+- `city text not null`
+- `state_region text null`
+- `country_code text not null default 'PA'`
+- `contact_notes text null`
+- `public_notes text null`
+- `review_notes text null`
+- `submitted_at timestamptz null`
+- `reviewed_by_user_id uuid null references auth.users(id)`
+- `reviewed_at timestamptz null`
+- `created_by_user_id uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Constraints esperados:
+
+- solo un perfil protector por hogar.
+- `submitted_at` requerido para `pending_review`.
+- `reviewed_by_user_id` y `reviewed_at` requeridos para `approved`, `rejected` o `suspended`.
+- no borrar perfiles aprobados/suspendidos desde cliente; usar cambio de estado.
 
 ### Pet Travel Passport / Expediente Internacional
 

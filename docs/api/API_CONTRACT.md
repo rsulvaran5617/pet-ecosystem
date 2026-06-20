@@ -176,6 +176,19 @@ Contratos QR propuestos:
 
 ### Foster / Adoption (V2.5 no financiero, propuesto)
 
+- `GET /protective-households/profile`
+- `POST /protective-households/profile`
+- `PATCH /protective-households/profile`
+- `POST /protective-households/profile/submit-review`
+- `RPC submit_protective_household_profile(target_household_id)`
+- `RPC review_protective_household_profile(target_household_id, decision, notes)`
+- `GET /protective-households/transfers`
+- `POST /pets/{id}/transfers`
+- `GET /pet-transfers/{transferId}`
+- `POST /pet-transfers/{transferId}/accept`
+- `POST /pet-transfers/{transferId}/reject`
+- `POST /pet-transfers/{transferId}/cancel`
+- `GET /pets/{id}/custody-history`
 - `GET /foster/profile`
 - `POST /foster/profile`
 - `PATCH /foster/profile`
@@ -200,7 +213,15 @@ Contratos QR propuestos:
 
 Notas:
 
-- estos contratos son propuesta documental futura y no existen en `packages/api-client`.
+- Foster-1A `protective-households/profile` ya cuenta con API client local tipado en `packages/api-client/src/foster.ts`; los contratos de transferencia/adopcion publica siguen como propuesta futura.
+- `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
+- Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
+- estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.
+- `submit_protective_household_profile` exige permiso `admin` del hogar, campos minimos completos y registra auditoria.
+- `review_protective_household_profile` exige rol admin de plataforma; `notes` es obligatorio para rechazo o suspension.
+- una transferencia aceptada debe ejecutarse por RPC transaccional, conservar `pets.id`, cerrar/abrir contexto de custodia y registrar consentimiento.
+- antes de aceptar transferencia, el receptor solo debe ver resumen minimo, no expediente completo.
+- documentos sensibles, recordatorios futuros y datos del hogar anterior requieren consentimiento o exclusion explicita.
 - adopcion no usa checkout, pagos, bookings, provider availability ni QR.
 - el marketplace de adopcion debe leer solo publicaciones aprobadas/publicadas.
 - la transferencia de custodia debe ejecutarse por RPC transaccional con consentimiento y audit trail.
@@ -240,6 +261,11 @@ Notas:
 - `GET /admin/fosters/pending` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/fosters/{id}/approve` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/fosters/{id}/reject` (V2.5 Foster/Adoption, propuesto)
+- `GET /admin/protective-households/pending` (V2.5 Familias Protectoras, propuesto)
+- `POST /admin/protective-households/{householdId}/approve` (V2.5 Familias Protectoras, propuesto)
+- `POST /admin/protective-households/{householdId}/reject` (V2.5 Familias Protectoras, propuesto)
+- `POST /admin/protective-households/{householdId}/suspend` (V2.5 Familias Protectoras, propuesto)
+- `GET /admin/pet-transfers` (V2.5 Familias Protectoras, propuesto)
 - `GET /admin/adoption-listings/pending` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/adoption-listings/{listingId}/approve` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/adoption-listings/{listingId}/reject` (V2.5 Foster/Adoption, propuesto)

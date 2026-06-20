@@ -117,12 +117,17 @@ Modelo conceptual documental. No implementado y sin migraciones asociadas.
 Recomendacion:
 - extender `pets` mediante tablas asociadas de acogida/adopcion, no duplicar mascotas.
 - `pets` y `pet_profiles` siguen siendo la fuente de verdad del expediente base.
+- `protective_household_profiles` representa la capacidad especial de una familia/hogar para actuar como familia protectora aprobada por admin.
+- `pet_custody_contexts` registra el hogar custodio y tipo de custodia de una mascota en el tiempo.
 - `foster_pets` representa el contexto de custodia temporal.
 - `adoption_listings` representa la publicacion publica moderada.
 - `adoption_applications` representa la solicitud del adoptante.
 - `pet_transfer_records` registra transferencia de custodia digital.
 
 Relaciones propuestas:
+- `households` 1:0..1 `protective_household_profiles`.
+- `pets` 1:N `pet_custody_contexts`.
+- `households` 1:N `pet_custody_contexts`.
 - `households` 1:N `foster_profiles`.
 - `foster_organizations` 1:N `foster_pets`.
 - `pets` 1:0..1 `foster_pets` para contexto activo de acogida.
@@ -132,6 +137,12 @@ Relaciones propuestas:
 - `adoption_applications` 1:N `adoption_documents`.
 - `adoption_applications` 1:N `adoption_screening_notes`.
 - `pet_transfer_records` referencia `pet_id`, hogar origen, hogar destino y solicitud aprobada.
+- para transferencia privada, `pet_transfer_records` puede existir sin `adoption_application_id` y debe guardar consentimiento de emisor/receptor.
+
+Tablas conceptuales iniciales para transferencia privada:
+- `protective_household_profiles`: `household_id`, `status`, `display_name`, `organization_type`, `city`, `state_region`, `country_code`, `contact_notes`, `review_notes`, `reviewed_by_user_id`, `reviewed_at`, `created_at`, `updated_at`.
+- `pet_custody_contexts`: `pet_id`, `household_id`, `custody_type`, `status`, `started_at`, `ended_at`, `created_by_user_id`, `created_at`, `updated_at`.
+- `pet_transfer_records`: `pet_id`, `from_household_id`, `to_household_id`, `initiated_by_user_id`, `accepted_by_user_id`, `status`, `recipient_email`, `consent_snapshot`, `transfer_notes`, `created_at`, `accepted_at`, `cancelled_at`.
 
 Reglas estructurales:
 - una mascota privada no aparece en marketplace.
@@ -140,6 +151,9 @@ Reglas estructurales:
 - adopcion no usa pagos, checkout, bookings ni disponibilidad provider.
 - la transferencia de custodia debe conservar audit trail y consentimiento de foster/adoptante.
 - documentos medicos sensibles no se transfieren automaticamente; deben marcarse como compartibles.
+- el primer slice recomendado no abre marketplace de adopcion: solo familia protectora aprobada y transferencia privada de mascota.
+- al aceptar transferencia, la identidad `pets.id` debe conservarse; no se duplica mascota.
+- reservas, chats, soporte y datos privados del hogar anterior no viajan automaticamente al nuevo hogar.
 
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`

@@ -1,11 +1,12 @@
 "use client";
 
-import { createCoreApiClient, createProvidersApiClient, createSupportApiClient } from "@pet/api-client";
+import { createCoreApiClient, createFosterApiClient, createProvidersApiClient, createSupportApiClient } from "@pet/api-client";
 import type { Database } from "@pet/types";
 import { createClient } from "@supabase/supabase-js";
 
 let adminSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 let adminCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
+let adminFosterApiClient: ReturnType<typeof createFosterApiClient> | null = null;
 let adminSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
 let adminProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
 
@@ -39,6 +40,14 @@ export function getAdminCoreApiClient() {
   }
 
   return adminCoreApiClient;
+}
+
+export function getAdminFosterApiClient() {
+  if (!adminFosterApiClient) {
+    adminFosterApiClient = createFosterApiClient(getAdminSupabaseClient());
+  }
+
+  return adminFosterApiClient;
 }
 
 export function getAdminSupportApiClient() {

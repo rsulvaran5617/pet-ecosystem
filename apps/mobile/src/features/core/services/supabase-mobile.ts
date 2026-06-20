@@ -3,6 +3,7 @@ import {
   createBookingOperationsApiClient,
   createBookingsApiClient,
   createCoreApiClient,
+  createFosterApiClient,
   createHealthApiClient,
   createHouseholdsApiClient,
   createMarketplaceApiClient,
@@ -29,6 +30,7 @@ declare const process:
 
 let mobileSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 let mobileCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
+let mobileFosterApiClient: ReturnType<typeof createFosterApiClient> | null = null;
 let mobileBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null = null;
 let mobileBookingOperationsApiClient: ReturnType<typeof createBookingOperationsApiClient> | null = null;
 let mobileHouseholdsApiClient: ReturnType<typeof createHouseholdsApiClient> | null = null;
@@ -163,6 +165,14 @@ export function getMobileCoreApiClient() {
   }
 
   return mobileCoreApiClient;
+}
+
+export function getMobileFosterApiClient() {
+  if (!mobileFosterApiClient) {
+    mobileFosterApiClient = createFosterApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileFosterApiClient;
 }
 
 export function getMobileBookingsApiClient() {

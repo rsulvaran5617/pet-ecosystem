@@ -105,6 +105,46 @@ manda el archivo de release (`docs/delivery/MVP_SCOPE.md`, `docs/delivery/V2_SCO
   - rol/perfil foster aprobado
 - release: V2.5 no financiero
 
+### EP-02-FOSTER-V2-53 - Familia protectora aprobada
+
+- ID: EP-02-FOSTER-V2-53
+- epica: EP-02 Hogar, roles y permisos
+- actor: owner/familia
+- descripcion: como familia quiero solicitar convertirme en familia protectora aprobada para custodiar mascotas rescatadas o temporales con reglas de confianza y privacidad.
+- criterios de aceptacion:
+  - la familia regular puede solicitar perfil protector
+  - admin aprueba, rechaza o suspende el perfil
+  - el perfil protector no convierte al hogar en provider comercial
+  - el estado de revision se muestra al usuario
+  - solo perfiles aprobados pueden iniciar transferencias de custodia
+- dependencias:
+  - households
+  - admin
+  - audit logs
+  - politicas RLS para perfil protector
+- release: V2.5 no financiero
+
+### EP-03-FOSTER-V2-54 - Transferencia privada de mascota
+
+- ID: EP-03-FOSTER-V2-54
+- epica: EP-03 Mascotas, documentos y expediente base
+- actor: familia protectora y familia receptora
+- descripcion: como familia protectora aprobada quiero transferir una mascota a otra familia con consentimiento para conservar su expediente e historia permitida.
+- criterios de aceptacion:
+  - la mascota no se duplica
+  - la transferencia requiere aceptacion del receptor
+  - se conserva `pets.id` y expediente permitido
+  - documentos sensibles y recordatorios futuros requieren consentimiento
+  - reservas, chats y datos privados del hogar anterior no se transfieren automaticamente
+  - admin puede auditar el historial de custodia
+- dependencias:
+  - protective household profile aprobado
+  - pets
+  - pet documents
+  - health
+  - RLS/RPC transaccional
+- release: V2.5 no financiero
+
 ### EP-07-FOSTER-V2-52 - Solicitudes y seguimiento de adopcion
 
 - ID: EP-07-FOSTER-V2-52

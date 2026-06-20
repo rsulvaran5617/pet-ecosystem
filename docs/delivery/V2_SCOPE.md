@@ -42,6 +42,8 @@ Agregar profundidad operativa y verticales principales del ecosistema.
   - revision documental asistida no oficial
   - exportacion PDF informativa del expediente
 - Foster/Adoption V2.5 no financiero:
+  - familias protectoras aprobadas por admin
+  - transferencia privada de custodia digital antes del marketplace publico
   - perfiles de foster owner e instituciones de rescate
   - mascotas en acogida asociadas a `pets`
   - publicaciones `Busca hogar` separadas del marketplace de servicios

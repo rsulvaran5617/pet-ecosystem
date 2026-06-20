@@ -655,6 +655,411 @@ No reutilizar sin adaptacion:
 - No publica mascotas de owners regulares sin rol foster aprobado.
 - No convierte foster en provider comercial.
 
+## U. Decision 2026-06-20: Familia protectora y transferencia privada primero
+
+El siguiente refinamiento recomendado es separar claramente dos capacidades:
+
+1. **Familia protectora**: perfil adicional asociado a un `household`, aprobado por admin, para fundaciones, rescatistas, hogares temporales o familias de acogida.
+2. **Transferencia privada de custodia**: flujo controlado para mover una mascota existente de una familia protectora a otra familia receptora, conservando expediente e historia permitida.
+
+Esta decision evita abrir de inmediato el marketplace publico de adopcion. La primera version debe enfocarse en custodia privada, consentimiento y trazabilidad.
+
+### U.1 Familia protectora como perfil adicional
+
+Recomendacion: no convertir `households` en multiples tipos rigidos ni agregar un flag simple como unica fuente de verdad. Una familia protectora debe modelarse como perfil adicional de un hogar normal:
+
+- `households` sigue representando la familia/hogar base.
+- `protective_household_profiles` representa la capacidad especial de acogida/proteccion.
+- una familia normal puede solicitar convertirse en protectora.
+- admin debe aprobar, rechazar, suspender o reactivar el perfil.
+- el hogar conserva sus permisos normales para mascotas propias.
+
+Ventajas:
+
+- no rompe el flujo actual de owners.
+- permite que una familia sea owner regular y protectora aprobada.
+- permite validacion, documentos y moderacion sin contaminar cada hogar.
+- mantiene separado lo domestico de lo institucional.
+
+### U.2 Modelo conceptual privado antes de adopcion publica
+
+Entidades conceptuales para el primer frente:
+
+#### protective_household_profiles
+
+- `household_id uuid primary key`
+- `status text`: `draft | pending_review | approved | rejected | suspended`
+- `display_name text`
+- `organization_type text`: `individual_rescuer | foster_home | foundation | temporary_home | other`
+- `city text`
+- `state_region text`
+- `country_code text`
+- `contact_notes text`
+- `review_notes text`
+- `reviewed_by_user_id uuid null`
+- `reviewed_at timestamptz null`
+- `created_at timestamptz`
+- `updated_at timestamptz`
+
+#### pet_custody_contexts
+
+- `id uuid primary key`
+- `pet_id uuid`
+- `household_id uuid`
+- `custody_type text`: `owner | foster | rescue | temporary`
+- `status text`: `active | ended | transferred | cancelled`
+- `started_at timestamptz`
+- `ended_at timestamptz null`
+- `created_by_user_id uuid`
+- `created_at timestamptz`
+- `updated_at timestamptz`
+
+#### pet_transfer_records
+
+- `id uuid primary key`
+- `pet_id uuid`
+- `from_household_id uuid`
+- `to_household_id uuid`
+- `initiated_by_user_id uuid`
+- `accepted_by_user_id uuid null`
+- `status text`: `pending | accepted | rejected | cancelled | expired`
+- `recipient_email text null`
+- `consent_snapshot jsonb`
+- `transfer_notes text null`
+- `created_at timestamptz`
+- `accepted_at timestamptz null`
+- `cancelled_at timestamptz null`
+
+### U.3 Regla de ownership/custodia
+
+Para el primer slice transaccional se recomienda:
+
+- mantener `pets.id` como identidad estable de la mascota.
+- no duplicar mascota.
+- al aceptar transferencia, cambiar el hogar responsable de la mascota de forma transaccional y crear historial en `pet_transfer_records`.
+- cerrar el `pet_custody_context` anterior y abrir uno nuevo para el hogar receptor.
+- dejar un rastro auditado con actor, fecha, consentimiento y snapshot de datos compartidos.
+
+Decision a validar antes de migracion:
+
+- si el modelo actual usa `pets.household_id` como ownership operativo, el RPC de transferencia debe actualizarlo al aceptar.
+- si se quiere conservar acceso limitado del hogar anterior, debe existir una tabla de permisos historicos o vistas read-only especificas; no debe quedar acceso completo por defecto.
+
+### U.4 Expediente que viaja con la mascota
+
+Viaja automaticamente en la primera propuesta:
+
+- datos base de `pets`.
+- perfil de `pet_profiles`.
+- avatar privado si existe.
+- estado de esterilizacion.
+- vacunas.
+- alergias.
+- condiciones.
+- documentos de salud marcados como compartibles o incluidos en consentimiento.
+- estado `in_memory` si aplica, sin reactivar mascotas fallecidas.
+
+Requiere consentimiento explicito o decision granular:
+
+- documentos sensibles no medicos.
+- documentos de identidad/microchip completos.
+- notas privadas de rescatista/foster.
+- recordatorios futuros.
+- datos personales del hogar anterior.
+
+No viaja automaticamente:
+
+- conversaciones.
+- reservas historicas comerciales.
+- soporte.
+- notas internas.
+- screening notes de otros adoptantes.
+- datos privados de otros miembros del hogar anterior.
+
+### U.5 Recordatorios, reservas e historial
+
+Recordatorios:
+
+- los recordatorios pasados quedan como historial del hogar anterior si contienen datos privados.
+- los recordatorios futuros deben poder cancelarse, copiarse al nuevo hogar o transferirse solo si fueron incluidos en consentimiento.
+- recomendacion inicial: no transferir recordatorios automaticamente; proponerlos como checklist posterior a la transferencia.
+
+Reservas historicas:
+
+- no se transfieren como gestion activa al nuevo hogar.
+- pueden permanecer como historial asociado al household que contrato el servicio.
+- el nuevo hogar no debe ver conversaciones ni pagos/metodos del hogar anterior.
+
+Historial medico:
+
+- vacunas, alergias, condiciones y documentos de salud son parte del expediente de la mascota y si deben viajar, salvo exclusion explicita.
+
+### U.6 UX recomendada por rol
+
+Owner mobile / Cuenta o Hogar:
+
+- accion `Solicitar familia protectora`.
+- estado visible: `Borrador`, `En revision`, `Aprobada`, `Rechazada`, `Suspendida`.
+- copy claro: ser familia protectora permite custodiar y transferir mascotas con trazabilidad; no habilita venta ni cobros.
+
+Owner mobile / Mascotas:
+
+- badge `En acogida` o `Custodia protectora` cuando aplique.
+- accion `Transferir mascota` solo para familia protectora aprobada y mascota bajo su custodia.
+- pantalla de confirmacion con resumen de expediente compartido.
+
+Transferencia:
+
+- seleccionar receptor por email o invitacion de hogar.
+- mostrar que la mascota conserva expediente.
+- mostrar que reservas, chats y datos privados no se comparten.
+- requerir confirmacion del emisor y aceptacion del receptor.
+
+Admin web:
+
+- cola de solicitudes de familia protectora.
+- detalle del hogar solicitante.
+- aprobar, rechazar o suspender.
+- auditoria de transferencias.
+- bloqueo de uso indebido.
+
+### U.7 Respuestas a decisiones abiertas
+
+1. Familia protectora debe ser perfil adicional de `household`, no tipo rigido ni provider comercial.
+2. Debe permitirse solicitud self-service, pero activacion final por admin.
+3. La historia se conserva con `pet_transfer_records`, `pet_custody_contexts` y `audit_logs`.
+4. Viajan datos de mascota, perfil, salud, vacunas, condiciones, alergias y documentos autorizados.
+5. Requieren consentimiento documentos sensibles, recordatorios futuros y cualquier dato no estrictamente medico.
+6. Recordatorios no deben transferirse automaticamente en el primer slice.
+7. Reservas historicas quedan con el hogar que contrato; no se abren al receptor.
+8. La familia anterior pierde acceso operativo completo salvo permiso historico explicitamente definido.
+9. La familia receptora ve solo invitacion, resumen minimo y expediente compartido despues de aceptar.
+10. Admin debe auditar perfil protector, transferencias, consentimientos, rechazos, cancelaciones y reportes.
+11. Primer slice de menor riesgo: `Foster-1A protective household profile documented/admin-approved`, seguido de `Foster-2A private pet transfer`.
+
+### U.8 Slices refinados
+
+- Foster-0A: documentacion de familia protectora y transferencia privada.
+- Foster-1A: solicitud y aprobacion de familia protectora.
+- Foster-2A: transferencia privada por invitacion/aceptacion.
+- Foster-3A: historial de custodia en ficha de mascota.
+- Foster-4A: consentimiento granular de documentos/recordatorios.
+- Foster-5A: adopcion publica/marketplace separado, solo despues de validar transferencia privada.
+
+## V. Foster-1A: diseno tecnico detallado de Familia Protectora
+
+Estado: implementacion local preparada. Incluye migracion, RLS, RPCs, tipos compartidos, API client, UI owner minima y UI admin minima. No se aplico remoto; requiere dry-run/aprobacion antes de `supabase db push`.
+
+Objetivo del slice:
+
+- permitir que una familia/hogar existente solicite ser reconocida como familia protectora.
+- permitir que admin apruebe, rechace o suspenda esa solicitud.
+- dejar lista la base de permisos para que un slice posterior habilite transferencia privada de mascotas.
+- no abrir marketplace publico de adopcion.
+
+### V.1 Tabla propuesta `protective_household_profiles`
+
+Campos minimos:
+
+- `household_id uuid primary key references households(id) on delete cascade`
+- `status text not null check (status in ('draft', 'pending_review', 'approved', 'rejected', 'suspended')) default 'draft'`
+- `display_name text not null`
+- `organization_type text not null check (organization_type in ('individual_rescuer', 'foster_home', 'foundation', 'temporary_home', 'other'))`
+- `city text not null`
+- `state_region text null`
+- `country_code text not null default 'PA'`
+- `contact_notes text null`
+- `public_notes text null`
+- `review_notes text null`
+- `submitted_at timestamptz null`
+- `reviewed_by_user_id uuid null references auth.users(id)`
+- `reviewed_at timestamptz null`
+- `created_by_user_id uuid not null references auth.users(id)`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+Restricciones recomendadas:
+
+- `display_name` no debe estar vacio.
+- `city` no debe estar vacia.
+- `country_code` debe ser ISO-3166 alpha-2.
+- `submitted_at` debe existir cuando `status = pending_review`.
+- `reviewed_at` y `reviewed_by_user_id` deben existir cuando `status in ('approved', 'rejected', 'suspended')`.
+- solo debe existir un perfil protector por `household_id`.
+
+Indices recomendados:
+
+- `protective_household_profiles(status)`
+- `protective_household_profiles(country_code, city)`
+- `protective_household_profiles(reviewed_by_user_id)` cuando no sea null.
+
+### V.2 Ownership y permisos
+
+Regla base:
+
+- solo miembros activos del hogar con permiso `admin` pueden crear, editar borrador o enviar a revision el perfil protector.
+- miembros con permiso `view` pueden ver el estado del perfil protector de su hogar.
+- admin de plataforma puede ver perfiles en revision, aprobar, rechazar, suspender y consultar auditoria.
+
+Transiciones permitidas para familia:
+
+- ausencia de perfil -> `draft`
+- `draft` -> `pending_review`
+- `rejected` -> `draft` si se permite corregir y reenviar
+
+Transiciones permitidas para admin:
+
+- `pending_review` -> `approved`
+- `pending_review` -> `rejected`
+- `approved` -> `suspended`
+- `suspended` -> `approved`
+
+Transiciones no permitidas:
+
+- familia no puede auto-aprobarse.
+- familia no puede pasar directo de `draft` a `approved`.
+- familia no puede editar campos base mientras `pending_review` si eso invalida revision; recomendacion: permitir solo volver a `draft`.
+- perfil `suspended` no puede iniciar transferencias futuras.
+
+### V.3 RLS esperada
+
+Lectura:
+
+- miembros del hogar pueden leer su propio `protective_household_profiles`.
+- admin puede leer todos.
+- ningun acceso anonimo.
+- marketplace/adopcion publica no lee esta tabla en Foster-1A.
+
+Insercion:
+
+- miembro con permiso `admin` del hogar puede insertar perfil para su `household_id`.
+- `created_by_user_id` debe ser `auth.uid()`.
+
+Actualizacion por familia:
+
+- miembro con permiso `admin` puede editar campos de perfil solo cuando `status in ('draft', 'rejected')`.
+- miembro con permiso `admin` puede enviar a revision, estableciendo `status = pending_review` y `submitted_at = now()`.
+- no puede modificar `review_notes`, `reviewed_by_user_id` ni `reviewed_at`.
+
+Actualizacion por admin:
+
+- admin puede aprobar, rechazar o suspender.
+- admin debe completar `review_notes` cuando rechaza o suspende.
+- admin debe escribir `reviewed_by_user_id = auth.uid()` y `reviewed_at = now()`.
+
+Eliminacion:
+
+- no recomendada en Foster-1A. Si se requiere, solo admin y preferiblemente soft-delete/suspension.
+
+### V.4 RPCs recomendadas
+
+Aunque algunas operaciones podrian hacerse con RLS directa, se recomienda RPC para transiciones de estado:
+
+- `submit_protective_household_profile(target_household_id uuid)`
+  - valida membresia admin del hogar.
+  - valida campos minimos.
+  - cambia `draft/rejected` a `pending_review`.
+  - setea `submitted_at`.
+  - escribe audit log.
+
+- `review_protective_household_profile(target_household_id uuid, decision text, notes text)`
+  - solo admin.
+  - `decision in ('approved', 'rejected', 'suspended')`.
+  - valida transicion.
+  - setea `reviewed_by_user_id`, `reviewed_at`, `review_notes`.
+  - escribe audit log.
+
+Para UI se puede exponer desde API client como:
+
+- `getProtectiveHouseholdProfile(householdId)`
+- `upsertProtectiveHouseholdProfile(input)`
+- `submitProtectiveHouseholdProfile(householdId)`
+- `listPendingProtectiveHouseholdProfiles()` admin
+- `reviewProtectiveHouseholdProfile(householdId, decision, notes)` admin
+
+### V.5 UX owner mobile/web
+
+Ubicacion sugerida:
+
+- `Cuenta` o `Hogar` dentro del rol owner.
+
+Estados:
+
+- sin perfil: CTA `Solicitar familia protectora`.
+- `draft`: formulario editable y CTA `Enviar a revision`.
+- `pending_review`: card de estado `En revision`; bloquear edicion directa.
+- `approved`: card `Familia protectora aprobada`; explicar que el siguiente paso futuro habilitara transferencias.
+- `rejected`: mostrar motivo y CTA `Corregir solicitud`.
+- `suspended`: mostrar estado restringido y canal de soporte.
+
+Campos de formulario:
+
+- nombre visible de la familia protectora.
+- tipo: rescatista individual, hogar temporal, fundacion, familia de acogida u otro.
+- ciudad.
+- region/provincia.
+- pais.
+- notas de contacto/contexto.
+- descripcion publica corta opcional.
+
+Copy obligatorio:
+
+- `Ser familia protectora permite custodiar y transferir mascotas con trazabilidad. No habilita venta, cobros ni publicacion publica automatica.`
+
+### V.6 UX admin web
+
+Ubicacion sugerida:
+
+- nuevo bloque futuro en Admin: `Familias protectoras`.
+- puede iniciar como subcola dentro de backoffice admin MVP si se implementa pequeno.
+
+Pantallas:
+
+- cola de solicitudes pendientes.
+- detalle de solicitud con household, solicitante, ciudad, tipo, notas y fecha de envio.
+- acciones: `Aprobar`, `Rechazar`, `Suspender`.
+- campo obligatorio de nota para rechazo/suspension.
+
+Estados vacios:
+
+- `No hay familias protectoras pendientes de revision.`
+
+### V.7 Criterios de aceptacion Foster-1A
+
+- un hogar con miembro admin puede crear borrador de perfil protector.
+- el borrador exige nombre visible, tipo, ciudad y pais.
+- el hogar puede enviar solicitud a revision.
+- mientras esta en revision, el usuario ve estado claro y no puede auto-aprobarse.
+- admin puede listar solicitudes `pending_review`.
+- admin puede aprobar o rechazar con nota.
+- estado aprobado queda visible para el hogar.
+- estado rechazado muestra motivo y permite correccion.
+- estado suspendido bloquea capacidades futuras.
+- no se crean transferencias de mascota en este slice.
+- no se publica ninguna mascota en marketplace.
+- no se tocan pagos, booking, QR, evidencia, provider services ni geolocalizacion.
+
+### V.8 Riesgos de Foster-1A
+
+- Riesgo de abuso: usuarios se declaran protectores sin verificacion real. Mitigacion: aprobacion admin obligatoria.
+- Riesgo legal: una aprobacion no equivale a certificacion legal. Mitigacion: copy y terminos claros.
+- Riesgo de privacidad: exponer datos del hogar. Mitigacion: no publicarlo en marketplace y no mostrar direccion exacta.
+- Riesgo operativo: admin sin capacidad de revisar. Mitigacion: mantener cola simple y estados claros.
+- Riesgo de scope creep: saltar a adopcion publica. Mitigacion: bloquear marketplace hasta Foster-5A.
+
+### V.9 Preparacion para Foster-2A
+
+Foster-1A solo habilita la condicion previa: `protective_household_profiles.status = approved`.
+
+Foster-2A debera validar:
+
+- hogar emisor tiene perfil protector aprobado.
+- mascota esta bajo custodia del hogar emisor.
+- receptor acepta transferencia.
+- `pets.id` se conserva.
+- se registra `pet_transfer_records`.
+- no viajan datos privados no consentidos.
+
 ## Proximas decisiones antes de implementar
 
 - Definir si foster sera rol global, perfil especial o tipo de organizacion.

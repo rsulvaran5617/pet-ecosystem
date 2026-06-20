@@ -129,6 +129,12 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - detalle de caso
 
 ### Foster/Adoption V2.5
+- Primer frente recomendado: `Familia protectora` y transferencia privada antes de marketplace publico de adopcion.
+- Owner mobile Cuenta/Hogar: accion `Solicitar familia protectora`, estado de solicitud (`Borrador`, `En revision`, `Aprobada`, `Rechazada`, `Suspendida`) y copy que aclare que no habilita venta ni pagos.
+- Owner mobile Mascotas: mascotas bajo custodia protectora muestran badge `En acogida` / `Custodia protectora`; accion `Transferir mascota` solo para familia protectora aprobada.
+- Transferencia mobile: seleccionar receptor por email/invitacion, explicar expediente compartido, aclarar que reservas/chats/datos privados no viajan, y requerir confirmacion del emisor.
+- Receptor mobile: ve invitacion con resumen minimo antes de aceptar; recibe expediente completo permitido solo despues de aceptar.
+- Admin web: cola de solicitudes de familias protectoras, detalle de hogar solicitante, aprobar/rechazar/suspender, auditoria de transferencias y bloqueo por uso indebido.
 - Foster mobile/web: Home foster, Mis mascotas en acogida, Crear mascota en acogida, Expediente, Publicar para adopcion, Solicitudes recibidas, Detalle de solicitud y Transferencia/adopcion.
 - Owner/adoptante: Marketplace de adopcion, Perfil de mascota, Solicitar adopcion, Mis solicitudes, Seguimiento y Mascota adoptada agregada a mi hogar.
 - Admin: Aprobar foster/institucion, Moderar publicaciones, Revisar reportes, Ver solicitudes sospechosas, Bloquear publicacion y Auditar transferencia.

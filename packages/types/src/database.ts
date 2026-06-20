@@ -6,6 +6,11 @@ import type {
   PaymentMethodType
 } from "./core";
 import type { PetConditionStatus } from "./health";
+import type {
+  ProtectiveHouseholdOrganizationType,
+  ProtectiveHouseholdProfileStatus,
+  ProtectiveHouseholdReviewDecision
+} from "./foster";
 import type { HouseholdInvitationStatus, HouseholdPermission } from "./households";
 import type {
   BookingMode,
@@ -829,6 +834,63 @@ export interface Database {
         };
         Relationships: [];
       };
+      protective_household_profiles: {
+        Row: {
+          household_id: string;
+          status: ProtectiveHouseholdProfileStatus;
+          display_name: string;
+          organization_type: ProtectiveHouseholdOrganizationType;
+          city: string;
+          state_region: string | null;
+          country_code: string;
+          contact_notes: string | null;
+          public_notes: string | null;
+          review_notes: string | null;
+          submitted_at: string | null;
+          reviewed_by_user_id: string | null;
+          reviewed_at: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          household_id: string;
+          status?: ProtectiveHouseholdProfileStatus;
+          display_name: string;
+          organization_type: ProtectiveHouseholdOrganizationType;
+          city: string;
+          state_region?: string | null;
+          country_code?: string;
+          contact_notes?: string | null;
+          public_notes?: string | null;
+          review_notes?: string | null;
+          submitted_at?: string | null;
+          reviewed_by_user_id?: string | null;
+          reviewed_at?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          household_id?: string;
+          status?: ProtectiveHouseholdProfileStatus;
+          display_name?: string;
+          organization_type?: ProtectiveHouseholdOrganizationType;
+          city?: string;
+          state_region?: string | null;
+          country_code?: string;
+          contact_notes?: string | null;
+          public_notes?: string | null;
+          review_notes?: string | null;
+          submitted_at?: string | null;
+          reviewed_by_user_id?: string | null;
+          reviewed_at?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       pets: {
         Row: {
           id: string;
@@ -1564,6 +1626,29 @@ export interface Database {
           next_permissions: HouseholdPermission[];
         };
         Returns: Database["public"]["Tables"]["household_members"]["Row"];
+      };
+      submit_protective_household_profile: {
+        Args: {
+          target_household_id: string;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_profiles"]["Row"];
+      };
+      review_protective_household_profile: {
+        Args: {
+          target_household_id: string;
+          decision: ProtectiveHouseholdReviewDecision;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_profiles"]["Row"];
+      };
+      list_pending_protective_household_profiles: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Database["public"]["Tables"]["protective_household_profiles"]["Row"] & {
+            household_name: string | null;
+            created_by_email: string | null;
+          }
+        >;
       };
       get_household_member_profiles: {
         Args: {

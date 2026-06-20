@@ -16,6 +16,7 @@ export * from "./bookings";
 export * from "./operations";
 export * from "./health";
 export * from "./households";
+export * from "./foster";
 export * from "./marketplace";
 export * from "./providers";
 export * from "./pets";

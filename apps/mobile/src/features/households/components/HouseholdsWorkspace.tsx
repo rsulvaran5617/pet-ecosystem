@@ -1,11 +1,11 @@
 import { colorTokens } from "@pet/ui";
-import type { HouseholdPermission } from "@pet/types";
+import type { HouseholdPermission, ProtectiveHouseholdOrganizationType, ProtectiveHouseholdProfile } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
 import { StatusChip } from "../../core/components/StatusChip";
-import { getMobileHouseholdsApiClient } from "../../core/services/supabase-mobile";
+import { getMobileFosterApiClient, getMobileHouseholdsApiClient } from "../../core/services/supabase-mobile";
 import { useHouseholdsWorkspace } from "../hooks/useHouseholdsWorkspace";
 
 const householdPermissionOptions: Array<{ label: string; value: HouseholdPermission }> = [
@@ -15,6 +15,22 @@ const householdPermissionOptions: Array<{ label: string; value: HouseholdPermiss
   { label: "Pagar", value: "pay" },
   { label: "Administrar", value: "admin" }
 ];
+
+const protectiveOrganizationTypeOptions: Array<{ label: string; value: ProtectiveHouseholdOrganizationType }> = [
+  { label: "Rescatista", value: "individual_rescuer" },
+  { label: "Hogar temporal", value: "foster_home" },
+  { label: "Fundacion", value: "foundation" },
+  { label: "Acogida", value: "temporary_home" },
+  { label: "Otro", value: "other" }
+];
+
+const protectiveStatusLabels: Record<ProtectiveHouseholdProfile["status"], string> = {
+  draft: "Borrador",
+  pending_review: "En revision",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+  suspended: "Suspendida"
+};
 
 const inputStyle = {
   borderRadius: 14,
@@ -63,6 +79,7 @@ function Field({
   helperText,
   keyboardType,
   label,
+  multiline,
   onChange,
   placeholder,
   value
@@ -70,6 +87,7 @@ function Field({
   helperText?: string;
   keyboardType?: "default" | "email-address";
   label: string;
+  multiline?: boolean;
   onChange: (value: string) => void;
   placeholder?: string;
   value: string;
@@ -83,7 +101,8 @@ function Field({
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor="#a8a29e"
-        style={inputStyle}
+        multiline={multiline}
+        style={[inputStyle, multiline ? { minHeight: 78, textAlignVertical: "top" } : null]}
         value={value}
       />
       {helperText ? <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{helperText}</Text> : null}
@@ -149,6 +168,32 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitePermissions, setInvitePermissions] = useState<HouseholdPermission[]>(["view"]);
   const [memberPermissionDrafts, setMemberPermissionDrafts] = useState<Record<string, HouseholdPermission[]>>({});
+  const [protectiveProfile, setProtectiveProfile] = useState<ProtectiveHouseholdProfile | null>(null);
+  const [isProtectiveProfileLoading, setIsProtectiveProfileLoading] = useState(false);
+  const [protectiveDisplayName, setProtectiveDisplayName] = useState("");
+  const [protectiveOrganizationType, setProtectiveOrganizationType] =
+    useState<ProtectiveHouseholdOrganizationType>("foster_home");
+  const [protectiveCity, setProtectiveCity] = useState("");
+  const [protectiveStateRegion, setProtectiveStateRegion] = useState("");
+  const [protectiveCountryCode, setProtectiveCountryCode] = useState("PA");
+  const [protectiveContactNotes, setProtectiveContactNotes] = useState("");
+  const [protectivePublicNotes, setProtectivePublicNotes] = useState("");
+
+  async function loadProtectiveProfile(householdId: string | null) {
+    if (!householdId) {
+      setProtectiveProfile(null);
+      return;
+    }
+
+    setIsProtectiveProfileLoading(true);
+
+    try {
+      const nextProfile = await getMobileFosterApiClient().getProtectiveHouseholdProfile(householdId);
+      setProtectiveProfile(nextProfile);
+    } finally {
+      setIsProtectiveProfileLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!selectedHouseholdDetail) {
@@ -161,11 +206,43 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
     );
   }, [selectedHouseholdDetail]);
 
+  useEffect(() => {
+    void loadProtectiveProfile(selectedHouseholdId);
+  }, [selectedHouseholdId]);
+
+  useEffect(() => {
+    if (protectiveProfile) {
+      setProtectiveDisplayName(protectiveProfile.displayName);
+      setProtectiveOrganizationType(protectiveProfile.organizationType);
+      setProtectiveCity(protectiveProfile.city);
+      setProtectiveStateRegion(protectiveProfile.stateRegion ?? "");
+      setProtectiveCountryCode(protectiveProfile.countryCode);
+      setProtectiveContactNotes(protectiveProfile.contactNotes ?? "");
+      setProtectivePublicNotes(protectiveProfile.publicNotes ?? "");
+      return;
+    }
+
+    setProtectiveDisplayName(selectedHouseholdDetail?.household.name ?? "");
+    setProtectiveOrganizationType("foster_home");
+    setProtectiveCity("");
+    setProtectiveStateRegion("");
+    setProtectiveCountryCode("PA");
+    setProtectiveContactNotes("");
+    setProtectivePublicNotes("");
+  }, [protectiveProfile, selectedHouseholdDetail?.household.name]);
+
   if (!enabled) {
     return null;
   }
 
   const canManageSelectedHousehold = selectedHouseholdDetail?.household.myPermissions.includes("admin") ?? false;
+  const canEditProtectiveProfile =
+    canManageSelectedHousehold && (!protectiveProfile || protectiveProfile.status === "draft" || protectiveProfile.status === "rejected");
+  const protectiveProfileIsSubmittable =
+    Boolean(protectiveDisplayName.trim()) &&
+    Boolean(protectiveCity.trim()) &&
+    protectiveCountryCode.trim().length === 2 &&
+    canEditProtectiveProfile;
 
   return (
     <View style={{ gap: 20 }}>
@@ -303,6 +380,165 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                 <Text style={{ color: colorTokens.muted }}>
                   Tus permisos: {selectedHouseholdDetail.household.myPermissions.join(", ")}
                 </Text>
+              </View>
+
+              <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                  <View style={{ gap: 4, flex: 1 }}>
+                    <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Familia protectora</Text>
+                    <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
+                      Solicita aprobacion para custodiar mascotas y preparar futuras transferencias privadas. No habilita venta, cobros ni publicacion automatica.
+                    </Text>
+                  </View>
+                  <StatusChip
+                    label={protectiveProfile ? protectiveStatusLabels[protectiveProfile.status] : "Sin solicitud"}
+                    tone={protectiveProfile?.status === "approved" ? "active" : protectiveProfile ? "pending" : "neutral"}
+                  />
+                </View>
+                {isProtectiveProfileLoading ? (
+                  <Text style={{ color: colorTokens.muted }}>Cargando estado de familia protectora...</Text>
+                ) : null}
+                {protectiveProfile?.reviewNotes ? (
+                  <Notice message={`Nota de revision: ${protectiveProfile.reviewNotes}`} tone={protectiveProfile.status === "approved" ? "info" : "error"} />
+                ) : null}
+                {canEditProtectiveProfile ? (
+                  <>
+                    <Field
+                      label="Nombre visible"
+                      onChange={setProtectiveDisplayName}
+                      placeholder="Nombre de la familia o fundacion"
+                      value={protectiveDisplayName}
+                    />
+                    <View style={{ gap: 8 }}>
+                      <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>Tipo de familia protectora</Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        {protectiveOrganizationTypeOptions.map((option) => (
+                          <Pressable
+                            key={option.value}
+                            onPress={() => setProtectiveOrganizationType(option.value)}
+                            style={{
+                              borderRadius: 999,
+                              borderWidth: 1,
+                              borderColor:
+                                option.value === protectiveOrganizationType ? "rgba(15,118,110,0.3)" : "rgba(28,25,23,0.14)",
+                              backgroundColor:
+                                option.value === protectiveOrganizationType ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.92)",
+                              paddingHorizontal: 12,
+                              paddingVertical: 8
+                            }}
+                          >
+                            <Text style={{ color: option.value === protectiveOrganizationType ? "#0f766e" : "#1c1917", fontWeight: "700" }}>
+                              {option.label}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                    <Field label="Ciudad" onChange={setProtectiveCity} placeholder="Ciudad" value={protectiveCity} />
+                    <Field label="Region/provincia" onChange={setProtectiveStateRegion} placeholder="Provincia o zona" value={protectiveStateRegion} />
+                    <Field
+                      helperText="Usa codigo de pais ISO de dos letras. Para Panama: PA."
+                      label="Pais"
+                      onChange={(value) => setProtectiveCountryCode(value.toUpperCase().slice(0, 2))}
+                      value={protectiveCountryCode}
+                    />
+                    <Field
+                      label="Notas de contacto"
+                      multiline
+                      onChange={setProtectiveContactNotes}
+                      placeholder="Como puede evaluar admin la solicitud"
+                      value={protectiveContactNotes}
+                    />
+                    <Field
+                      label="Descripcion corta"
+                      multiline
+                      onChange={setProtectivePublicNotes}
+                      placeholder="Contexto de acogida o rescate"
+                      value={protectivePublicNotes}
+                    />
+                    <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                      <Button
+                        disabled={isSubmitting || !protectiveProfileIsSubmittable}
+                        label="Guardar borrador"
+                        onPress={() => {
+                          if (!selectedHouseholdId) {
+                            return;
+                          }
+
+                          clearMessages();
+                          void runAction(
+                            () =>
+                              getMobileFosterApiClient().upsertProtectiveHouseholdProfile({
+                                householdId: selectedHouseholdId,
+                                displayName: protectiveDisplayName.trim(),
+                                organizationType: protectiveOrganizationType,
+                                city: protectiveCity.trim(),
+                                stateRegion: protectiveStateRegion.trim() || null,
+                                countryCode: protectiveCountryCode.trim().toUpperCase(),
+                                contactNotes: protectiveContactNotes.trim() || null,
+                                publicNotes: protectivePublicNotes.trim() || null
+                              }),
+                            "Solicitud de familia protectora guardada.",
+                            false
+                          ).then((nextProfile) => {
+                            setProtectiveProfile(nextProfile);
+                          });
+                        }}
+                        tone="secondary"
+                      />
+                      <Button
+                        disabled={isSubmitting || !protectiveProfileIsSubmittable}
+                        label="Enviar a revision"
+                        onPress={() => {
+                          if (!selectedHouseholdId) {
+                            return;
+                          }
+
+                          clearMessages();
+                          void runAction(
+                            async () => {
+                              await getMobileFosterApiClient().upsertProtectiveHouseholdProfile({
+                                householdId: selectedHouseholdId,
+                                displayName: protectiveDisplayName.trim(),
+                                organizationType: protectiveOrganizationType,
+                                city: protectiveCity.trim(),
+                                stateRegion: protectiveStateRegion.trim() || null,
+                                countryCode: protectiveCountryCode.trim().toUpperCase(),
+                                contactNotes: protectiveContactNotes.trim() || null,
+                                publicNotes: protectivePublicNotes.trim() || null
+                              });
+                              return getMobileFosterApiClient().submitProtectiveHouseholdProfile(selectedHouseholdId);
+                            },
+                            "Solicitud enviada a revision administrativa.",
+                            false
+                          ).then((nextProfile) => {
+                            setProtectiveProfile(nextProfile);
+                          });
+                        }}
+                      />
+                    </View>
+                  </>
+                ) : protectiveProfile ? (
+                  <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 6 }}>
+                    <Text style={{ fontSize: 16, fontWeight: "800", color: "#1c1917" }}>{protectiveProfile.displayName}</Text>
+                    <Text style={{ color: colorTokens.muted }}>
+                      {protectiveProfile.city}, {protectiveProfile.countryCode}
+                    </Text>
+                    <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
+                      {protectiveProfile.status === "pending_review"
+                        ? "Tu solicitud esta en revision. Admin debe aprobarla antes de habilitar capacidades futuras."
+                        : protectiveProfile.status === "approved"
+                          ? "Familia protectora aprobada. Las transferencias privadas se habilitaran en un slice posterior."
+                          : protectiveProfile.status === "suspended"
+                            ? "La capacidad protectora esta suspendida. Contacta soporte para revision."
+                            : "El estado actual no permite edicion directa."}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={{ color: colorTokens.muted }}>
+                    Solo integrantes administradores del hogar pueden iniciar esta solicitud.
+                  </Text>
+                )}
               </View>
 
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>

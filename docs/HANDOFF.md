@@ -15,6 +15,17 @@
 - UI: cada tarjeta de vacuna muestra bloque `Sticker / soporte documental`, estado vacio o documentos asociados, y CTA `Cargar sticker`.
 - Alcance: sin migraciones, sin cambios Supabase, sin contratos nuevos y sin alterar calculo clinico de vacunas.
 
+## Diseno Familias Protectoras / transferencia privada 2026-06-20
+
+- Nuevo alcance documentado, no implementado: familia protectora como perfil adicional de `household`, aprobado por admin, para fundaciones, rescatistas, hogares temporales o familias de acogida.
+- Decision recomendada: abrir primero transferencia privada de mascota con consentimiento antes de marketplace publico de adopcion.
+- Modelo conceptual: `protective_household_profiles`, `pet_custody_contexts` y `pet_transfer_records`; la mascota conserva `pets.id`, no se duplica y la transferencia se haria por RPC transaccional futura.
+- Privacidad: salud/documentos autorizados viajan con consentimiento; reservas, chats, soporte, datos privados del hogar anterior y notas internas no viajan automaticamente.
+- Slices propuestos: Foster-0A documentacion; Foster-1A perfil protector aprobado por admin; Foster-2A transferencia privada por invitacion/aceptacion; Foster-3A historial de custodia; Foster-4A consentimiento granular; Foster-5A marketplace publico de adopcion si se aprueba despues.
+- Restricciones: no tocar Payments, booking, QR, evidencia operacional, provider services, geolocalizacion ni marketplace de servicios.
+- Foster-1A ampliado documentalmente: tabla `protective_household_profiles`, estados, ownership, RLS, RPCs `submit_protective_household_profile` / `review_protective_household_profile`, UX owner/admin, criterios de aceptacion y riesgos. Siguiente paso posible: implementacion controlada con migracion y API/UI minima, previa aprobacion.
+- Foster-1A implementado localmente: migracion `20260620133000_foster_1a_protective_household_profiles.sql`, tipos `ProtectiveHousehold*`, API client `createFosterApiClient`, card owner en Hogares y cola admin `Familias protectoras`. Transferencia privada, marketplace publico de adopcion, Payments, booking, QR, evidencia, provider services y geolocalizacion siguen fuera de alcance. No aplicar remoto sin aprobacion explicita.
+
 ## Handoff operativo 2026-06-14 - PET-DOC-EXPIRATION
 
 - Rama de trabajo: `feature/pet-doc-expiration`.

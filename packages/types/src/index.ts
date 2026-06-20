@@ -1,6 +1,7 @@
 export * from "./base";
 export * from "./core";
 export * from "./households";
+export * from "./foster";
 export * from "./pets";
 export * from "./pet-document-expiration";
 export * from "./health";

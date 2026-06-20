@@ -6,14 +6,16 @@ import { colorTokens, visualTokens } from "@pet/ui";
 import { useEffect, useMemo, useState } from "react";
 
 import { getAdminCoreApiClient } from "../features/core/services/supabase-admin";
+import { AdminFosterWorkspace } from "../features/foster/components/AdminFosterWorkspace";
 import { AdminProvidersWorkspace } from "../features/providers/components/AdminProvidersWorkspace";
 import { AdminSupportWorkspace } from "../features/support/components/AdminSupportWorkspace";
 
-type AdminSection = "inicio" | "proveedores" | "soporte";
+type AdminSection = "inicio" | "protectora" | "proveedores" | "soporte";
 
 const adminSections: Array<{ description: string; id: AdminSection; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Colas accionables y siguiente decision." },
   { id: "proveedores", label: "Proveedores", description: "Revision de proveedores pendientes." },
+  { id: "protectora", label: "Familias protectoras", description: "Revision de solicitudes de acogida." },
   { id: "soporte", label: "Soporte", description: "Casos abiertos y resolucion basica." }
 ];
 
@@ -352,11 +354,13 @@ export default function AdminPage() {
                   </section>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: "20px" }}>
                     <AdminProvidersWorkspace onOpenQueue={() => setActiveSection("proveedores")} variant="home" />
+                    <AdminFosterWorkspace onOpenQueue={() => setActiveSection("protectora")} variant="home" />
                     <AdminSupportWorkspace onOpenQueue={() => setActiveSection("soporte")} variant="home" />
                   </div>
                 </>
               ) : null}
               {activeSection === "proveedores" ? <AdminProvidersWorkspace /> : null}
+              {activeSection === "protectora" ? <AdminFosterWorkspace /> : null}
               {activeSection === "soporte" ? <AdminSupportWorkspace /> : null}
             </div>
           </div>

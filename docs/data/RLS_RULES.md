@@ -64,9 +64,26 @@ Reglas esperadas:
 
 ### Foster/Adoption (V2.5 conceptual)
 
-Alcance documental para futuras tablas `foster_profiles`, `foster_organizations`, `foster_pets`, `adoption_listings`, `adoption_applications`, `adoption_status_history`, `adoption_documents`, `adoption_screening_notes` y `pet_transfer_records`.
+Alcance documental para futuras tablas `protective_household_profiles`, `pet_custody_contexts`, `pet_transfer_records`, `foster_profiles`, `foster_organizations`, `foster_pets`, `adoption_listings`, `adoption_applications`, `adoption_status_history`, `adoption_documents` y `adoption_screening_notes`.
 
 Reglas esperadas:
+- household regular puede solicitar perfil protector para su propio hogar, pero no queda activo hasta aprobacion admin.
+- admin puede aprobar, rechazar, suspender y auditar `protective_household_profiles`.
+- Foster-1A lectura: miembros del hogar leen su propio perfil protector; admin lee todos; anon/public no lee.
+- Foster-1A insercion: solo miembro con permiso `admin` del hogar puede crear perfil para ese hogar.
+- Foster-1A actualizacion familia: solo sobre `draft` o `rejected`; no puede escribir campos de revision.
+- Foster-1A submit: `submit_protective_household_profile` valida campos minimos y pasa a `pending_review`.
+- Foster-1A revision admin: `review_protective_household_profile` aprueba, rechaza o suspende y registra `reviewed_by_user_id`, `reviewed_at` y `review_notes`.
+- Foster-1A no permite borrado cliente; usar suspension/rechazo.
+- familia protectora aprobada puede gestionar mascotas bajo su custodia.
+- familia protectora no puede transferir mascotas de otro hogar ni mascotas fuera de su custodia activa.
+- familia receptora solo ve informacion minima de invitacion antes de aceptar transferencia.
+- familia receptora solo obtiene lectura/gestion completa del expediente compartido despues de aceptar.
+- hogar anterior no conserva acceso completo por defecto despues de transferencia; cualquier acceso historico debe definirse explicitamente.
+- `pet_transfer_records` debe mutarse via RPC transaccional con consentimiento de emisor y receptor.
+- `pet_custody_contexts` solo debe mutarse desde RPCs controladas, no por escritura directa de cliente.
+- documentos sensibles requieren consentimiento o marca de comparticion antes de transferirse.
+- datos personales entre hogares no se exponen sin autorizacion.
 - foster owner aprobado gestiona sus mascotas en acogida.
 - owner regular no puede publicar mascotas privadas salvo que tenga rol/perfil foster aprobado.
 - institucion/fundacion gestiona solo mascotas, listings y solicitudes de su organizacion.
