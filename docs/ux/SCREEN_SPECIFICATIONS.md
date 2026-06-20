@@ -53,7 +53,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - documentos de mascota muestran vigencia con chips `Sin vencimiento`, `Fecha pendiente`, `Vigente`, `Por vencer` o `Vencido`; owner mobile/web permite editar vigencia sin reemplazar el archivo
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
-- owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas.
+- owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas; el encabezado mobile muestra `MM/YYYY` y controles compactos `-1 ano` / `+1 ano` para no tapar el mes en pantallas pequenas.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 - owner mobile/web Mascotas muestra un bloque de atencion documental para documentos vencidos, por vencer o con fecha pendiente
 
@@ -63,14 +63,14 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - alergias
 - condiciones
 - resumen de vacunas en ficha de mascota usa vigencia basada en `next_due_on`: `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`
-- formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos.
+- formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos; el encabezado mobile muestra `MM/YYYY` y controles compactos para evitar cortes visuales.
 - owner web Salud usa carrusel superior de mascotas y ficha inferior compacta con resumen, vacunas, alergias y condiciones para evitar columnas altas y mantener controles pequenos
 
 ### Reminders
 - calendario
 - crear reminder
 - completar o posponer
-- formularios de recordatorios usan selector de fecha con salto directo por ano respetando fecha minima cuando aplica.
+- formularios de recordatorios usan selector de fecha con salto directo por ano respetando fecha minima cuando aplica; el encabezado mobile muestra `MM/YYYY` y controles compactos para evitar cortes visuales.
 - owner web Recordatorios usa el patron mobile con selector hogar/mascota, resumen por secciones, formulario plegable y listas compactas de pendientes, completados y calendario.
 - V2 Pet Travel Passport futuro: recordatorios de vencimiento de vacuna, certificado, microchip/documento si aplica, ventana de desparasitacion, fecha limite de tramite y verificacion previa de requisitos oficiales.
 

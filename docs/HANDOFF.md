@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Actualizacion UX selectores de fecha mobile 2026-06-20
+
+- Rama actual: `master`.
+- Slice cerrado: ajuste visual de selectores de fecha en owner mobile para Mascotas, Salud y Recordatorios.
+- Cambio aplicado: los controles de salto anual pasan a botones compactos `-1 ano` / `+1 ano` y el encabezado central usa formato numerico `MM/YYYY`, evitando que los botones grandes tapen el mes/ano en pantallas pequenas.
+- Alcance: solo capa visual mobile; no se tocaron Supabase, migraciones, contratos API, reglas de negocio, Payments, QR ni evidencia.
+- Validaciones esperadas antes de publicar: `@pet/mobile lint`, `@pet/mobile typecheck`, `@pet/mobile build` y `git diff --check`.
+
 ## Handoff operativo 2026-06-14 - PET-DOC-EXPIRATION
 
 - Rama de trabajo: `feature/pet-doc-expiration`.

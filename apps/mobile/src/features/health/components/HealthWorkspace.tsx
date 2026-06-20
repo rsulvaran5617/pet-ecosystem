@@ -141,10 +141,9 @@ function formatDateLabel(value: string) {
 }
 
 function formatMonthYearLabel(dateKey: string) {
-  return new Date(`${dateKey}T00:00:00`).toLocaleDateString("es-PA", {
-    month: "long",
-    year: "numeric"
-  });
+  const [year, month] = dateKey.split("-");
+
+  return month && year ? `${month}/${year}` : dateKey;
 }
 
 function shiftDateYear(dateKey: string, deltaYears: number, minDate?: string, maxDate?: string) {
@@ -229,23 +228,23 @@ function DatePickerField({
             ...visualTokens.mobile.softShadow
           }}
         >
-          <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(28,25,23,0.08)", flexDirection: "row", gap: 8, justifyContent: "space-between", padding: 10 }}>
+          <View style={{ alignItems: "center", borderBottomWidth: 1, borderBottomColor: "rgba(28,25,23,0.08)", flexDirection: "row", gap: 8, justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 8 }}>
             <Pressable
               accessibilityRole="button"
               onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, undefined, maxDate))}
-              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, minWidth: 74, paddingHorizontal: 8, paddingVertical: 5 }}
             >
-              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año anterior</Text>
+              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>-1 ano</Text>
             </Pressable>
-            <Text style={{ color: colorTokens.ink, flex: 1, fontSize: 12, fontWeight: "900", textAlign: "center" }}>
+            <Text numberOfLines={1} style={{ color: colorTokens.ink, flex: 1, fontSize: 13, fontWeight: "900", textAlign: "center" }}>
               {formatMonthYearLabel(visibleDate)}
             </Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, undefined, maxDate))}
-              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 7 }}
+              style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, minWidth: 74, paddingHorizontal: 8, paddingVertical: 5 }}
             >
-              <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Año siguiente</Text>
+              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>+1 ano</Text>
             </Pressable>
           </View>
           <Calendar
