@@ -14,6 +14,25 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 
 ## Modulos
 
+### Foster / Adoption V2.5
+
+Operaciones tipadas en `packages/api-client/src/foster.ts`.
+
+- `createPetAdoptionListing(petId, householdId)`
+- `updatePetAdoptionListing(input)`
+- `submitPetAdoptionListing(listingId)`
+- `pausePetAdoptionListing(listingId)`
+- `closePetAdoptionListing(listingId)`
+- `reviewPetAdoptionListing(listingId, input)`
+- `listMyPetAdoptionListings(householdId?)`
+- `listPublishedPetAdoptionListings()`
+- `getPetAdoptionListingDetail(listingId)`
+- `listPendingPetAdoptionListingsForAdmin()`
+- `uploadPetAdoptionMedia(input)`
+- `removePetAdoptionMedia(mediaId)`
+
+Foster-3A no crea solicitudes formales ni transfiere mascotas desde la vitrina. El CTA de interes queda informativo hasta Foster-4A.
+
 ### Auth
 
 - `POST /auth/register`

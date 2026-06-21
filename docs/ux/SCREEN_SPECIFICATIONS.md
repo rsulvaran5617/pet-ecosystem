@@ -134,6 +134,9 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Owner mobile Mascotas: mascotas bajo custodia protectora muestran badge `En acogida` / `Custodia protectora`; accion `Transferir mascota` solo para familia protectora aprobada.
 - Transferencia mobile Foster-2A: desde `Mascotas`, familia protectora aprobada selecciona receptor por email, agrega nota opcional y ve copy de expediente compartido; reservas/chats/pagos/soporte/recordatorios futuros no viajan.
 - Receptor mobile Foster-2A: `Hogares` muestra invitaciones de mascota con resumen minimo, conteos de expediente y acciones `Aceptar en este hogar` / `Rechazar`; recibe expediente completo permitido solo despues de aceptar.
+- Foster-3A owner mobile: `Mascotas` muestra vitrina read-only `Mascotas que buscan hogar` con cards publicadas, foto principal, ciudad, resumen y CTA informativo `Me interesa`; no crea solicitudes ni transfiere mascotas.
+- Foster-3A familia protectora mobile: desde el detalle de mascota se puede preparar publicacion, cargar fotos, editar textos publicos seguros y enviar a revision; solo aparece para hogar protector aprobado y mascotas activas.
+- Foster-3A admin web: `Familias protectoras` incluye cola de publicaciones de adopcion pendientes con textos publicos, galeria de fotos firmadas y acciones aprobar, rechazar o pausar.
 - Admin web: cola de solicitudes de familias protectoras, detalle de hogar solicitante, aprobar/rechazar/suspender, auditoria read-only de transferencias privadas y bloqueo por uso indebido.
 - Foster mobile/web: Home foster, Mis mascotas en acogida, Crear mascota en acogida, Expediente, Publicar para adopcion, Solicitudes recibidas, Detalle de solicitud y Transferencia/adopcion.
 - Owner/adoptante: Marketplace de adopcion, Perfil de mascota, Solicitar adopcion, Mis solicitudes, Seguimiento y Mascota adoptada agregada a mi hogar.

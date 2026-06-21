@@ -38,6 +38,19 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `booking_pricing`
 - `booking_status_history`
 - `chat_threads`
+
+## Foster-3A local pendiente de aplicar remoto
+
+- `pet_adoption_listings`
+  - publicacion moderada para una mascota existente.
+  - referencia `pet_id` a `pets(id)` y `household_id` a `households(id)`.
+  - estados: `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`.
+  - campos publicos seguros: historia, personalidad, resumen de salud publico, requisitos, compatibilidades, necesidades especiales, ciudad y pais.
+- `pet_adoption_listing_media`
+  - galeria de la publicacion.
+  - bucket privado `pet-adoption-media`, path privado, portada, orden y estado de moderacion.
+
+No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A.
 - `chat_messages`
 - `reviews`
 - `support_cases`

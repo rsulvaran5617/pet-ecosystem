@@ -1,5 +1,18 @@
 # HANDOFF.md
 
+## Foster-3A vitrina controlada de adopcion/acogida 2026-06-21
+
+- Slice implementado localmente, no aplicado remoto: vitrina controlada de mascotas en adopcion/acogida para familias protectoras aprobadas.
+- Migracion local: `supabase/migrations/20260621100000_foster_3a_adoption_showcase.sql`.
+- Modelo: `pet_adoption_listings` para publicacion moderada y `pet_adoption_listing_media` para galeria privada en bucket `pet-adoption-media`.
+- Estados de publicacion: `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`.
+- Regla central: la mascota conserva `pets.id`; no se duplica expediente ni se mueve custodia en esta fase.
+- Owner mobile `Mascotas`: familia protectora aprobada puede preparar publicacion, cargar fotos y enviar a revision; familias autenticadas ven vitrina read-only `Mascotas que buscan hogar`.
+- Admin web `Familias protectoras`: nueva cola de publicaciones pendientes con texto publico, fotos firmadas y acciones aprobar/rechazar/pausar.
+- Decision de alcance: videos quedan para Foster-3B; solicitudes formales/interes quedan para Foster-4A; conexion con transferencia privada Foster-2A queda para Foster-6A.
+- Fuera de alcance: Payments, booking, QR, evidencia operacional, provider services, geolocalizacion, venta de mascotas y marketplace comercial de servicios.
+- Validaciones requeridas antes de aplicar remoto: typecheck/lint/build mobile/admin, `git diff --check` y `npx supabase db push --dry-run --include-all --linked --yes`.
+
 ## Actualizacion UX selectores de fecha mobile 2026-06-20
 
 ## Foster-2A transferencia privada de mascota 2026-06-20

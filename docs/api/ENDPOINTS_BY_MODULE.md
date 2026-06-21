@@ -35,6 +35,21 @@
 - `POST /household-invitations/{id}/reject`
 - `PATCH /households/{id}/members/{memberId}/permissions`
 
+## Foster / Adoption V2.5
+
+- `POST /foster/adoption-listings`
+- `PATCH /foster/adoption-listings/{listingId}`
+- `POST /foster/adoption-listings/{listingId}/submit`
+- `POST /foster/adoption-listings/{listingId}/pause`
+- `POST /foster/adoption-listings/{listingId}/close`
+- `POST /admin/foster/adoption-listings/{listingId}/review`
+- `GET /foster/adoption-listings/mine`
+- `GET /foster/adoption-listings/published`
+- `GET /foster/adoption-listings/{listingId}`
+- `GET /admin/foster/adoption-listings/pending`
+- `POST /foster/adoption-listings/{listingId}/media`
+- `DELETE /foster/adoption-listing-media/{mediaId}`
+
 ## Pets / Health / Reminders
 
 - `GET /pets`

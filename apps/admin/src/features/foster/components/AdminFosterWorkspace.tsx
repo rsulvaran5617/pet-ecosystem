@@ -1,6 +1,12 @@
 "use client";
 
-import type { AdminProtectiveHouseholdProfile, PetTransferRecord, ProtectiveHouseholdReviewDecision, Uuid } from "@pet/types";
+import type {
+  AdminProtectiveHouseholdProfile,
+  PetAdoptionListing,
+  PetTransferRecord,
+  ProtectiveHouseholdReviewDecision,
+  Uuid
+} from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 import { useEffect, useMemo, useState } from "react";
 
@@ -45,6 +51,15 @@ const transferStatusLabels: Record<PetTransferRecord["status"], string> = {
   cancelled: "Cancelada",
   expired: "Expirada",
   pending: "Pendiente",
+  rejected: "Rechazada"
+};
+
+const adoptionListingStatusLabels: Record<PetAdoptionListing["status"], string> = {
+  closed: "Cerrada",
+  draft: "Borrador",
+  paused: "Pausada",
+  pending_review: "En revision",
+  published: "Publicada",
   rejected: "Rechazada"
 };
 
@@ -96,8 +111,11 @@ export function AdminFosterWorkspace({
 }) {
   const [profiles, setProfiles] = useState<AdminProtectiveHouseholdProfile[]>([]);
   const [transfers, setTransfers] = useState<PetTransferRecord[]>([]);
+  const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(null);
+  const [selectedAdoptionListingId, setSelectedAdoptionListingId] = useState<Uuid | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
+  const [adoptionReviewNotes, setAdoptionReviewNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,22 +125,36 @@ export function AdminFosterWorkspace({
     () => profiles.find((profile) => profile.householdId === selectedHouseholdId) ?? profiles[0] ?? null,
     [profiles, selectedHouseholdId]
   );
+  const selectedAdoptionListing = useMemo(
+    () =>
+      adoptionListings.find((listing) => listing.id === selectedAdoptionListingId) ??
+      adoptionListings[0] ??
+      null,
+    [adoptionListings, selectedAdoptionListingId]
+  );
 
   async function refresh(preferredHouseholdId?: Uuid | null) {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const [nextProfiles, nextTransfers] = await Promise.all([
+      const [nextProfiles, nextTransfers, nextAdoptionListings] = await Promise.all([
         getAdminFosterApiClient().listPendingProtectiveHouseholdProfiles(),
-        getAdminFosterApiClient().listAdminPetTransfers()
+        getAdminFosterApiClient().listAdminPetTransfers(),
+        getAdminFosterApiClient().listPendingPetAdoptionListingsForAdmin()
       ]);
       setProfiles(nextProfiles);
       setTransfers(nextTransfers);
+      setAdoptionListings(nextAdoptionListings);
       setSelectedHouseholdId(
         preferredHouseholdId && nextProfiles.some((profile) => profile.householdId === preferredHouseholdId)
           ? preferredHouseholdId
           : nextProfiles[0]?.householdId ?? null
+      );
+      setSelectedAdoptionListingId((currentListingId) =>
+        currentListingId && nextAdoptionListings.some((listing) => listing.id === currentListingId)
+          ? currentListingId
+          : nextAdoptionListings[0]?.id ?? null
       );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar familias protectoras pendientes.");
@@ -167,6 +199,42 @@ export function AdminFosterWorkspace({
     }
   }
 
+  async function reviewSelectedAdoptionListing(decision: "approved" | "paused" | "rejected") {
+    if (!selectedAdoptionListing) {
+      setErrorMessage("Selecciona primero una publicacion de adopcion.");
+      return;
+    }
+
+    if ((decision === "rejected" || decision === "paused") && !adoptionReviewNotes.trim()) {
+      setErrorMessage("La nota es obligatoria para rechazar o pausar una publicacion.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      await getAdminFosterApiClient().reviewPetAdoptionListing(selectedAdoptionListing.id, {
+        decision,
+        notes: adoptionReviewNotes.trim() || null
+      });
+      setInfoMessage(
+        decision === "approved"
+          ? "Publicacion de adopcion aprobada."
+          : decision === "rejected"
+            ? "Publicacion de adopcion rechazada."
+            : "Publicacion de adopcion pausada."
+      );
+      setAdoptionReviewNotes("");
+      await refresh();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible revisar la publicacion de adopcion.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -183,7 +251,9 @@ export function AdminFosterWorkspace({
             {profiles.length}
           </strong>
         </div>
-        <p style={{ margin: 0, color: "#52525b" }}>{transfers.length} transferencia(s) privadas auditables.</p>
+        <p style={{ margin: 0, color: "#52525b" }}>
+          {transfers.length} transferencia(s) privadas auditables. {adoptionListings.length} publicacion(es) de adopcion pendientes.
+        </p>
         {isLoading && !profiles.length ? <p style={{ margin: 0, color: "#52525b" }}>Cargando solicitudes...</p> : null}
         {errorMessage ? <p style={{ margin: 0, color: "#991b1b" }}>{errorMessage}</p> : null}
         {!profiles.length && !isLoading ? (
@@ -315,6 +385,124 @@ export function AdminFosterWorkspace({
           )}
         </article>
       </div>
+      <section style={cardStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "24px" }}>Publicaciones de adopcion</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+              Revisa textos publicos y galeria antes de mostrarlos a familias interesadas.
+            </p>
+          </div>
+          <span style={{ color: "#52525b" }}>{adoptionListings.length} pendiente(s)</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0,1fr)", gap: "18px", alignItems: "start" }}>
+          <div style={{ display: "grid", gap: "10px" }}>
+            {adoptionListings.length ? (
+              adoptionListings.map((listing) => (
+                <button
+                  key={listing.id}
+                  onClick={() => setSelectedAdoptionListingId(listing.id)}
+                  type="button"
+                  style={{
+                    ...inputStyle,
+                    textAlign: "left",
+                    display: "grid",
+                    gap: "6px",
+                    cursor: "pointer",
+                    borderColor:
+                      listing.id === selectedAdoptionListing?.id ? "rgba(0,138,151,0.32)" : "rgba(24,24,27,0.14)"
+                  }}
+                >
+                  <strong>{listing.petName}</strong>
+                  <span style={{ color: "#52525b" }}>{listing.title}</span>
+                  <span style={{ color: "#71717a" }}>{listing.city}, {listing.countryCode}</span>
+                </button>
+              ))
+            ) : (
+              <p style={{ margin: 0, color: "#52525b" }}>No hay publicaciones pendientes.</p>
+            )}
+          </div>
+          <article style={{ ...inputStyle, display: "grid", gap: "12px" }}>
+            {selectedAdoptionListing ? (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div>
+                    <strong style={{ fontSize: "18px" }}>{selectedAdoptionListing.petName}</strong>
+                    <p style={{ margin: "4px 0 0", color: "#52525b" }}>{selectedAdoptionListing.householdName}</p>
+                  </div>
+                  <span
+                    style={{
+                      borderRadius: "999px",
+                      background: "rgba(217,119,6,0.12)",
+                      color: "#b45309",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      padding: "6px 10px"
+                    }}
+                  >
+                    {adoptionListingStatusLabels[selectedAdoptionListing.status]}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "10px" }}>
+                  <div style={inputStyle}><strong>Titulo</strong><p style={{ margin: "6px 0 0", color: "#52525b" }}>{selectedAdoptionListing.title}</p></div>
+                  <div style={inputStyle}><strong>Ubicacion</strong><p style={{ margin: "6px 0 0", color: "#52525b" }}>{selectedAdoptionListing.city}, {selectedAdoptionListing.countryCode}</p></div>
+                  <div style={inputStyle}><strong>Mascota</strong><p style={{ margin: "6px 0 0", color: "#52525b" }}>{selectedAdoptionListing.petSpecies} {selectedAdoptionListing.petBreed ? `- ${selectedAdoptionListing.petBreed}` : ""}</p></div>
+                </div>
+                {[
+                  ["Historia", selectedAdoptionListing.publicStory],
+                  ["Personalidad", selectedAdoptionListing.personalityNotes],
+                  ["Salud publica", selectedAdoptionListing.publicHealthSummary],
+                  ["Requisitos", selectedAdoptionListing.adoptionRequirements],
+                  ["Necesidades especiales", selectedAdoptionListing.specialNeedsNotes]
+                ].map(([label, value]) => (
+                  <div key={label} style={inputStyle}>
+                    <strong>{label}</strong>
+                    <p style={{ margin: "6px 0 0", color: "#52525b", lineHeight: 1.55 }}>{value || "Sin informacion cargada."}</p>
+                  </div>
+                ))}
+                {selectedAdoptionListing.media.length ? (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {selectedAdoptionListing.media.map((media) =>
+                      media.signedUrl ? (
+                        <img
+                          alt={media.fileName}
+                          key={media.id}
+                          src={media.signedUrl}
+                          style={{ borderRadius: "14px", height: "112px", objectFit: "cover", width: "148px" }}
+                        />
+                      ) : null
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, color: "#71717a" }}>Sin fotos cargadas.</p>
+                )}
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <span style={{ color: "#71717a", fontSize: "12px", textTransform: "uppercase" }}>Nota de revision</span>
+                  <textarea
+                    onChange={(event) => setAdoptionReviewNotes(event.target.value)}
+                    placeholder="Motivo de rechazo/pausa o nota interna opcional."
+                    style={{ ...inputStyle, minHeight: "88px", resize: "vertical" }}
+                    value={adoptionReviewNotes}
+                  />
+                </label>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedAdoptionListing("approved")}>
+                    Aprobar publicacion
+                  </Button>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedAdoptionListing("rejected")} tone="danger">
+                    Rechazar
+                  </Button>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedAdoptionListing("paused")} tone="secondary">
+                    Pausar
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p style={{ margin: 0, color: "#52525b" }}>Selecciona una publicacion pendiente para revisarla.</p>
+            )}
+          </article>
+        </div>
+      </section>
       <section style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <div>

@@ -38,7 +38,7 @@
 - `pet_document_expiration` -> `partial`
 - `geo_marketplace_v2` -> `partial`
 - `pet_travel_passport_v2` -> `documented_on_hold`
-- `foster_adoption_v2_5` -> `documented_on_hold`
+- `foster_adoption_v2_5` -> `partial`
 - `pilot_mobile_qa_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
@@ -83,6 +83,7 @@
 - Foster/Adoption V2.5 queda en `documented_on_hold`: `docs/modules/foster_adoption.md` define familias protectoras aprobadas, transferencia privada de custodia, hogares de acogida, rescate y adopcion como nodo no financiero para mascotas bajo custodia temporal. La ruta recomendada inicia con perfil protector aprobado por admin y transferencia privada antes de marketplace publico. No es provider comercial, no habilita pagos ni venta de mascotas y requiere consentimiento/auditoria antes de mover expediente.
 - Foster-1A queda implementado y aplicado remoto: `protective_household_profiles`, tipos/API client, UI owner en Hogares para solicitar/ver estado y UI admin para revisar/aprobar/rechazar/suspender.
 - Foster-2A queda implementado y aplicado remoto: migracion `20260620153000_foster_2a_private_pet_transfers.sql`, tablas `pet_custody_contexts` / `pet_transfer_records`, RPCs de invitacion/aceptacion/rechazo/cancelacion, UI owner mobile para transferir/recibir invitaciones y auditoria admin web. No incluye marketplace publico de adopcion, transferencia de reservas/chats/pagos/soporte ni recordatorios futuros. Pendiente QA manual antes de piloto real.
+- Foster-3A queda implementado localmente y pendiente de aplicar remoto: migracion `20260621100000_foster_3a_adoption_showcase.sql`, tablas `pet_adoption_listings` / `pet_adoption_listing_media`, bucket privado `pet-adoption-media`, RPCs de publicacion/revision/listado, UI owner mobile de vitrina controlada y UI admin de moderacion. Videos, solicitudes formales y conexion automatica con transferencia privada quedan diferidos.
 - Baseline `v0.3.0-booking-capacity-ops.1` queda aprobado para piloto controlado sobre `master` en `a677f7b`; readiness documentado en `docs/delivery/V0_3_0_PILOT_READINESS.md`.
 - Piloto controlado real: runbook operativo creado en `docs/delivery/PILOT_CONTROLLED_RUNBOOK.md` y guia SQL no destructiva en `docs/delivery/PILOT_DATA_PREPARATION.sql` para preparar 3 proveedores, 3 propietarios y 1 admin sin borrar historicos ni ejecutar migraciones.
 - Cierre QA mobile pre-piloto: autenticacion mobile ordenada, compuerta de hogar post-login, saludo owner con nombre real, contexto de mascota persistente en navegacion inferior, mensajes tipo bandeja/acordeon, reservas owner filtradas por Activas, QR owner cerrable/auto-limpiable tras check-in/check-out, requery controlado sin Realtime y guias de APK/quick-start para owners, providers y admin.

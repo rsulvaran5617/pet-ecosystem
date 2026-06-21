@@ -197,3 +197,19 @@ Foster-2A implementacion local:
 - el soporte MVP hereda su contexto desde el booking y no reutiliza `chat_threads`
 - `support_cases` queda limitado a una incidencia por booking en este baseline
 - las entidades sensibles deben quedar auditadas o con trazabilidad minima equivalente
+
+## Foster-3A - Vitrina controlada de adopcion/acogida
+
+Modelo local pendiente de aplicar remoto:
+
+- `pet_adoption_listings`: publicacion moderada de una mascota existente (`pets.id`) bajo custodia de una familia protectora aprobada. Estados: `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`. Incluye textos publicos seguros, ciudad/pais y metadata de revision admin.
+- `pet_adoption_listing_media`: galeria asociada a la publicacion, con bucket privado `pet-adoption-media`, path privado, orden, portada y estado de moderacion por archivo.
+
+Reglas de identidad:
+
+- No duplica mascotas.
+- No mueve custodia ni `pets.household_id`.
+- No transfiere reservas, chats, pagos, soporte ni recordatorios.
+- No expone documentos privados completos; el resumen de salud es texto publico controlado por la familia protectora y moderado por admin.
+
+Videos quedan diferidos a Foster-3B; Foster-3A usa fotos privadas con URLs firmadas temporales.

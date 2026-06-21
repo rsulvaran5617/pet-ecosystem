@@ -2,9 +2,48 @@
 
 ## Estado
 
-Nodo futuro V2.5 no financiero. Documentado, no implementado.
+Nodo V2.5 no financiero abierto por slices controlados.
 
-No hay codigo, migraciones, Supabase, RLS reales, API clients ni UI asociados a este documento. Este alcance no modifica flujos actuales de owner, provider, bookings, payments, QR, evidencias, geolocalizacion ni marketplace de servicios.
+Foster-1A y Foster-2A ya estan implementados y aplicados remoto: familia protectora aprobada por admin y transferencia privada de mascota con consentimiento. Foster-3A queda implementado localmente como vitrina controlada de adopcion/acogida responsable con galeria de fotos, revision admin y lectura por familias autenticadas; requiere aplicar migracion remota antes de QA.
+
+Este alcance no modifica flujos actuales de owner, provider, bookings, payments, QR, evidencias, geolocalizacion ni marketplace comercial de servicios.
+
+## Foster-3A - Vitrina controlada de adopcion/acogida
+
+Decision de alcance:
+
+- Se implementan publicaciones moderadas de mascotas bajo custodia de una familia protectora aprobada.
+- La mascota conserva `pets.id`; no se duplica expediente.
+- La vitrina queda separada del marketplace comercial: no hay precios, reservas, checkout ni venta de mascotas.
+- Se implementa galeria de fotos en bucket privado `pet-adoption-media` con URLs firmadas temporales.
+- Videos quedan diferidos a Foster-3B para validar limites, moderacion y experiencia de reproduccion sin ampliar riesgo del primer slice.
+- El CTA `Me interesa` es informativo en Foster-3A; solicitudes formales quedan para Foster-4A y conexion con transferencia para Foster-6A.
+
+Modelo implementado localmente:
+
+- `pet_adoption_listings`
+  - referencia a `pet_id` y `household_id`.
+  - estados `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`.
+  - textos publicos seguros: historia, personalidad, salud publica, compatibilidades, necesidades especiales y requisitos.
+  - ciudad/pais sin direccion exacta.
+- `pet_adoption_listing_media`
+  - archivos del bucket privado `pet-adoption-media`.
+  - `media_type`, `display_order`, `is_cover` y `moderation_status`.
+
+Reglas:
+
+- Solo familias protectoras aprobadas pueden crear/editar publicaciones de mascotas de su hogar.
+- Mascotas `in_memory` no pueden publicarse.
+- Solo una publicacion activa por mascota.
+- Admin revisa/aprueba/rechaza/pausa publicaciones antes de mostrarlas.
+- Usuarios autenticados leen solo publicaciones `published`.
+- No se exponen documentos privados, direccion exacta ni datos sensibles de la familia protectora.
+
+UI implementada localmente:
+
+- Owner mobile `Mascotas`: bloque para preparar publicacion de adopcion, cargar fotos y enviar a revision cuando el hogar es familia protectora aprobada.
+- Owner mobile `Mascotas`: vitrina read-only `Mascotas que buscan hogar` con cards publicadas y CTA informativo.
+- Admin web `Familias protectoras`: cola de publicaciones pendientes con detalle, fotos firmadas y acciones aprobar/rechazar/pausar.
 
 ## Decision recomendada
 

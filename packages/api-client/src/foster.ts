@@ -2,6 +2,11 @@ import type {
   AdminProtectiveHouseholdProfile,
   CreatePetTransferInvitationInput,
   Database,
+  PetAdoptionListing,
+  PetAdoptionListingInput,
+  PetAdoptionListingMedia,
+  PetAdoptionListingReviewInput,
+  PetAdoptionMediaUploadInput,
   PetCustodyContext,
   PetTransferRecord,
   ProtectiveHouseholdProfile,
@@ -20,6 +25,12 @@ type PetTransferFunctionRow =
   | Database["public"]["Functions"]["list_incoming_pet_transfer_invitations"]["Returns"][number]
   | Database["public"]["Functions"]["list_pet_transfer_records_for_admin"]["Returns"][number];
 type PetCustodyHistoryRow = Database["public"]["Functions"]["list_pet_custody_history"]["Returns"][number];
+type PetAdoptionListingFunctionRow =
+  | Database["public"]["Functions"]["list_my_pet_adoption_listings"]["Returns"][number]
+  | Database["public"]["Functions"]["list_published_pet_adoption_listings"]["Returns"][number]
+  | Database["public"]["Functions"]["list_pending_pet_adoption_listings_for_admin"]["Returns"][number]
+  | Database["public"]["Functions"]["get_pet_adoption_listing_detail"]["Returns"][number];
+type PetAdoptionListingMediaRow = Database["public"]["Tables"]["pet_adoption_listing_media"]["Row"];
 
 export interface FosterApiClient {
   getProtectiveHouseholdProfile(householdId: Uuid): Promise<ProtectiveHouseholdProfile | null>;
@@ -38,6 +49,18 @@ export interface FosterApiClient {
   listOutgoingPetTransfers(householdId?: Uuid | null): Promise<PetTransferRecord[]>;
   listPetCustodyHistory(petId: Uuid): Promise<PetCustodyContext[]>;
   listAdminPetTransfers(): Promise<PetTransferRecord[]>;
+  createPetAdoptionListing(petId: Uuid, householdId: Uuid): Promise<PetAdoptionListing>;
+  updatePetAdoptionListing(input: PetAdoptionListingInput): Promise<PetAdoptionListing>;
+  submitPetAdoptionListing(listingId: Uuid): Promise<PetAdoptionListing>;
+  pausePetAdoptionListing(listingId: Uuid): Promise<PetAdoptionListing>;
+  closePetAdoptionListing(listingId: Uuid): Promise<PetAdoptionListing>;
+  reviewPetAdoptionListing(listingId: Uuid, input: PetAdoptionListingReviewInput): Promise<PetAdoptionListing>;
+  listMyPetAdoptionListings(householdId?: Uuid | null): Promise<PetAdoptionListing[]>;
+  listPublishedPetAdoptionListings(): Promise<PetAdoptionListing[]>;
+  getPetAdoptionListingDetail(listingId: Uuid): Promise<PetAdoptionListing | null>;
+  listPendingPetAdoptionListingsForAdmin(): Promise<PetAdoptionListing[]>;
+  uploadPetAdoptionMedia(input: PetAdoptionMediaUploadInput): Promise<PetAdoptionListingMedia>;
+  removePetAdoptionMedia(mediaId: Uuid): Promise<void>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -65,13 +88,21 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("list_incoming_pet_transfer_invitations") ||
     message.includes("list_outgoing_pet_transfer_records") ||
     message.includes("list_pet_transfer_records_for_admin") ||
-    message.includes("list_pet_custody_history")
+    message.includes("list_pet_custody_history") ||
+    message.includes("pet_adoption_listings") ||
+    message.includes("pet_adoption_listing_media") ||
+    message.includes("create_pet_adoption_listing") ||
+    message.includes("update_pet_adoption_listing") ||
+    message.includes("submit_pet_adoption_listing") ||
+    message.includes("review_pet_adoption_listing") ||
+    message.includes("list_published_pet_adoption_listings") ||
+    message.includes("list_pending_pet_adoption_listings_for_admin")
   ) && (message.includes("schema cache") || message.includes("could not find") || message.includes("does not exist"));
 }
 
 function failMissingFosterSchema(error: { message: string } | null): never {
   if (isMissingFosterSchemaError(error)) {
-    throw new Error("La migracion Foster-1A aun no esta aplicada en Supabase remoto.");
+    throw new Error("Las migraciones Foster necesarias aun no estan aplicadas en Supabase remoto.");
   }
 
   fail(error, "Foster-1A operation failed.");
@@ -110,6 +141,116 @@ function mapProtectiveHouseholdProfile(row: ProtectiveHouseholdProfileRow): Prot
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
+}
+
+async function mapPetAdoptionMedia(
+  supabase: FosterSupabaseClient,
+  row: PetAdoptionListingMediaRow
+): Promise<PetAdoptionListingMedia> {
+  const { data } = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 60 * 60);
+
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    mediaType: row.media_type,
+    storageBucket: row.storage_bucket,
+    storagePath: row.storage_path,
+    fileName: row.file_name,
+    fileSizeBytes: row.file_size_bytes,
+    mimeType: row.mime_type,
+    displayOrder: row.display_order,
+    isCover: row.is_cover,
+    moderationStatus: row.moderation_status,
+    signedUrl: data?.signedUrl ?? null,
+    createdByUserId: row.created_by_user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+async function listPetAdoptionMedia(
+  supabase: FosterSupabaseClient,
+  listingIds: Uuid[]
+): Promise<Map<Uuid, PetAdoptionListingMedia[]>> {
+  if (!listingIds.length) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("pet_adoption_listing_media")
+    .select("*")
+    .in("listing_id", listingIds)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    if (isMissingFosterSchemaError(error)) {
+      return new Map();
+    }
+
+    fail(error, "Unable to load adoption media.");
+  }
+
+  const mappedMedia = await Promise.all((data ?? []).map((row) => mapPetAdoptionMedia(supabase, row)));
+  return mappedMedia.reduce((groupedMedia, media) => {
+    const current = groupedMedia.get(media.listingId) ?? [];
+    current.push(media);
+    groupedMedia.set(media.listingId, current);
+    return groupedMedia;
+  }, new Map<Uuid, PetAdoptionListingMedia[]>());
+}
+
+function mapPetAdoptionListing(
+  row: PetAdoptionListingFunctionRow,
+  media: PetAdoptionListingMedia[] = []
+): PetAdoptionListing {
+  return {
+    id: row.id,
+    petId: row.pet_id,
+    householdId: row.household_id,
+    status: row.status,
+    title: row.title,
+    publicStory: row.public_story,
+    personalityNotes: row.personality_notes,
+    publicHealthSummary: row.public_health_summary,
+    adoptionRequirements: row.adoption_requirements,
+    city: row.city,
+    stateRegion: row.state_region,
+    countryCode: row.country_code,
+    compatibilityChildren: row.compatibility_children,
+    compatibilityDogs: row.compatibility_dogs,
+    compatibilityCats: row.compatibility_cats,
+    specialNeedsNotes: row.special_needs_notes,
+    publishedAt: row.published_at,
+    pausedAt: row.paused_at,
+    closedAt: row.closed_at,
+    reviewedByUserId: row.reviewed_by_user_id,
+    reviewedAt: row.reviewed_at,
+    reviewNotes: row.review_notes,
+    createdByUserId: row.created_by_user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    petName: row.pet_name,
+    petSpecies: row.pet_species,
+    petBreed: row.pet_breed,
+    petSex: row.pet_sex,
+    petBirthDate: row.pet_birth_date,
+    petIsSterilized: row.pet_is_sterilized,
+    householdName: row.household_name,
+    media
+  };
+}
+
+async function mapPetAdoptionListings(
+  supabase: FosterSupabaseClient,
+  rows: PetAdoptionListingFunctionRow[]
+): Promise<PetAdoptionListing[]> {
+  const mediaByListing = await listPetAdoptionMedia(
+    supabase,
+    rows.map((row) => row.id)
+  );
+
+  return rows.map((row) => mapPetAdoptionListing(row, mediaByListing.get(row.id) ?? []));
 }
 
 function mapAdminProtectiveHouseholdProfile(
@@ -423,6 +564,248 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return (data ?? []).map(mapPetTransferRecord);
+    },
+    async createPetAdoptionListing(petId, householdId) {
+      const { data, error } = await supabase.rpc("create_pet_adoption_listing", {
+        target_pet_id: petId,
+        target_household_id: householdId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const [listing] = await mapPetAdoptionListings(supabase, [
+        {
+          ...data,
+          pet_name: "Mascota",
+          pet_species: "Mascota",
+          pet_breed: null,
+          pet_sex: "unknown",
+          pet_birth_date: null,
+          pet_is_sterilized: null,
+          household_name: "Hogar protector"
+        }
+      ]);
+      return listing;
+    },
+    async updatePetAdoptionListing(input) {
+      const { data, error } = await supabase.rpc("update_pet_adoption_listing", {
+        target_listing_id: input.listingId,
+        next_title: input.title,
+        next_public_story: input.publicStory ?? "",
+        next_personality_notes: input.personalityNotes ?? "",
+        next_public_health_summary: input.publicHealthSummary ?? "",
+        next_adoption_requirements: input.adoptionRequirements ?? "",
+        next_city: input.city,
+        next_state_region: input.stateRegion ?? "",
+        next_country_code: input.countryCode ?? "PA",
+        next_compatibility_children: input.compatibilityChildren ?? "",
+        next_compatibility_dogs: input.compatibilityDogs ?? "",
+        next_compatibility_cats: input.compatibilityCats ?? "",
+        next_special_needs_notes: input.specialNeedsNotes ?? ""
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const detail = await this.getPetAdoptionListingDetail(data.id);
+      if (!detail) {
+        throw new Error("No fue posible recargar la publicacion de adopcion.");
+      }
+
+      return detail;
+    },
+    async submitPetAdoptionListing(listingId) {
+      const { data, error } = await supabase.rpc("submit_pet_adoption_listing", {
+        target_listing_id: listingId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const detail = await this.getPetAdoptionListingDetail(data.id);
+      if (!detail) {
+        throw new Error("No fue posible recargar la publicacion enviada.");
+      }
+
+      return detail;
+    },
+    async pausePetAdoptionListing(listingId) {
+      const { data, error } = await supabase.rpc("pause_pet_adoption_listing", {
+        target_listing_id: listingId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const detail = await this.getPetAdoptionListingDetail(data.id);
+      if (!detail) {
+        throw new Error("No fue posible recargar la publicacion pausada.");
+      }
+
+      return detail;
+    },
+    async closePetAdoptionListing(listingId) {
+      const { data, error } = await supabase.rpc("close_pet_adoption_listing", {
+        target_listing_id: listingId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const detail = await this.getPetAdoptionListingDetail(data.id);
+      if (!detail) {
+        throw new Error("No fue posible recargar la publicacion cerrada.");
+      }
+
+      return detail;
+    },
+    async reviewPetAdoptionListing(listingId, input) {
+      const { data, error } = await supabase.rpc("review_pet_adoption_listing", {
+        target_listing_id: listingId,
+        decision: input.decision,
+        notes: input.notes ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const detail = await this.getPetAdoptionListingDetail(data.id);
+      if (!detail) {
+        throw new Error("No fue posible recargar la publicacion revisada.");
+      }
+
+      return detail;
+    },
+    async listMyPetAdoptionListings(householdId) {
+      const { data, error } = await supabase.rpc("list_my_pet_adoption_listings", {
+        target_household_id: householdId ?? null
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load adoption listings.");
+      }
+
+      return mapPetAdoptionListings(supabase, data ?? []);
+    },
+    async listPublishedPetAdoptionListings() {
+      const { data, error } = await supabase.rpc("list_published_pet_adoption_listings", {});
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load published adoption listings.");
+      }
+
+      return mapPetAdoptionListings(supabase, data ?? []);
+    },
+    async getPetAdoptionListingDetail(listingId) {
+      const { data, error } = await supabase.rpc("get_pet_adoption_listing_detail", {
+        target_listing_id: listingId
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return null;
+        }
+
+        fail(error, "Unable to load adoption listing detail.");
+      }
+
+      const [listing] = await mapPetAdoptionListings(supabase, data ?? []);
+      return listing ?? null;
+    },
+    async listPendingPetAdoptionListingsForAdmin() {
+      const { data, error } = await supabase.rpc("list_pending_pet_adoption_listings_for_admin", {});
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load pending adoption listings.");
+      }
+
+      return mapPetAdoptionListings(supabase, data ?? []);
+    },
+    async uploadPetAdoptionMedia(input) {
+      const currentUserId = await requireCurrentUserId(supabase);
+      const extension = input.fileName.split(".").pop()?.toLowerCase() || "jpg";
+      const storagePath = `${input.listingId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const response = await fetch(input.fileUri);
+      const fileBlob = await response.blob();
+      const { error: uploadError } = await supabase.storage
+        .from("pet-adoption-media")
+        .upload(storagePath, fileBlob, {
+          contentType: input.mimeType,
+          upsert: false
+        });
+
+      if (uploadError) {
+        fail(uploadError, "Unable to upload adoption media.");
+      }
+
+      if (input.isCover) {
+        await supabase
+          .from("pet_adoption_listing_media")
+          .update({ is_cover: false })
+          .eq("listing_id", input.listingId);
+      }
+
+      const { data, error } = await supabase
+        .from("pet_adoption_listing_media")
+        .insert({
+          listing_id: input.listingId,
+          media_type: "image",
+          storage_bucket: "pet-adoption-media",
+          storage_path: storagePath,
+          file_name: input.fileName,
+          file_size_bytes: input.fileSizeBytes ?? null,
+          mime_type: input.mimeType,
+          display_order: 0,
+          is_cover: input.isCover ?? false,
+          created_by_user_id: currentUserId
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        await supabase.storage.from("pet-adoption-media").remove([storagePath]);
+        failMissingFosterSchema(error);
+      }
+
+      return mapPetAdoptionMedia(supabase, data);
+    },
+    async removePetAdoptionMedia(mediaId) {
+      const { data, error } = await supabase
+        .from("pet_adoption_listing_media")
+        .select("*")
+        .eq("id", mediaId)
+        .single();
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const { error: deleteError } = await supabase.from("pet_adoption_listing_media").delete().eq("id", mediaId);
+
+      if (deleteError) {
+        fail(deleteError, "Unable to remove adoption media metadata.");
+      }
+
+      await supabase.storage.from(data.storage_bucket).remove([data.storage_path]);
     }
   };
 }
