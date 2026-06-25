@@ -16,7 +16,7 @@ Preparar una beta privada iOS de Pet Ecosystem mediante EAS Build y TestFlight, 
 - Expo SDK: 51.
 - App version: `0.3.1`.
 - iOS bundle identifier: `com.petecosyst.mobile`.
-- iOS build number inicial: `1`.
+- iOS build number publicado mas reciente para TestFlight: `11`.
 - Scheme/deep link: `petecosystem`.
 - EAS project id configurado en `apps/mobile/app.json`.
 - Perfil EAS iOS `production` usa imagen `latest` para cumplir el requisito vigente de App Store Connect de compilar con iOS 26 SDK / Xcode 26 o superior.
@@ -85,6 +85,17 @@ eas submit --platform ios --profile production --latest
 El perfil `production` ya incluye `ascAppId` para evitar que EAS tenga que descubrir la app de forma interactiva.
 
 Si EAS solicita credenciales, usar cuenta Apple Developer o App Store Connect API Key segun la politica del proyecto.
+
+## Ultimo build iOS enviado
+
+- Fecha: 2026-06-21.
+- Commit base: `bfa0d16 feat(foster): add controlled adoption showcase`.
+- Build EAS: `a2f06b30-fea2-404f-9ca9-b4b9f1df6a7c`.
+- Version: `0.3.1`.
+- Build number: `11`.
+- IPA local de referencia: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3a-ios-build11.ipa`.
+- SHA256: `44D99ACC6AA8EE74D7FF8C5F305C706D10810B2C4F2818BF05B1913A2C1B1473`.
+- Estado: enviado correctamente a App Store Connect; Apple debe terminar procesamiento antes de habilitarlo en TestFlight.
 
 ## Checklist de QA iOS privado
 

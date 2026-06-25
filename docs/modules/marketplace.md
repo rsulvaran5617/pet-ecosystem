@@ -27,6 +27,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - Geo-2 muestra ubicacion publica en cards/listas y deja preparada distancia aproximada sin mapa, permisos mobile ni tracking
 - Geo-3 permite seleccionar un origen controlado por zonas/ciudades aproximadas; direcciones guardadas quedan diferidas hasta que el contrato de `user_addresses` exponga coordenadas de forma trazable. No usa GPS ni geocoding externo
 - Geo-4 agrega preview de mapa en mobile owner con MapLibre y ubicacion publica exacta declarada por proveedores; no pide GPS, no guarda ubicacion actual y mantiene fallback de lista
+- Foster-4A agrega entrada `Adopcion` / `Mascotas que buscan hogar` dentro de Owner mobile Buscar, separada del marketplace comercial de servicios. Solo lista publicaciones Foster aprobadas; no crea reservas, solicitudes ni transferencias.
 
 ## Entidades
 - `provider_organizations`
@@ -58,6 +59,7 @@ Permitir discovery publico de proveedores pet aprobados y dejar lista la selecci
 - web owner Buscar replica el patron funcional de mobile owner: barra principal, chips de categorias, busquedas recientes, sugerencias, filtros bajo demanda, contexto hogar/mascota y cards visuales de proveedores antes del handoff a Reservas
 - web owner Buscar mantiene el contexto hogar/mascota en una ficha lateral, oculta la navegacion interna duplicada y concentra el contenido en busqueda guiada, resultados, proveedor y seleccion de servicio segun el paso activo.
 - en el detalle de proveedor, si no existen bloques publicos semanales pero si hay servicios publicados, la seccion `Disponibilidad` muestra los servicios con CTA `Ver cupos` para consultar slots reales por servicio sin crear reservas desde marketplace
+- Owner Buscar incluye discovery Foster separado: cards de mascotas publicadas con foto, nombre, especie, edad, ciudad/pais, esterilizacion, resumen publico y detalle read-only. El CTA `Me interesa` solo muestra aviso informativo durante piloto.
 - marketplace geolocalizado no debe exponer direcciones privadas de owners ni guardar ubicacion actual sin consentimiento
 - no hay tracking en tiempo real dentro de Geo-0/Geo-4
 - la seleccion de servicio no crea por si sola el booking

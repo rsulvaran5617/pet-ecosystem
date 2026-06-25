@@ -239,3 +239,16 @@ cd C:\b23\apps\mobile\android
 La verificacion ZIP basica confirmo `AndroidManifest.xml`, `classes.dex`, `assets/index.android.bundle` y `resources.arsc`.
 
 Nota de QA: el artefacto previo `dist/pilot/android/pet-ecosystem-pilot-v0.3.0-messaging-notices-20260522-arm64-release.apk`, SHA256 `139FA9570454E66A6FF9832DA3EC0CDA71D5B019A7D9F5124DCB7A0AD140E8FC`, queda reemplazado y no debe distribuirse. En dispositivo Android crasheaba al abrir con `Unexpected token '?'` bajo JSC. La primera reconstruccion Hermes sin clean abria, pero mostraba falta de `EXPO_PUBLIC_SUPABASE_URL` porque el bundle fue reutilizado sin variables embebidas. La APK activa validada es la version Hermes + env + clean indicada arriba.
+
+## APK Foster-3A 2026-06-21
+
+APK generado para QA Android del frente Foster-3A, vitrina controlada de adopcion/acogida:
+
+- Commit base: `bfa0d16 feat(foster): add controlled adoption showcase`.
+- Build EAS Android preview: `f0baeb28-a802-4780-b62f-a870f308fccf`.
+- Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3a-android.apk`.
+- Tamano aproximado: `123.02 MB`.
+- SHA256: `75A0326DBA75E672D0A4703581FE91696AC5A975AC7C85C0BB3CF02C65E35E2E`.
+- Link EAS de instalacion: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/f0baeb28-a802-4780-b62f-a870f308fccf`.
+
+Nota de build: el intento local con Gradle en la ruta Windows con espacio fallo por interpretacion de path durante el bundle release. Para este paquete se uso EAS preview, que embebe las variables `EXPO_PUBLIC_*` del entorno EAS y genera un APK instalable para QA privada.

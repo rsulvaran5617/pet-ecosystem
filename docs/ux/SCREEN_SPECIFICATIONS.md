@@ -95,6 +95,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
 - Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
+- Owner Buscar agrega Foster-4A: entrada `Adopcion` / `Mascotas que buscan hogar`, listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.
 - owner web Buscar queda alineado funcionalmente con owner mobile: busqueda enfocada, recientes, sugerencias, chips rapidos, filtros bajo demanda, contexto hogar/mascota y seleccion enriquecida hacia Reservas.
 - modo Lista/Mapa en resultados; el mapa usa pins de proveedores con ubicacion publica y card inferior para abrir proveedor, sin GPS ni tracking
 - seleccion de servicio

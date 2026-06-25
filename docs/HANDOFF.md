@@ -1,9 +1,19 @@
 # HANDOFF.md
 
+## Foster-4A discovery de adopcion en Buscar 2026-06-24
+
+- Slice implementado en owner mobile `Buscar`: nueva entrada `Adopcion` / `Mascotas que buscan hogar` separada del marketplace comercial de servicios.
+- Reutiliza Foster-3A sin migraciones nuevas: `listPublishedPetAdoptionListings` para listado y `getPetAdoptionListingDetail` para detalle con URLs firmadas de media.
+- Vista de listado: foto de portada, nombre, especie/raza, edad estimada, ciudad/pais, esterilizacion, resumen publico y badge `Busca hogar`.
+- Vista de detalle: galeria, historia publica, personalidad, salud publica, compatibilidad con ninos/perros/gatos, requisitos y ubicacion publica por ciudad/pais.
+- CTA `Me interesa` queda informativo en piloto: muestra aviso de coordinacion posterior; no crea solicitudes, transferencias, reservas, chats ni notificaciones automaticas.
+- Fuera de alcance mantenido: marketplace publico anonimo, solicitudes formales de adopcion, videos, Payments, booking, QR, evidencia operacional, provider services y geolocalizacion avanzada.
+- Pendiente QA manual: Owner > Buscar > Adopcion > abrir perfil publicado > presionar `Me interesa`.
+
 ## Foster-3A vitrina controlada de adopcion/acogida 2026-06-21
 
-- Slice implementado localmente, no aplicado remoto: vitrina controlada de mascotas en adopcion/acogida para familias protectoras aprobadas.
-- Migracion local: `supabase/migrations/20260621100000_foster_3a_adoption_showcase.sql`.
+- Slice implementado, aplicado remoto y publicado: vitrina controlada de mascotas en adopcion/acogida para familias protectoras aprobadas.
+- Migracion aplicada en Supabase remoto: `supabase/migrations/20260621100000_foster_3a_adoption_showcase.sql`; dry-run posterior reporto base remota al dia.
 - Modelo: `pet_adoption_listings` para publicacion moderada y `pet_adoption_listing_media` para galeria privada en bucket `pet-adoption-media`.
 - Estados de publicacion: `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`.
 - Regla central: la mascota conserva `pets.id`; no se duplica expediente ni se mueve custodia en esta fase.
@@ -11,7 +21,26 @@
 - Admin web `Familias protectoras`: nueva cola de publicaciones pendientes con texto publico, fotos firmadas y acciones aprobar/rechazar/pausar.
 - Decision de alcance: videos quedan para Foster-3B; solicitudes formales/interes quedan para Foster-4A; conexion con transferencia privada Foster-2A queda para Foster-6A.
 - Fuera de alcance: Payments, booking, QR, evidencia operacional, provider services, geolocalizacion, venta de mascotas y marketplace comercial de servicios.
-- Validaciones requeridas antes de aplicar remoto: typecheck/lint/build mobile/admin, `git diff --check` y `npx supabase db push --dry-run --include-all --linked --yes`.
+- Validaciones de cierre: typecheck/lint/build mobile/admin, `git diff --check`, dry-run Supabase previo y posterior en PASS.
+- Commit publicado: `bfa0d16 feat(foster): add controlled adoption showcase`.
+- Hotfix pendiente/aplicado segun validacion 2026-06-24: `supabase/migrations/20260624100000_foster_3a_audit_log_order_fix.sql` redefine `create_pet_adoption_listing` para llamar `insert_audit_log` con la firma canonica `(entity_type, entity_id, action, context, actor_user_id)`. Corrige el error visto al presionar `Guardar publicacion`: `function public.insert_audit_log(...) does not exist`.
+
+## Mobile QA Foster-3A Android/iOS 2026-06-21
+
+- Repo al generar artefactos: `master` limpio y sincronizado con `origin/master`.
+- Commit base de artefactos: `bfa0d16 feat(foster): add controlled adoption showcase`.
+- APK Android generado con EAS preview:
+  - Build EAS: `f0baeb28-a802-4780-b62f-a870f308fccf`.
+  - Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3a-android.apk`.
+  - SHA256: `75A0326DBA75E672D0A4703581FE91696AC5A975AC7C85C0BB3CF02C65E35E2E`.
+  - Link EAS de instalacion: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/f0baeb28-a802-4780-b62f-a870f308fccf`.
+- iOS generado con EAS production y subido a App Store Connect/TestFlight:
+  - Build EAS: `a2f06b30-fea2-404f-9ca9-b4b9f1df6a7c`.
+  - App version: `0.3.1`; build number: `11`.
+  - Ruta local del IPA: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3a-ios-build11.ipa`.
+  - SHA256: `44D99ACC6AA8EE74D7FF8C5F305C706D10810B2C4F2818BF05B1913A2C1B1473`.
+  - Estado: binario subido correctamente a App Store Connect; queda en procesamiento Apple antes de aparecer disponible en TestFlight.
+- Nota tecnica: build local Android por Gradle en la ruta con espacio `Ramon Sulvaran` fallo por interpretacion de path durante `createBundleReleaseJsAndAssets`; se uso EAS preview para generar el APK sin modificar codigo ni repo.
 
 ## Actualizacion UX selectores de fecha mobile 2026-06-20
 
