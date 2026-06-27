@@ -552,8 +552,10 @@ function MarketplaceProviderMiniCard({
 
 export function MarketplaceWorkspace({
   enabled,
+  adoptionOpenVersion = 0,
   onSelectBookingService
 }: {
+  adoptionOpenVersion?: number;
   enabled: boolean;
   onSelectBookingService?: (selection: MarketplaceServiceSelection) => void;
 }) {
@@ -598,6 +600,14 @@ export function MarketplaceWorkspace({
   const [isLoadingAdoptionListings, setIsLoadingAdoptionListings] = useState(false);
   const [adoptionErrorMessage, setAdoptionErrorMessage] = useState<string | null>(null);
   const [adoptionInfoMessage, setAdoptionInfoMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled || adoptionOpenVersion <= 0) {
+      return;
+    }
+
+    void openAdoptionView();
+  }, [adoptionOpenVersion, enabled]);
 
   useEffect(() => {
     let isMounted = true;

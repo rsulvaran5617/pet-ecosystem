@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## UX Foster adopcion navegacion mobile 2026-06-26
+
+- Owner mobile `Mascotas` deja de mostrar la vitrina general read-only `Mascotas que buscan hogar` para mantener la pantalla enfocada en gestion de mascotas propias.
+- Las familias protectoras aprobadas conservan en `Mascotas` un acceso compacto `Mis publicaciones de adopcion`, que lleva al detalle de sus propias mascotas/publicaciones sin abrir discovery general.
+- Owner mobile `Inicio` agrega CTA compacto `Mascotas que buscan hogar` para llevar al usuario a `Buscar > Adopcion`.
+- Owner mobile `Buscar` sigue siendo la ruta canonica de discovery Foster-4A: listado, detalle publico y CTA informativo `Me interesa`.
+- Alcance preservado: sin backend, Supabase, migraciones, pagos, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 ## Foster-4A discovery de adopcion en Buscar 2026-06-24
 
 - Slice implementado en owner mobile `Buscar`: nueva entrada `Adopcion` / `Mascotas que buscan hogar` separada del marketplace comercial de servicios.

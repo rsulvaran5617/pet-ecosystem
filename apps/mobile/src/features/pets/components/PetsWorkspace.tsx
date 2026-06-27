@@ -819,7 +819,6 @@ export function PetsWorkspace({
   const [transferNotes, setTransferNotes] = useState("");
   const [outgoingTransfers, setOutgoingTransfers] = useState<PetTransferRecord[]>([]);
   const [myAdoptionListings, setMyAdoptionListings] = useState<PetAdoptionListing[]>([]);
-  const [publishedAdoptionListings, setPublishedAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
@@ -863,7 +862,6 @@ export function PetsWorkspace({
       setProtectiveProfile(null);
       setOutgoingTransfers([]);
       setMyAdoptionListings([]);
-      setPublishedAdoptionListings([]);
       return;
     }
 
@@ -873,15 +871,13 @@ export function PetsWorkspace({
     Promise.all([
       getMobileFosterApiClient().getProtectiveHouseholdProfile(selectedHouseholdId),
       getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId),
-      getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId),
-      getMobileFosterApiClient().listPublishedPetAdoptionListings()
+      getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId)
     ])
-      .then(([profile, transfers, adoptionListings, publishedListings]) => {
+      .then(([profile, transfers, adoptionListings]) => {
         if (isCurrent) {
           setProtectiveProfile(profile);
           setOutgoingTransfers(transfers);
           setMyAdoptionListings(adoptionListings);
-          setPublishedAdoptionListings(publishedListings);
         }
       })
       .catch(() => {
@@ -889,7 +885,6 @@ export function PetsWorkspace({
           setProtectiveProfile(null);
           setOutgoingTransfers([]);
           setMyAdoptionListings([]);
-          setPublishedAdoptionListings([]);
         }
       })
       .finally(() => {
@@ -1088,12 +1083,8 @@ export function PetsWorkspace({
   };
 
   const refreshAdoptionListings = async () => {
-    const [nextMyListings, nextPublishedListings] = await Promise.all([
-      selectedHouseholdId ? getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId) : Promise.resolve([]),
-      getMobileFosterApiClient().listPublishedPetAdoptionListings()
-    ]);
+    const nextMyListings = selectedHouseholdId ? await getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId) : [];
     setMyAdoptionListings(nextMyListings);
-    setPublishedAdoptionListings(nextPublishedListings);
   };
 
   const openAdoptionListingForm = (pet: NonNullable<typeof selectedPet>) => {
@@ -1480,75 +1471,39 @@ export function PetsWorkspace({
           <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
         ) : null}
 
-        <View style={{ borderRadius: 18, backgroundColor: "#ffffff", padding: 14, gap: 12, ...visualTokens.mobile.softShadow }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ color: "#111827", fontSize: 15, fontWeight: "900" }}>Mascotas que buscan hogar</Text>
-              <Text style={{ color: "#64748b", fontSize: 11, lineHeight: 15 }}>
-                Vitrina controlada de familias protectoras aprobadas. No es venta ni reserva.
-              </Text>
-            </View>
-            <StatusChip label={`${publishedAdoptionListings.length} publicadas`} tone="active" />
-          </View>
-          {publishedAdoptionListings.length ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{ flexDirection: "row", gap: 10, paddingRight: 4 }}>
-                {publishedAdoptionListings.slice(0, 8).map((listing) => {
-                  const cover = listing.media.find((media) => media.isCover) ?? listing.media[0] ?? null;
+        {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+          <Pressable
+            accessibilityLabel="Gestionar mis publicaciones de adopcion"
+            accessibilityRole="button"
+            onPress={() => {
+              const listingPetId = myAdoptionListings.find((listing) => listing.status !== "closed")?.petId ?? pets[0]?.id ?? null;
 
-                  return (
-                    <View
-                      key={listing.id}
-                      style={{
-                        width: 218,
-                        borderRadius: 16,
-                        borderWidth: 1,
-                        borderColor: "rgba(15,118,110,0.16)",
-                        backgroundColor: "rgba(240,253,250,0.72)",
-                        overflow: "hidden"
-                      }}
-                    >
-                      {cover?.signedUrl ? (
-                        <Image source={{ uri: cover.signedUrl }} style={{ height: 108, width: "100%" }} />
-                      ) : (
-                        <View style={{ height: 108, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(20,184,166,0.1)" }}>
-                          <PetLineIcon color="#0f766e" name="paw" size={32} />
-                        </View>
-                      )}
-                      <View style={{ gap: 6, padding: 10 }}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                          <Text numberOfLines={1} style={{ color: "#111827", flex: 1, fontSize: 13, fontWeight: "900" }}>{listing.petName}</Text>
-                          <StatusChip label="Busca hogar" tone="pending" />
-                        </View>
-                        <Text numberOfLines={2} style={{ color: "#475569", fontSize: 11, lineHeight: 15 }}>
-                          {listing.title} - {listing.city}, {listing.countryCode}
-                        </Text>
-                        <Text numberOfLines={2} style={{ color: "#64748b", fontSize: 10, lineHeight: 14 }}>
-                          {listing.publicStory || listing.personalityNotes || "Perfil publicado por una familia protectora aprobada."}
-                        </Text>
-                        <Pressable
-                          onPress={() =>
-                            Alert.alert(
-                              "Interes en adopcion",
-                              "La solicitud formal se habilitara en el siguiente paso. Por ahora, la familia protectora puede iniciar una transferencia privada cuando ambas partes acuerden continuar."
-                            )
-                          }
-                          style={{ alignSelf: "flex-start", borderRadius: 999, backgroundColor: "#0f9f8f", paddingHorizontal: 10, paddingVertical: 7 }}
-                        >
-                          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Me interesa</Text>
-                        </Pressable>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            </ScrollView>
-          ) : (
-            <Text style={{ color: "#64748b", fontSize: 11, lineHeight: 16 }}>
-              Aun no hay mascotas publicadas para adopcion/acogida responsable.
-            </Text>
-          )}
-        </View>
+              if (listingPetId) {
+                openPetDetail(listingPetId);
+              }
+            }}
+            style={{
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(15,118,110,0.18)",
+              backgroundColor: "rgba(240,253,250,0.78)",
+              flexDirection: "row",
+              gap: 10,
+              alignItems: "center",
+              padding: 12,
+              ...visualTokens.mobile.softShadow
+            }}
+          >
+            <View style={{ alignItems: "center", backgroundColor: "#ffffff", borderRadius: 14, height: 34, justifyContent: "center", width: 34 }}>
+              <PetLineIcon color="#0f766e" name="file" size={18} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>Mis publicaciones de adopcion</Text>
+              <Text style={{ color: "#64748b", fontSize: 10, lineHeight: 14 }}>Gestiona las mascotas que publicaste para buscar hogar.</Text>
+            </View>
+            <StatusChip label={`${myAdoptionListings.filter((listing) => listing.status !== "closed").length} activas`} tone="active" />
+          </Pressable>
+        ) : null}
 
         <View
           style={{

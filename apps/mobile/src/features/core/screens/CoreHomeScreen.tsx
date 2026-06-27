@@ -95,7 +95,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
   { id: "buscar", label: "Buscar", description: "Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar." },
-  { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
+  { id: "reservas", label: "Reservas", description: "Historial, detalle, reseÃ±as y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
 ];
@@ -477,7 +477,7 @@ function formatActivityDateTime(value: string) {
     return "Fecha pendiente";
   }
 
-  return `${formatShortDateLabel(value)} · ${formatShortTimeLabel(value)}`;
+  return `${formatShortDateLabel(value)} Â· ${formatShortTimeLabel(value)}`;
 }
 
 function getServiceHighlightTone(category: OwnerHomeServiceHighlight["category"], index: number) {
@@ -593,6 +593,7 @@ function OwnerHome({
   bookings,
   householdName,
   onNavigate,
+  onOpenAdoption,
   onSelectPet,
   ownerFirstName,
   pets,
@@ -604,6 +605,7 @@ function OwnerHome({
   bookings: OwnerHomeBooking[];
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
+  onOpenAdoption: () => void;
   onSelectPet: (petId: Uuid) => void;
   ownerFirstName: string;
   pets: OwnerHomePet[];
@@ -668,7 +670,7 @@ function OwnerHome({
             >
               {householdName}
             </Text>
-            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 13, lineHeight: 18 }}>¡Que bueno verte de nuevo!</Text>
+            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 13, lineHeight: 18 }}>Â¡Que bueno verte de nuevo!</Text>
           </View>
           <View
             style={{
@@ -710,7 +712,7 @@ function OwnerHome({
         <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
           <Text style={{ color: colorTokens.ink, fontSize: 14, fontWeight: "800" }}>Mis mascotas</Text>
           <Pressable onPress={() => onNavigate("mascotas")}>
-            <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, fontWeight: "700" }}>Ver todas ›</Text>
+            <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, fontWeight: "700" }}>Ver todas â€º</Text>
           </Pressable>
         </View>
         {pets.length ? (
@@ -801,6 +803,44 @@ function OwnerHome({
         )}
       </View>
 
+      <Pressable
+        accessibilityLabel="Ver mascotas que buscan hogar"
+        accessibilityRole="button"
+        onPress={onOpenAdoption}
+        style={{
+          alignItems: "center",
+          backgroundColor: colorTokens.surface,
+          borderColor: "rgba(15,118,110,0.18)",
+          borderRadius: 18,
+          borderWidth: 1,
+          flexDirection: "row",
+          gap: 10,
+          padding: 12,
+          ...visualTokens.mobile.softShadow
+        }}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: colorTokens.accentSoft,
+            borderRadius: 15,
+            height: 36,
+            justifyContent: "center",
+            width: 36
+          }}
+        >
+          <OwnerLineIcon color={colorTokens.accentDark} name="heart" size={19} />
+        </View>
+        <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+          <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>Mascotas que buscan hogar</Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+            Conoce mascotas publicadas por familias protectoras.
+          </Text>
+        </View>
+        <View style={{ backgroundColor: colorTokens.accent, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 }}>
+          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Ver publicaciones</Text>
+        </View>
+      </Pressable>
       <View style={{ borderRadius: 22, backgroundColor: colorTokens.surface, padding: 14, gap: 12, ...visualTokens.mobile.shadow }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
@@ -898,7 +938,7 @@ function OwnerHome({
               <Text style={{ color: colorTokens.accentDark, fontSize: 19, fontWeight: "900", lineHeight: 21 }}>{completedVaccineCount}</Text>
               <Text style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>Vacunas al dia</Text>
               <Text style={{ color: colorTokens.accentDark, fontSize: 8, fontWeight: "800", lineHeight: 11 }}>
-                {completedVaccineCount > 0 ? "¡Bien hecho!" : "Sin vacunas cerradas"}
+                {completedVaccineCount > 0 ? "Â¡Bien hecho!" : "Sin vacunas cerradas"}
               </Text>
             </View>
             <View style={{ backgroundColor: colorTokens.line, width: 1 }} />
@@ -906,7 +946,7 @@ function OwnerHome({
               <Text style={{ color: colorTokens.warning, fontSize: 19, fontWeight: "900", lineHeight: 21 }}>{pendingReminders.length}</Text>
               <Text style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>Recordatorio pendiente</Text>
               <Text numberOfLines={1} style={{ color: colorTokens.mutedStrong, fontSize: 8, fontWeight: "700", lineHeight: 11 }}>
-                {nextReminder ? `${nextReminderTitle} · ${formatShortDateTime(nextReminder.dueAt)}` : "Todo al dia"}
+                {nextReminder ? `${nextReminderTitle} Â· ${formatShortDateTime(nextReminder.dueAt)}` : "Todo al dia"}
               </Text>
             </View>
           </View>
@@ -917,7 +957,7 @@ function OwnerHome({
         <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
           <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "800" }}>Servicios destacados</Text>
           <Pressable onPress={() => onNavigate("buscar")}>
-            <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "700" }}>Ver mas ›</Text>
+            <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "700" }}>Ver mas â€º</Text>
           </Pressable>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -1066,6 +1106,7 @@ export function CoreHomeScreen() {
   const [isAddressFormVisible, setIsAddressFormVisible] = useState(false);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
   const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
+  const [marketplaceAdoptionOpenVersion, setMarketplaceAdoptionOpenVersion] = useState(0);
   const [focusedBookingId, setFocusedBookingId] = useState<Uuid | null>(null);
   const [chatFocusVersion, setChatFocusVersion] = useState(0);
   const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
@@ -1560,7 +1601,7 @@ export function CoreHomeScreen() {
                         {snapshot.profile.email}
                       </Text>
                       <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                        {snapshot.profile.phone || "Telefono pendiente"} · {snapshot.profile.locale || "es"}
+                        {snapshot.profile.phone || "Telefono pendiente"} Â· {snapshot.profile.locale || "es"}
                       </Text>
                     </View>
                     <Pressable
@@ -2049,6 +2090,10 @@ export function CoreHomeScreen() {
             bookings={bookingsWorkspace.bookings}
             householdName={defaultHouseholdName}
             onNavigate={setActiveOwnerSection}
+            onOpenAdoption={() => {
+              setMarketplaceAdoptionOpenVersion((currentVersion) => currentVersion + 1);
+              setActiveOwnerSection("buscar");
+            }}
             onSelectPet={(petId) => {
               setPendingPetHubPetId(petId);
               setPetHubContext({ householdId: petsWorkspace.selectedHouseholdId, petId });
@@ -2100,6 +2145,7 @@ export function CoreHomeScreen() {
         ) : null}
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "buscar" ? (
           <MarketplaceWorkspace
+            adoptionOpenVersion={marketplaceAdoptionOpenVersion}
             enabled
             onSelectBookingService={(selection) => {
               setMarketplaceSelection(selection);

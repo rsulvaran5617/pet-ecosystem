@@ -16,6 +16,10 @@ Foster-4A abre una entrada clara dentro de Owner mobile `Buscar`: `Adopcion` / `
 
 Alcance implementado:
 
+- Owner mobile `Buscar` es la ruta canonica para descubrir mascotas publicadas por familias protectoras.
+- Owner mobile `Inicio` puede mostrar un CTA compacto hacia `Buscar > Adopcion` para mejorar descubrimiento sin ocupar espacio en `Mascotas`.
+- Owner mobile `Mascotas` no muestra la vitrina general read-only; se mantiene enfocada en gestion de mascotas propias.
+- Las familias protectoras aprobadas conservan en `Mascotas` un acceso compacto `Mis publicaciones de adopcion` para gestionar publicaciones propias.
 - Owner mobile `Buscar` muestra una tarjeta de entrada separada del marketplace comercial de servicios.
 - La vista `Mascotas que buscan hogar` lista publicaciones `published` ya aprobadas por admin usando `listPublishedPetAdoptionListings`.
 - Cada card muestra foto de portada cuando existe, nombre de mascota, especie/raza, edad estimada, ciudad/pais, esterilizacion, resumen publico y badge `Busca hogar`.
@@ -70,7 +74,8 @@ Reglas:
 UI implementada localmente:
 
 - Owner mobile `Mascotas`: bloque para preparar publicacion de adopcion, cargar fotos y enviar a revision cuando el hogar es familia protectora aprobada.
-- Owner mobile `Mascotas`: vitrina read-only `Mascotas que buscan hogar` con cards publicadas y CTA informativo.
+- Owner mobile `Buscar`: vitrina read-only `Mascotas que buscan hogar` con cards publicadas y CTA informativo.
+- Owner mobile `Mascotas`: solo conserva acceso compacto a publicaciones propias para familias protectoras aprobadas.
 - Admin web `Familias protectoras`: cola de publicaciones pendientes con detalle, fotos firmadas y acciones aprobar/rechazar/pausar.
 
 ## Decision recomendada
