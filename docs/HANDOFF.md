@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+## Owner mobile mascota activa persistente 2026-06-27
+
+- Slice UX/arquitectura local implementado para mantener una `mascota activa` en el shell owner mobile sin tocar backend, Supabase, migraciones, RLS, contratos API, Payments, QR, evidencia, provider/admin ni Foster.
+- `CoreHomeScreen` conserva el contexto global de mascota/hogar, valida que la mascota siga accesible y muestra una banda compacta `Mascota activa` con accion `Cambiar`.
+- La seleccion desde Inicio, Mascotas, Salud, Recordatorios, Buscar y Reservas sincroniza el mismo contexto global; navegar por el menu inferior ya no debe borrar el foco operativo.
+- `Mascotas`, `Salud` y `Recordatorios` abren usando la mascota activa cuando existe; `Buscar` y el handoff hacia `Reservas` usan esa mascota como preseleccion si el usuario no elige otra explicitamente.
+- `Reservas` preselecciona la mascota activa solo cuando entra sin mascota explicita; no crea reservas, no consume cupos y mantiene el fallback legacy sin slot.
+- `Mensajes` queda preparado como siguiente slice: hoy los hilos muestran mascota por texto, pero no todos exponen `petId` suficiente para filtrar/priorizar sin ampliar contrato.
+- Validaciones requeridas antes de cerrar: `@pet/mobile lint`, `@pet/mobile typecheck`, `@pet/mobile build` y `git diff --check`.
+
 ## UX Foster adopcion navegacion mobile 2026-06-26
 
 - Owner mobile `Mascotas` deja de mostrar la vitrina general read-only `Mascotas que buscan hogar` para mantener la pantalla enfocada en gestion de mascotas propias.
@@ -7,6 +17,19 @@
 - Owner mobile `Inicio` agrega CTA compacto `Mascotas que buscan hogar` para llevar al usuario a `Buscar > Adopcion`.
 - Owner mobile `Buscar` sigue siendo la ruta canonica de discovery Foster-4A: listado, detalle publico y CTA informativo `Me interesa`.
 - Alcance preservado: sin backend, Supabase, migraciones, pagos, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+- Commit publicado: `d643357 feat(foster): streamline adoption discovery navigation`.
+- Artefacto Android QA generado con EAS preview:
+  - Build EAS: `f921ba15-48a1-4609-ad53-afb623a81365`.
+  - Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-navigation-android.apk`.
+  - SHA256: `09E9551EFD140E96F18B07B7BFC66A110C1327DFFF6831D91FA53A5621851C31`.
+  - Link EAS de instalacion: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/f921ba15-48a1-4609-ad53-afb623a81365`.
+- Artefacto iOS QA generado con EAS production y subido a App Store Connect/TestFlight:
+  - Build EAS: `845b0ace-14f4-4806-a516-803689d55e51`.
+  - App version: `0.3.1`; build number: `13`.
+  - Ruta local del IPA: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-navigation-ios-build13.ipa`.
+  - SHA256: `61A92CD02754DAD14C7ECB736CCFEBF99DBE12EE12CEC11F3039177F9B4E29BE`.
+  - Estado: binario subido correctamente a App Store Connect; queda en procesamiento Apple antes de aparecer disponible en TestFlight.
+- Nota EAS Submit: el intento con `--what-to-test` fallo porque el parametro `changelog` requiere plan Enterprise; el submit se repitio sin changelog y fue aceptado.
 
 ## Foster-4A discovery de adopcion en Buscar 2026-06-24
 

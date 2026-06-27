@@ -318,12 +318,14 @@ export function RemindersWorkspace({
   contextPetId,
   enabled,
   mode = "standalone",
+  onActivePetChange,
   onRemindersChanged
 }: {
   contextHouseholdId?: Uuid | null;
   contextPetId?: Uuid | null;
   enabled: boolean;
   mode?: "standalone" | "pet-hub";
+  onActivePetChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
   onRemindersChanged?: () => void | Promise<void>;
 }) {
   const {
@@ -363,6 +365,16 @@ export function RemindersWorkspace({
   const activeReminders = activeReminderSection === "completed" ? completedReminders : pendingReminders;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const isPetHubMode = mode === "pet-hub";
+
+  const handleSelectHousehold = async (householdId: Uuid) => {
+    await selectHousehold(householdId);
+    onActivePetChange?.({ householdId, petId: null });
+  };
+
+  const handleSelectPet = async (petId: Uuid | null) => {
+    await selectPet(petId);
+    onActivePetChange?.({ householdId: selectedHouseholdId, petId });
+  };
 
   useEffect(() => {
     if (!enabled || !contextHouseholdId || contextHouseholdId === selectedHouseholdId) {
@@ -428,7 +440,7 @@ export function RemindersWorkspace({
           {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando recordatorios del cuidado...</Text> : null}
 
           {!isPetHubMode && householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
-            <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
+            <Pressable key={household.id} onPress={() => void handleSelectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
               <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
@@ -438,9 +450,9 @@ export function RemindersWorkspace({
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Filtro por mascota</Text>
             {selectedHousehold ? (
               <>
-                <Button label="Todos los recordatorios del hogar" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+                <Button label="Todos los recordatorios del hogar" onPress={() => void handleSelectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
                 {pets.length ? pets.map((pet) => (
-                  <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={pet.id === selectedPetId ? "primary" : "secondary"} />
+                  <Button key={pet.id} label={pet.name} onPress={() => void handleSelectPet(pet.id)} tone={pet.id === selectedPetId ? "primary" : "secondary"} />
                 )) : <Text style={{ color: colorTokens.muted }}>Todavia no hay mascotas en este hogar.</Text>}
               </>
             ) : <Text style={{ color: colorTokens.muted }}>Selecciona primero un hogar.</Text>}

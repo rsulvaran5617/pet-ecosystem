@@ -252,3 +252,25 @@ APK generado para QA Android del frente Foster-3A, vitrina controlada de adopcio
 - Link EAS de instalacion: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/f0baeb28-a802-4780-b62f-a870f308fccf`.
 
 Nota de build: el intento local con Gradle en la ruta Windows con espacio fallo por interpretacion de path durante el bundle release. Para este paquete se uso EAS preview, que embebe las variables `EXPO_PUBLIC_*` del entorno EAS y genera un APK instalable para QA privada.
+
+## APK/iOS Foster navigation 2026-06-26
+
+Artefactos generados para QA del ajuste UX de navegacion Foster/adopcion:
+
+- Commit base: `d643357 feat(foster): streamline adoption discovery navigation`.
+- Android EAS preview: `f921ba15-48a1-4609-ad53-afb623a81365`.
+- Ruta local APK: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-navigation-android.apk`.
+- Tamano APK: `128,995,973 bytes`.
+- SHA256 APK: `09E9551EFD140E96F18B07B7BFC66A110C1327DFFF6831D91FA53A5621851C31`.
+- Link EAS de instalacion Android: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/f921ba15-48a1-4609-ad53-afb623a81365`.
+- iOS EAS production: `845b0ace-14f4-4806-a516-803689d55e51`.
+- Version iOS: `0.3.1 (13)`.
+- Ruta local IPA: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-navigation-ios-build13.ipa`.
+- SHA256 IPA: `61A92CD02754DAD14C7ECB736CCFEBF99DBE12EE12CEC11F3039177F9B4E29BE`.
+- Estado iOS: binario subido a App Store Connect/TestFlight; queda en procesamiento Apple antes de asignarlo a testers.
+
+Notas de QA:
+
+- Validar Owner `Inicio` > CTA `Mascotas que buscan hogar` > `Buscar > Adopcion`.
+- Validar Owner `Mascotas`: no debe aparecer la vitrina general pesada; familias protectoras aprobadas deben conservar `Mis publicaciones de adopcion`.
+- Validar Owner `Buscar > Adopcion`: listado, detalle y CTA informativo `Me interesa`.

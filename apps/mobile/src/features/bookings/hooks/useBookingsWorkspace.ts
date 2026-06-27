@@ -55,10 +55,12 @@ interface UseBookingsWorkspaceResult {
 
 export function useBookingsWorkspace(
   enabled: boolean,
-  incomingSelection: MarketplaceServiceSelection | null
+  incomingSelection: MarketplaceServiceSelection | null,
+  activePetContext?: { householdId: Uuid | null; petId: Uuid | null }
 ): UseBookingsWorkspaceResult {
   const mountedRef = useRef(true);
   const activeSelectionRef = useRef<MarketplaceServiceSelection | null>(incomingSelection);
+  const activePetContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null } | null>(activePetContext ?? null);
   const selectedHouseholdIdRef = useRef<Uuid | null>(incomingSelection?.householdId ?? null);
   const selectedPetIdRef = useRef<Uuid | null>(incomingSelection?.petId ?? null);
   const selectedPaymentMethodIdRef = useRef<Uuid | null>(null);
@@ -291,6 +293,7 @@ export function useBookingsWorkspace(
       const effectiveSelection = selectionOverride ?? activeSelectionRef.current;
       const nextSelectedHouseholdId =
         nextHouseholdSnapshot.households.find((household) => household.id === effectiveSelection?.householdId)?.id ??
+        nextHouseholdSnapshot.households.find((household) => household.id === activePetContextRef.current?.householdId)?.id ??
         nextHouseholdSnapshot.households.find((household) => household.id === selectedHouseholdIdRef.current)?.id ??
         nextHouseholdSnapshot.households[0]?.id ??
         null;
@@ -307,7 +310,7 @@ export function useBookingsWorkspace(
       selectedPaymentMethodIdRef.current = nextSelectedPaymentMethodId;
       setSelectedHouseholdId(nextSelectedHouseholdId);
       setSelectedPaymentMethodId(nextSelectedPaymentMethodId);
-      await loadPets(nextSelectedHouseholdId, effectiveSelection?.petId ?? selectedPetIdRef.current);
+      await loadPets(nextSelectedHouseholdId, effectiveSelection?.petId ?? activePetContextRef.current?.petId ?? selectedPetIdRef.current);
     } catch (error) {
       if (mountedRef.current) {
         setErrorMessage(error instanceof Error ? error.message : "No fue posible actualizar el espacio de reservas.");
@@ -376,6 +379,22 @@ export function useBookingsWorkspace(
     setErrorMessage(null);
     void refresh(incomingSelection);
   }, [enabled, incomingSelection?.selectedAt]);
+
+  useEffect(() => {
+    activePetContextRef.current = activePetContext ?? null;
+
+    if (!enabled || !activePetContext?.petId) {
+      return;
+    }
+
+    if (activeSelectionRef.current?.petId) {
+      return;
+    }
+
+    selectedHouseholdIdRef.current = activePetContext.householdId ?? selectedHouseholdIdRef.current;
+    selectedPetIdRef.current = activePetContext.petId;
+    void refresh(activeSelectionRef.current);
+  }, [activePetContext?.householdId, activePetContext?.petId, enabled]);
 
   useEffect(() => {
     if (!enabled) {

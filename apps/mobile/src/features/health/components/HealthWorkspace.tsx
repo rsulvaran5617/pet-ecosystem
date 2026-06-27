@@ -310,12 +310,14 @@ export function HealthWorkspace({
   contextHouseholdId,
   contextPetId,
   enabled,
-  mode = "standalone"
+  mode = "standalone",
+  onActivePetChange
 }: {
   contextHouseholdId?: string | null;
   contextPetId?: string | null;
   enabled: boolean;
   mode?: "standalone" | "pet-hub";
+  onActivePetChange?: (context: { householdId: string | null; petId: string | null }) => void;
 }) {
   const { householdSnapshot, pets, selectedHouseholdId, selectedPetId, selectedPetHealthDetail, errorMessage, infoMessage, isLoading, isSubmitting, clearMessages, selectHousehold, selectPet, runAction } =
     useHealthWorkspace(enabled);
@@ -336,6 +338,16 @@ export function HealthWorkspace({
   const canEdit =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
   const isPetHubMode = mode === "pet-hub";
+
+  const handleSelectHousehold = async (householdId: string) => {
+    await selectHousehold(householdId);
+    onActivePetChange?.({ householdId, petId: null });
+  };
+
+  const handleSelectPet = async (petId: string) => {
+    await selectPet(petId);
+    onActivePetChange?.({ householdId: selectedHouseholdId, petId });
+  };
 
   useEffect(() => {
     if (!enabled || !contextHouseholdId || contextHouseholdId === selectedHouseholdId) {
@@ -476,7 +488,7 @@ export function HealthWorkspace({
           {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando el expediente de salud...</Text> : null}
 
           {!isPetHubMode && householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
-            <Pressable key={household.id} onPress={() => void selectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
+            <Pressable key={household.id} onPress={() => void handleSelectHousehold(household.id)} style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}>
               <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917" }}>{household.name}</Text>
               <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}</Text>
             </Pressable>
@@ -485,7 +497,7 @@ export function HealthWorkspace({
           {!isPetHubMode ? <View style={cardStyle}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Mascotas</Text>
             {selectedHousehold ? pets.length ? pets.map((pet) => (
-              <Pressable key={pet.id} onPress={() => void selectPet(pet.id)} style={[inputStyle, { backgroundColor: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8", gap: 6 }]}>
+              <Pressable key={pet.id} onPress={() => void handleSelectPet(pet.id)} style={[inputStyle, { backgroundColor: pet.id === selectedPetId ? "rgba(15,118,110,0.08)" : "#fffdf8", gap: 6 }]}>
                 <Text style={{ fontWeight: "600", color: "#1c1917" }}>{pet.name}</Text>
                 <Text style={{ color: colorTokens.muted }}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</Text>
               </Pressable>

@@ -54,6 +54,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas; el encabezado mobile muestra `MM/YYYY` y controles compactos `-1 ano` / `+1 ano` para no tapar el mes en pantallas pequenas.
+- owner mobile mantiene una `mascota activa` persistente en el shell: seleccionar desde Inicio/Mascotas/Salud/Recordatorios/Buscar/Reservas conserva el foco al navegar por el menu inferior y muestra una banda compacta para cambiarla.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 - owner mobile/web Mascotas muestra un bloque de atencion documental para documentos vencidos, por vencer o con fecha pendiente
 
@@ -94,6 +95,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - ubicacion publica exacta del proveedor en cards/lista con ciudad, pais y distancia aproximada solo si hay origen opcional
 - widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
+- Owner Buscar usa la mascota activa como contexto de preparacion de reserva cuando no hay otra mascota elegida explicitamente.
 - Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
 - Owner Buscar agrega Foster-4A: entrada `Adopcion` / `Mascotas que buscan hogar`, listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.
 - owner web Buscar queda alineado funcionalmente con owner mobile: busqueda enfocada, recientes, sugerencias, chips rapidos, filtros bajo demanda, contexto hogar/mascota y seleccion enriquecida hacia Reservas.
@@ -110,6 +112,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - V2 owner booking QR: en detalle de reserva confirmada, accion para mostrar QR temporal de check-in y luego check-out
 - V2 booking capacity: seleccion de slot/cupo antes de crear booking; slots como tarjetas por dia con cupos disponibles
 - owner Buscar -> Reservas: si el usuario toca `Abrir vista previa de la reserva` con slot elegido, Reservas conserva proveedor/servicio/slot y salta al paso pendiente de mascota/metodo sin consumir cupo.
+- owner Reservas preselecciona la mascota activa cuando el flujo entra sin mascota explicita; una seleccion manual dentro del flujo tiene prioridad.
 - owner Reservas: flujo de preparacion usa stepper horizontal tipo etiquetas con estados completado, activo y pendiente para Servicio, Mascota, Horario, Resumen y Confirmar.
 - owner Reservas preview: mostrar resumen tipo ticket compacto con estado, proveedor/servicio, mascota, horario, precio, metodo y CTA principal `Confirmar reserva`.
 - owner Reservas mantiene el bloque QR operacional compacto: texto de accion legible en dos lineas y boton QR iconografico para evitar cortes en mobile pequeno.

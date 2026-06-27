@@ -295,6 +295,7 @@ function getInitials(value: string) {
 
 export function BookingsWorkspace({
   activePanel = "detalle",
+  activePetContext,
   enabled,
   marketplaceSelection,
   onClearMarketplaceSelection,
@@ -302,9 +303,11 @@ export function BookingsWorkspace({
   onPanelChange,
   onOpenChatForBooking,
   onOpenReviewForBooking,
-  onOpenSupportForBooking
+  onOpenSupportForBooking,
+  onActivePetChange
 }: {
   activePanel?: BookingHubPanel;
+  activePetContext?: { householdId: Uuid | null; petId: Uuid | null };
   enabled: boolean;
   marketplaceSelection: MarketplaceServiceSelection | null;
   onClearMarketplaceSelection?: () => void;
@@ -313,6 +316,7 @@ export function BookingsWorkspace({
   onOpenChatForBooking?: (bookingId: Uuid) => void;
   onOpenReviewForBooking?: (bookingId: Uuid) => void;
   onOpenSupportForBooking?: (bookingId: Uuid) => void;
+  onActivePetChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
 }) {
   const {
     householdSnapshot,
@@ -346,7 +350,7 @@ export function BookingsWorkspace({
     openBookingDetail,
     cancelBooking,
     refresh
-  } = useBookingsWorkspace(enabled, marketplaceSelection);
+  } = useBookingsWorkspace(enabled, marketplaceSelection, activePetContext);
 
   const selectedBookingId = selectedBookingDetail?.booking.id ?? null;
   const [bookingView, setBookingView] = useState<BookingWorkspaceView>(marketplaceSelection ? "servicio" : "historial");
@@ -406,6 +410,16 @@ export function BookingsWorkspace({
 
     void loadBookingSlots().catch(() => undefined);
   }, [activeSelection?.serviceId, bookingView]);
+
+  const handleSelectHouseholdContext = async (householdId: Uuid) => {
+    await selectHousehold(householdId);
+    onActivePetChange?.({ householdId, petId: null });
+  };
+
+  const handleSelectPetContext = async (petId: Uuid) => {
+    await selectPet(petId);
+    onActivePetChange?.({ householdId: selectedHouseholdId, petId });
+  };
 
   const showBookingView = (view: BookingWorkspaceView) => {
     setBookingView(view);
@@ -555,7 +569,7 @@ export function BookingsWorkspace({
             {householdSnapshot?.households.length ? householdSnapshot.households.map((household) => (
               <Pressable
                 key={household.id}
-                onPress={() => void selectHousehold(household.id)}
+                onPress={() => void handleSelectHouseholdContext(household.id)}
                 style={[cardStyle, { backgroundColor: household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "rgba(247,242,231,0.84)" }]}
               >
                 <Text style={{ fontSize: 13, fontWeight: "800", color: colorTokens.ink }}>{household.name}</Text>
@@ -571,7 +585,7 @@ export function BookingsWorkspace({
             </View>
             <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
               {pets.map((pet) => (
-                <Button key={pet.id} disabled={!selectedHouseholdId} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
+                <Button key={pet.id} disabled={!selectedHouseholdId} label={pet.name} onPress={() => void handleSelectPetContext(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
               ))}
             </View>
             <Text style={bodyTextStyle}>

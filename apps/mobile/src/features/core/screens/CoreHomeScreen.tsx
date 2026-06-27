@@ -90,6 +90,7 @@ type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
 type OwnerHomePaymentMethod = Pick<UserPaymentMethod, "brand" | "isDefault" | "last4" | "status">;
 type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" | "providerCount" | "serviceCount">;
+type ActiveOwnerPetContext = { householdId: Uuid | null; petId: Uuid | null };
 
 const ownerSections: Array<{ description: string; id: OwnerSectionId; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
@@ -468,6 +469,62 @@ function formatShortDateTime(value: string) {
   }
 
   return formatShortDateLabel(value);
+}
+
+function ActiveOwnerPetBanner({
+  pet,
+  onChange
+}: {
+  pet: Pick<PetSummary, "avatarUrl" | "name" | "species">;
+  onChange: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityLabel={`Mascota activa ${pet.name}. Cambiar mascota`}
+      accessibilityRole="button"
+      onPress={onChange}
+      style={{
+        alignItems: "center",
+        backgroundColor: "rgba(240,253,250,0.92)",
+        borderColor: "rgba(15,118,110,0.2)",
+        borderRadius: 18,
+        borderWidth: 1,
+        flexDirection: "row",
+        gap: 10,
+        padding: 10,
+        ...visualTokens.mobile.softShadow
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: "#ffffff",
+          borderRadius: 999,
+          height: 34,
+          justifyContent: "center",
+          overflow: "hidden",
+          width: 34
+        }}
+      >
+        {pet.avatarUrl ? (
+          <Image source={{ uri: pet.avatarUrl }} style={{ height: 34, width: 34 }} />
+        ) : (
+          <OwnerLineIcon color={colorTokens.accentDark} name="paw" size={18} />
+        )}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text numberOfLines={1} style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+          Mascota activa
+        </Text>
+        <Text numberOfLines={1} style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>
+          {pet.name}
+        </Text>
+      </View>
+      <View style={{ borderColor: "rgba(15,118,110,0.24)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6 }}>
+        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Cambiar</Text>
+      </View>
+    </Pressable>
+  );
 }
 
 function formatActivityDateTime(value: string) {
@@ -1120,6 +1177,10 @@ export function CoreHomeScreen() {
     householdId: null,
     petId: null
   });
+  const [activeOwnerPetContext, setActiveOwnerPetContext] = useState<ActiveOwnerPetContext>({
+    householdId: null,
+    petId: null
+  });
   const [pendingPetHubPetId, setPendingPetHubPetId] = useState<Uuid | null>(null);
   const [activeBookingHubPanel, setActiveBookingHubPanel] = useState<BookingHubPanel>("detalle");
   const [bookingHubContext, setBookingHubContext] = useState<{ bookingId: Uuid | null }>({
@@ -1173,7 +1234,51 @@ export function CoreHomeScreen() {
     !isProviderMode &&
     !petsWorkspace.isLoading &&
     ownerHouseholdCount === 0;
-  const activeOwnerPetContextId = pendingPetHubPetId ?? petHubContext.petId ?? petsWorkspace.selectedPetId ?? null;
+  const setActiveOwnerPetFromSelection = (context: ActiveOwnerPetContext) => {
+    setActiveOwnerPetContext(context);
+    setPetHubContext(context);
+  };
+  const activeOwnerPetContextId = pendingPetHubPetId ?? activeOwnerPetContext.petId ?? petHubContext.petId ?? petsWorkspace.selectedPetId ?? null;
+  const activeOwnerPet =
+    petsWorkspace.pets.find((pet) => pet.id === activeOwnerPetContextId) ??
+    null;
+  const activeOwnerPetContextForModules: ActiveOwnerPetContext = activeOwnerPet
+    ? { householdId: activeOwnerPet.householdId, petId: activeOwnerPet.id }
+    : { householdId: activeOwnerPetContext.householdId, petId: activeOwnerPetContextId };
+
+  useEffect(() => {
+    if (!authState.isAuthenticated || isProviderMode) {
+      if (activeOwnerPetContext.petId || activeOwnerPetContext.householdId) {
+        setActiveOwnerPetContext({ householdId: null, petId: null });
+      }
+      return;
+    }
+
+    if (!activeOwnerPetContext.petId || petsWorkspace.isLoading) {
+      return;
+    }
+
+    const matchingPet = petsWorkspace.pets.find((pet) => pet.id === activeOwnerPetContext.petId);
+
+    if (!matchingPet) {
+      setActiveOwnerPetContext({ householdId: null, petId: null });
+      setPetHubContext((currentContext) =>
+        currentContext.petId === activeOwnerPetContext.petId ? { householdId: null, petId: null } : currentContext
+      );
+      return;
+    }
+
+    if (matchingPet.householdId !== activeOwnerPetContext.householdId) {
+      setActiveOwnerPetContext({ householdId: matchingPet.householdId, petId: matchingPet.id });
+    }
+  }, [
+    activeOwnerPetContext.householdId,
+    activeOwnerPetContext.petId,
+    authState.isAuthenticated,
+    isProviderMode,
+    petsWorkspace.isLoading,
+    petsWorkspace.pets
+  ]);
 
   if (isLoading) {
     return (
@@ -1219,6 +1324,20 @@ export function CoreHomeScreen() {
         {configError ? <Notice message={configError} tone="error" /> : null}
         {!configError && errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
         {!configError && infoMessage && !isRoleSwitchInfoMessage ? <Notice message={infoMessage} tone="info" /> : null}
+        {authState.isAuthenticated &&
+        snapshot &&
+        !isProviderMode &&
+        !ownerNeedsHouseholdSetup &&
+        activeOwnerSection !== "mascotas" &&
+        activeOwnerPet ? (
+          <ActiveOwnerPetBanner
+            pet={activeOwnerPet}
+            onChange={() => {
+              setActivePetHubPanel("detalle");
+              setActiveOwnerSection("mascotas");
+            }}
+          />
+        ) : null}
         {isRecoverySession ? (
           <Notice
             message="Se detecto una sesion de recuperacion. Define una nueva contrasena abajo para completar el acceso."
@@ -2096,7 +2215,7 @@ export function CoreHomeScreen() {
             }}
             onSelectPet={(petId) => {
               setPendingPetHubPetId(petId);
-              setPetHubContext({ householdId: petsWorkspace.selectedHouseholdId, petId });
+              setActiveOwnerPetFromSelection({ householdId: petsWorkspace.selectedHouseholdId, petId });
               setActivePetHubPanel("detalle");
               setActiveOwnerSection("mascotas");
             }}
@@ -2116,7 +2235,7 @@ export function CoreHomeScreen() {
               enabled
               ownerReminders={remindersWorkspace.reminders}
               onContextChange={(context) => {
-                setPetHubContext(context);
+                setActiveOwnerPetFromSelection(context);
 
                 if (pendingPetHubPetId && context.petId === pendingPetHubPetId) {
                   setPendingPetHubPetId(null);
@@ -2126,18 +2245,20 @@ export function CoreHomeScreen() {
             />
             {activePetHubPanel === "salud" ? (
               <HealthWorkspace
-                contextHouseholdId={petHubContext.householdId}
-                contextPetId={petHubContext.petId}
+                contextHouseholdId={activeOwnerPetContextForModules.householdId}
+                contextPetId={activeOwnerPetContextForModules.petId}
                 enabled
                 mode="pet-hub"
+                onActivePetChange={setActiveOwnerPetFromSelection}
               />
             ) : null}
             {activePetHubPanel === "recordatorios" ? (
               <RemindersWorkspace
-                contextHouseholdId={petHubContext.householdId}
-                contextPetId={petHubContext.petId}
+                contextHouseholdId={activeOwnerPetContextForModules.householdId}
+                contextPetId={activeOwnerPetContextForModules.petId}
                 enabled
                 mode="pet-hub"
+                onActivePetChange={setActiveOwnerPetFromSelection}
                 onRemindersChanged={remindersWorkspace.refresh}
               />
             ) : null}
@@ -2146,9 +2267,19 @@ export function CoreHomeScreen() {
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "buscar" ? (
           <MarketplaceWorkspace
             adoptionOpenVersion={marketplaceAdoptionOpenVersion}
+            activePetContext={activeOwnerPetContextForModules}
             enabled
+            onActivePetChange={setActiveOwnerPetFromSelection}
             onSelectBookingService={(selection) => {
-              setMarketplaceSelection(selection);
+              const nextSelection = {
+                ...selection,
+                householdId: selection.householdId ?? activeOwnerPetContextForModules.householdId,
+                petId: selection.petId ?? activeOwnerPetContextForModules.petId
+              };
+              setMarketplaceSelection(nextSelection);
+              if (nextSelection.petId) {
+                setActiveOwnerPetFromSelection({ householdId: nextSelection.householdId, petId: nextSelection.petId });
+              }
               setActiveBookingHubPanel("detalle");
               setActiveOwnerSection("reservas");
             }}
@@ -2158,6 +2289,7 @@ export function CoreHomeScreen() {
           <>
             <BookingsWorkspace
               activePanel={activeBookingHubPanel}
+              activePetContext={activeOwnerPetContextForModules}
               enabled
               marketplaceSelection={marketplaceSelection}
               onClearMarketplaceSelection={() => setMarketplaceSelection(null)}
@@ -2178,6 +2310,7 @@ export function CoreHomeScreen() {
                 setSupportFocusVersion(Date.now());
                 setActiveBookingHubPanel("soporte");
               }}
+              onActivePetChange={setActiveOwnerPetFromSelection}
             />
             {activeBookingHubPanel === "chat" ? (
               <MessagingWorkspace

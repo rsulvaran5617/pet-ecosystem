@@ -8,7 +8,8 @@ import type {
   PetAdoptionListing,
   ProviderAvailabilitySlot,
   ProviderDayOfWeek,
-  ProviderServiceCategory
+  ProviderServiceCategory,
+  Uuid
 } from "@pet/types";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Image, Modal, Pressable, Text, TextInput, View } from "react-native";
@@ -553,10 +554,14 @@ function MarketplaceProviderMiniCard({
 export function MarketplaceWorkspace({
   enabled,
   adoptionOpenVersion = 0,
+  activePetContext,
+  onActivePetChange,
   onSelectBookingService
 }: {
   adoptionOpenVersion?: number;
+  activePetContext?: { householdId: Uuid | null; petId: Uuid | null };
   enabled: boolean;
+  onActivePetChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
   onSelectBookingService?: (selection: MarketplaceServiceSelection) => void;
 }) {
   const {
@@ -638,10 +643,47 @@ export function MarketplaceWorkspace({
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedService = selectedProviderDetail?.services.find((service) => service.id === selectedServiceId) ?? null;
+
+  useEffect(() => {
+    if (!enabled || !activePetContext?.petId) {
+      return;
+    }
+
+    if (activePetContext.householdId && selectedHouseholdId !== activePetContext.householdId) {
+      void selectHousehold(activePetContext.householdId);
+      return;
+    }
+
+    if (
+      selectedHouseholdId === activePetContext.householdId &&
+      selectedPetId !== activePetContext.petId &&
+      pets.some((pet) => pet.id === activePetContext.petId)
+    ) {
+      void selectPet(activePetContext.petId);
+    }
+  }, [
+    activePetContext?.householdId,
+    activePetContext?.petId,
+    enabled,
+    pets,
+    selectHousehold,
+    selectPet,
+    selectedHouseholdId,
+    selectedPetId
+  ]);
+
   const selectedProviderSource = useMemo(
     () => providers.find((provider) => provider.organizationId === selectedProviderDetail?.organizationId) ?? null,
     [providers, selectedProviderDetail]
   );
+  const handleSelectHouseholdContext = async (householdId: Uuid) => {
+    await selectHousehold(householdId);
+    onActivePetChange?.({ householdId, petId: null });
+  };
+  const handleSelectPetContext = async (petId: Uuid | null) => {
+    await selectPet(petId);
+    onActivePetChange?.({ householdId: selectedHouseholdId, petId });
+  };
   const distanceOriginOptions = useMemo(
     () => [
       noDistanceOrigin,
@@ -1203,7 +1245,7 @@ export function MarketplaceWorkspace({
                     {householdSnapshot.households.map((household) => (
                       <Pressable
                         key={household.id}
-                        onPress={() => void selectHousehold(household.id)}
+                        onPress={() => void handleSelectHouseholdContext(household.id)}
                         style={[
                           inputStyle,
                           {
@@ -1219,9 +1261,9 @@ export function MarketplaceWorkspace({
                       </Pressable>
                     ))}
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      <Button label="Todas las mascotas" onPress={() => void selectPet(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
+                      <Button label="Todas las mascotas" onPress={() => void handleSelectPetContext(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
                       {pets.map((pet) => (
-                        <Button key={pet.id} label={pet.name} onPress={() => void selectPet(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
+                        <Button key={pet.id} label={pet.name} onPress={() => void handleSelectPetContext(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
                       ))}
                     </View>
                   </>

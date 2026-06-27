@@ -132,6 +132,7 @@ Estado CAP-3:
 - si el cupo se agota entre preview y confirmacion, la UI muestra `Este horario acaba de llenarse. Elige otro horario disponible.`
 - el flujo actual de reserva legacy sigue disponible como fallback piloto cuando no hay slots publicados.
 - si el handoff viene desde Buscar con `selectedBookingSlot`, Reservas conserva el slot y abre en mascota o metodo de pago segun falte contexto, evitando repetir proveedor/servicio/horario.
+- si el owner tiene una mascota activa global, Reservas la usa como preseleccion solo cuando el handoff o la seleccion manual no traen otra mascota explicita.
 - owner mobile muestra un stepper visual Servicio -> Mascota -> Horario -> Resumen -> Confirmar para orientar el flujo sin cambiar reglas de negocio ni consumir cupo antes de confirmar.
 - la vista de preview usa un ticket compacto con proveedor, servicio, mascota, horario, precio, metodo y politica de cancelacion; conserva la misma confirmacion funcional.
 

@@ -48,7 +48,8 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
 - los documentos pueden indicar si tienen vencimiento, fecha de emision, fecha de vencimiento y ventana de aviso; el estado visual se calcula en cliente con helper compartido y no bloquea reservas automaticamente
 - los documentos tipo `vaccination_record` pueden cargarse desde Salud como sticker o soporte de una vacuna, manteniendo archivo y metadata en `pet_documents`
-- mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos y recordatorios no pierdan foco al moverse entre opciones del menu inferior
+- mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos, recordatorios, busqueda y preparacion de reservas no pierdan foco al moverse entre opciones del menu inferior
+- si la mascota activa deja de existir, cambia de hogar o queda inaccesible por permisos, el shell debe limpiar el contexto y volver a la experiencia normal sin romper la navegacion
 - web owner presenta la gestion de mascotas con selector de hogares compacto, carrusel superior de mascotas y ficha inferior de resumen/documentos para la mascota seleccionada; la edicion de datos maestros se abre bajo demanda desde el icono de lapiz de cada ficha o desde la accion de crear mascota
 - no se implementa `pet_timeline` ni `pet_document_shares` en este slice
 
