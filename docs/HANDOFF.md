@@ -1,5 +1,18 @@
 # HANDOFF.md
 
+## Owner mobile separacion Buscar vs Adopcion 2026-06-27
+
+- Slice UX/arquitectura local implementado para separar el marketplace comercial `Buscar` de `Mascotas que buscan hogar`.
+- `Buscar` vuelve a estar dedicado solo a servicios/proveedores, cupos y handoff hacia `Reservas`; ya no contiene estados `adoption` / `adoptionDetail` ni abre adopcion por estado persistente.
+- Se agrega `AdoptionDiscoveryWorkspace` en `apps/mobile/src/features/foster/components/` para listar publicaciones Foster, abrir perfil publico y mostrar CTA informativo `Me interesa`.
+- Owner `Inicio` mantiene el CTA `Mascotas que buscan hogar`, pero ahora navega a una seccion owner interna `adopcion` que no aparece en el bottom nav.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, booking capacity, Payments, QR, evidencia, provider/admin ni geolocalizacion.
+- Validaciones requeridas antes de cerrar: `@pet/mobile lint`, `@pet/mobile typecheck`, `@pet/mobile build` y `git diff --check`.
+- Artefactos QA generados antes del cierre:
+  - Android EAS preview build `e7ad6b78-d962-4cf3-8629-ed7771dcc3af`, APK local `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-search-adoption-split-android.apk`.
+  - iOS EAS production build `2aea0730-5f13-4c68-a39f-a2b1de91d10c`, version `0.3.1` build `15`, IPA local `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-search-adoption-split-ios-build15.ipa`.
+  - iOS build enviado a App Store Connect/TestFlight para procesamiento Apple.
+
 ## Owner mobile mascota activa persistente 2026-06-27
 
 - Slice UX/arquitectura local implementado para mantener una `mascota activa` en el shell owner mobile sin tocar backend, Supabase, migraciones, RLS, contratos API, Payments, QR, evidencia, provider/admin ni Foster.
@@ -14,8 +27,8 @@
 
 - Owner mobile `Mascotas` deja de mostrar la vitrina general read-only `Mascotas que buscan hogar` para mantener la pantalla enfocada en gestion de mascotas propias.
 - Las familias protectoras aprobadas conservan en `Mascotas` un acceso compacto `Mis publicaciones de adopcion`, que lleva al detalle de sus propias mascotas/publicaciones sin abrir discovery general.
-- Owner mobile `Inicio` agrega CTA compacto `Mascotas que buscan hogar` para llevar al usuario a `Buscar > Adopcion`.
-- Owner mobile `Buscar` sigue siendo la ruta canonica de discovery Foster-4A: listado, detalle publico y CTA informativo `Me interesa`.
+- Nota actualizada 2026-06-27: el CTA compacto `Mascotas que buscan hogar` ya no lleva a `Buscar > Adopcion`; abre la pantalla dedicada owner `adopcion`.
+- Nota actualizada 2026-06-27: Owner mobile `Buscar` queda reservado para servicios/proveedores; discovery Foster-4A vive en `AdoptionDiscoveryWorkspace`.
 - Alcance preservado: sin backend, Supabase, migraciones, pagos, booking, QR, evidencia operacional, provider services ni geolocalizacion.
 - Commit publicado: `d643357 feat(foster): streamline adoption discovery navigation`.
 - Artefacto Android QA generado con EAS preview:
@@ -31,9 +44,9 @@
   - Estado: binario subido correctamente a App Store Connect; queda en procesamiento Apple antes de aparecer disponible en TestFlight.
 - Nota EAS Submit: el intento con `--what-to-test` fallo porque el parametro `changelog` requiere plan Enterprise; el submit se repitio sin changelog y fue aceptado.
 
-## Foster-4A discovery de adopcion en Buscar 2026-06-24
+## Foster-4A discovery de adopcion 2026-06-24
 
-- Slice implementado en owner mobile `Buscar`: nueva entrada `Adopcion` / `Mascotas que buscan hogar` separada del marketplace comercial de servicios.
+- Slice implementado originalmente en owner mobile `Buscar`; desde 2026-06-27 la entrada `Mascotas que buscan hogar` vive en pantalla dedicada abierta desde `Inicio`.
 - Reutiliza Foster-3A sin migraciones nuevas: `listPublishedPetAdoptionListings` para listado y `getPetAdoptionListingDetail` para detalle con URLs firmadas de media.
 - Vista de listado: foto de portada, nombre, especie/raza, edad estimada, ciudad/pais, esterilizacion, resumen publico y badge `Busca hogar`.
 - Vista de detalle: galeria, historia publica, personalidad, salud publica, compatibilidad con ninos/perros/gatos, requisitos y ubicacion publica por ciudad/pais.

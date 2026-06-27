@@ -40,6 +40,7 @@ import { usePetsWorkspace } from "../../pets/hooks/usePetsWorkspace";
 import { HealthWorkspace } from "../../health/components/HealthWorkspace";
 import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
 import { useRemindersWorkspace } from "../../reminders/hooks/useRemindersWorkspace";
+import { AdoptionDiscoveryWorkspace } from "../../foster/components/AdoptionDiscoveryWorkspace";
 import { MarketplaceWorkspace } from "../../marketplace/components/MarketplaceWorkspace";
 import { useMarketplaceWorkspace } from "../../marketplace/hooks/useMarketplaceWorkspace";
 import { ProvidersWorkspace, type ProviderWorkspaceSection } from "../../providers/components/ProvidersWorkspace";
@@ -81,7 +82,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
   expYear: string;
 };
 
-type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta";
+type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta" | "adopcion";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
@@ -96,6 +97,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
   { id: "buscar", label: "Buscar", description: "Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar." },
+  { id: "adopcion", label: "Mascotas que buscan hogar", description: "Conoce mascotas publicadas por familias protectoras." },
   { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
@@ -104,7 +106,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
 const ownerSectionLookup = Object.fromEntries(
   ownerSections.map((section) => [section.id, section])
 ) as Record<OwnerSectionId, (typeof ownerSections)[number]>;
-const ownerBottomSections = ownerSections;
+const ownerBottomSections = ownerSections.filter((section) => section.id !== "adopcion");
 
 const providerSections: Array<{ description: string; id: ProviderSectionId; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Estado operativo, checklist y reservas que requieren accion." },
@@ -1163,7 +1165,6 @@ export function CoreHomeScreen() {
   const [isAddressFormVisible, setIsAddressFormVisible] = useState(false);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
   const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
-  const [marketplaceAdoptionOpenVersion, setMarketplaceAdoptionOpenVersion] = useState(0);
   const [focusedBookingId, setFocusedBookingId] = useState<Uuid | null>(null);
   const [chatFocusVersion, setChatFocusVersion] = useState(0);
   const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
@@ -2210,8 +2211,7 @@ export function CoreHomeScreen() {
             householdName={defaultHouseholdName}
             onNavigate={setActiveOwnerSection}
             onOpenAdoption={() => {
-              setMarketplaceAdoptionOpenVersion((currentVersion) => currentVersion + 1);
-              setActiveOwnerSection("buscar");
+              setActiveOwnerSection("adopcion");
             }}
             onSelectPet={(petId) => {
               setPendingPetHubPetId(petId);
@@ -2266,7 +2266,6 @@ export function CoreHomeScreen() {
         ) : null}
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "buscar" ? (
           <MarketplaceWorkspace
-            adoptionOpenVersion={marketplaceAdoptionOpenVersion}
             activePetContext={activeOwnerPetContextForModules}
             enabled
             onActivePetChange={setActiveOwnerPetFromSelection}
@@ -2283,6 +2282,12 @@ export function CoreHomeScreen() {
               setActiveBookingHubPanel("detalle");
               setActiveOwnerSection("reservas");
             }}
+          />
+        ) : null}
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "adopcion" ? (
+          <AdoptionDiscoveryWorkspace
+            enabled
+            onBackHome={() => setActiveOwnerSection("inicio")}
           />
         ) : null}
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "reservas" ? (

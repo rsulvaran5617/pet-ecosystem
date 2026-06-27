@@ -97,7 +97,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
 - Owner Buscar usa la mascota activa como contexto de preparacion de reserva cuando no hay otra mascota elegida explicitamente.
 - Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
-- Owner Buscar agrega Foster-4A: entrada `Adopcion` / `Mascotas que buscan hogar`, listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.
+- Owner Inicio agrega Foster-4A como pantalla dedicada `Mascotas que buscan hogar`; Owner Buscar queda reservado para servicios/proveedores y no abre adopcion automaticamente.
+- Owner `Mascotas que buscan hogar` muestra listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.
 - owner web Buscar queda alineado funcionalmente con owner mobile: busqueda enfocada, recientes, sugerencias, chips rapidos, filtros bajo demanda, contexto hogar/mascota y seleccion enriquecida hacia Reservas.
 - modo Lista/Mapa en resultados; el mapa usa pins de proveedores con ubicacion publica y card inferior para abrir proveedor, sin GPS ni tracking
 - seleccion de servicio
@@ -138,7 +139,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Owner mobile Mascotas: mascotas bajo custodia protectora muestran badge `En acogida` / `Custodia protectora`; accion `Transferir mascota` solo para familia protectora aprobada.
 - Transferencia mobile Foster-2A: desde `Mascotas`, familia protectora aprobada selecciona receptor por email, agrega nota opcional y ve copy de expediente compartido; reservas/chats/pagos/soporte/recordatorios futuros no viajan.
 - Receptor mobile Foster-2A: `Hogares` muestra invitaciones de mascota con resumen minimo, conteos de expediente y acciones `Aceptar en este hogar` / `Rechazar`; recibe expediente completo permitido solo despues de aceptar.
-- Foster-3A/Foster-4A owner mobile: `Buscar > Adopcion` es la ruta canonica para la vitrina read-only `Mascotas que buscan hogar` con cards publicadas, foto principal, ciudad, resumen y CTA informativo `Me interesa`; no crea solicitudes ni transfiere mascotas. `Mascotas` queda enfocado en gestion propia y solo muestra `Mis publicaciones de adopcion` para familias protectoras aprobadas.
+- Foster-3A/Foster-4A owner mobile: `Inicio > Mascotas que buscan hogar` abre la vitrina read-only dedicada con cards publicadas, foto principal, ciudad, resumen y CTA informativo `Me interesa`; no crea solicitudes ni transfiere mascotas. `Buscar` queda reservado para servicios/proveedores y `Mascotas` queda enfocado en gestion propia/publicaciones propias.
 - Foster-3A familia protectora mobile: desde el detalle de mascota se puede preparar publicacion, cargar fotos, editar textos publicos seguros y enviar a revision; solo aparece para hogar protector aprobado y mascotas activas.
 - Foster-3A admin web: `Familias protectoras` incluye cola de publicaciones de adopcion pendientes con textos publicos, galeria de fotos firmadas y acciones aprobar, rechazar o pausar.
 - Admin web: cola de solicitudes de familias protectoras, detalle de hogar solicitante, aprobar/rechazar/suspender, auditoria read-only de transferencias privadas y bloqueo por uso indebido.
