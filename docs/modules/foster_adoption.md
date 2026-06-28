@@ -4,7 +4,7 @@
 
 Nodo V2.5 no financiero abierto por slices controlados.
 
-Foster-1A, Foster-2A y Foster-3A ya estan implementados y aplicados remoto: familia protectora aprobada por admin, transferencia privada de mascota con consentimiento y vitrina controlada de adopcion/acogida responsable con galeria de fotos, revision admin y lectura por familias autenticadas. Foster-4A agrega discovery desde Owner `Inicio` en pantalla dedicada sin crear solicitudes formales ni transferencias automaticas.
+Foster-1A, Foster-2A y Foster-3A ya estan implementados y aplicados remoto: familia protectora aprobada por admin, transferencia privada de mascota con consentimiento y vitrina controlada de adopcion/acogida responsable con galeria de fotos, revision admin y lectura por familias autenticadas. Foster-3B queda preparado localmente para moderar fotos individuales de publicaciones ya aprobadas sin despublicarlas. Foster-4A agrega discovery desde Owner `Inicio` en pantalla dedicada sin crear solicitudes formales ni transferencias automaticas.
 
 Este alcance no modifica flujos actuales de owner, provider, bookings, payments, QR, evidencias, geolocalizacion ni marketplace comercial de servicios.
 
@@ -39,6 +39,31 @@ Decision de privacidad:
 - solo se muestran campos publicos moderados.
 - no se exponen documentos privados, direcciones exactas ni datos internos de la familia protectora.
 - la familia receptora puede conocer el perfil antes de coordinar una transferencia privada futura.
+
+## Foster-3B - Galeria moderada en publicaciones aprobadas
+
+Objetivo:
+
+- Corregir el flujo donde una publicacion `published` podia quedar inconsistente al intentar agregar una foto despues de aprobacion admin.
+- Permitir varias fotos por publicacion, con limite inicial de 8 imagenes.
+- Mantener visible una publicacion aprobada mientras nuevas fotos quedan en `pending`.
+
+Reglas:
+
+- Agregar una foto a una publicacion `published` no cambia `pet_adoption_listings.status`.
+- Las fotos nuevas se insertan como `moderation_status = pending`.
+- Owner/familia protectora ve todas sus fotos con estado `Pendiente`, `Aprobada` o `Rechazada`.
+- Adoptantes solo ven fotos `approved` de publicaciones `published`.
+- Admin puede aprobar o rechazar fotos individuales sin reaprobar toda la publicacion.
+- Si se aprueba una foto y no existe portada aprobada, puede quedar como portada publica.
+- Si una portada se rechaza, se reasigna una portada aprobada disponible o se muestra placeholder.
+
+Fuera de alcance:
+
+- videos.
+- chat o solicitud formal de adopcion.
+- transferencia automatica.
+- Payments, bookings, QR, evidencia operacional, provider services y geolocalizacion.
 
 ## Foster-3A - Vitrina controlada de adopcion/acogida
 

@@ -6,6 +6,7 @@ import type {
   PetAdoptionListingInput,
   PetAdoptionListingMedia,
   PetAdoptionListingReviewInput,
+  PetAdoptionMediaReviewInput,
   PetAdoptionMediaUploadInput,
   PetCustodyContext,
   PetTransferRecord,
@@ -57,9 +58,11 @@ export interface FosterApiClient {
   reviewPetAdoptionListing(listingId: Uuid, input: PetAdoptionListingReviewInput): Promise<PetAdoptionListing>;
   listMyPetAdoptionListings(householdId?: Uuid | null): Promise<PetAdoptionListing[]>;
   listPublishedPetAdoptionListings(): Promise<PetAdoptionListing[]>;
-  getPetAdoptionListingDetail(listingId: Uuid): Promise<PetAdoptionListing | null>;
+  getPetAdoptionListingDetail(listingId: Uuid, visibility?: "owner" | "public"): Promise<PetAdoptionListing | null>;
   listPendingPetAdoptionListingsForAdmin(): Promise<PetAdoptionListing[]>;
   uploadPetAdoptionMedia(input: PetAdoptionMediaUploadInput): Promise<PetAdoptionListingMedia>;
+  setPetAdoptionListingCover(mediaId: Uuid): Promise<PetAdoptionListingMedia>;
+  reviewPetAdoptionListingMedia(mediaId: Uuid, input: PetAdoptionMediaReviewInput): Promise<PetAdoptionListingMedia>;
   removePetAdoptionMedia(mediaId: Uuid): Promise<void>;
 }
 
@@ -95,6 +98,8 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("update_pet_adoption_listing") ||
     message.includes("submit_pet_adoption_listing") ||
     message.includes("review_pet_adoption_listing") ||
+    message.includes("review_pet_adoption_listing_media") ||
+    message.includes("set_pet_adoption_listing_cover") ||
     message.includes("list_published_pet_adoption_listings") ||
     message.includes("list_pending_pet_adoption_listings_for_admin")
   ) && (message.includes("schema cache") || message.includes("could not find") || message.includes("does not exist"));
@@ -170,7 +175,8 @@ async function mapPetAdoptionMedia(
 
 async function listPetAdoptionMedia(
   supabase: FosterSupabaseClient,
-  listingIds: Uuid[]
+  listingIds: Uuid[],
+  visibility: "admin" | "owner" | "public" = "owner"
 ): Promise<Map<Uuid, PetAdoptionListingMedia[]>> {
   if (!listingIds.length) {
     return new Map();
@@ -191,7 +197,11 @@ async function listPetAdoptionMedia(
     fail(error, "Unable to load adoption media.");
   }
 
-  const mappedMedia = await Promise.all((data ?? []).map((row) => mapPetAdoptionMedia(supabase, row)));
+  const visibleRows =
+    visibility === "public"
+      ? (data ?? []).filter((row) => row.moderation_status === "approved")
+      : (data ?? []);
+  const mappedMedia = await Promise.all(visibleRows.map((row) => mapPetAdoptionMedia(supabase, row)));
   return mappedMedia.reduce((groupedMedia, media) => {
     const current = groupedMedia.get(media.listingId) ?? [];
     current.push(media);
@@ -243,11 +253,13 @@ function mapPetAdoptionListing(
 
 async function mapPetAdoptionListings(
   supabase: FosterSupabaseClient,
-  rows: PetAdoptionListingFunctionRow[]
+  rows: PetAdoptionListingFunctionRow[],
+  visibility: "admin" | "owner" | "public" = "owner"
 ): Promise<PetAdoptionListing[]> {
   const mediaByListing = await listPetAdoptionMedia(
     supabase,
-    rows.map((row) => row.id)
+    rows.map((row) => row.id),
+    visibility
   );
 
   return rows.map((row) => mapPetAdoptionListing(row, mediaByListing.get(row.id) ?? []));
@@ -709,9 +721,9 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load published adoption listings.");
       }
 
-      return mapPetAdoptionListings(supabase, data ?? []);
+      return mapPetAdoptionListings(supabase, data ?? [], "public");
     },
-    async getPetAdoptionListingDetail(listingId) {
+    async getPetAdoptionListingDetail(listingId, visibility = "owner") {
       const { data, error } = await supabase.rpc("get_pet_adoption_listing_detail", {
         target_listing_id: listingId
       });
@@ -724,7 +736,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load adoption listing detail.");
       }
 
-      const [listing] = await mapPetAdoptionListings(supabase, data ?? []);
+      const [listing] = await mapPetAdoptionListings(supabase, data ?? [], visibility);
       return listing ?? null;
     },
     async listPendingPetAdoptionListingsForAdmin() {
@@ -738,7 +750,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load pending adoption listings.");
       }
 
-      return mapPetAdoptionListings(supabase, data ?? []);
+      return mapPetAdoptionListings(supabase, data ?? [], "admin");
     },
     async uploadPetAdoptionMedia(input) {
       const currentUserId = await requireCurrentUserId(supabase);
@@ -755,13 +767,6 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
 
       if (uploadError) {
         fail(uploadError, "Unable to upload adoption media.");
-      }
-
-      if (input.isCover) {
-        await supabase
-          .from("pet_adoption_listing_media")
-          .update({ is_cover: false })
-          .eq("listing_id", input.listingId);
       }
 
       const { data, error } = await supabase
@@ -783,6 +788,30 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
 
       if (error) {
         await supabase.storage.from("pet-adoption-media").remove([storagePath]);
+        failMissingFosterSchema(error);
+      }
+
+      return mapPetAdoptionMedia(supabase, data);
+    },
+    async setPetAdoptionListingCover(mediaId) {
+      const { data, error } = await supabase.rpc("set_pet_adoption_listing_cover", {
+        target_media_id: mediaId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapPetAdoptionMedia(supabase, data);
+    },
+    async reviewPetAdoptionListingMedia(mediaId, input) {
+      const { data, error } = await supabase.rpc("review_pet_adoption_listing_media", {
+        target_media_id: mediaId,
+        decision: input.decision,
+        notes: input.notes ?? null
+      });
+
+      if (error) {
         failMissingFosterSchema(error);
       }
 

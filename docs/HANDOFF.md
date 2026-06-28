@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+## Foster-3B galeria moderada de adopcion 2026-06-28
+
+- Slice local implementado para corregir el caso de publicaciones `published` que podian quedar inconsistentes al agregar fotos despues de aprobacion admin.
+- Nueva migracion local pendiente de aplicar remoto: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
+- Regla central: agregar una foto a una publicacion aprobada no cambia `pet_adoption_listings.status`; la publicacion sigue visible y la foto nueva queda `pending`.
+- RLS/Storage: owner/admin ven media propia con estados; adoptantes solo pueden leer media `approved` de publicaciones `published`; owner no actualiza directo `moderation_status`.
+- Owner mobile `Mascotas`: galeria horizontal con contador `x/8`, estados por foto, accion de portada, eliminacion solo para fotos pendientes/rechazadas y copy de que la publicacion no se despublica.
+- Admin web `Familias protectoras`: cola incluye publicaciones con fotos pendientes y permite aprobar/rechazar fotos individuales sin reaprobar toda la publicacion.
+- Discovery owner filtra defensivamente para mostrar solo fotos aprobadas y usa placeholder si no hay portada publica.
+- Fuera de alcance: videos, chat/adoption interest, solicitudes formales, transferencia automatica, Payments, booking, QR, evidencia operacional, provider services y geolocalizacion.
+- Validaciones requeridas antes de aplicar remoto: types/api-client/mobile/admin lint/typecheck/build, `git diff --check` y `npx supabase db push --dry-run --include-all --linked --yes`.
+
 ## Owner mobile Buscar sin chips rapidos visibles 2026-06-27
 
 - Slice UX local implementado para retirar la fila visible de chips `Hoy`, `Paseo`, `Perros`, `Zona` y `Ordenar` debajo del buscador principal.

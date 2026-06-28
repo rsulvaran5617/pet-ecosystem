@@ -63,6 +63,12 @@ const adoptionListingStatusLabels: Record<PetAdoptionListing["status"], string> 
   rejected: "Rechazada"
 };
 
+const adoptionMediaStatusLabels: Record<PetAdoptionListing["media"][number]["moderationStatus"], string> = {
+  approved: "Aprobada",
+  pending: "Pendiente",
+  rejected: "Rechazada"
+};
+
 function Button({
   children,
   disabled,
@@ -235,6 +241,31 @@ export function AdminFosterWorkspace({
     }
   }
 
+  async function reviewAdoptionListingMedia(mediaId: Uuid, decision: "approved" | "rejected") {
+    if (decision === "rejected" && !adoptionReviewNotes.trim()) {
+      setErrorMessage("La nota es obligatoria para rechazar una foto.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      await getAdminFosterApiClient().reviewPetAdoptionListingMedia(mediaId, {
+        decision,
+        notes: adoptionReviewNotes.trim() || null
+      });
+      setInfoMessage(decision === "approved" ? "Foto de adopcion aprobada." : "Foto de adopcion rechazada.");
+      setAdoptionReviewNotes("");
+      await refresh();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible revisar la foto de adopcion.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -393,7 +424,7 @@ export function AdminFosterWorkspace({
               Revisa textos publicos y galeria antes de mostrarlos a familias interesadas.
             </p>
           </div>
-          <span style={{ color: "#52525b" }}>{adoptionListings.length} pendiente(s)</span>
+                  <span style={{ color: "#52525b" }}>{adoptionListings.length} por revisar</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0,1fr)", gap: "18px", alignItems: "start" }}>
           <div style={{ display: "grid", gap: "10px" }}>
@@ -416,6 +447,9 @@ export function AdminFosterWorkspace({
                   <strong>{listing.petName}</strong>
                   <span style={{ color: "#52525b" }}>{listing.title}</span>
                   <span style={{ color: "#71717a" }}>{listing.city}, {listing.countryCode}</span>
+                  {listing.media.some((media) => media.moderationStatus === "pending") ? (
+                    <span style={{ color: colorTokens.adminAccent, fontSize: "12px", fontWeight: 800 }}>Fotos pendientes</span>
+                  ) : null}
                 </button>
               ))
             ) : (
@@ -462,16 +496,59 @@ export function AdminFosterWorkspace({
                 ))}
                 {selectedAdoptionListing.media.length ? (
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                    {selectedAdoptionListing.media.map((media) =>
-                      media.signedUrl ? (
-                        <img
-                          alt={media.fileName}
-                          key={media.id}
-                          src={media.signedUrl}
-                          style={{ borderRadius: "14px", height: "112px", objectFit: "cover", width: "148px" }}
-                        />
-                      ) : null
-                    )}
+                    {selectedAdoptionListing.media.map((media) => (
+                      <div
+                        key={media.id}
+                        style={{
+                          borderRadius: "16px",
+                          border: "1px solid rgba(24,24,27,0.12)",
+                          display: "grid",
+                          gap: "8px",
+                          padding: "8px",
+                          width: "164px"
+                        }}
+                      >
+                        {media.signedUrl ? (
+                          <img
+                            alt={media.fileName}
+                            src={media.signedUrl}
+                            style={{ borderRadius: "12px", height: "104px", objectFit: "cover", width: "100%" }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              alignItems: "center",
+                              background: "rgba(0,138,151,0.08)",
+                              borderRadius: "12px",
+                              color: colorTokens.adminAccent,
+                              display: "flex",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                              height: "104px",
+                              justifyContent: "center"
+                            }}
+                          >
+                            Sin vista previa
+                          </div>
+                        )}
+                        <div style={{ display: "grid", gap: "4px" }}>
+                          <strong style={{ color: "#18181b", fontSize: "12px" }}>
+                            {adoptionMediaStatusLabels[media.moderationStatus]}{media.isCover ? " · Portada" : ""}
+                          </strong>
+                          <span style={{ color: "#71717a", fontSize: "11px", overflowWrap: "anywhere" }}>{media.fileName}</span>
+                        </div>
+                        {media.moderationStatus === "pending" ? (
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            <Button disabled={isSubmitting} onClick={() => void reviewAdoptionListingMedia(media.id, "approved")}>
+                              Aprobar foto
+                            </Button>
+                            <Button disabled={isSubmitting} onClick={() => void reviewAdoptionListingMedia(media.id, "rejected")} tone="danger">
+                              Rechazar
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <p style={{ margin: 0, color: "#71717a" }}>Sin fotos cargadas.</p>

@@ -17,6 +17,7 @@ export type PetAdoptionListingStatus = "draft" | "pending_review" | "published" 
 export type PetAdoptionMediaType = "image" | "video";
 export type PetAdoptionMediaModerationStatus = "pending" | "approved" | "rejected";
 export type PetAdoptionListingReviewDecision = "approved" | "rejected" | "paused";
+export type PetAdoptionMediaReviewDecision = "approved" | "rejected";
 
 export interface ProtectiveHouseholdProfile extends TimestampedEntity {
   householdId: Uuid;
@@ -170,6 +171,11 @@ export interface PetAdoptionListingInput {
 
 export interface PetAdoptionListingReviewInput {
   decision: PetAdoptionListingReviewDecision;
+  notes?: string | null;
+}
+
+export interface PetAdoptionMediaReviewInput {
+  decision: PetAdoptionMediaReviewDecision;
   notes?: string | null;
 }
 

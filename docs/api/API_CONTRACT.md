@@ -29,9 +29,11 @@ Operaciones tipadas en `packages/api-client/src/foster.ts`.
 - `getPetAdoptionListingDetail(listingId)`
 - `listPendingPetAdoptionListingsForAdmin()`
 - `uploadPetAdoptionMedia(input)`
+- `setPetAdoptionListingCover(mediaId)`
+- `reviewPetAdoptionListingMedia(mediaId, input)`
 - `removePetAdoptionMedia(mediaId)`
 
-Foster-3A no crea solicitudes formales ni transfiere mascotas desde la vitrina. El CTA de interes queda informativo hasta Foster-4A.
+Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas quedan `pending`. Los listados publicos devuelven solo media aprobada; listados propios/admin conservan estados por foto. Foster-3A/3B no crea solicitudes formales ni transfiere mascotas desde la vitrina. El CTA de interes queda informativo hasta un slice posterior.
 
 ### Auth
 

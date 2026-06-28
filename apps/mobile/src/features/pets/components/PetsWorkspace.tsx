@@ -4,6 +4,7 @@ import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderType
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   PetAdoptionListing,
+  PetAdoptionListingMedia,
   PetDocumentType,
   PetHealthDashboard,
   PetSummary,
@@ -34,6 +35,8 @@ const inputStyle = {
   backgroundColor: colorTokens.surface,
   color: colorTokens.ink
 } as const;
+
+const adoptionMediaLimit = 8;
 
 const emptyPetForm: UpdatePetInput = {
   name: "",
@@ -81,6 +84,18 @@ function formatSterilizedLabel(value: boolean | null) {
   }
 
   return "Esterilizacion pendiente";
+}
+
+function getAdoptionMediaStatusLabel(status: PetAdoptionListingMedia["moderationStatus"]) {
+  if (status === "approved") {
+    return "Aprobada";
+  }
+
+  if (status === "rejected") {
+    return "Rechazada";
+  }
+
+  return "Pendiente";
 }
 
 type PickedDocument = {
@@ -1128,6 +1143,10 @@ export function PetsWorkspace({
           myAdoptionListings.find((listing) => listing.petId === pet.id && listing.status !== "closed") ??
           (await getMobileFosterApiClient().createPetAdoptionListing(pet.id, selectedHouseholdId));
 
+        if (currentListing.status === "published") {
+          throw new Error("La publicacion aprobada sigue visible. Pausala si necesitas cambiar textos; las fotos nuevas se revisan aparte.");
+        }
+
         await getMobileFosterApiClient().updatePetAdoptionListing({
           listingId: currentListing.id,
           ...adoptionListingForm
@@ -1168,6 +1187,18 @@ export function PetsWorkspace({
   };
 
   const uploadAdoptionCoverPhoto = async (listing: PetAdoptionListing) => {
+    if (listing.media.length >= adoptionMediaLimit) {
+      clearMessages();
+      void runAction(
+        async () => {
+          throw new Error("La galeria ya tiene 8 fotos. Elimina una foto pendiente o rechazada antes de agregar otra.");
+        },
+        "",
+        false
+      );
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
@@ -1189,12 +1220,53 @@ export function PetsWorkspace({
           fileName: asset.fileName ?? `${listing.id}.jpg`,
           mimeType: asset.mimeType ?? "image/jpeg",
           fileSizeBytes: asset.fileSize ?? null,
-          isCover: !listing.media.some((media) => media.isCover)
+          isCover: !listing.media.some((media) => media.isCover && media.moderationStatus !== "rejected")
         });
         await refreshAdoptionListings();
       },
-      "Foto agregada a la vitrina de adopcion.",
+      listing.status === "published"
+        ? "Foto enviada a revision. La publicacion no se despublica."
+        : "Foto agregada a la vitrina de adopcion.",
       false
+    );
+  };
+
+  const setAdoptionCoverPhoto = (media: PetAdoptionListingMedia) => {
+    clearMessages();
+    void runAction(
+      async () => {
+        await getMobileFosterApiClient().setPetAdoptionListingCover(media.id);
+        await refreshAdoptionListings();
+      },
+      media.moderationStatus === "pending"
+        ? "Portada marcada. Sera publica cuando admin apruebe la foto."
+        : "Portada actualizada.",
+      false
+    );
+  };
+
+  const removeAdoptionPhoto = (media: PetAdoptionListingMedia) => {
+    Alert.alert(
+      "Quitar foto",
+      "Solo se pueden quitar fotos pendientes o rechazadas desde la app. Las fotos aprobadas conservan trazabilidad de la publicacion.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Quitar",
+          style: "destructive",
+          onPress: () => {
+            clearMessages();
+            void runAction(
+              async () => {
+                await getMobileFosterApiClient().removePetAdoptionMedia(media.id);
+                await refreshAdoptionListings();
+              },
+              "Foto retirada de la galeria.",
+              false
+            );
+          }
+        }
+      ]
     );
   };
 
@@ -2092,17 +2164,66 @@ export function PetsWorkspace({
                               <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
                                 {selectedPetAdoptionListing.title} - {selectedPetAdoptionListing.city}, {selectedPetAdoptionListing.countryCode}
                               </Text>
+                              <Text style={{ color: "#115e59", fontSize: 10, fontWeight: "800", lineHeight: 15 }}>
+                                {selectedPetAdoptionListing.status === "published"
+                                  ? "La publicacion sigue visible. Las fotos nuevas se publican cuando admin las apruebe."
+                                  : "Las fotos se muestran publicamente despues de la revision admin."}
+                              </Text>
+                              <StatusChip label={`${selectedPetAdoptionListing.media.length}/${adoptionMediaLimit} fotos`} tone="neutral" />
                               {selectedPetAdoptionListing.media.length ? (
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                   <View style={{ flexDirection: "row", gap: 8 }}>
-                                    {selectedPetAdoptionListing.media.slice(0, 5).map((media) =>
-                                      media.signedUrl ? (
-                                        <Image key={media.id} source={{ uri: media.signedUrl }} style={{ borderRadius: 12, height: 64, width: 76 }} />
-                                      ) : null
-                                    )}
+                                    {selectedPetAdoptionListing.media.map((media) => (
+                                      <View
+                                        key={media.id}
+                                        style={{
+                                          backgroundColor: "#ffffff",
+                                          borderColor: media.isCover ? "rgba(15,118,110,0.36)" : "rgba(15,23,42,0.08)",
+                                          borderRadius: 14,
+                                          borderWidth: 1,
+                                          gap: 5,
+                                          padding: 6,
+                                          width: 104
+                                        }}
+                                      >
+                                        {media.signedUrl ? (
+                                          <Image source={{ uri: media.signedUrl }} style={{ borderRadius: 10, height: 66, width: "100%" }} />
+                                        ) : (
+                                          <View
+                                            style={{
+                                              alignItems: "center",
+                                              backgroundColor: "rgba(20,184,166,0.1)",
+                                              borderRadius: 10,
+                                              height: 66,
+                                              justifyContent: "center"
+                                            }}
+                                          >
+                                            <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Sin vista</Text>
+                                          </View>
+                                        )}
+                                        <Text style={{ color: "#115e59", fontSize: 9, fontWeight: "900" }}>
+                                          {getAdoptionMediaStatusLabel(media.moderationStatus)}
+                                          {media.isCover ? " · Portada" : ""}
+                                        </Text>
+                                        {!media.isCover && media.moderationStatus !== "rejected" ? (
+                                          <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => setAdoptionCoverPhoto(media)}>
+                                            <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>Usar portada</Text>
+                                          </Pressable>
+                                        ) : null}
+                                        {media.moderationStatus !== "approved" ? (
+                                          <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => removeAdoptionPhoto(media)}>
+                                            <Text style={{ color: "#991b1b", fontSize: 9, fontWeight: "900" }}>Quitar</Text>
+                                          </Pressable>
+                                        ) : null}
+                                      </View>
+                                    ))}
                                   </View>
                                 </ScrollView>
-                              ) : null}
+                              ) : (
+                                <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                                  Sin fotos todavia. Puedes agregar hasta 8 imagenes para mejorar la vitrina.
+                                </Text>
+                              )}
                             </>
                           ) : (
                             <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
@@ -2111,14 +2232,14 @@ export function PetsWorkspace({
                           )}
                           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                             <Button
-                              disabled={isSubmitting || isSelectedPetInMemory}
-                              label={selectedPetAdoptionListing ? "Editar vitrina" : "Preparar adopcion"}
+                              disabled={isSubmitting || isSelectedPetInMemory || selectedPetAdoptionListing?.status === "published"}
+                              label={selectedPetAdoptionListing ? "Editar textos" : "Preparar adopcion"}
                               labelSize={11}
                               onPress={() => openAdoptionListingForm(selectedPetDetail.pet)}
                             />
                             {selectedPetAdoptionListing ? (
                               <Button
-                                disabled={isSubmitting || selectedPetAdoptionListing.status === "pending_review"}
+                                disabled={isSubmitting || selectedPetAdoptionListing.status === "pending_review" || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
                                 label="Agregar foto"
                                 labelSize={11}
                                 onPress={() => void uploadAdoptionCoverPhoto(selectedPetAdoptionListing)}

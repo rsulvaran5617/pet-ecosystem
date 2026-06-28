@@ -11,6 +11,7 @@ import type {
   PetCustodyType,
   PetAdoptionListingReviewDecision,
   PetAdoptionListingStatus,
+  PetAdoptionMediaReviewDecision,
   PetAdoptionMediaModerationStatus,
   PetAdoptionMediaType,
   PetTransferStatus,
@@ -2064,6 +2065,20 @@ export interface Database {
           notes?: string | null;
         };
         Returns: Database["public"]["Tables"]["pet_adoption_listings"]["Row"];
+      };
+      set_pet_adoption_listing_cover: {
+        Args: {
+          target_media_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_listing_media"]["Row"];
+      };
+      review_pet_adoption_listing_media: {
+        Args: {
+          target_media_id: string;
+          decision: PetAdoptionMediaReviewDecision;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_listing_media"]["Row"];
       };
       list_my_pet_adoption_listings: {
         Args: {

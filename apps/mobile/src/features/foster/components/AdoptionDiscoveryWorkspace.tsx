@@ -118,8 +118,13 @@ function formatAdoptionCompatibility(value: string | null, fallback: string) {
   return value?.trim() || fallback;
 }
 
+function getApprovedAdoptionMedia(listing: PetAdoptionListing) {
+  return listing.media.filter((media) => media.moderationStatus === "approved" && media.signedUrl);
+}
+
 function getAdoptionListingCover(listing: PetAdoptionListing) {
-  return listing.media.find((media) => media.isCover && media.signedUrl) ?? listing.media.find((media) => media.signedUrl) ?? null;
+  const approvedMedia = getApprovedAdoptionMedia(listing);
+  return approvedMedia.find((media) => media.isCover) ?? approvedMedia[0] ?? null;
 }
 
 function getAdoptionPetInitial(name: string) {
@@ -154,7 +159,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
     setInfoMessage(null);
 
     try {
-      const detail = await getMobileFosterApiClient().getPetAdoptionListingDetail(listingId);
+      const detail = await getMobileFosterApiClient().getPetAdoptionListingDetail(listingId, "public");
       setSelectedAdoptionListing(detail ?? adoptionListings.find((listing) => listing.id === listingId) ?? null);
       setCurrentView("detail");
     } catch (error) {
@@ -315,9 +320,9 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
             );
           })()}
 
-          {selectedAdoptionListing.media.length > 1 ? (
+          {getApprovedAdoptionMedia(selectedAdoptionListing).length > 1 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              {selectedAdoptionListing.media.slice(0, 5).map((media) =>
+              {getApprovedAdoptionMedia(selectedAdoptionListing).slice(0, 5).map((media) =>
                 media.signedUrl ? (
                   <Image key={media.id} source={{ uri: media.signedUrl }} style={{ borderRadius: 12, height: 56, width: 70 }} />
                 ) : null

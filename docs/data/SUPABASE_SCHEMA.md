@@ -39,7 +39,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `booking_status_history`
 - `chat_threads`
 
-## Foster-3A local pendiente de aplicar remoto
+## Foster-3A/3B adopcion controlada
 
 - `pet_adoption_listings`
   - publicacion moderada para una mascota existente.
@@ -49,8 +49,15 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `pet_adoption_listing_media`
   - galeria de la publicacion.
   - bucket privado `pet-adoption-media`, path privado, portada, orden y estado de moderacion.
+  - Foster-3B permite hasta 8 fotos por publicacion.
+  - fotos nuevas en publicaciones `published` quedan `pending` y no cambian el estado de la publicacion.
+  - solo media `approved` es visible para adoptantes; owner/admin ven todos los estados.
 
-No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A.
+RPCs Foster-3B:
+- `set_pet_adoption_listing_cover(target_media_id)`
+- `review_pet_adoption_listing_media(target_media_id, decision, notes)`
+
+No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A/3B.
 - `chat_messages`
 - `reviews`
 - `support_cases`
