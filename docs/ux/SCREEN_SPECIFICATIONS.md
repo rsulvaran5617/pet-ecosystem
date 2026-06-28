@@ -93,9 +93,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil proveedor
 - V2.5 Foster/Adoption futuro: marketplace de adopcion separado del marketplace de servicios, con mascotas `Busca hogar`, filtros por especie/tamano/edad/ciudad/condicion/compatibilidad y sin precios, checkout ni reservas comerciales.
 - ubicacion publica exacta del proveedor en cards/lista con ciudad, pais y distancia aproximada solo si hay origen opcional
-- widget compacto de busqueda: campo principal, categorias rapidas, selector colapsable de origen para distancia y filtros avanzados bajo demanda
+- widget compacto de busqueda: campo principal, categorias rapidas y filtros avanzados bajo demanda desde el icono del buscador
 - Owner Buscar adopta patron visual de marketplace mobile: barra superior con buscador, accion de filtros, modo de busqueda enfocada, sugerencias, categorias rapidas y cards de resultado con avatar/ubicacion/CTA.
 - Owner Buscar usa la mascota activa como contexto de preparacion de reserva cuando no hay otra mascota elegida explicitamente.
+- Owner Buscar muestra ese contexto como pastilla compacta `Mascota activa` con selector `Cambiar`; hogar/permisos/lista completa no permanecen visibles para ahorrar espacio vertical.
 - Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
 - Owner Inicio agrega Foster-4A como pantalla dedicada `Mascotas que buscan hogar`; Owner Buscar queda reservado para servicios/proveedores y no abre adopcion automaticamente.
 - Owner `Mascotas que buscan hogar` muestra listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.

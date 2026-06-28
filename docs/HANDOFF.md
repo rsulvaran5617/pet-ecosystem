@@ -1,5 +1,22 @@
 # HANDOFF.md
 
+## Owner mobile Buscar sin chips rapidos visibles 2026-06-27
+
+- Slice UX local implementado para retirar la fila visible de chips `Hoy`, `Paseo`, `Perros`, `Zona` y `Ordenar` debajo del buscador principal.
+- La pantalla conserva campo de busqueda, icono de filtros, categorias rapidas, modal de filtros avanzados, resultados y handoff hacia `Reservas`.
+- `activeQuickFilters` se mantiene porque el modal avanzado lo usa para disponibilidad/orden; solo se elimina la presentacion redundante en la pantalla inicial.
+- Se elimina el estado local exclusivo de la fila `Zona` visible; el origen para distancia sigue disponible desde filtros avanzados.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, booking capacity, Payments, QR, evidencia, provider/admin ni Foster/adopcion.
+
+## Owner mobile Buscar contexto compacto 2026-06-27
+
+- Slice UX local implementado para reemplazar la card grande `Contexto` en Owner mobile `Buscar` por una pastilla compacta `Mascota activa`.
+- La logica interna se mantiene: `MarketplaceWorkspace` conserva `householdId`, `petId`, sincroniza `activePetContext` y sigue entregando esos datos al handoff hacia `Reservas`.
+- El boton `Cambiar` abre un selector compacto con `Todas` y las mascotas del hogar; si existe mas de un hogar tambien muestra selector de hogar sin permisos tecnicos.
+- Si el owner solo tiene una mascota y ya esta seleccionada, la pastilla queda sin CTA redundante.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, booking capacity, Payments, QR, evidencia, provider/admin ni Foster/adopcion.
+- Pendiente de revision visual en Android/iOS antes de commit/push si se decide cerrar el slice.
+
 ## Owner mobile separacion Buscar vs Adopcion 2026-06-27
 
 - Slice UX/arquitectura local implementado para separar el marketplace comercial `Buscar` de `Mascotas que buscan hogar`.

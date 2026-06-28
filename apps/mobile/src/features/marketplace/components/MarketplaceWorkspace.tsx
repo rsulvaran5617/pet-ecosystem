@@ -1,4 +1,4 @@
-import { formatHouseholdPermissions, providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingSlot,
@@ -535,7 +535,6 @@ export function MarketplaceWorkspace({
   const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<ProviderDayOfWeek>(1);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [activeQuickFilters, setActiveQuickFilters] = useState<string[]>([]);
-  const [distanceOriginOpen, setDistanceOriginOpen] = useState(false);
   const [selectedDistanceOrigin, setSelectedDistanceOrigin] = useState<DistanceOrigin>(noDistanceOrigin);
   const [marketplaceResultsMode, setMarketplaceResultsMode] = useState<"list" | "map">("list");
   const [selectedMapProviderId, setSelectedMapProviderId] = useState<string | null>(null);
@@ -545,6 +544,7 @@ export function MarketplaceWorkspace({
   const [isLoadingBookingSlots, setIsLoadingBookingSlots] = useState(false);
   const [slotErrorMessage, setSlotErrorMessage] = useState<string | null>(null);
   const [mapLibreComponents, setMapLibreComponents] = useState<MapLibreComponents | null>(null);
+  const [petContextPickerOpen, setPetContextPickerOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -575,6 +575,8 @@ export function MarketplaceWorkspace({
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedService = selectedProviderDetail?.services.find((service) => service.id === selectedServiceId) ?? null;
+  const hasMultipleHouseholds = (householdSnapshot?.households.length ?? 0) > 1;
+  const canChangePetContext = hasMultipleHouseholds || pets.length > 1 || (pets.length === 1 && selectedPetId === null);
 
   useEffect(() => {
     if (!enabled || !activePetContext?.petId) {
@@ -615,6 +617,7 @@ export function MarketplaceWorkspace({
   const handleSelectPetContext = async (petId: Uuid | null) => {
     await selectPet(petId);
     onActivePetChange?.({ householdId: selectedHouseholdId, petId });
+    setPetContextPickerOpen(false);
   };
   const distanceOriginOptions = useMemo(
     () => [
@@ -745,15 +748,6 @@ export function MarketplaceWorkspace({
     setSelectedMapProviderId(null);
     await search(nextFilters);
     setCurrentView("results");
-  }
-
-  async function selectDistanceOrigin(origin: DistanceOrigin) {
-    setSelectedDistanceOrigin(origin);
-    await runSearch({
-      nearLatitude: origin.type === "none" ? null : origin.latitude,
-      nearLongitude: origin.type === "none" ? null : origin.longitude,
-      maxDistanceKm: null
-    });
   }
 
   function toggleQuickFilter(label: string) {
@@ -998,53 +992,6 @@ export function MarketplaceWorkspace({
                   onSubmit={() => void runSearch()}
                   value={searchQuery}
                 />
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  <FilterChip
-                    isActive={activeQuickFilters.includes("Disponible hoy")}
-                    label="Hoy"
-                    onPress={() => toggleQuickFilter("Disponible hoy")}
-                  />
-                  <FilterChip
-                    isActive={selectedCategory === "walking"}
-                    label="Paseo"
-                    onPress={() => void runSearch({ category: "walking" })}
-                  />
-                  <FilterChip
-                    isActive={selectedSpecies.toLowerCase() === "perros"}
-                    label="Perros"
-                    onPress={() => setSelectedSpecies(selectedSpecies.toLowerCase() === "perros" ? "" : "perros")}
-                  />
-                  <FilterChip
-                    isActive={selectedDistanceOrigin.type !== "none"}
-                    label={selectedDistanceOrigin.type === "none" ? "Zona" : selectedDistanceOrigin.label}
-                    onPress={() => setDistanceOriginOpen((currentValue) => !currentValue)}
-                  />
-                  <FilterChip isActive={false} label="Ordenar" onPress={() => setFilterPanelOpen(true)} />
-                </View>
-
-                {distanceOriginOpen ? (
-                  <View style={{ borderRadius: 18, backgroundColor: "rgba(240,253,250,0.72)", padding: 10, gap: 8 }}>
-                    <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>Origen para distancia</Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      {distanceOriginOptions.map((origin) => {
-                        const isSelected = selectedDistanceOrigin.type === origin.type && selectedDistanceOrigin.id === origin.id;
-
-                        return (
-                          <Button
-                            key={`${origin.type}-${origin.id}`}
-                            disabled={isLoading}
-                            label={origin.label}
-                            onPress={() => void selectDistanceOrigin(origin)}
-                            tone={isSelected ? "primary" : "secondary"}
-                          />
-                        );
-                      })}
-                    </View>
-                    <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
-                      Zonas controladas; no usamos GPS ni publicamos tu direccion.
-                    </Text>
-                  </View>
-                ) : null}
 
                 {availableQuickCategories.length ? (
                   <View style={{ gap: 10 }}>
@@ -1094,42 +1041,85 @@ export function MarketplaceWorkspace({
                 <Button disabled={isLoading} label="Buscar proveedores" onPress={() => void runSearch()} />
               </View>
 
-              <View style={cardStyle}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Contexto</Text>
-                <StatusChip label={selectedPet ? "mascota seleccionada" : "hogar completo"} tone="neutral" />
-                {householdSnapshot?.households.length ? (
-                  <>
-                    {householdSnapshot.households.map((household) => (
+              {householdSnapshot?.households.length ? (
+                <View
+                  style={{
+                    backgroundColor: "rgba(20,184,166,0.08)",
+                    borderColor: "rgba(15,118,110,0.16)",
+                    borderRadius: 18,
+                    borderWidth: 1,
+                    gap: petContextPickerOpen ? 10 : 0,
+                    padding: 10
+                  }}
+                >
+                  <View style={{ alignItems: "center", flexDirection: "row", gap: 10 }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900", letterSpacing: 0.2 }}>
+                        MASCOTA ACTIVA
+                      </Text>
+                      <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900" }} numberOfLines={1}>
+                        {selectedPet?.name ?? "Todas las mascotas"}
+                      </Text>
+                      {hasMultipleHouseholds ? (
+                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "700", marginTop: 2 }} numberOfLines={1}>
+                          {selectedHousehold?.name ?? "Hogar"}
+                        </Text>
+                      ) : null}
+                    </View>
+                    {canChangePetContext ? (
                       <Pressable
-                        key={household.id}
-                        onPress={() => void handleSelectHouseholdContext(household.id)}
-                        style={[
-                          inputStyle,
-                          {
-                            backgroundColor:
-                              household.id === selectedHouseholdId ? "rgba(15,118,110,0.08)" : "#fffdf8"
-                          }
-                        ]}
+                        accessibilityLabel="Cambiar mascota activa para buscar servicios"
+                        accessibilityRole="button"
+                        onPress={() => setPetContextPickerOpen((isOpen) => !isOpen)}
+                        style={{
+                          backgroundColor: colorTokens.surface,
+                          borderColor: "rgba(15,118,110,0.2)",
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          paddingHorizontal: 11,
+                          paddingVertical: 7
+                        }}
                       >
-                        <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>{household.name}</Text>
-                        <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
-                          {household.memberCount} integrante(s) - {formatHouseholdPermissions(household.myPermissions)}
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                          {petContextPickerOpen ? "Cerrar" : "Cambiar"}
                         </Text>
                       </Pressable>
-                    ))}
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      <Button label="Todas las mascotas" onPress={() => void handleSelectPetContext(null)} tone={selectedPetId === null ? "primary" : "secondary"} />
-                      {pets.map((pet) => (
-                        <Button key={pet.id} label={pet.name} onPress={() => void handleSelectPetContext(pet.id)} tone={selectedPetId === pet.id ? "primary" : "secondary"} />
-                      ))}
+                    ) : null}
+                  </View>
+
+                  {petContextPickerOpen && canChangePetContext ? (
+                    <View style={{ gap: 10 }}>
+                      {hasMultipleHouseholds ? (
+                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                          {householdSnapshot.households.map((household) => (
+                            <Button
+                              key={household.id}
+                              label={household.name}
+                              onPress={() => void handleSelectHouseholdContext(household.id)}
+                              tone={household.id === selectedHouseholdId ? "primary" : "secondary"}
+                            />
+                          ))}
+                        </View>
+                      ) : null}
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                        <Button
+                          label="Todas"
+                          onPress={() => void handleSelectPetContext(null)}
+                          tone={selectedPetId === null ? "primary" : "secondary"}
+                        />
+                        {pets.map((pet) => (
+                          <Button
+                            key={pet.id}
+                            label={pet.name}
+                            onPress={() => void handleSelectPetContext(pet.id)}
+                            tone={selectedPetId === pet.id ? "primary" : "secondary"}
+                          />
+                        ))}
+                      </View>
                     </View>
-                  </>
-                ) : (
-                  <Text style={{ color: colorTokens.muted }}>
-                    Puedes explorar proveedores antes de completar hogar y mascotas.
-                  </Text>
-                )}
-              </View>
+                  ) : null}
+                </View>
+              ) : null}
 
               <View style={cardStyle}>
                 <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Proveedores destacados</Text>
