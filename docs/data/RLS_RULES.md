@@ -27,6 +27,11 @@ No existe exposicion de cobros reales porque `payments` no forma parte del basel
 
 ### households
 Visible para owner y miembros activos.
+La separacion Foster/Adoption propuesta agrega un tipo operativo por hogar:
+- `owner`: hogar familiar para mascotas propias.
+- `protective`: familia protectora/acogida para custodia y adopcion responsable.
+RLS y RPCs futuros deben validar `households.household_type` antes de habilitar capacidades Foster; un hogar `owner` no puede publicar mascotas en adopcion ni iniciar transferencias Foster.
+Foster-Household-B prepara `is_protective_household` e `is_approved_protective_household` para que la validacion ocurra server-side, no solo en UI. El RPC `create_household` permite crear explicitamente hogares `protective`; el default `owner` evita conversiones silenciosas.
 
 ### household_members
 Visible para miembros del hogar.
@@ -71,7 +76,10 @@ Reglas esperadas:
 Alcance documental para futuras tablas `protective_household_profiles`, `pet_custody_contexts`, `pet_transfer_records`, `foster_profiles`, `foster_organizations`, `foster_pets`, `adoption_listings`, `adoption_applications`, `adoption_status_history`, `adoption_documents` y `adoption_screening_notes`.
 
 Reglas esperadas:
-- household regular puede solicitar perfil protector para su propio hogar, pero no queda activo hasta aprobacion admin.
+- household regular no debe convertirse implicitamente en familia protectora dentro de la misma identidad operativa.
+- el modelo esperado exige hogar tipo `protective` para solicitar/aprobar perfil protector.
+- un usuario que necesite mascotas propias y acogida debe usar hogares separados: `owner` y `protective`.
+- hogares `owner` no pueden publicar mascotas en adopcion ni iniciar transferencias Foster.
 - admin puede aprobar, rechazar, suspender y auditar `protective_household_profiles`.
 - Foster-1A lectura: miembros del hogar leen su propio perfil protector; admin lee todos; anon/public no lee.
 - Foster-1A insercion: solo miembro con permiso `admin` del hogar puede crear perfil para ese hogar.
@@ -79,7 +87,8 @@ Reglas esperadas:
 - Foster-1A submit: `submit_protective_household_profile` valida campos minimos y pasa a `pending_review`.
 - Foster-1A revision admin: `review_protective_household_profile` aprueba, rechaza o suspende y registra `reviewed_by_user_id`, `reviewed_at` y `review_notes`.
 - Foster-1A no permite borrado cliente; usar suspension/rechazo.
-- familia protectora aprobada puede gestionar mascotas bajo su custodia.
+- familia protectora aprobada puede gestionar mascotas bajo su custodia solo si el household asociado es tipo `protective`.
+- si un household tiene perfil protector aprobado pero `household_type = owner`, las mutaciones Foster deben fallar con mensaje de familia protectora requerida hasta que exista backfill o seleccion de hogar protector.
 - familia protectora no puede transferir mascotas de otro hogar ni mascotas fuera de su custodia activa.
 - familia receptora solo ve informacion minima de invitacion antes de aceptar transferencia.
 - familia receptora solo obtiene lectura/gestion completa del expediente compartido despues de aceptar.

@@ -845,7 +845,8 @@ export function PetsWorkspace({
   const canEditSelectedHousehold =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
   const canManageSelectedHousehold = selectedHousehold?.myPermissions.includes("admin") ?? false;
-  const isApprovedProtectiveHousehold = protectiveProfile?.status === "approved";
+  const selectedHouseholdIsProtective = selectedHousehold?.householdType === "protective";
+  const isApprovedProtectiveHousehold = selectedHouseholdIsProtective && protectiveProfile?.status === "approved";
   const documentGroups = useMemo(
     () =>
       petDocumentTypeOrder

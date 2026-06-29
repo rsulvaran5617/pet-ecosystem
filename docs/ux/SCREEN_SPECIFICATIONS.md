@@ -42,6 +42,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - miembros
 - invitaciones
 - compuerta owner post-login: si no existe hogar/familia, crear hogar aparece antes de Inicio/Mascotas
+- separacion Foster/Owner propuesta: `Hogar familiar` y `Familia protectora` deben verse como contextos distintos; un usuario puede crear ambos desde `Hogares`, cambiar de hogar, pero las acciones Foster solo aparecen cuando el hogar activo es tipo `protective` y esta aprobado.
 
 ### Pets
 - lista de mascotas
@@ -136,7 +137,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 
 ### Foster/Adoption V2.5
 - Primer frente recomendado: `Familia protectora` y transferencia privada antes de marketplace publico de adopcion.
-- Owner mobile Cuenta/Hogar: accion `Solicitar familia protectora`, estado de solicitud (`Borrador`, `En revision`, `Aprobada`, `Rechazada`, `Suspendida`) y copy que aclare que no habilita venta ni pagos.
+- La UX futura debe separar hogares owner y familias protectoras: un hogar familiar no publica ni transfiere mascotas Foster; una familia protectora aprobada administra custodia, publicaciones y transferencias desde un contexto propio.
+- Owner mobile Cuenta/Hogar: crear `Hogar familiar` o `Familia protectora` como hogares separados; la accion `Solicitar familia protectora` solo se muestra sobre hogares `protective`, con estado (`Borrador`, `En revision`, `Aprobada`, `Rechazada`, `Suspendida`) y copy que aclare que no habilita venta ni pagos.
 - Owner mobile Mascotas: mascotas bajo custodia protectora muestran badge `En acogida` / `Custodia protectora`; accion `Transferir mascota` solo para familia protectora aprobada.
 - Transferencia mobile Foster-2A: desde `Mascotas`, familia protectora aprobada selecciona receptor por email, agrega nota opcional y ve copy de expediente compartido; reservas/chats/pagos/soporte/recordatorios futuros no viajan.
 - Receptor mobile Foster-2A: `Hogares` muestra invitaciones de mascota con resumen minimo, conteos de expediente y acciones `Aceptar en este hogar` / `Rechazar`; recibe expediente completo permitido solo despues de aceptar.

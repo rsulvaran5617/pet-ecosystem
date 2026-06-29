@@ -117,7 +117,10 @@ Modelo conceptual documental. No implementado y sin migraciones asociadas.
 Recomendacion:
 - extender `pets` mediante tablas asociadas de acogida/adopcion, no duplicar mascotas.
 - `pets` y `pet_profiles` siguen siendo la fuente de verdad del expediente base.
-- `protective_household_profiles` representa la capacidad especial de una familia/hogar para actuar como familia protectora aprobada por admin.
+- `protective_household_profiles` representa el perfil de revision/aprobacion de una familia protectora aprobada por admin.
+- un household debe tener un tipo operativo principal: `owner` para mascotas propias o `protective` para custodia/acogida/adopcion responsable.
+- una misma fila de `households` no debe operar simultaneamente como owner y protective.
+- si un mismo usuario necesita ambos contextos, debe pertenecer a dos hogares distintos.
 - `pet_custody_contexts` registra el hogar custodio y tipo de custodia de una mascota en el tiempo.
 - `foster_pets` representa el contexto de custodia temporal.
 - `adoption_listings` representa la publicacion publica moderada.
@@ -146,7 +149,9 @@ Tablas conceptuales iniciales para transferencia privada:
 
 Reglas estructurales:
 - una mascota privada no aparece en marketplace.
-- solo mascotas bajo `foster_pets` y con listing aprobado pueden publicarse como `Busca hogar`.
+- solo hogares `protective` aprobados pueden publicar mascotas como `Busca hogar`.
+- hogares `owner` no pueden iniciar transferencias Foster ni publicar mascotas en adopcion.
+- solo mascotas bajo custodia de hogar `protective` y con listing aprobado pueden mostrarse como `Busca hogar`.
 - el marketplace de adopcion es separado del marketplace de servicios.
 - adopcion no usa pagos, checkout, bookings ni disponibilidad provider.
 - la transferencia de custodia debe conservar audit trail y consentimiento de foster/adoptante.
@@ -221,3 +226,27 @@ Foster-3B agrega moderacion individual de fotos sobre este mismo modelo:
 - `set_pet_adoption_listing_cover` controla la portada y `review_pet_adoption_listing_media` aprueba/rechaza fotos individuales.
 
 Videos siguen fuera de alcance; Foster-3B usa fotos privadas con URLs firmadas temporales.
+
+## Foster-Household-B - household_type owner/protective
+
+Modelo local preparado, no aplicado remoto:
+
+- `households.household_type`: `owner | protective`, default `owner`.
+- `owner`: hogar familiar para mascotas propias.
+- `protective`: familia protectora/acogida para custodia, publicaciones y transferencias Foster.
+- `protective_household_profiles.status = approved` autoriza la operacion, pero no reemplaza el tipo del hogar.
+- funciones Foster deben validar ambas condiciones: `household_type = protective` y perfil protector aprobado.
+- `create_household` acepta un tipo explicito para crear un hogar protector separado; si no se envia, se conserva `owner`.
+- owner mobile debe distinguir hogares familiares y familias protectoras para no mezclar mascotas propias con mascotas bajo acogida.
+
+Diagnostico remoto 2026-06-29:
+
+- 117 households.
+- 1 household con `protective_household_profiles.status = approved`.
+- ese household tiene 5 mascotas, 2 adoption listings y 43 bookings.
+- no hay transferencias Foster registradas.
+
+Decision pendiente antes de aplicar remoto:
+
+- confirmar si ese household historico debe convertirse a `protective` con backfill asistido.
+- si contiene mascotas propias y en acogida, crear hogar owner/protective separado y mover custodia solo mediante flujos Foster controlados.

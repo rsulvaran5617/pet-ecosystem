@@ -19,7 +19,7 @@ import type {
   ProtectiveHouseholdProfileStatus,
   ProtectiveHouseholdReviewDecision
 } from "./foster";
-import type { HouseholdInvitationStatus, HouseholdPermission } from "./households";
+import type { HouseholdInvitationStatus, HouseholdPermission, HouseholdType } from "./households";
 import type {
   BookingMode,
   BookingSlotStatus,
@@ -753,6 +753,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          household_type: HouseholdType;
           created_by_user_id: string;
           created_at: string;
           updated_at: string;
@@ -760,6 +761,7 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
+          household_type?: HouseholdType;
           created_by_user_id: string;
           created_at?: string;
           updated_at?: string;
@@ -767,6 +769,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
+          household_type?: HouseholdType;
           created_by_user_id?: string;
           created_at?: string;
           updated_at?: string;
@@ -1841,6 +1844,7 @@ export interface Database {
       create_household: {
         Args: {
           next_name: string;
+          next_household_type?: HouseholdType;
         };
         Returns: Database["public"]["Tables"]["households"]["Row"];
       };

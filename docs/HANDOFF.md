@@ -1,8 +1,22 @@
 # HANDOFF.md
 
+## Diseno separacion Owner vs Familia Protectora 2026-06-29
+
+- Nuevo alcance documental preparado para separar conceptualmente hogares `owner` y `protective`.
+- Decision: una misma fila de `households` no debe operar simultaneamente como hogar familiar y familia protectora/acogida.
+- Ruta recomendada: agregar `households.household_type` con valores iniciales `owner` / `protective`, default `owner`, y restringir Foster a hogares `protective` con `protective_household_profiles.status = approved`.
+- Un mismo usuario puede pertenecer a dos hogares distintos si necesita mascotas propias y custodia/adopcion.
+- Foster-Household-B local agrega reporte remoto de impacto, migracion `20260629110000_household_type_owner_protective.sql`, tipo compartido `HouseholdType`, `householdType` en API, creacion explicita de hogares `owner`/`protective`, UX owner para distinguir `Hogar familiar` vs `Familia protectora` y validaciones Foster server-side.
+- Diagnostico remoto: 117 households; 1 household con perfil protector aprobado; ese hogar tiene 5 mascotas, 2 publicaciones Foster, 0 transferencias y 43 bookings.
+- No hay backfill automatico a `protective`; si se aplica la migracion sin backfill, Foster queda bloqueado para ese hogar hasta marcarlo explicitamente como `protective`.
+- Decision confirmada: `HOGAR SULVARAN VELASCO` permanece como hogar familiar `owner`; no convertirlo a `protective`.
+- Siguiente paso: crear/seleccionar un household separado de tipo `protective` desde `Hogares`, enviar/aprobar su perfil protector y luego reubicar flujos Foster sin mezclar mascotas propias y mascotas bajo custodia.
+- Foster-3B sigue pendiente de aplicar remoto: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
+
 ## Foster-3B galeria moderada de adopcion 2026-06-28
 
-- Slice local implementado para corregir el caso de publicaciones `published` que podian quedar inconsistentes al agregar fotos despues de aprobacion admin.
+- Slice implementado, commiteado y publicado en `origin/master` para corregir el caso de publicaciones `published` que podian quedar inconsistentes al agregar fotos despues de aprobacion admin.
+- Commit publicado: `d18325a feat(foster): add moderated adoption media gallery`.
 - Nueva migracion local pendiente de aplicar remoto: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
 - Regla central: agregar una foto a una publicacion aprobada no cambia `pet_adoption_listings.status`; la publicacion sigue visible y la foto nueva queda `pending`.
 - RLS/Storage: owner/admin ven media propia con estados; adoptantes solo pueden leer media `approved` de publicaciones `published`; owner no actualiza directo `moderation_status`.
@@ -10,7 +24,15 @@
 - Admin web `Familias protectoras`: cola incluye publicaciones con fotos pendientes y permite aprobar/rechazar fotos individuales sin reaprobar toda la publicacion.
 - Discovery owner filtra defensivamente para mostrar solo fotos aprobadas y usa placeholder si no hay portada publica.
 - Fuera de alcance: videos, chat/adoption interest, solicitudes formales, transferencia automatica, Payments, booking, QR, evidencia operacional, provider services y geolocalizacion.
-- Validaciones requeridas antes de aplicar remoto: types/api-client/mobile/admin lint/typecheck/build, `git diff --check` y `npx supabase db push --dry-run --include-all --linked --yes`.
+- Validaciones ejecutadas en PASS antes del commit: types/api-client/mobile/admin lint/typecheck/build, `git diff --check` y dry-run Supabase.
+- Dry-run Supabase confirmo que solo queda pendiente `20260628120000_foster_3b_adoption_media_gallery.sql`; no se aplico remoto todavia.
+- APK Android QA generado:
+  - EAS build: `c5cc072d-18c1-440c-afd8-d8b25b06b8c2`.
+  - Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3b-android.apk`.
+  - SHA256: `04ACC743BD1AA945C6ABB518106604EA1406D513D4A8955E839F3680DFEBB467`.
+  - Link EAS/APK: `https://expo.dev/artifacts/eas/u33rABvLWts7eQUeB_nsNwIsW0oPEHtqd5LWB7ig7wQ.apk`.
+- iOS Foster-3B no se genero: EAS reporto limite mensual iOS del plan Free alcanzado; se reinicia el `2026-07-01`. El intento incremento build number remoto de 16 a 17 pero no dejo cambios locales.
+- Siguiente paso recomendado: aplicar migracion Foster-3B remoto de forma controlada antes de QA mobile, luego instalar APK Android y validar caso Vincent: publicacion aprobada sigue visible, foto nueva queda pendiente, admin aprueba foto y aparece en discovery.
 
 ## Owner mobile Buscar sin chips rapidos visibles 2026-06-27
 

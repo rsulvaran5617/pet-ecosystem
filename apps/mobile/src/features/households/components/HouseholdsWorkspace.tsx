@@ -1,5 +1,11 @@
 import { colorTokens } from "@pet/ui";
-import type { HouseholdPermission, PetTransferRecord, ProtectiveHouseholdOrganizationType, ProtectiveHouseholdProfile } from "@pet/types";
+import type {
+  HouseholdPermission,
+  HouseholdType,
+  PetTransferRecord,
+  ProtectiveHouseholdOrganizationType,
+  ProtectiveHouseholdProfile
+} from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
 
@@ -30,6 +36,24 @@ const protectiveStatusLabels: Record<ProtectiveHouseholdProfile["status"], strin
   approved: "Aprobada",
   rejected: "Rechazada",
   suspended: "Suspendida"
+};
+
+const householdTypeOptions: Array<{ description: string; label: string; value: HouseholdType }> = [
+  {
+    description: "Para mascotas propias, reservas y cuidado familiar.",
+    label: "Hogar familiar",
+    value: "owner"
+  },
+  {
+    description: "Para custodia, acogida y adopcion responsable con aprobacion admin.",
+    label: "Familia protectora",
+    value: "protective"
+  }
+];
+
+const householdTypeLabels: Record<HouseholdType, string> = {
+  owner: "Hogar familiar",
+  protective: "Familia protectora"
 };
 
 const inputStyle = {
@@ -165,6 +189,7 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
     runAction
   } = useHouseholdsWorkspace(enabled);
   const [createHouseholdName, setCreateHouseholdName] = useState("");
+  const [createHouseholdType, setCreateHouseholdType] = useState<HouseholdType>("owner");
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitePermissions, setInvitePermissions] = useState<HouseholdPermission[]>(["view"]);
   const [memberPermissionDrafts, setMemberPermissionDrafts] = useState<Record<string, HouseholdPermission[]>>({});
@@ -258,8 +283,12 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
   }
 
   const canManageSelectedHousehold = selectedHouseholdDetail?.household.myPermissions.includes("admin") ?? false;
+  const selectedHouseholdType = selectedHouseholdDetail?.household.householdType ?? "owner";
+  const selectedHouseholdIsProtective = selectedHouseholdType === "protective";
   const canEditProtectiveProfile =
-    canManageSelectedHousehold && (!protectiveProfile || protectiveProfile.status === "draft" || protectiveProfile.status === "rejected");
+    selectedHouseholdIsProtective &&
+    canManageSelectedHousehold &&
+    (!protectiveProfile || protectiveProfile.status === "draft" || protectiveProfile.status === "rejected");
   const protectiveProfileIsSubmittable =
     Boolean(protectiveDisplayName.trim()) &&
     Boolean(protectiveCity.trim()) &&
@@ -284,19 +313,46 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
             placeholder="Nombre de tu hogar"
             value={createHouseholdName}
           />
+          <View style={{ gap: 8 }}>
+            <Text style={{ color: "#78716c", fontSize: 12, textTransform: "uppercase" }}>Tipo de hogar</Text>
+            <View style={{ gap: 8 }}>
+              {householdTypeOptions.map((option) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={option.value}
+                  onPress={() => setCreateHouseholdType(option.value)}
+                  style={{
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: createHouseholdType === option.value ? "rgba(15,118,110,0.32)" : "rgba(28,25,23,0.12)",
+                    backgroundColor: createHouseholdType === option.value ? "rgba(15,118,110,0.1)" : "rgba(255,255,255,0.86)",
+                    padding: 12,
+                    gap: 4
+                  }}
+                >
+                  <Text style={{ color: createHouseholdType === option.value ? "#0f766e" : "#1c1917", fontWeight: "800" }}>
+                    {option.label}
+                  </Text>
+                  <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{option.description}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
           <Button
             disabled={isSubmitting || isLoading || !createHouseholdName.trim()}
-            label="Crear mi hogar"
+            label={createHouseholdType === "protective" ? "Crear familia protectora" : "Crear mi hogar"}
             onPress={() => {
               clearMessages();
               void runAction(
                 () =>
                   getMobileHouseholdsApiClient().createHousehold({
-                    name: createHouseholdName.trim()
+                    name: createHouseholdName.trim(),
+                    householdType: createHouseholdType
                   }),
-                "Hogar creado."
+                createHouseholdType === "protective" ? "Familia protectora creada." : "Hogar creado."
               ).then(async () => {
                 setCreateHouseholdName("");
+                setCreateHouseholdType("owner");
                 await onHouseholdCreated?.();
               });
             }}
@@ -479,10 +535,13 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
                   <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{household.name}</Text>
                   <StatusChip
-                    label={household.myPermissions.includes("admin") ? "admin" : "member"}
-                    tone={household.myPermissions.includes("admin") ? "active" : "neutral"}
+                    label={householdTypeLabels[household.householdType]}
+                    tone={household.householdType === "protective" ? "pending" : "neutral"}
                   />
                 </View>
+                <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "800" }}>
+                  {household.myPermissions.includes("admin") ? "Admin" : "Integrante"}
+                </Text>
                 <Text style={{ color: colorTokens.muted }}>{household.memberCount} integrante(s)</Text>
                 <Text style={{ color: colorTokens.muted }}>{household.pendingInvitationCount} invitacion(es) pendiente(s)</Text>
               </Pressable>
@@ -500,6 +559,10 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                   </Text>
                   <StatusChip label={canManageSelectedHousehold ? "admin" : "integrante"} tone={canManageSelectedHousehold ? "active" : "neutral"} />
                 </View>
+                <StatusChip
+                  label={householdTypeLabels[selectedHouseholdDetail.household.householdType]}
+                  tone={selectedHouseholdIsProtective ? "pending" : "neutral"}
+                />
                 <Text style={{ color: colorTokens.muted }}>
                   Tus permisos: {selectedHouseholdDetail.household.myPermissions.join(", ")}
                 </Text>
@@ -510,12 +573,28 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                   <View style={{ gap: 4, flex: 1 }}>
                     <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Familia protectora</Text>
                     <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
-                      Solicita aprobacion para custodiar mascotas y preparar futuras transferencias privadas. No habilita venta, cobros ni publicacion automatica.
+                      {selectedHouseholdIsProtective
+                        ? "Solicita aprobacion para custodiar mascotas y preparar futuras transferencias privadas. No habilita venta, cobros ni publicacion automatica."
+                        : "Este hogar es familiar. Para acogida, adopcion o transferencias Foster crea o selecciona una familia protectora separada."}
                     </Text>
                   </View>
                   <StatusChip
-                    label={protectiveProfile ? protectiveStatusLabels[protectiveProfile.status] : "Sin solicitud"}
-                    tone={protectiveProfile?.status === "approved" ? "active" : protectiveProfile ? "pending" : "neutral"}
+                    label={
+                      selectedHouseholdIsProtective
+                        ? protectiveProfile
+                          ? protectiveStatusLabels[protectiveProfile.status]
+                          : "Sin solicitud"
+                        : "Hogar familiar"
+                    }
+                    tone={
+                      selectedHouseholdIsProtective
+                        ? protectiveProfile?.status === "approved"
+                          ? "active"
+                          : protectiveProfile
+                            ? "pending"
+                            : "neutral"
+                        : "neutral"
+                    }
                   />
                 </View>
                 {isProtectiveProfileLoading ? (
@@ -659,7 +738,9 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                   </View>
                 ) : (
                   <Text style={{ color: colorTokens.muted }}>
-                    Solo integrantes administradores del hogar pueden iniciar esta solicitud.
+                    {selectedHouseholdIsProtective
+                      ? "Solo integrantes administradores del hogar pueden iniciar esta solicitud."
+                      : "Las mascotas propias se gestionan desde este hogar. Las publicaciones y transferencias Foster requieren una familia protectora aprobada."}
                   </Text>
                 )}
               </View>

@@ -47,6 +47,12 @@ function isMissingSessionError(error: { message: string } | null) {
   return error?.message.toLowerCase().includes("auth session missing") ?? false;
 }
 
+function isCreateHouseholdTypeUnsupportedError(error: { message: string } | null) {
+  const message = error?.message.toLowerCase() ?? "";
+
+  return message.includes("create_household") && message.includes("next_household_type");
+}
+
 async function getCurrentUser(supabase: HouseholdsSupabaseClient) {
   const { data, error } = await supabase.auth.getUser();
 
@@ -75,6 +81,7 @@ function mapHousehold(row: HouseholdRow): Household {
   return {
     id: row.id,
     name: row.name,
+    householdType: row.household_type ?? "owner",
     createdByUserId: row.created_by_user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -263,10 +270,23 @@ export function createHouseholdsApiClient(supabase: HouseholdsSupabaseClient): H
     },
     async createHousehold(input) {
       const { data, error } = await supabase.rpc("create_household", {
-        next_name: input.name
+        next_name: input.name,
+        next_household_type: input.householdType ?? "owner"
       });
 
       if (error) {
+        if (isCreateHouseholdTypeUnsupportedError(error) && (!input.householdType || input.householdType === "owner")) {
+          const { data: legacyData, error: legacyError } = await supabase.rpc("create_household", {
+            next_name: input.name
+          });
+
+          if (legacyError) {
+            fail(legacyError, "Unable to create the household.");
+          }
+
+          return mapHousehold(legacyData);
+        }
+
         fail(error, "Unable to create the household.");
       }
 

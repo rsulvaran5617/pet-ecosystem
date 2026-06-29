@@ -2,10 +2,12 @@ import type { IsoDateString, TimestampedEntity, Uuid } from "./base";
 
 export type HouseholdPermission = "view" | "edit" | "book" | "pay" | "admin";
 export type HouseholdInvitationStatus = "pending" | "accepted" | "rejected";
+export type HouseholdType = "owner" | "protective";
 
 export interface Household extends TimestampedEntity {
   id: Uuid;
   name: string;
+  householdType: HouseholdType;
   createdByUserId: Uuid;
 }
 
@@ -56,6 +58,7 @@ export interface HouseholdsSnapshot {
 
 export interface CreateHouseholdInput {
   name: string;
+  householdType?: HouseholdType;
 }
 
 export interface InviteHouseholdMemberInput {
@@ -66,4 +69,3 @@ export interface InviteHouseholdMemberInput {
 export interface UpdateHouseholdMemberPermissionsInput {
   permissions: HouseholdPermission[];
 }
-

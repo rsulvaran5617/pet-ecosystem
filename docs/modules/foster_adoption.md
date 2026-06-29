@@ -10,6 +10,62 @@ Este alcance no modifica flujos actuales de owner, provider, bookings, payments,
 
 Nota operativa 2026-06-24: se agrega hotfix remoto para `create_pet_adoption_listing`, manteniendo la misma regla funcional y corrigiendo el orden de parametros usado al escribir `audit_logs`. Sin este ajuste, guardar una publicacion podia fallar con `function public.insert_audit_log(...) does not exist`.
 
+## Decision 2026-06-29 - Separar familias owner y familias protectoras
+
+El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
+
+Decision:
+
+- una familia owner no debe ser simultaneamente familia protectora/acogida.
+- una familia protectora es un hogar distinto, con finalidad, aprobacion y UX propias.
+- un usuario puede pertenecer a un hogar owner y tambien a un hogar protective, pero son contextos separados.
+- `protective_household_profiles` sigue siendo la tabla de revision/aprobacion, pero debe quedar asociada solamente a households tipo `protective`.
+- los flujos de publicar adopcion, transferir mascota y administrar custodia quedan restringidos a hogares `protective` aprobados.
+- los hogares `owner` conservan gestion normal de mascotas propias, salud, documentos, recordatorios, marketplace de servicios y reservas.
+
+Modelo recomendado para el siguiente slice:
+
+- agregar `households.household_type text not null default 'owner'`.
+- valores iniciales: `owner`, `protective`.
+- agregar constraint `household_type in ('owner', 'protective')`.
+- ajustar funciones Foster para validar `household_type = 'protective'` ademas de `protective_household_profiles.status = 'approved'`.
+- mantener default `owner` para datos historicos.
+- preparar diagnostico de hogares con `protective_household_profiles` existentes antes de marcar automaticamente alguno como `protective`.
+
+Foster-Household-B preparado localmente:
+
+- reporte de impacto remoto: `docs/delivery/FOSTER_HOUSEHOLD_TYPE_IMPACT_REPORT.md`.
+- migracion local: `supabase/migrations/20260629110000_household_type_owner_protective.sql`.
+- la migracion agrega `household_type`, helper `is_protective_household` y refuerza `is_approved_protective_household`.
+- `submit_protective_household_profile` y la policy de insert de `protective_household_profiles` pasan a exigir hogar tipo `protective`.
+- `create_household` acepta un tipo explicito para crear un hogar `owner` o `protective` sin convertir hogares existentes.
+- owner mobile permite crear una `Familia protectora` separada y bloquea la solicitud Foster sobre hogares `owner`.
+- owner mobile `Mascotas` solo habilita publicaciones/transferencias cuando el hogar activo es `protective` y el perfil protector esta aprobado.
+- no se aplica backfill automatico: producto confirma que `HOGAR SULVARAN VELASCO` permanece como hogar familiar `owner`; las capacidades Foster deben migrarse a un household `protective` separado antes de reactivar publicaciones/transferencias bajo el nuevo modelo.
+
+Politica de compatibilidad:
+
+- no duplicar mascotas.
+- no borrar historiales.
+- publicaciones y transferencias existentes deben seguir siendo auditables.
+- si un hogar ya tiene publicaciones o transferencias Foster, la migracion debe reportarlo y decidir explicitamente si ese hogar pasa a `protective`.
+- no mover mascotas entre hogares como parte del primer slice de separacion; cualquier movimiento debe seguir usando Foster-2A.
+
+UX esperada:
+
+- Owner mobile `Hogares` debe distinguir `Hogar familiar` de `Familia protectora`.
+- Owner mobile `Mascotas` debe mostrar mascotas propias cuando el hogar activo es `owner` y mascotas bajo custodia cuando el hogar activo es `protective`.
+- Acciones Foster (`Mis publicaciones`, `Publicar adopcion`, `Transferir mascota`) solo aparecen para hogares `protective` aprobados.
+- Si un hogar owner intenta usar Foster, debe ver copy claro: `Crea o selecciona una familia protectora aprobada para continuar.`
+- Admin web debe mostrar el tipo de hogar al revisar familias protectoras y auditorias Foster.
+
+Riesgos:
+
+- hogares actuales con perfil protector podrian estar mezclando mascotas propias y en acogida.
+- publicaciones Foster existentes dependen de `household_id`; cambiar el tipo sin criterio podria ocultar acciones al usuario correcto.
+- separar por rol global de usuario no es suficiente porque el comportamiento depende del hogar/custodia, no solo del usuario.
+- requiere QA de owners con multiples hogares y familias protectoras con muchas mascotas.
+
 ## Foster-4A - Discovery de adopcion desde Inicio
 
 Foster-4A abre una entrada clara desde Owner mobile `Inicio`: `Mascotas que buscan hogar`.

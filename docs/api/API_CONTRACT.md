@@ -70,6 +70,22 @@ Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas qued
 - `POST /household-invitations/{id}/reject`
 - `PATCH /households/{id}/members/{memberId}/permissions`
 
+Notas de separacion Foster/Owner:
+
+- siguiente slice propuesto: exponer `householdType` en `HouseholdSummary` y operaciones tipadas de hogares.
+- valores esperados: `owner`, `protective`.
+- crear un hogar normal debe usar default `owner`.
+- `createHousehold` puede enviar `householdType`; si se omite, el RPC usa `owner`.
+- crear una familia protectora debe ser una accion explicita y crea otro household tipo `protective`.
+- crear o convertir a familia protectora debe ser flujo explicito, no una consecuencia invisible de tener perfil Foster.
+- las APIs Foster deben validar que el hogar usado sea `protective` ademas de tener `protective_household_profiles.status = approved`.
+- mensajes esperados:
+  - `Este hogar no esta configurado como familia protectora.`
+  - `Solo una familia protectora aprobada puede publicar mascotas en adopcion.`
+  - `Crea o selecciona una familia protectora para continuar.`
+
+Foster-Household-B actualiza tipos compartidos y API client para leer `householdType`; no agrega aun UI de cambio/creacion de hogar protector.
+
 ### Pets / Health / Reminders
 
 - `GET /pets`

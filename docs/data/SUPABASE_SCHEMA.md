@@ -106,6 +106,7 @@ Entidades Foster:
 - `protective_household_profiles`: implementada/aplicada por Foster-1A.
 - `pet_custody_contexts`: implementada/aplicada por Foster-2A.
 - `pet_transfer_records`: implementada/aplicada por Foster-2A.
+- `households.household_type`: propuesto para el siguiente slice de separacion owner/protective.
 
 Objetivo:
 
@@ -115,11 +116,36 @@ Objetivo:
 
 Reglas conceptuales:
 
-- `households` sigue siendo el hogar base; la capacidad protectora vive en perfil adicional.
+- `households` sigue siendo el hogar base, pero debe incorporar un tipo operativo principal.
+- valores propuestos para `households.household_type`: `owner`, `protective`.
+- default conservador: `owner`.
+- `protective_household_profiles` solo debe asociarse a hogares `protective`.
+- una fila de `households` no debe ser owner y protective al mismo tiempo.
 - la transferencia no duplica mascotas y conserva `pets.id`.
 - el RPC de aceptacion Foster-2A actualiza custodias/ownership de forma transaccional y registra audit trail.
 - documentos medicos y salud pueden viajar con consentimiento; reservas, chats, soporte y datos privados del hogar anterior no se comparten automaticamente.
 - admin debe poder aprobar/suspender perfiles protectores y auditar transferencias.
+
+Migracion futura recomendada:
+
+- agregar columna `household_type text not null default 'owner'`.
+- agregar check `household_type in ('owner', 'protective')`.
+- indexar `households(household_type)`.
+- antes de transformar hogares con perfiles protectores existentes, ejecutar diagnostico de:
+  - hogares con `protective_household_profiles`.
+  - hogares con publicaciones Foster.
+  - hogares con transferencias Foster.
+  - hogares con mascotas y reservas activas.
+- no cambiar `pets.household_id` en esta migracion.
+
+Migracion local preparada:
+
+- `supabase/migrations/20260629110000_household_type_owner_protective.sql`.
+- agrega `household_type` y helper `is_protective_household`.
+- redefine `is_approved_protective_household` para exigir `household_type = 'protective'`.
+- refuerza submit/insert de perfil protector.
+- redefine `create_household(next_name, next_household_type default 'owner')` para crear hogares familiares o protectores de forma explicita.
+- no incluye update automatico a `protective`; requiere decision/manual backfill previa a aplicacion remota.
 
 Foster-1A `protective_household_profiles`:
 
