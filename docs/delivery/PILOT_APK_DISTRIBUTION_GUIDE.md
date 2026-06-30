@@ -274,3 +274,22 @@ Notas de QA:
 - Validar Owner `Inicio` > CTA `Mascotas que buscan hogar` > `Buscar > Adopcion`.
 - Validar Owner `Mascotas`: no debe aparecer la vitrina general pesada; familias protectoras aprobadas deben conservar `Mis publicaciones de adopcion`.
 - Validar Owner `Buscar > Adopcion`: listado, detalle y CTA informativo `Me interesa`.
+
+## APK Foster-Household-B 2026-06-29
+
+APK generado para QA Android de la separacion entre `Hogar familiar` y `Familia protectora`:
+
+- Commit base: `11b2b83 feat(foster): separate owner and protective households`.
+- Android EAS preview: `0f9467cc-ac0f-4ced-a6e7-0622e8899ab3`.
+- Ruta local APK: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-household-b-android.apk`.
+- Tamano APK: `128,999,817 bytes`.
+- SHA256 APK: `A0273ACD5956777C05571F6DB8A877AD09AFF5A4519128B49A5E42C6FD8B7582`.
+- Link EAS de instalacion Android: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/0f9467cc-ac0f-4ced-a6e7-0622e8899ab3`.
+- Estado iOS: no se genero artefacto para este slice porque EAS bloqueo el build production por cuota iOS del plan Free. Reintentar cuando se reinicie la cuota o usar capacidad EAS disponible.
+
+Notas de QA:
+
+- Validar Owner > Hogares > crear `Familia protectora`.
+- Enviar solicitud protectora y aprobar desde admin.
+- Confirmar que las acciones Foster aparecen solo en el hogar `protective` aprobado.
+- Confirmar que `HOGAR SULVARAN VELASCO` permanece como `Hogar familiar` y no muestra acciones Foster.

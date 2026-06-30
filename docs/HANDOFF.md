@@ -1,23 +1,35 @@
 # HANDOFF.md
 
-## Diseno separacion Owner vs Familia Protectora 2026-06-29
+## Foster-Household-B aplicado 2026-06-29
 
-- Nuevo alcance documental preparado para separar conceptualmente hogares `owner` y `protective`.
-- Decision: una misma fila de `households` no debe operar simultaneamente como hogar familiar y familia protectora/acogida.
-- Ruta recomendada: agregar `households.household_type` con valores iniciales `owner` / `protective`, default `owner`, y restringir Foster a hogares `protective` con `protective_household_profiles.status = approved`.
-- Un mismo usuario puede pertenecer a dos hogares distintos si necesita mascotas propias y custodia/adopcion.
-- Foster-Household-B local agrega reporte remoto de impacto, migracion `20260629110000_household_type_owner_protective.sql`, tipo compartido `HouseholdType`, `householdType` en API, creacion explicita de hogares `owner`/`protective`, UX owner para distinguir `Hogar familiar` vs `Familia protectora` y validaciones Foster server-side.
-- Diagnostico remoto: 117 households; 1 household con perfil protector aprobado; ese hogar tiene 5 mascotas, 2 publicaciones Foster, 0 transferencias y 43 bookings.
-- No hay backfill automatico a `protective`; si se aplica la migracion sin backfill, Foster queda bloqueado para ese hogar hasta marcarlo explicitamente como `protective`.
-- Decision confirmada: `HOGAR SULVARAN VELASCO` permanece como hogar familiar `owner`; no convertirlo a `protective`.
-- Siguiente paso: crear/seleccionar un household separado de tipo `protective` desde `Hogares`, enviar/aprobar su perfil protector y luego reubicar flujos Foster sin mezclar mascotas propias y mascotas bajo custodia.
-- Foster-3B sigue pendiente de aplicar remoto: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
+- Foster-Household-B queda aplicado remoto, commiteado y publicado en `origin/master`.
+- Commit publicado: `11b2b83 feat(foster): separate owner and protective households`.
+- Migraciones aplicadas remoto:
+  - `20260628120000_foster_3b_adoption_media_gallery.sql`.
+  - `20260629110000_household_type_owner_protective.sql`.
+- Modelo activo: `households.household_type` distingue `owner` y `protective`, con default `owner`.
+- Decision confirmada: `HOGAR SULVARAN VELASCO` permanece como hogar familiar `owner`; no hubo backfill automatico a `protective`.
+- Validacion remota: `household_type` existe, default `owner` existe, constraint owner/protective existe, `create_household` acepta tipo explicito y los helpers Foster validan hogares `protective`.
+- Estado remoto posterior: dry-run Supabase sin migraciones pendientes; `owner_households = 117`, `protective_households = 0`.
+- APK Android QA generado para validar Foster-Household-B:
+  - EAS build: `0f9467cc-ac0f-4ced-a6e7-0622e8899ab3`.
+  - Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster-household-b-android.apk`.
+  - SHA256: `A0273ACD5956777C05571F6DB8A877AD09AFF5A4519128B49A5E42C6FD8B7582`.
+  - Link EAS: `https://expo.dev/accounts/rsulvaran/projects/pet-ecosystem/builds/0f9467cc-ac0f-4ced-a6e7-0622e8899ab3`.
+- iOS Foster-Household-B no quedo generado: EAS production tenia credenciales validas, pero el build fue bloqueado por cuota iOS del plan Free. Reintentar despues del reinicio de cuota indicado por EAS o usar un plan con capacidad disponible.
+- Siguiente QA recomendado:
+  1. Instalar APK Android.
+  2. Owner > Hogares: crear una nueva `Familia protectora` separada.
+  3. Enviar solicitud protectora.
+  4. Aprobarla desde admin.
+  5. Confirmar que las acciones Foster solo aparecen para ese hogar `protective` aprobado.
+  6. Confirmar que `HOGAR SULVARAN VELASCO` sigue como hogar familiar owner.
 
 ## Foster-3B galeria moderada de adopcion 2026-06-28
 
 - Slice implementado, commiteado y publicado en `origin/master` para corregir el caso de publicaciones `published` que podian quedar inconsistentes al agregar fotos despues de aprobacion admin.
 - Commit publicado: `d18325a feat(foster): add moderated adoption media gallery`.
-- Nueva migracion local pendiente de aplicar remoto: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
+- Migracion aplicada remoto durante el cierre Foster-Household-B: `supabase/migrations/20260628120000_foster_3b_adoption_media_gallery.sql`.
 - Regla central: agregar una foto a una publicacion aprobada no cambia `pet_adoption_listings.status`; la publicacion sigue visible y la foto nueva queda `pending`.
 - RLS/Storage: owner/admin ven media propia con estados; adoptantes solo pueden leer media `approved` de publicaciones `published`; owner no actualiza directo `moderation_status`.
 - Owner mobile `Mascotas`: galeria horizontal con contador `x/8`, estados por foto, accion de portada, eliminacion solo para fotos pendientes/rechazadas y copy de que la publicacion no se despublica.
@@ -25,14 +37,22 @@
 - Discovery owner filtra defensivamente para mostrar solo fotos aprobadas y usa placeholder si no hay portada publica.
 - Fuera de alcance: videos, chat/adoption interest, solicitudes formales, transferencia automatica, Payments, booking, QR, evidencia operacional, provider services y geolocalizacion.
 - Validaciones ejecutadas en PASS antes del commit: types/api-client/mobile/admin lint/typecheck/build, `git diff --check` y dry-run Supabase.
-- Dry-run Supabase confirmo que solo queda pendiente `20260628120000_foster_3b_adoption_media_gallery.sql`; no se aplico remoto todavia.
+- Dry-run Supabase posterior al cierre Foster-Household-B quedo sin migraciones pendientes.
 - APK Android QA generado:
   - EAS build: `c5cc072d-18c1-440c-afd8-d8b25b06b8c2`.
   - Ruta local: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-foster3b-android.apk`.
   - SHA256: `04ACC743BD1AA945C6ABB518106604EA1406D513D4A8955E839F3680DFEBB467`.
   - Link EAS/APK: `https://expo.dev/artifacts/eas/u33rABvLWts7eQUeB_nsNwIsW0oPEHtqd5LWB7ig7wQ.apk`.
 - iOS Foster-3B no se genero: EAS reporto limite mensual iOS del plan Free alcanzado; se reinicia el `2026-07-01`. El intento incremento build number remoto de 16 a 17 pero no dejo cambios locales.
-- Siguiente paso recomendado: aplicar migracion Foster-3B remoto de forma controlada antes de QA mobile, luego instalar APK Android y validar caso Vincent: publicacion aprobada sigue visible, foto nueva queda pendiente, admin aprueba foto y aparece en discovery.
+- Siguiente paso recomendado: instalar APK Android y validar caso Vincent: publicacion aprobada sigue visible, foto nueva queda pendiente, admin aprueba foto y aparece en discovery.
+
+## Deploy gota 2026-06-29
+
+- Durante la actualizacion de la gota, `next build` de `@pet/web` fallo remoto con `SIGKILL`, mientras el build local paso correctamente.
+- Diagnostico: la gota tenia cerca de `961MiB` RAM y `0B` swap; el sistema probablemente mato el worker de Next.js por falta de memoria.
+- Correccion operativa aplicada en servidor `143.198.165.191`: swapfile de `2.0GiB` activo y `vm.swappiness=10`.
+- Verificacion reportada: `free -h` muestra `Swap: 2.0Gi`; el comando `swapon --show` no es compatible en esa imagen, usar `cat /proc/swaps` si hace falta verificar.
+- Siguiente intento recomendado: volver a ejecutar `.\scripts\deploy-droplet.ps1 -SshTarget "root@143.198.165.191"`.
 
 ## Owner mobile Buscar sin chips rapidos visibles 2026-06-27
 
