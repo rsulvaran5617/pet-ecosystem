@@ -4,6 +4,7 @@ import { providerServiceCategoryLabels } from "@pet/config";
 import type {
   AddPaymentMethodInput,
   CoreRole,
+  OnboardingTask,
   MarketplaceCategoryHighlight,
   MarketplaceServiceSelection,
   BookingSummary,
@@ -18,6 +19,7 @@ import type {
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   SafeAreaView,
@@ -86,6 +88,7 @@ type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes"
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
+type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "profile" | "roles";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
@@ -1159,6 +1162,7 @@ export function CoreHomeScreen() {
   const [recoveryPasswordForm, setRecoveryPasswordForm] = useState(emptyRecoveryPasswordForm);
   const [authAccessPanel, setAuthAccessPanel] = useState<AuthAccessPanel>("login");
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
+  const [activeAccountPanel, setActiveAccountPanel] = useState<AccountPanelId>("access");
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
@@ -1246,6 +1250,74 @@ export function CoreHomeScreen() {
   const activeOwnerPetContextForModules: ActiveOwnerPetContext = activeOwnerPet
     ? { householdId: activeOwnerPet.householdId, petId: activeOwnerPet.id }
     : { householdId: activeOwnerPetContext.householdId, petId: activeOwnerPetContextId };
+
+  const openAccountPanel = (panel: AccountPanelId) => {
+    setActiveAccountPanel(panel);
+
+    if (panel === "profile") {
+      setIsProfileFormVisible(true);
+    }
+
+    if (panel === "addresses" && snapshot && snapshot.addresses.length === 0) {
+      setAddressForm(emptyAddressForm);
+      setIsAddressFormVisible(true);
+    }
+  };
+
+  const handleAccountTaskPress = (task: OnboardingTask) => {
+    if (!snapshot) {
+      return;
+    }
+
+    if (task.id === "create_account") {
+      openAccountPanel("access");
+      return;
+    }
+
+    if (task.id === "verify_contact") {
+      openAccountPanel("access");
+
+      if (snapshot.verification.status !== "verified") {
+        clearMessages();
+        void runAction(
+          () => getMobileCoreApiClient().resendVerification({ email: snapshot.profile.email }),
+          "Enviamos un nuevo codigo de verificacion a tu correo.",
+          false
+        );
+      }
+
+      return;
+    }
+
+    if (task.id === "complete_profile") {
+      openAccountPanel("profile");
+      return;
+    }
+
+    if (task.id === "select_role") {
+      openAccountPanel("roles");
+      return;
+    }
+
+    if (task.id === "set_preferences") {
+      openAccountPanel("preferences");
+      return;
+    }
+
+    if (task.id === "add_address") {
+      openAccountPanel("addresses");
+      return;
+    }
+
+    if (task.id === "add_payment_method") {
+      if (isProviderMode) {
+        Alert.alert("No disponible en este modo", "Los metodos guardados se gestionan desde el modo Propietario de mascota.");
+        return;
+      }
+
+      openAccountPanel("payments");
+    }
+  };
 
   useEffect(() => {
     if (!authState.isAuthenticated || isProviderMode) {
@@ -1662,14 +1734,30 @@ export function CoreHomeScreen() {
               }
             >
               <View style={{ gap: 8 }}>
-                {accountOnboardingTasks.map((task) => (
-                  <View key={task.id} style={{ borderRadius: 14, backgroundColor: "rgba(247,242,231,0.84)", padding: 10, gap: 6 }}>
-                    <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+                {accountOnboardingTasks.map((task) => {
+                  const isCompleted = task.status === "completed";
+
+                  return (
+                    <Pressable
+                      accessibilityLabel={`${task.title}. ${isCompleted ? "Listo" : "Pendiente"}`}
+                      accessibilityRole="button"
+                      key={task.id}
+                      onPress={() => handleAccountTaskPress(task)}
+                      style={{
+                        borderRadius: 14,
+                        backgroundColor: isCompleted ? "rgba(240,253,250,0.88)" : "#ffffff",
+                        borderColor: isCompleted ? "rgba(20,184,166,0.22)" : "rgba(15,118,110,0.2)",
+                        borderWidth: 1,
+                        padding: 10,
+                        gap: 6
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
                       <View
                         style={{
                           alignItems: "center",
-                          backgroundColor: task.status === "completed" ? colorTokens.accentDark : "rgba(249,115,22,0.14)",
-                          borderColor: task.status === "completed" ? "rgba(0,122,107,0.22)" : "rgba(249,115,22,0.28)",
+                          backgroundColor: isCompleted ? colorTokens.accentDark : "rgba(249,115,22,0.14)",
+                          borderColor: isCompleted ? "rgba(0,122,107,0.22)" : "rgba(249,115,22,0.28)",
                           borderRadius: 999,
                           borderWidth: 1,
                           height: 24,
@@ -1677,17 +1765,26 @@ export function CoreHomeScreen() {
                           width: 24
                         }}
                       >
-                        <Text style={{ color: task.status === "completed" ? "#ffffff" : "#c2410c", fontSize: 13, fontWeight: "900", lineHeight: 15 }}>
-                          {task.status === "completed" ? "?" : "!"}
+                        <Text style={{ color: isCompleted ? "#ffffff" : "#c2410c", fontSize: 9, fontWeight: "900", lineHeight: 15 }}>
+                          {isCompleted ? "OK" : "!"}
                         </Text>
                       </View>
                       <View style={{ flex: 1, gap: 4 }}>
                         <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", lineHeight: 16 }}>{task.title}</Text>
-                        <Text style={{ fontSize: 10, lineHeight: 14, color: "#57534e" }}>{task.description}</Text>
+                        <Text style={{ fontSize: 10, lineHeight: 14, color: "#57534e" }}>
+                          {task.id === "add_payment_method"
+                            ? "Referencia para reservas. Sin cobro real en piloto."
+                            : task.description}
+                        </Text>
+                      </View>
+                      <View style={{ alignItems: "flex-end", gap: 4 }}>
+                        <StatusChip label={isCompleted ? "Listo" : "Pendiente"} tone={isCompleted ? "active" : "pending"} />
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 14, fontWeight: "900" }}>{">"}</Text>
                       </View>
                     </View>
-                  </View>
-                ))}
+                  </Pressable>
+                  );
+                })}
               </View>
             </CoreSectionCard>
 
@@ -1726,7 +1823,11 @@ export function CoreHomeScreen() {
                     </View>
                     <Pressable
                       disabled={isSubmitting}
-                      onPress={() => setIsProfileFormVisible((current) => !current)}
+                      onPress={() => {
+                        const shouldCloseProfile = isProfileFormVisible || activeAccountPanel === "profile";
+                        setIsProfileFormVisible(!shouldCloseProfile);
+                        setActiveAccountPanel(shouldCloseProfile ? "access" : "profile");
+                      }}
                       style={{
                         alignItems: "center",
                         backgroundColor: colorTokens.surface,
@@ -1739,12 +1840,12 @@ export function CoreHomeScreen() {
                         width: 34
                       }}
                     >
-                      <OwnerLineIcon color={colorTokens.accentDark} name={isProfileFormVisible ? "close" : "user"} size={17} />
+                      <OwnerLineIcon color={colorTokens.accentDark} name={isProfileFormVisible || activeAccountPanel === "profile" ? "close" : "user"} size={17} />
                     </Pressable>
                   </View>
                 </View>
 
-                {isProfileFormVisible ? (
+                {isProfileFormVisible || activeAccountPanel === "profile" ? (
                   <>
                     <Field
                       label="Nombre"
@@ -1789,6 +1890,7 @@ export function CoreHomeScreen() {
                             "Perfil actualizado."
                           ).then(() => {
                             setIsProfileFormVisible(false);
+                            setActiveAccountPanel("access");
                           });
                         }}
                       />
@@ -1804,44 +1906,66 @@ export function CoreHomeScreen() {
                             locale: snapshot.profile.locale
                           });
                           setIsProfileFormVisible(false);
+                          setActiveAccountPanel("access");
                         }}
                         tone="secondary"
                       />
                     </View>
                   </>
                 ) : null}
-                <SwitchRow
-                  label="Recibir novedades"
-                  onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, marketingOptIn: value }))}
-                  value={preferenceForm.marketingOptIn}
-                />
-                <SwitchRow
-                  label="Recordatorios por correo"
-                  onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderEmailOptIn: value }))}
-                  value={preferenceForm.reminderEmailOptIn}
-                />
-                <SwitchRow
-                  label="Recordatorios push"
-                  onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderPushOptIn: value }))}
-                  value={preferenceForm.reminderPushOptIn}
-                />
-                <Button
-                  disabled={isSubmitting}
-                  label="Guardar preferencias"
-                  onPress={() => {
-                    clearMessages();
-                    void runAction(
-                      () =>
-                        getMobileCoreApiClient().updatePreferences({
-                          marketingOptIn: preferenceForm.marketingOptIn,
-                          reminderEmailOptIn: preferenceForm.reminderEmailOptIn,
-                          reminderPushOptIn: preferenceForm.reminderPushOptIn
-                        }),
-                      "Preferencias actualizadas."
-                    );
-                  }}
-                  tone="secondary"
-                />
+                <View style={{ borderRadius: 14, backgroundColor: "rgba(240,253,250,0.68)", padding: 10, gap: 7 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Preferencias</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                        Recordatorios y comunicacion de la app.
+                      </Text>
+                    </View>
+                    <Button
+                      disabled={isSubmitting}
+                      label={activeAccountPanel === "preferences" ? "Ocultar" : "Abrir"}
+                      onPress={() => setActiveAccountPanel((current) => current === "preferences" ? "profile" : "preferences")}
+                      tone="secondary"
+                    />
+                  </View>
+
+                  {activeAccountPanel === "preferences" ? (
+                    <>
+                      <SwitchRow
+                        label="Recibir novedades"
+                        onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, marketingOptIn: value }))}
+                        value={preferenceForm.marketingOptIn}
+                      />
+                      <SwitchRow
+                        label="Recordatorios por correo"
+                        onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderEmailOptIn: value }))}
+                        value={preferenceForm.reminderEmailOptIn}
+                      />
+                      <SwitchRow
+                        label="Recordatorios push"
+                        onChange={(value) => setPreferenceForm((currentForm) => ({ ...currentForm, reminderPushOptIn: value }))}
+                        value={preferenceForm.reminderPushOptIn}
+                      />
+                      <Button
+                        disabled={isSubmitting}
+                        label="Guardar preferencias"
+                        onPress={() => {
+                          clearMessages();
+                          void runAction(
+                            () =>
+                              getMobileCoreApiClient().updatePreferences({
+                                marketingOptIn: preferenceForm.marketingOptIn,
+                                reminderEmailOptIn: preferenceForm.reminderEmailOptIn,
+                                reminderPushOptIn: preferenceForm.reminderPushOptIn
+                              }),
+                            "Preferencias actualizadas."
+                          );
+                        }}
+                        tone="secondary"
+                      />
+                    </>
+                  ) : null}
+                </View>
               </View>
             </CoreSectionCard>
 

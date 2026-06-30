@@ -15,6 +15,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - cargar documentos basicos de mascota
 - clasificar documentos por tipo
 - registrar y editar vigencia de documentos de mascota
+- visualizar documentos cargados mediante URL firmada temporal, con preview de imagen y apertura externa para PDF/otros formatos soportados por el dispositivo
 - reutilizar documentos tipo `vaccination_record` como soporte/sticker de vacunas desde el modulo Salud
 
 ## Fuera de este slice MVP
@@ -44,6 +45,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - mobile/web owner permiten editar y consultar el estado de esterilizacion como dato descriptivo del perfil; no afecta reservas ni reglas operativas.
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
 - un miembro con permiso de hogar `edit` o `admin` puede editar metadata de vigencia documental sin reemplazar el archivo
+- un miembro autorizado del hogar puede abrir documentos privados usando URL firmada temporal; la app no expone buckets, rutas internas ni URL publica permanente
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
 - los documentos pueden indicar si tienen vencimiento, fecha de emision, fecha de vencimiento y ventana de aviso; el estado visual se calcula en cliente con helper compartido y no bloquea reservas automaticamente
@@ -66,5 +68,6 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`
+- `GET /pet-documents/{id}/signed-url`
 - `GET /households/{id}/pet-documents`
 - `PATCH /pet-documents/{id}`

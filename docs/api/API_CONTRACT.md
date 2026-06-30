@@ -96,6 +96,7 @@ Foster-Household-B actualiza tipos compartidos y API client para leer `household
 - `POST /pets/{id}/avatar`
 - `GET /pets/{id}/documents`
 - `POST /pets/{id}/documents`
+- `GET /pet-documents/{id}/signed-url`
 - `GET /pets/{id}/health`
 - `GET /pets/{id}/vaccines`
 - `POST /pets/{id}/vaccines`

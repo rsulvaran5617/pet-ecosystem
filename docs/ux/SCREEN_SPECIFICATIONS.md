@@ -33,6 +33,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - direcciones
 - metodos de pago
 - cambio de rol
+- owner mobile Cuenta muestra `Pasos de cuenta` como checklist accionable: cada fila abre el bloque correspondiente de acceso, perfil, preferencias, roles, direcciones o metodos guardados, con estados `Listo` / `Pendiente` y copy de pagos sin cobro real en piloto.
 - web autenticada respeta rol activo: `provider` muestra consola de proveedor y oculta workspaces owner; `pet_owner` muestra hogar/mascotas/marketplace/reservas y oculta consola provider
 - owner web usa una consola con sidebar izquierdo y area de contenido derecha para `Panel`, `Hogar`, `Mascotas`, `Salud`, `Agenda`, `Buscar`, `Reservas`, `Mensajes` y `Cuenta`, manteniendo los workspaces existentes y sin cambiar contratos ni reglas
 - owner web `Panel` muestra dashboard interno de gestion de mascotas con saludo, KPIs de mascotas/reservas/recordatorios/documentos/mensajes, cards de mascotas, proximas actividades, salud y recordatorios, documentos, actividad reciente y accesos rapidos usando datos existentes y empty states visuales
@@ -52,6 +53,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - perfil mascota muestra esterilizacion como dato maestro descriptivo editable, con opcion sin indicar para historicos
 - documentos
 - documentos de mascota muestran vigencia con chips `Sin vencimiento`, `Fecha pendiente`, `Vigente`, `Por vencer` o `Vencido`; owner mobile/web permite editar vigencia sin reemplazar el archivo
+- owner mobile Docs usa acciones compactas por icono: ojo para visualizar documento y calendario para editar vigencia. Las imagenes se abren en un visor interno con URL firmada temporal; PDFs/otros formatos se abren con el visor del dispositivo cuando esta disponible.
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas; el encabezado mobile muestra `MM/YYYY` y controles compactos `-1 ano` / `+1 ano` para no tapar el mes en pantallas pequenas.

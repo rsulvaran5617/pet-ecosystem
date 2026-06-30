@@ -40,6 +40,12 @@ export interface PetDocument extends TimestampedEntity {
   expirationWarningDays: number;
 }
 
+export interface PetDocumentSignedUrl {
+  documentId: Uuid;
+  mimeType: string | null;
+  signedUrl: string;
+}
+
 export interface PetDetail {
   pet: PetSummary;
   documents: PetDocument[];

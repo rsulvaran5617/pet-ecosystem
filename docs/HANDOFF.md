@@ -1,5 +1,22 @@
 # HANDOFF.md
 
+## Pet document viewer mobile 2026-06-29
+
+- Owner mobile > Mascotas > Docs ahora reemplaza la accion larga `Editar vigencia` por iconos compactos: ojo para `Ver documento` y calendario para editar vigencia.
+- `packages/api-client` agrega `getPetDocumentSignedUrl(documentId)`, que consulta el documento bajo RLS y genera una URL firmada temporal de 10 minutos desde el bucket privado `pet-documents`.
+- Imagenes (`image/*` o extensiones comunes) se abren en un modal interno con `resizeMode="contain"` y metadata compacta.
+- PDFs y otros formatos se abren con el visor del dispositivo via `Linking.openURL` usando la misma URL firmada. No se agregaron dependencias ni visor PDF embebido.
+- No se tocaron Supabase schema, migraciones, RLS, Payments, booking, QR, evidencia operacional, provider/admin ni buckets publicos.
+- QA recomendado: cargar/abrir JPG, cerrar modal, abrir PDF, editar vigencia desde icono de calendario y confirmar que la carga de documentos sigue funcionando.
+
+## Owner Cuenta checklist accionable 2026-06-29
+
+- Owner mobile > Cuenta convierte `Pasos de cuenta` en checklist accionable.
+- Cada fila usa el estado existente de `snapshot.onboardingTasks`, muestra `Listo` o `Pendiente` y abre el bloque correspondiente: acceso/verificacion, datos personales, preferencias, roles, direcciones o metodos guardados.
+- `Agregar metodo de pago` conserva copy de piloto: referencia para reservas, sin cobro real.
+- No se tocaron backend, Supabase, contratos API, Payments reales, booking, QR, evidencia, provider/admin ni Foster.
+- QA recomendado: presionar `Completar perfil`, `Configurar preferencias`, `Agregar direccion`, `Agregar metodo de pago` y confirmar que se abre la seccion correcta sin duplicar formularios.
+
 ## Foster-Household-B aplicado 2026-06-29
 
 - Foster-Household-B queda aplicado remoto, commiteado y publicado en `origin/master`.

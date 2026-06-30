@@ -3,6 +3,7 @@ import type {
   Database,
   PetDetail,
   PetDocument,
+  PetDocumentSignedUrl,
   PetDocumentWithPet,
   PetSummary,
   SetPetMemoryStatusInput,
@@ -30,6 +31,7 @@ export interface PetsApiClient {
   getPetDetail(petId: Uuid): Promise<PetDetail>;
   listHouseholdPetDocuments(householdId: Uuid): Promise<PetDocumentWithPet[]>;
   listPetDocuments(petId: Uuid): Promise<PetDocument[]>;
+  getPetDocumentSignedUrl(documentId: Uuid): Promise<PetDocumentSignedUrl>;
   uploadPetAvatar(petId: Uuid, input: UploadPetAvatarInput): Promise<PetSummary>;
   uploadPetDocument(petId: Uuid, input: UploadPetDocumentInput): Promise<PetDocument>;
   updatePetDocument(documentId: Uuid, input: UpdatePetDocumentInput): Promise<PetDocument>;
@@ -350,6 +352,35 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         ...mapPetDocument(row),
         petName: petNameById.get(row.pet_id) ?? "Mascota"
       }));
+    },
+    async getPetDocumentSignedUrl(documentId) {
+      await requireCurrentUser(supabase);
+
+      const { data: documentRow, error: documentError } = await supabase
+        .from("pet_documents")
+        .select("*")
+        .eq("id", documentId)
+        .single();
+
+      if (documentError) {
+        fail(documentError, "No fue posible abrir el documento.");
+      }
+
+      if (documentRow.storage_bucket !== petDocumentsBucketId) {
+        throw new Error("No fue posible abrir el documento.");
+      }
+
+      const { data, error } = await supabase.storage.from(petDocumentsBucketId).createSignedUrl(documentRow.storage_path, 60 * 10);
+
+      if (error || !data?.signedUrl) {
+        fail(error, "No fue posible abrir el documento.");
+      }
+
+      return {
+        documentId,
+        mimeType: documentRow.mime_type,
+        signedUrl: data.signedUrl
+      };
     },
     async uploadPetAvatar(petId, input) {
       await requireCurrentUser(supabase);

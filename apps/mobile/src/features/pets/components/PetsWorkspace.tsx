@@ -5,6 +5,7 @@ import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   PetAdoptionListing,
   PetAdoptionListingMedia,
+  PetDocument,
   PetDocumentType,
   PetHealthDashboard,
   PetSummary,
@@ -16,7 +17,7 @@ import type {
 } from "@pet/types";
 import { getPetDocumentValidityStatus } from "@pet/types";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
@@ -345,6 +346,56 @@ function CompactActionButton({
       >
         {label}
       </Text>
+    </Pressable>
+  );
+}
+
+function DocumentIconButton({
+  disabled,
+  icon,
+  label,
+  onPress,
+  tone = "secondary"
+}: {
+  disabled?: boolean;
+  icon: "calendar" | "eye";
+  label: string;
+  onPress: () => void;
+  tone?: "primary" | "secondary";
+}) {
+  const tint = tone === "primary" ? "#ffffff" : colorTokens.accentDark;
+
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={{
+        alignItems: "center",
+        backgroundColor: tone === "primary" ? colorTokens.accent : "rgba(15,118,110,0.1)",
+        borderColor: "rgba(15,118,110,0.24)",
+        borderRadius: 18,
+        borderWidth: 1,
+        height: 36,
+        justifyContent: "center",
+        opacity: disabled ? 0.62 : 1,
+        width: 36
+      }}
+    >
+      <Svg height={18} viewBox="0 0 24 24" width={18}>
+        {icon === "eye" ? (
+          <>
+            <Path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5Z" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            <Circle cx={12} cy={12} fill="none" r={2.6} stroke={tint} strokeWidth={2} />
+          </>
+        ) : (
+          <>
+            <Rect fill="none" height={16} rx={3} stroke={tint} strokeWidth={2} width={16} x={4} y={5} />
+            <Path d="M8 3v4M16 3v4M4 10h16M8 15h3" stroke={tint} strokeLinecap="round" strokeWidth={2} />
+          </>
+        )}
+      </Svg>
     </Pressable>
   );
 }
@@ -825,6 +876,8 @@ export function PetsWorkspace({
   const [activeDocumentType, setActiveDocumentType] = useState<PetDocumentType>(petDocumentTypeOrder[0]);
   const [isDocumentFormOpen, setIsDocumentFormOpen] = useState(false);
   const [openDocumentDatePicker, setOpenDocumentDatePicker] = useState<"expiresAt" | "issuedAt" | null>(null);
+  const [documentPreview, setDocumentPreview] = useState<{ document: PetDocument; signedUrl: string } | null>(null);
+  const [documentPreviewLoadingId, setDocumentPreviewLoadingId] = useState<Uuid | null>(null);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
   const [protectiveProfile, setProtectiveProfile] = useState<ProtectiveHouseholdProfile | null>(null);
@@ -1031,6 +1084,29 @@ export function PetsWorkspace({
     });
     setOpenDocumentDatePicker(null);
     setIsDocumentFormOpen(true);
+  };
+
+  const isImageDocument = (document: Pick<PetDocument, "fileName" | "mimeType">) =>
+    document.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp)$/i.test(document.fileName);
+
+  const openDocumentPreview = async (document: PetDocument) => {
+    setDocumentPreviewLoadingId(document.id);
+
+    try {
+      const access = await getMobilePetsApiClient().getPetDocumentSignedUrl(document.id);
+      const previewDocument = { ...document, mimeType: access.mimeType ?? document.mimeType };
+
+      if (isImageDocument(previewDocument)) {
+        setDocumentPreview({ document: previewDocument, signedUrl: access.signedUrl });
+        return;
+      }
+
+      await Linking.openURL(access.signedUrl);
+    } catch {
+      Alert.alert("Documento no disponible", "No se pudo abrir el documento. Intenta nuevamente.");
+    } finally {
+      setDocumentPreviewLoadingId(null);
+    }
   };
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -2792,16 +2868,27 @@ export function PetsWorkspace({
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{document.fileName}</Text>
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{formatFileSize(document.fileSizeBytes)}</Text>
                           <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>{document.mimeType ?? "Tipo de archivo desconocido"}</Text>
-                          {canEditSelectedHousehold ? (
-                            <View style={{ alignItems: "flex-start", paddingTop: 3 }}>
-                              <CompactActionButton
+                          <View style={{ flexDirection: "row", gap: 8, paddingTop: 4 }}>
+                            <DocumentIconButton
+                              disabled={documentPreviewLoadingId === document.id}
+                              icon="eye"
+                              label="Ver documento"
+                              onPress={() => {
+                                void openDocumentPreview(document);
+                              }}
+                              tone="primary"
+                            />
+                            {canEditSelectedHousehold ? (
+                              <DocumentIconButton
                                 disabled={isSubmitting}
+                                icon="calendar"
                                 label="Editar vigencia"
                                 onPress={() => openDocumentValidityEditor(document)}
                                 tone="secondary"
                               />
-                            </View>
-                          ) : null}
+                            ) : null}
+                            {documentPreviewLoadingId === document.id ? <ActivityIndicator color={colorTokens.accentDark} size="small" /> : null}
+                          </View>
                         </View>
                       );
                     })
@@ -2816,6 +2903,70 @@ export function PetsWorkspace({
           </>
         ) : null}
       </View>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setDocumentPreview(null)}
+        transparent
+        visible={Boolean(documentPreview)}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: "rgba(15,23,42,0.62)",
+            flex: 1,
+            justifyContent: "center",
+            padding: 18
+          }}
+        >
+          <View style={{ backgroundColor: "#ffffff", borderRadius: 22, gap: 12, maxHeight: "88%", padding: 14, width: "100%" }}>
+            <View style={{ flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900", textTransform: "uppercase" }}>
+                  Documento de mascota
+                </Text>
+                <Text style={{ color: colorTokens.ink, fontSize: 16, fontWeight: "900" }}>{documentPreview?.document.title}</Text>
+                {documentPreview ? (
+                  <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                    {petDocumentTypeLabels[documentPreview.document.documentType]} - {getDocumentValidityBadge(documentPreview.document).label}
+                  </Text>
+                ) : null}
+              </View>
+              <Pressable
+                accessibilityLabel="Cerrar visualizador de documento"
+                accessibilityRole="button"
+                onPress={() => setDocumentPreview(null)}
+                style={{
+                  alignItems: "center",
+                  borderColor: "rgba(15,118,110,0.24)",
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  height: 34,
+                  justifyContent: "center",
+                  width: 34
+                }}
+              >
+                <Text style={{ color: colorTokens.accentDark, fontSize: 16, fontWeight: "900" }}>X</Text>
+              </Pressable>
+            </View>
+
+            {documentPreview ? (
+              <View style={{ backgroundColor: "rgba(241,245,249,0.9)", borderRadius: 18, height: 420, overflow: "hidden" }}>
+                <Image resizeMode="contain" source={{ uri: documentPreview.signedUrl }} style={{ height: "100%", width: "100%" }} />
+              </View>
+            ) : null}
+
+            {documentPreview ? (
+              <View style={{ gap: 3 }}>
+                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>{documentPreview.document.fileName}</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                  {formatFileSize(documentPreview.document.fileSizeBytes)} - {documentPreview.document.mimeType ?? "Tipo de archivo desconocido"}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
