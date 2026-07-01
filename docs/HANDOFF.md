@@ -1,5 +1,22 @@
 # HANDOFF.md
 
+## Foster-5C solicitud estructurada implementada local 2026-07-01
+
+- Foster-5C queda implementado localmente para solicitudes estructuradas de adopcion.
+- Incluye migracion local `supabase/migrations/20260701100000_foster_5c_adoption_applications.sql`.
+- La migracion agrega `pet_adoption_applications`, RLS y RPCs:
+  - `create_pet_adoption_application`.
+  - `list_my_pet_adoption_applications`.
+  - `list_received_pet_adoption_applications`.
+  - `withdraw_pet_adoption_application`.
+  - `list_pet_adoption_applications_for_admin`.
+- Reglas server-side: solo usuarios autenticados pueden solicitar; solo publicaciones `published` + `share_status = enabled`, hogar `protective`, perfil protector interno `approved`, perfil publico `approved` + `is_public` y mascota `active` aceptan solicitudes.
+- Mobile owner/adopcion reemplaza `Me interesa` por formulario compacto `Solicitar adopcion`, muestra solicitud enviada y permite retirar solicitudes activas.
+- Admin web agrega auditoria basica de solicitudes recientes.
+- Web publica `/adopciones/[slug]` mantiene CTA informativo hacia app autenticada.
+- No mueve `pets.household_id`, no crea `pet_transfer_records`, no crea chat, no implementa pipeline Foster-5D y no cierra adopciones Foster-5E.
+- Pendiente: validacion completa, dry-run Supabase y aplicacion remota solo con aprobacion. Foster-5A/5B siguen siendo prerequisitos remotos.
+
 ## Foster-5B ficha publica compartible implementada local 2026-06-30
 
 - Foster-5B queda implementado localmente para ficha publica compartible de mascota por slug.

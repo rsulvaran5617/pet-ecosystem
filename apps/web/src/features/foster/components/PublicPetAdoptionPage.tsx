@@ -339,7 +339,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
               Solicitar adopcion
             </button>
             <span style={{ color: colors.muted, fontSize: 12, lineHeight: 1.45, textAlign: "center" }}>
-              Solicitudes formales se habilitaran en el siguiente slice.
+              Inicia sesion desde la app para enviar una solicitud formal y responsable.
             </span>
           </div>
         </section>

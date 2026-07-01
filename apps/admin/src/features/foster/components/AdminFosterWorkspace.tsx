@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AdminPetAdoptionApplication,
   AdminProtectiveHouseholdProfile,
   AdminProtectivePublicProfile,
   PetAdoptionListing,
@@ -71,6 +72,15 @@ const adoptionMediaStatusLabels: Record<PetAdoptionListing["media"][number]["mod
   rejected: "Rechazada"
 };
 
+const adoptionApplicationStatusLabels: Record<AdminPetAdoptionApplication["status"], string> = {
+  approved: "Aprobada",
+  converted_to_transfer: "Convertida en transferencia",
+  in_review: "En revision",
+  rejected: "Rechazada",
+  submitted: "Enviada",
+  withdrawn: "Retirada"
+};
+
 const publicProfileStatusLabels: Record<AdminProtectivePublicProfile["moderationStatus"], string> = {
   approved: "Aprobado",
   draft: "Borrador",
@@ -136,6 +146,7 @@ export function AdminFosterWorkspace({
   const [publicProfiles, setPublicProfiles] = useState<AdminProtectivePublicProfile[]>([]);
   const [transfers, setTransfers] = useState<PetTransferRecord[]>([]);
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
+  const [adoptionApplications, setAdoptionApplications] = useState<AdminPetAdoptionApplication[]>([]);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(null);
   const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<Uuid | null>(null);
   const [selectedAdoptionListingId, setSelectedAdoptionListingId] = useState<Uuid | null>(null);
@@ -168,16 +179,18 @@ export function AdminFosterWorkspace({
     setErrorMessage(null);
 
     try {
-      const [nextProfiles, nextPublicProfiles, nextTransfers, nextAdoptionListings] = await Promise.all([
+      const [nextProfiles, nextPublicProfiles, nextTransfers, nextAdoptionListings, nextAdoptionApplications] = await Promise.all([
         getAdminFosterApiClient().listPendingProtectiveHouseholdProfiles(),
         getAdminFosterApiClient().listPendingProtectivePublicProfilesForAdmin(),
         getAdminFosterApiClient().listAdminPetTransfers(),
-        getAdminFosterApiClient().listPendingPetAdoptionListingsForAdmin()
+        getAdminFosterApiClient().listPendingPetAdoptionListingsForAdmin(),
+        getAdminFosterApiClient().listAdminPetAdoptionApplications()
       ]);
       setProfiles(nextProfiles);
       setPublicProfiles(nextPublicProfiles);
       setTransfers(nextTransfers);
       setAdoptionListings(nextAdoptionListings);
+      setAdoptionApplications(nextAdoptionApplications);
       setSelectedHouseholdId(
         preferredHouseholdId && nextProfiles.some((profile) => profile.householdId === preferredHouseholdId)
           ? preferredHouseholdId
@@ -351,7 +364,7 @@ export function AdminFosterWorkspace({
         </div>
         <p style={{ margin: 0, color: "#52525b" }}>
           {transfers.length} transferencia(s) privadas auditables. {publicProfiles.length} perfil(es) publico(s) y{" "}
-          {adoptionListings.length} publicacion(es) de adopcion pendientes.
+          {adoptionListings.length} publicacion(es) de adopcion pendientes. {adoptionApplications.length} solicitud(es) formales.
         </p>
         {isLoading && !profiles.length ? <p style={{ margin: 0, color: "#52525b" }}>Cargando solicitudes...</p> : null}
         {errorMessage ? <p style={{ margin: 0, color: "#991b1b" }}>{errorMessage}</p> : null}
@@ -761,6 +774,51 @@ export function AdminFosterWorkspace({
             )}
           </article>
         </div>
+      </section>
+      <section style={cardStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "24px" }}>Solicitudes de adopcion</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+              Auditoria inicial de solicitudes enviadas por familias interesadas. No cambia custodia ni inicia transferencia.
+            </p>
+          </div>
+          <span style={{ color: "#52525b" }}>{adoptionApplications.length} registro(s)</span>
+        </div>
+        {adoptionApplications.length ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: "10px" }}>
+            {adoptionApplications.map((application) => (
+              <article key={application.id} style={{ ...inputStyle, display: "grid", gap: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                  <strong>{application.petName}</strong>
+                  <span
+                    style={{
+                      borderRadius: "999px",
+                      background: application.status === "submitted" ? "rgba(0,138,151,0.12)" : "rgba(217,119,6,0.12)",
+                      color: application.status === "submitted" ? colorTokens.adminAccent : "#b45309",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      padding: "6px 10px"
+                    }}
+                  >
+                    {adoptionApplicationStatusLabels[application.status]}
+                  </span>
+                </div>
+                <span style={{ color: "#52525b" }}>{application.listingTitle}</span>
+                <span style={{ color: "#71717a" }}>{application.protectiveHouseholdName}</span>
+                <div style={{ borderTop: "1px solid rgba(24,24,27,0.08)", paddingTop: "8px" }}>
+                  <strong>{application.applicantName}</strong>
+                  <p style={{ color: "#52525b", margin: "4px 0 0" }}>
+                    {application.applicantEmail}{application.applicantPhone ? ` - ${application.applicantPhone}` : ""}
+                  </p>
+                </div>
+                <p style={{ color: "#52525b", lineHeight: 1.5, margin: 0 }}>{application.motivation}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p style={{ margin: 0, color: "#52525b" }}>Aun no hay solicitudes de adopcion registradas.</p>
+        )}
       </section>
       <section style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>

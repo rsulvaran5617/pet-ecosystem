@@ -11,6 +11,7 @@ import type {
   PetCustodyType,
   PetAdoptionListingReviewDecision,
   PetAdoptionShareStatus,
+  PetAdoptionApplicationStatus,
   PetAdoptionListingStatus,
   PetAdoptionMediaReviewDecision,
   PetAdoptionMediaModerationStatus,
@@ -1223,6 +1224,78 @@ export interface Database {
         };
         Relationships: [];
       };
+      pet_adoption_applications: {
+        Row: {
+          id: string;
+          listing_id: string;
+          pet_id: string;
+          protective_household_id: string;
+          applicant_user_id: string;
+          applicant_household_id: string | null;
+          applicant_name: string;
+          applicant_email: string;
+          applicant_phone: string | null;
+          housing_type: string;
+          has_children: boolean | null;
+          has_other_pets: boolean | null;
+          pet_experience: string;
+          motivation: string;
+          availability_notes: string | null;
+          commitment_acknowledged: boolean;
+          status: PetAdoptionApplicationStatus;
+          submitted_at: string;
+          withdrawn_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          pet_id: string;
+          protective_household_id: string;
+          applicant_user_id: string;
+          applicant_household_id?: string | null;
+          applicant_name: string;
+          applicant_email: string;
+          applicant_phone?: string | null;
+          housing_type: string;
+          has_children?: boolean | null;
+          has_other_pets?: boolean | null;
+          pet_experience: string;
+          motivation: string;
+          availability_notes?: string | null;
+          commitment_acknowledged?: boolean;
+          status?: PetAdoptionApplicationStatus;
+          submitted_at?: string;
+          withdrawn_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          listing_id?: string;
+          pet_id?: string;
+          protective_household_id?: string;
+          applicant_user_id?: string;
+          applicant_household_id?: string | null;
+          applicant_name?: string;
+          applicant_email?: string;
+          applicant_phone?: string | null;
+          housing_type?: string;
+          has_children?: boolean | null;
+          has_other_pets?: boolean | null;
+          pet_experience?: string;
+          motivation?: string;
+          availability_notes?: string | null;
+          commitment_acknowledged?: boolean;
+          status?: PetAdoptionApplicationStatus;
+          submitted_at?: string;
+          withdrawn_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       pets: {
         Row: {
           id: string;
@@ -2309,6 +2382,73 @@ export interface Database {
             pet_birth_date: string | null;
             pet_is_sterilized: boolean | null;
             household_name: string;
+          }
+        >;
+      };
+      can_apply_to_pet_adoption_listing: {
+        Args: {
+          target_listing_id: string;
+        };
+        Returns: boolean;
+      };
+      create_pet_adoption_application: {
+        Args: {
+          target_listing_id: string;
+          target_applicant_household_id?: string | null;
+          next_applicant_name?: string;
+          next_applicant_email?: string;
+          next_applicant_phone?: string | null;
+          next_housing_type?: string;
+          next_has_children?: boolean | null;
+          next_has_other_pets?: boolean | null;
+          next_pet_experience?: string;
+          next_motivation?: string;
+          next_availability_notes?: string | null;
+          next_commitment_acknowledged?: boolean;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_applications"]["Row"];
+      };
+      list_my_pet_adoption_applications: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Database["public"]["Tables"]["pet_adoption_applications"]["Row"] & {
+            listing_title: string;
+            pet_name: string;
+            pet_species: string;
+            pet_breed: string | null;
+            protective_household_name: string;
+          }
+        >;
+      };
+      list_received_pet_adoption_applications: {
+        Args: {
+          target_household_id?: string | null;
+        };
+        Returns: Array<
+          Database["public"]["Tables"]["pet_adoption_applications"]["Row"] & {
+            listing_title: string;
+            pet_name: string;
+            pet_species: string;
+            pet_breed: string | null;
+            protective_household_name: string;
+          }
+        >;
+      };
+      withdraw_pet_adoption_application: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_applications"]["Row"];
+      };
+      list_pet_adoption_applications_for_admin: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Database["public"]["Tables"]["pet_adoption_applications"]["Row"] & {
+            listing_title: string;
+            pet_name: string;
+            pet_species: string;
+            pet_breed: string | null;
+            protective_household_name: string;
           }
         >;
       };

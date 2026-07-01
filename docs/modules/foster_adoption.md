@@ -237,7 +237,7 @@ Campos minimos:
 - `listing_id uuid references pet_adoption_listings(id)`.
 - `pet_id uuid references pets(id)`.
 - `protective_household_id uuid references households(id)`.
-- `applicant_user_id uuid null`.
+- `applicant_user_id uuid`.
 - `applicant_household_id uuid null`.
 - `applicant_email text`.
 - `applicant_name text`.
@@ -249,13 +249,40 @@ Campos minimos:
 - `motivation text`.
 - `availability_notes text null`.
 - `commitment_acknowledged boolean`.
-- `status text`: `submitted | in_review | interview | approved | rejected | withdrawn | converted_to_transfer`.
+- `status text`: `submitted | withdrawn | in_review | approved | rejected | converted_to_transfer`.
 - timestamps.
 
 Decision recomendada:
 
 - exigir login para enviar solicitud en la primera version.
 - no permitir solicitudes anonimas hasta definir anti-abuso, terminos y proteccion de datos.
+
+### Foster-5C implementacion local - Solicitud estructurada
+
+Estado: implementacion local preparada. No se aplica remoto sin dry-run y aprobacion explicita.
+
+Incluye:
+
+- migracion local `supabase/migrations/20260701100000_foster_5c_adoption_applications.sql`.
+- tabla `pet_adoption_applications` con applicant autenticado, datos estructurados, compromiso responsable y estado inicial `submitted`.
+- RLS de lectura por solicitante, familia protectora propietaria de la publicacion y admin de plataforma.
+- mutaciones criticas via RPC:
+  - `create_pet_adoption_application`.
+  - `list_my_pet_adoption_applications`.
+  - `list_received_pet_adoption_applications`.
+  - `withdraw_pet_adoption_application`.
+  - `list_pet_adoption_applications_for_admin`.
+- Mobile owner/adopcion agrega formulario compacto `Solicitar adopcion`, evita duplicados activos y permite retirar solicitudes `submitted`/`in_review`.
+- Admin web agrega auditoria basica de solicitudes recientes.
+- Web publica mantiene CTA informativo hacia la app autenticada.
+
+Fuera de alcance Foster-5C:
+
+- no mueve `pets.household_id`.
+- no crea `pet_transfer_records`.
+- no crea chat automaticamente.
+- no aprueba/rechaza como pipeline operativo Foster-5D.
+- no cierra publicaciones ni marca mascotas como adoptadas.
 
 ### Slice Foster-5D - Bandeja/pipeline de solicitudes
 

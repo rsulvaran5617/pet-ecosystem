@@ -21,6 +21,13 @@ export type PetAdoptionMediaType = "image" | "video";
 export type PetAdoptionMediaModerationStatus = "pending" | "approved" | "rejected";
 export type PetAdoptionListingReviewDecision = "approved" | "rejected" | "paused";
 export type PetAdoptionMediaReviewDecision = "approved" | "rejected";
+export type PetAdoptionApplicationStatus =
+  | "submitted"
+  | "withdrawn"
+  | "in_review"
+  | "rejected"
+  | "approved"
+  | "converted_to_transfer";
 
 export interface ProtectiveHouseholdProfile extends TimestampedEntity {
   householdId: Uuid;
@@ -290,3 +297,49 @@ export interface PetAdoptionMediaUploadInput {
   fileSizeBytes?: number | null;
   isCover?: boolean;
 }
+
+export interface PetAdoptionApplication {
+  id: Uuid;
+  listingId: Uuid;
+  petId: Uuid;
+  protectiveHouseholdId: Uuid;
+  applicantUserId: Uuid;
+  applicantHouseholdId: Uuid | null;
+  applicantName: string;
+  applicantEmail: string;
+  applicantPhone: string | null;
+  housingType: string;
+  hasChildren: boolean | null;
+  hasOtherPets: boolean | null;
+  petExperience: string;
+  motivation: string;
+  availabilityNotes: string | null;
+  commitmentAcknowledged: boolean;
+  status: PetAdoptionApplicationStatus;
+  submittedAt: string;
+  withdrawnAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  listingTitle: string;
+  petName: string;
+  petSpecies: string;
+  petBreed: string | null;
+  protectiveHouseholdName: string;
+}
+
+export interface PetAdoptionApplicationInput {
+  listingId: Uuid;
+  applicantHouseholdId?: Uuid | null;
+  applicantName: string;
+  applicantEmail: string;
+  applicantPhone?: string | null;
+  housingType: string;
+  hasChildren?: boolean | null;
+  hasOtherPets?: boolean | null;
+  petExperience: string;
+  motivation: string;
+  availabilityNotes?: string | null;
+  commitmentAcknowledged: boolean;
+}
+
+export type AdminPetAdoptionApplication = PetAdoptionApplication;

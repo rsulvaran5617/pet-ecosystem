@@ -174,7 +174,7 @@ Foster-5 diseno propuesto:
 - `pet_adoption_listings` puede ganar `public_slug` para fichas compartibles; la mascota sigue siendo `pets`.
 - Foster-5B agrega `public_slug`, `share_status` y `share_published_at` a `pet_adoption_listings`; el enlace publico no cambia la custodia ni duplica la mascota.
 - La ficha publica por slug compone datos de `pet_adoption_listings`, `pets`, `pet_profiles`, media aprobada y `protective_household_public_profiles`; no modela solicitudes ni transferencias.
-- `pet_adoption_applications` debe representar solicitudes formales de adopcion, sin transferir custodia por si misma.
+- `pet_adoption_applications` representa solicitudes formales de adopcion, sin transferir custodia por si misma. Foster-5C lo implementa con solicitante autenticado, datos de convivencia/experiencia/motivacion, compromiso responsable y estados `submitted`, `withdrawn`, `in_review`, `approved`, `rejected`, `converted_to_transfer`.
 - `pet_adoption_application_status_history` puede registrar cambios de estado del pipeline.
 - una solicitud aprobada puede iniciar una transferencia privada existente, pero solo Foster-2A debe cambiar `pets.household_id`.
 - el perfil publico y la ficha compartible solo deben publicar ciudad/pais, historia, galeria aprobada y resumen no sensible.

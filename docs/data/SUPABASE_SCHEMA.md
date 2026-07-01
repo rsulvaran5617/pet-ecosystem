@@ -59,9 +59,9 @@ RPCs Foster-3B:
 
 No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A/3B.
 
-## Foster-5 adopcion responsable operativa propuesta
+## Foster-5 adopcion responsable operativa
 
-Tablas propuestas, no implementadas:
+Tablas y cambios locales:
 
 - `protective_household_public_profiles`
   - perfil publico moderado de la familia protectora.
@@ -70,9 +70,11 @@ Tablas propuestas, no implementadas:
 - `pet_adoption_applications`
   - solicitud formal de adopcion para una publicacion aprobada.
   - no cambia custodia ni mueve `pets.household_id`.
-  - estados propuestos: `submitted`, `in_review`, `interview`, `approved`, `rejected`, `withdrawn`, `converted_to_transfer`.
+  - exige usuario autenticado y compromiso responsable.
+  - estados: `submitted`, `withdrawn`, `in_review`, `approved`, `rejected`, `converted_to_transfer`.
+  - lectura RLS para solicitante, familia protectora propietaria de la publicacion y admin.
 - `pet_adoption_application_status_history`
-  - historial de cambios de estado del pipeline de solicitudes.
+  - historial futuro de cambios de estado del pipeline de solicitudes; diferido a Foster-5D.
 
 Cambios propuestos:
 
@@ -84,6 +86,10 @@ Cambios propuestos:
   - RPC `get_public_pet_adoption_listing_by_slug(target_slug text)`.
   - lectura publica condicionada a publicacion `published`, `share_status = enabled`, media aprobada, hogar `protective`, perfil protector interno `approved` y perfil publico protector `approved` + `is_public`.
 - `pet_adoption_listings.share_status` para controlar si una ficha puede compartirse.
+- Foster-5C queda implementado localmente con:
+  - tabla `pet_adoption_applications`.
+  - RPCs `create_pet_adoption_application`, `list_my_pet_adoption_applications`, `list_received_pet_adoption_applications`, `withdraw_pet_adoption_application` y `list_pet_adoption_applications_for_admin`.
+  - validacion server-side para aceptar solicitudes solo sobre publicaciones `published` + `share_status = enabled`, hogar `protective`, perfil protector interno `approved`, perfil publico protector `approved` + `is_public` y mascota `active`.
 
 Foster-5 debe seguir usando buckets privados y URLs firmadas temporales; no se crean buckets publicos.
 - `chat_messages`
