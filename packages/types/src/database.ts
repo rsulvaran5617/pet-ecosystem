@@ -15,8 +15,10 @@ import type {
   PetAdoptionMediaModerationStatus,
   PetAdoptionMediaType,
   PetTransferStatus,
+  ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfileStatus,
+  ProtectivePublicProfileModerationStatus,
   ProtectiveHouseholdReviewDecision
 } from "./foster";
 import type { HouseholdInvitationStatus, HouseholdPermission, HouseholdType } from "./households";
@@ -894,6 +896,78 @@ export interface Database {
           public_notes?: string | null;
           review_notes?: string | null;
           submitted_at?: string | null;
+          reviewed_by_user_id?: string | null;
+          reviewed_at?: string | null;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      protective_household_public_profiles: {
+        Row: {
+          id: string;
+          household_id: string;
+          public_slug: string;
+          display_name: string;
+          mission: string | null;
+          public_story: string | null;
+          city: string;
+          state_region: string | null;
+          country_code: string;
+          contact_policy: ProtectiveContactPolicy;
+          public_contact_label: string | null;
+          public_contact_value: string | null;
+          needs_summary: string | null;
+          is_public: boolean;
+          moderation_status: ProtectivePublicProfileModerationStatus;
+          review_notes: string | null;
+          reviewed_by_user_id: string | null;
+          reviewed_at: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          household_id: string;
+          public_slug: string;
+          display_name: string;
+          mission?: string | null;
+          public_story?: string | null;
+          city: string;
+          state_region?: string | null;
+          country_code?: string;
+          contact_policy?: ProtectiveContactPolicy;
+          public_contact_label?: string | null;
+          public_contact_value?: string | null;
+          needs_summary?: string | null;
+          is_public?: boolean;
+          moderation_status?: ProtectivePublicProfileModerationStatus;
+          review_notes?: string | null;
+          reviewed_by_user_id?: string | null;
+          reviewed_at?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          household_id?: string;
+          public_slug?: string;
+          display_name?: string;
+          mission?: string | null;
+          public_story?: string | null;
+          city?: string;
+          state_region?: string | null;
+          country_code?: string;
+          contact_policy?: ProtectiveContactPolicy;
+          public_contact_label?: string | null;
+          public_contact_value?: string | null;
+          needs_summary?: string | null;
+          is_public?: boolean;
+          moderation_status?: ProtectivePublicProfileModerationStatus;
+          review_notes?: string | null;
           reviewed_by_user_id?: string | null;
           reviewed_at?: string | null;
           created_by_user_id?: string;
@@ -1894,6 +1968,51 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Array<
           Database["public"]["Tables"]["protective_household_profiles"]["Row"] & {
+            household_name: string | null;
+            created_by_email: string | null;
+          }
+        >;
+      };
+      upsert_protective_public_profile: {
+        Args: {
+          target_household_id: string;
+          next_display_name: string;
+          next_mission?: string | null;
+          next_public_story?: string | null;
+          next_city?: string | null;
+          next_state_region?: string | null;
+          next_country_code?: string | null;
+          next_contact_policy?: ProtectiveContactPolicy;
+          next_public_contact_label?: string | null;
+          next_public_contact_value?: string | null;
+          next_needs_summary?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
+      };
+      submit_protective_public_profile: {
+        Args: {
+          target_profile_id: string;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
+      };
+      review_protective_public_profile: {
+        Args: {
+          target_profile_id: string;
+          decision: "approved" | "rejected" | "suspended";
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
+      };
+      get_public_protective_profile_by_slug: {
+        Args: {
+          target_slug: string;
+        };
+        Returns: Array<Database["public"]["Tables"]["protective_household_public_profiles"]["Row"]>;
+      };
+      list_pending_protective_public_profiles_for_admin: {
+        Args: Record<string, never>;
+        Returns: Array<
+          Database["public"]["Tables"]["protective_household_public_profiles"]["Row"] & {
             household_name: string | null;
             created_by_email: string | null;
           }

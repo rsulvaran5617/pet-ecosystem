@@ -149,6 +149,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Foster-3B familia protectora mobile: publicaciones aprobadas mantienen galeria gestionable de hasta 8 fotos; agregar una foto no despublica la mascota, muestra estado `Pendiente` hasta revision admin y permite marcar portada desde accion controlada.
 - Foster-3A admin web: `Familias protectoras` incluye cola de publicaciones de adopcion pendientes con textos publicos, galeria de fotos firmadas y acciones aprobar, rechazar o pausar.
 - Foster-3B admin web: `Familias protectoras` muestra publicaciones con fotos pendientes aunque ya esten publicadas y permite aprobar/rechazar fotos individuales sin cambiar el estado de toda la publicacion.
+- Foster-5A familia protectora mobile: `Hogares` debe incluir `Perfil publico` solo para hogares `protective` aprobados, con mision/historia, ciudad/pais, necesidades y politica de contacto controlada. No debe exponer direccion exacta.
+- Foster-5B web publica: ficha `/adopciones/{slug}` debe ser emocional, compartible y no comercial; muestra galeria aprobada, historia, compatibilidad, salud publica resumida y CTA `Solicitar adopcion`.
+- Foster-5C owner/adoptante: el formulario de solicitud debe exigir login en la primera version, pedir datos estructurados de convivencia/experiencia/motivacion y aclarar que no reserva ni transfiere mascota.
+- Foster-5D familia protectora: `Solicitudes recibidas` debe funcionar como pipeline por mascota con estados `Recibida`, `En revision`, `Entrevista`, `Aprobada`, `Rechazada` y CTA para iniciar transferencia privada solo cuando aplique.
 - Admin web: cola de solicitudes de familias protectoras, detalle de hogar solicitante, aprobar/rechazar/suspender, auditoria read-only de transferencias privadas y bloqueo por uso indebido.
 - Foster mobile/web: Home foster, Mis mascotas en acogida, Crear mascota en acogida, Expediente, Publicar para adopcion, Solicitudes recibidas, Detalle de solicitud y Transferencia/adopcion.
 - Owner/adoptante: Marketplace de adopcion, Perfil de mascota, Solicitar adopcion, Mis solicitudes, Seguimiento y Mascota adoptada agregada a mi hogar.

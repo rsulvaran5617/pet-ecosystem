@@ -3,8 +3,10 @@ import type {
   HouseholdPermission,
   HouseholdType,
   PetTransferRecord,
+  ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
-  ProtectiveHouseholdProfile
+  ProtectiveHouseholdProfile,
+  ProtectivePublicProfile
 } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
@@ -37,6 +39,37 @@ const protectiveStatusLabels: Record<ProtectiveHouseholdProfile["status"], strin
   rejected: "Rechazada",
   suspended: "Suspendida"
 };
+
+const protectivePublicStatusLabels: Record<ProtectivePublicProfile["moderationStatus"], string> = {
+  approved: "Aprobado",
+  draft: "Borrador",
+  pending_review: "En revision",
+  rejected: "Rechazado",
+  suspended: "Suspendido"
+};
+
+const protectiveContactPolicyOptions: Array<{ description: string; label: string; value: ProtectiveContactPolicy }> = [
+  {
+    description: "La primera coordinacion queda dentro de Pet Ecosystem.",
+    label: "Solo plataforma",
+    value: "platform_only"
+  },
+  {
+    description: "Visible despues de revision admin.",
+    label: "Correo publico",
+    value: "public_email"
+  },
+  {
+    description: "Visible despues de revision admin.",
+    label: "Telefono publico",
+    value: "public_phone"
+  },
+  {
+    description: "Sitio o red social revisada por admin.",
+    label: "Enlace externo",
+    value: "external_link"
+  }
+];
 
 const householdTypeOptions: Array<{ description: string; label: string; value: HouseholdType }> = [
   {
@@ -203,6 +236,18 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
   const [protectiveCountryCode, setProtectiveCountryCode] = useState("PA");
   const [protectiveContactNotes, setProtectiveContactNotes] = useState("");
   const [protectivePublicNotes, setProtectivePublicNotes] = useState("");
+  const [protectivePublicProfile, setProtectivePublicProfile] = useState<ProtectivePublicProfile | null>(null);
+  const [isProtectivePublicProfileLoading, setIsProtectivePublicProfileLoading] = useState(false);
+  const [publicDisplayName, setPublicDisplayName] = useState("");
+  const [publicMission, setPublicMission] = useState("");
+  const [publicStory, setPublicStory] = useState("");
+  const [publicCity, setPublicCity] = useState("");
+  const [publicStateRegion, setPublicStateRegion] = useState("");
+  const [publicCountryCode, setPublicCountryCode] = useState("PA");
+  const [publicNeedsSummary, setPublicNeedsSummary] = useState("");
+  const [publicContactPolicy, setPublicContactPolicy] = useState<ProtectiveContactPolicy>("platform_only");
+  const [publicContactLabel, setPublicContactLabel] = useState("");
+  const [publicContactValue, setPublicContactValue] = useState("");
   const [incomingPetTransfers, setIncomingPetTransfers] = useState<PetTransferRecord[]>([]);
   const [isTransfersLoading, setIsTransfersLoading] = useState(false);
 
@@ -219,6 +264,22 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
       setProtectiveProfile(nextProfile);
     } finally {
       setIsProtectiveProfileLoading(false);
+    }
+  }
+
+  async function loadProtectivePublicProfile(householdId: string | null) {
+    if (!householdId) {
+      setProtectivePublicProfile(null);
+      return;
+    }
+
+    setIsProtectivePublicProfileLoading(true);
+
+    try {
+      const nextPublicProfile = await getMobileFosterApiClient().getProtectivePublicProfile(householdId);
+      setProtectivePublicProfile(nextPublicProfile);
+    } finally {
+      setIsProtectivePublicProfileLoading(false);
     }
   }
 
@@ -246,6 +307,7 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
 
   useEffect(() => {
     void loadProtectiveProfile(selectedHouseholdId);
+    void loadProtectivePublicProfile(selectedHouseholdId);
   }, [selectedHouseholdId]);
 
   useEffect(() => {
@@ -278,6 +340,33 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
     setProtectivePublicNotes("");
   }, [protectiveProfile, selectedHouseholdDetail?.household.name]);
 
+  useEffect(() => {
+    if (protectivePublicProfile) {
+      setPublicDisplayName(protectivePublicProfile.displayName);
+      setPublicMission(protectivePublicProfile.mission ?? "");
+      setPublicStory(protectivePublicProfile.publicStory ?? "");
+      setPublicCity(protectivePublicProfile.city);
+      setPublicStateRegion(protectivePublicProfile.stateRegion ?? "");
+      setPublicCountryCode(protectivePublicProfile.countryCode);
+      setPublicNeedsSummary(protectivePublicProfile.needsSummary ?? "");
+      setPublicContactPolicy(protectivePublicProfile.contactPolicy);
+      setPublicContactLabel(protectivePublicProfile.publicContactLabel ?? "");
+      setPublicContactValue(protectivePublicProfile.publicContactValue ?? "");
+      return;
+    }
+
+    setPublicDisplayName(protectiveProfile?.displayName ?? selectedHouseholdDetail?.household.name ?? "");
+    setPublicMission("");
+    setPublicStory(protectiveProfile?.publicNotes ?? "");
+    setPublicCity(protectiveProfile?.city ?? "");
+    setPublicStateRegion(protectiveProfile?.stateRegion ?? "");
+    setPublicCountryCode(protectiveProfile?.countryCode ?? "PA");
+    setPublicNeedsSummary("");
+    setPublicContactPolicy("platform_only");
+    setPublicContactLabel("");
+    setPublicContactValue("");
+  }, [protectiveProfile, protectivePublicProfile, selectedHouseholdDetail?.household.name]);
+
   if (!enabled) {
     return null;
   }
@@ -294,6 +383,18 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
     Boolean(protectiveCity.trim()) &&
     protectiveCountryCode.trim().length === 2 &&
     canEditProtectiveProfile;
+  const isApprovedProtectiveHousehold = selectedHouseholdIsProtective && protectiveProfile?.status === "approved";
+  const canEditProtectivePublicProfile =
+    isApprovedProtectiveHousehold &&
+    canManageSelectedHousehold &&
+    (!protectivePublicProfile ||
+      protectivePublicProfile.moderationStatus === "draft" ||
+      protectivePublicProfile.moderationStatus === "rejected");
+  const protectivePublicProfileIsSubmittable =
+    Boolean(publicDisplayName.trim()) &&
+    Boolean(publicCity.trim()) &&
+    publicCountryCode.trim().length === 2 &&
+    canEditProtectivePublicProfile;
 
   return (
     <View style={{ gap: 20 }}>
@@ -744,6 +845,211 @@ export function HouseholdsWorkspace({ enabled, onHouseholdCreated }: { enabled: 
                   </Text>
                 )}
               </View>
+
+              {isApprovedProtectiveHousehold ? (
+                <View style={{ borderRadius: 18, backgroundColor: "rgba(240,253,250,0.72)", padding: 14, gap: 10 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                    <View style={{ gap: 4, flex: 1 }}>
+                      <Text style={{ fontSize: 18, fontWeight: "800", color: "#1c1917" }}>Perfil publico</Text>
+                      <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
+                        Este perfil ayuda a las familias interesadas a conocer tu labor. No publiques direccion exacta ni datos privados.
+                      </Text>
+                    </View>
+                    <StatusChip
+                      label={
+                        protectivePublicProfile
+                          ? protectivePublicStatusLabels[protectivePublicProfile.moderationStatus]
+                          : "Sin perfil"
+                      }
+                      tone={
+                        protectivePublicProfile?.moderationStatus === "approved"
+                          ? "active"
+                          : protectivePublicProfile
+                            ? "pending"
+                            : "neutral"
+                      }
+                    />
+                  </View>
+                  {isProtectivePublicProfileLoading ? (
+                    <Text style={{ color: colorTokens.muted }}>Cargando perfil publico...</Text>
+                  ) : null}
+                  {protectivePublicProfile?.reviewNotes ? (
+                    <Notice
+                      message={`Nota del perfil publico: ${protectivePublicProfile.reviewNotes}`}
+                      tone={protectivePublicProfile.moderationStatus === "approved" ? "info" : "error"}
+                    />
+                  ) : null}
+                  {canEditProtectivePublicProfile ? (
+                    <>
+                      <Field
+                        label="Nombre publico"
+                        onChange={setPublicDisplayName}
+                        placeholder="Nombre visible de la familia protectora"
+                        value={publicDisplayName}
+                      />
+                      <Field
+                        label="Mision"
+                        multiline
+                        onChange={setPublicMission}
+                        placeholder="Que mueve tu labor de acogida"
+                        value={publicMission}
+                      />
+                      <Field
+                        label="Historia publica"
+                        multiline
+                        onChange={setPublicStory}
+                        placeholder="Cuenta brevemente tu historia sin datos privados"
+                        value={publicStory}
+                      />
+                      <Field label="Ciudad" onChange={setPublicCity} placeholder="Ciudad" value={publicCity} />
+                      <Field label="Region/provincia" onChange={setPublicStateRegion} placeholder="Provincia o zona" value={publicStateRegion} />
+                      <Field
+                        helperText="Usa codigo de pais ISO de dos letras. Para Panama: PA."
+                        label="Pais"
+                        onChange={(value) => setPublicCountryCode(value.toUpperCase().slice(0, 2))}
+                        value={publicCountryCode}
+                      />
+                      <Field
+                        label="Necesidades actuales"
+                        multiline
+                        onChange={setPublicNeedsSummary}
+                        placeholder="Ejemplo: alimento, hogares temporales o transporte solidario"
+                        value={publicNeedsSummary}
+                      />
+                      <View style={{ gap: 8 }}>
+                        <Text style={{ fontSize: 12, textTransform: "uppercase", color: "#78716c" }}>Politica de contacto</Text>
+                        <View style={{ gap: 8 }}>
+                          {protectiveContactPolicyOptions.map((option) => (
+                            <Pressable
+                              accessibilityRole="button"
+                              key={option.value}
+                              onPress={() => setPublicContactPolicy(option.value)}
+                              style={{
+                                borderRadius: 16,
+                                borderWidth: 1,
+                                borderColor:
+                                  option.value === publicContactPolicy ? "rgba(15,118,110,0.32)" : "rgba(28,25,23,0.12)",
+                                backgroundColor:
+                                  option.value === publicContactPolicy ? "rgba(15,118,110,0.1)" : "rgba(255,255,255,0.86)",
+                                padding: 12,
+                                gap: 4
+                              }}
+                            >
+                              <Text style={{ color: option.value === publicContactPolicy ? "#0f766e" : "#1c1917", fontWeight: "800" }}>
+                                {option.label}
+                              </Text>
+                              <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{option.description}</Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                      {publicContactPolicy !== "platform_only" ? (
+                        <>
+                          <Field
+                            label="Etiqueta de contacto"
+                            onChange={setPublicContactLabel}
+                            placeholder="Ejemplo: WhatsApp de adopciones"
+                            value={publicContactLabel}
+                          />
+                          <Field
+                            label="Dato de contacto"
+                            onChange={setPublicContactValue}
+                            placeholder="Correo, telefono o enlace"
+                            value={publicContactValue}
+                          />
+                        </>
+                      ) : null}
+                      <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                        <Button
+                          disabled={isSubmitting || !protectivePublicProfileIsSubmittable}
+                          label="Guardar borrador"
+                          onPress={() => {
+                            if (!selectedHouseholdId) {
+                              return;
+                            }
+
+                            clearMessages();
+                            void runAction(
+                              () =>
+                                getMobileFosterApiClient().upsertProtectivePublicProfile({
+                                  householdId: selectedHouseholdId,
+                                  displayName: publicDisplayName.trim(),
+                                  mission: publicMission.trim() || null,
+                                  publicStory: publicStory.trim() || null,
+                                  city: publicCity.trim(),
+                                  stateRegion: publicStateRegion.trim() || null,
+                                  countryCode: publicCountryCode.trim().toUpperCase(),
+                                  contactPolicy: publicContactPolicy,
+                                  publicContactLabel: publicContactLabel.trim() || null,
+                                  publicContactValue: publicContactValue.trim() || null,
+                                  needsSummary: publicNeedsSummary.trim() || null
+                                }),
+                              "Perfil publico guardado como borrador.",
+                              false
+                            ).then((nextProfile) => {
+                              setProtectivePublicProfile(nextProfile);
+                            });
+                          }}
+                          tone="secondary"
+                        />
+                        <Button
+                          disabled={isSubmitting || !protectivePublicProfileIsSubmittable}
+                          label="Enviar a revision"
+                          onPress={() => {
+                            if (!selectedHouseholdId) {
+                              return;
+                            }
+
+                            clearMessages();
+                            void runAction(
+                              async () => {
+                                const savedProfile = await getMobileFosterApiClient().upsertProtectivePublicProfile({
+                                  householdId: selectedHouseholdId,
+                                  displayName: publicDisplayName.trim(),
+                                  mission: publicMission.trim() || null,
+                                  publicStory: publicStory.trim() || null,
+                                  city: publicCity.trim(),
+                                  stateRegion: publicStateRegion.trim() || null,
+                                  countryCode: publicCountryCode.trim().toUpperCase(),
+                                  contactPolicy: publicContactPolicy,
+                                  publicContactLabel: publicContactLabel.trim() || null,
+                                  publicContactValue: publicContactValue.trim() || null,
+                                  needsSummary: publicNeedsSummary.trim() || null
+                                });
+                                return getMobileFosterApiClient().submitProtectivePublicProfile(savedProfile.id);
+                              },
+                              "Perfil publico enviado a revision administrativa.",
+                              false
+                            ).then((nextProfile) => {
+                              setProtectivePublicProfile(nextProfile);
+                            });
+                          }}
+                        />
+                      </View>
+                    </>
+                  ) : protectivePublicProfile ? (
+                    <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 6 }}>
+                      <Text style={{ fontSize: 16, fontWeight: "800", color: "#1c1917" }}>{protectivePublicProfile.displayName}</Text>
+                      <Text style={{ color: colorTokens.muted }}>
+                        {protectivePublicProfile.city}, {protectivePublicProfile.countryCode}
+                      </Text>
+                      <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
+                        {protectivePublicProfile.moderationStatus === "pending_review"
+                          ? "Tu perfil publico esta en revision. Se publicara solo cuando admin lo apruebe."
+                          : protectivePublicProfile.moderationStatus === "approved"
+                            ? `Perfil publico aprobado: ${protectivePublicProfile.publicSlug}`
+                            : protectivePublicProfile.moderationStatus === "suspended"
+                              ? "El perfil publico esta suspendido. Contacta soporte para revision."
+                              : "El perfil publico no esta editable en este momento."}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={{ color: colorTokens.muted }}>
+                      Solo integrantes administradores pueden preparar el perfil publico de esta familia protectora.
+                    </Text>
+                  )}
+                </View>
+              ) : null}
 
               <View style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 10 }}>
                 <Text style={{ fontSize: 18, fontWeight: "700", color: "#1c1917" }}>Invitar integrantes</Text>

@@ -10,17 +10,24 @@ import type {
   PetAdoptionMediaUploadInput,
   PetCustodyContext,
   PetTransferRecord,
+  AdminProtectivePublicProfile,
   ProtectiveHouseholdProfile,
   ProtectiveHouseholdProfileInput,
   ProtectiveHouseholdProfileReviewInput,
+  ProtectivePublicProfile,
+  ProtectivePublicProfileInput,
+  ProtectivePublicProfileReviewInput,
   Uuid
 } from "@pet/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type FosterSupabaseClient = SupabaseClient<Database>;
 type ProtectiveHouseholdProfileRow = Database["public"]["Tables"]["protective_household_profiles"]["Row"];
+type ProtectivePublicProfileRow = Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
 type AdminProtectiveHouseholdProfileRow =
   Database["public"]["Functions"]["list_pending_protective_household_profiles"]["Returns"][number];
+type AdminProtectivePublicProfileRow =
+  Database["public"]["Functions"]["list_pending_protective_public_profiles_for_admin"]["Returns"][number];
 type PetTransferFunctionRow =
   | Database["public"]["Functions"]["list_outgoing_pet_transfer_records"]["Returns"][number]
   | Database["public"]["Functions"]["list_incoming_pet_transfer_invitations"]["Returns"][number]
@@ -42,6 +49,12 @@ export interface FosterApiClient {
     householdId: Uuid,
     input: ProtectiveHouseholdProfileReviewInput
   ): Promise<ProtectiveHouseholdProfile>;
+  getProtectivePublicProfile(householdId: Uuid): Promise<ProtectivePublicProfile | null>;
+  upsertProtectivePublicProfile(input: ProtectivePublicProfileInput): Promise<ProtectivePublicProfile>;
+  submitProtectivePublicProfile(profileId: Uuid): Promise<ProtectivePublicProfile>;
+  reviewProtectivePublicProfile(profileId: Uuid, input: ProtectivePublicProfileReviewInput): Promise<ProtectivePublicProfile>;
+  getPublicProtectiveProfileBySlug(slug: string): Promise<ProtectivePublicProfile | null>;
+  listPendingProtectivePublicProfilesForAdmin(): Promise<AdminProtectivePublicProfile[]>;
   createPetTransferInvitation(input: CreatePetTransferInvitationInput): Promise<PetTransferRecord>;
   acceptPetTransfer(transferId: Uuid, targetHouseholdId: Uuid): Promise<PetTransferRecord>;
   rejectPetTransfer(transferId: Uuid): Promise<PetTransferRecord>;
@@ -79,9 +92,15 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
 
   return (
     message.includes("protective_household_profiles") ||
+    message.includes("protective_household_public_profiles") ||
     message.includes("submit_protective_household_profile") ||
     message.includes("review_protective_household_profile") ||
     message.includes("list_pending_protective_household_profiles") ||
+    message.includes("upsert_protective_public_profile") ||
+    message.includes("submit_protective_public_profile") ||
+    message.includes("review_protective_public_profile") ||
+    message.includes("get_public_protective_profile_by_slug") ||
+    message.includes("list_pending_protective_public_profiles_for_admin") ||
     message.includes("pet_transfer_records") ||
     message.includes("pet_custody_contexts") ||
     message.includes("create_pet_transfer_invitation") ||
@@ -140,6 +159,32 @@ function mapProtectiveHouseholdProfile(row: ProtectiveHouseholdProfileRow): Prot
     publicNotes: row.public_notes,
     reviewNotes: row.review_notes,
     submittedAt: row.submitted_at,
+    reviewedByUserId: row.reviewed_by_user_id,
+    reviewedAt: row.reviewed_at,
+    createdByUserId: row.created_by_user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapProtectivePublicProfile(row: ProtectivePublicProfileRow): ProtectivePublicProfile {
+  return {
+    id: row.id,
+    householdId: row.household_id,
+    publicSlug: row.public_slug,
+    displayName: row.display_name,
+    mission: row.mission,
+    publicStory: row.public_story,
+    city: row.city,
+    stateRegion: row.state_region,
+    countryCode: row.country_code,
+    contactPolicy: row.contact_policy,
+    publicContactLabel: row.public_contact_label,
+    publicContactValue: row.public_contact_value,
+    needsSummary: row.needs_summary,
+    isPublic: row.is_public,
+    moderationStatus: row.moderation_status,
+    reviewNotes: row.review_notes,
     reviewedByUserId: row.reviewed_by_user_id,
     reviewedAt: row.reviewed_at,
     createdByUserId: row.created_by_user_id,
@@ -275,6 +320,14 @@ function mapAdminProtectiveHouseholdProfile(
   };
 }
 
+function mapAdminProtectivePublicProfile(row: AdminProtectivePublicProfileRow): AdminProtectivePublicProfile {
+  return {
+    ...mapProtectivePublicProfile(row),
+    householdName: row.household_name,
+    createdByEmail: row.created_by_email
+  };
+}
+
 function mapPetTransferRecord(row: PetTransferFunctionRow): PetTransferRecord {
   return {
     id: row.id,
@@ -396,6 +449,96 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return mapProtectiveHouseholdProfile(data);
+    },
+    async getProtectivePublicProfile(householdId) {
+      const { data, error } = await supabase
+        .from("protective_household_public_profiles")
+        .select("*")
+        .eq("household_id", householdId)
+        .maybeSingle();
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return null;
+        }
+
+        fail(error, "Unable to load the protective public profile.");
+      }
+
+      return data ? mapProtectivePublicProfile(data) : null;
+    },
+    async upsertProtectivePublicProfile(input) {
+      const { data, error } = await supabase.rpc("upsert_protective_public_profile", {
+        target_household_id: input.householdId,
+        next_display_name: input.displayName,
+        next_mission: input.mission ?? null,
+        next_public_story: input.publicStory ?? null,
+        next_city: input.city,
+        next_state_region: input.stateRegion ?? null,
+        next_country_code: input.countryCode ?? "PA",
+        next_contact_policy: input.contactPolicy ?? "platform_only",
+        next_public_contact_label: input.publicContactLabel ?? null,
+        next_public_contact_value: input.publicContactValue ?? null,
+        next_needs_summary: input.needsSummary ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapProtectivePublicProfile(data);
+    },
+    async submitProtectivePublicProfile(profileId) {
+      const { data, error } = await supabase.rpc("submit_protective_public_profile", {
+        target_profile_id: profileId
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapProtectivePublicProfile(data);
+    },
+    async reviewProtectivePublicProfile(profileId, input) {
+      const { data, error } = await supabase.rpc("review_protective_public_profile", {
+        target_profile_id: profileId,
+        decision: input.decision,
+        notes: input.notes ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapProtectivePublicProfile(data);
+    },
+    async getPublicProtectiveProfileBySlug(slug) {
+      const { data, error } = await supabase.rpc("get_public_protective_profile_by_slug", {
+        target_slug: slug
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return null;
+        }
+
+        fail(error, "Unable to load public protective profile.");
+      }
+
+      return data?.[0] ? mapProtectivePublicProfile(data[0]) : null;
+    },
+    async listPendingProtectivePublicProfilesForAdmin() {
+      const { data, error } = await supabase.rpc("list_pending_protective_public_profiles_for_admin", {});
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load pending protective public profiles.");
+      }
+
+      return (data ?? []).map(mapAdminProtectivePublicProfile);
     },
     async createPetTransferInvitation(input) {
       const { data, error } = await supabase.rpc("create_pet_transfer_invitation", {

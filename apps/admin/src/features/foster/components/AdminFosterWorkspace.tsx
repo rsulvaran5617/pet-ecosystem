@@ -2,8 +2,10 @@
 
 import type {
   AdminProtectiveHouseholdProfile,
+  AdminProtectivePublicProfile,
   PetAdoptionListing,
   PetTransferRecord,
+  ProtectivePublicProfileReviewInput,
   ProtectiveHouseholdReviewDecision,
   Uuid
 } from "@pet/types";
@@ -69,6 +71,21 @@ const adoptionMediaStatusLabels: Record<PetAdoptionListing["media"][number]["mod
   rejected: "Rechazada"
 };
 
+const publicProfileStatusLabels: Record<AdminProtectivePublicProfile["moderationStatus"], string> = {
+  approved: "Aprobado",
+  draft: "Borrador",
+  pending_review: "En revision",
+  rejected: "Rechazado",
+  suspended: "Suspendido"
+};
+
+const contactPolicyLabels: Record<AdminProtectivePublicProfile["contactPolicy"], string> = {
+  external_link: "Enlace externo",
+  platform_only: "Solo plataforma",
+  public_email: "Correo publico",
+  public_phone: "Telefono publico"
+};
+
 function Button({
   children,
   disabled,
@@ -116,11 +133,14 @@ export function AdminFosterWorkspace({
   variant?: "full" | "home";
 }) {
   const [profiles, setProfiles] = useState<AdminProtectiveHouseholdProfile[]>([]);
+  const [publicProfiles, setPublicProfiles] = useState<AdminProtectivePublicProfile[]>([]);
   const [transfers, setTransfers] = useState<PetTransferRecord[]>([]);
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [selectedHouseholdId, setSelectedHouseholdId] = useState<Uuid | null>(null);
+  const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<Uuid | null>(null);
   const [selectedAdoptionListingId, setSelectedAdoptionListingId] = useState<Uuid | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
+  const [publicProfileReviewNotes, setPublicProfileReviewNotes] = useState("");
   const [adoptionReviewNotes, setAdoptionReviewNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -130,6 +150,10 @@ export function AdminFosterWorkspace({
   const selectedProfile = useMemo(
     () => profiles.find((profile) => profile.householdId === selectedHouseholdId) ?? profiles[0] ?? null,
     [profiles, selectedHouseholdId]
+  );
+  const selectedPublicProfile = useMemo(
+    () => publicProfiles.find((profile) => profile.id === selectedPublicProfileId) ?? publicProfiles[0] ?? null,
+    [publicProfiles, selectedPublicProfileId]
   );
   const selectedAdoptionListing = useMemo(
     () =>
@@ -144,12 +168,14 @@ export function AdminFosterWorkspace({
     setErrorMessage(null);
 
     try {
-      const [nextProfiles, nextTransfers, nextAdoptionListings] = await Promise.all([
+      const [nextProfiles, nextPublicProfiles, nextTransfers, nextAdoptionListings] = await Promise.all([
         getAdminFosterApiClient().listPendingProtectiveHouseholdProfiles(),
+        getAdminFosterApiClient().listPendingProtectivePublicProfilesForAdmin(),
         getAdminFosterApiClient().listAdminPetTransfers(),
         getAdminFosterApiClient().listPendingPetAdoptionListingsForAdmin()
       ]);
       setProfiles(nextProfiles);
+      setPublicProfiles(nextPublicProfiles);
       setTransfers(nextTransfers);
       setAdoptionListings(nextAdoptionListings);
       setSelectedHouseholdId(
@@ -161,6 +187,11 @@ export function AdminFosterWorkspace({
         currentListingId && nextAdoptionListings.some((listing) => listing.id === currentListingId)
           ? currentListingId
           : nextAdoptionListings[0]?.id ?? null
+      );
+      setSelectedPublicProfileId((currentProfileId) =>
+        currentProfileId && nextPublicProfiles.some((profile) => profile.id === currentProfileId)
+          ? currentProfileId
+          : nextPublicProfiles[0]?.id ?? null
       );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar familias protectoras pendientes.");
@@ -200,6 +231,42 @@ export function AdminFosterWorkspace({
       await refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible revisar la solicitud protectora.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function reviewSelectedPublicProfile(decision: ProtectivePublicProfileReviewInput["decision"]) {
+    if (!selectedPublicProfile) {
+      setErrorMessage("Selecciona primero un perfil publico protector.");
+      return;
+    }
+
+    if ((decision === "rejected" || decision === "suspended") && !publicProfileReviewNotes.trim()) {
+      setErrorMessage("La nota es obligatoria para rechazar o suspender el perfil publico.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      await getAdminFosterApiClient().reviewProtectivePublicProfile(selectedPublicProfile.id, {
+        decision,
+        notes: publicProfileReviewNotes.trim() || null
+      });
+      setInfoMessage(
+        decision === "approved"
+          ? "Perfil publico protector aprobado."
+          : decision === "rejected"
+            ? "Perfil publico protector rechazado."
+            : "Perfil publico protector suspendido."
+      );
+      setPublicProfileReviewNotes("");
+      await refresh();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible revisar el perfil publico protector.");
     } finally {
       setIsSubmitting(false);
     }
@@ -283,7 +350,8 @@ export function AdminFosterWorkspace({
           </strong>
         </div>
         <p style={{ margin: 0, color: "#52525b" }}>
-          {transfers.length} transferencia(s) privadas auditables. {adoptionListings.length} publicacion(es) de adopcion pendientes.
+          {transfers.length} transferencia(s) privadas auditables. {publicProfiles.length} perfil(es) publico(s) y{" "}
+          {adoptionListings.length} publicacion(es) de adopcion pendientes.
         </p>
         {isLoading && !profiles.length ? <p style={{ margin: 0, color: "#52525b" }}>Cargando solicitudes...</p> : null}
         {errorMessage ? <p style={{ margin: 0, color: "#991b1b" }}>{errorMessage}</p> : null}
@@ -416,6 +484,120 @@ export function AdminFosterWorkspace({
           )}
         </article>
       </div>
+      <section style={cardStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "24px" }}>Perfiles publicos protectores</h2>
+            <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+              Revisa la presencia publica de familias protectoras antes de mostrarla a adoptantes.
+            </p>
+          </div>
+          <span style={{ color: "#52525b" }}>{publicProfiles.length} por revisar</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0,1fr)", gap: "18px", alignItems: "start" }}>
+          <div style={{ display: "grid", gap: "10px" }}>
+            {publicProfiles.length ? (
+              publicProfiles.map((profile) => (
+                <button
+                  key={profile.id}
+                  onClick={() => setSelectedPublicProfileId(profile.id)}
+                  type="button"
+                  style={{
+                    ...inputStyle,
+                    textAlign: "left",
+                    display: "grid",
+                    gap: "6px",
+                    cursor: "pointer",
+                    borderColor: profile.id === selectedPublicProfile?.id ? "rgba(0,138,151,0.32)" : "rgba(24,24,27,0.14)"
+                  }}
+                >
+                  <strong>{profile.displayName}</strong>
+                  <span style={{ color: "#52525b" }}>{profile.householdName ?? "Hogar no disponible"}</span>
+                  <span style={{ color: "#71717a" }}>{profile.city}, {profile.countryCode}</span>
+                </button>
+              ))
+            ) : (
+              <p style={{ margin: 0, color: "#52525b" }}>No hay perfiles publicos pendientes.</p>
+            )}
+          </div>
+          <article style={{ ...inputStyle, display: "grid", gap: "12px" }}>
+            {selectedPublicProfile ? (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div>
+                    <strong style={{ fontSize: "18px" }}>{selectedPublicProfile.displayName}</strong>
+                    <p style={{ margin: "4px 0 0", color: "#52525b" }}>
+                      {selectedPublicProfile.householdName ?? "Hogar no disponible"} - {selectedPublicProfile.publicSlug}
+                    </p>
+                  </div>
+                  <span
+                    style={{
+                      borderRadius: "999px",
+                      background: "rgba(217,119,6,0.12)",
+                      color: "#b45309",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      padding: "6px 10px"
+                    }}
+                  >
+                    {publicProfileStatusLabels[selectedPublicProfile.moderationStatus]}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "10px" }}>
+                  <div style={inputStyle}>
+                    <strong>Ubicacion publica</strong>
+                    <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+                      {selectedPublicProfile.city}
+                      {selectedPublicProfile.stateRegion ? `, ${selectedPublicProfile.stateRegion}` : ""},{" "}
+                      {selectedPublicProfile.countryCode}
+                    </p>
+                  </div>
+                  <div style={inputStyle}>
+                    <strong>Contacto</strong>
+                    <p style={{ margin: "6px 0 0", color: "#52525b" }}>
+                      {contactPolicyLabels[selectedPublicProfile.contactPolicy]}
+                      {selectedPublicProfile.publicContactLabel ? ` - ${selectedPublicProfile.publicContactLabel}` : ""}
+                    </p>
+                  </div>
+                </div>
+                {[
+                  ["Mision", selectedPublicProfile.mission],
+                  ["Historia publica", selectedPublicProfile.publicStory],
+                  ["Necesidades actuales", selectedPublicProfile.needsSummary],
+                  ["Dato de contacto", selectedPublicProfile.publicContactValue]
+                ].map(([label, value]) => (
+                  <div key={label} style={inputStyle}>
+                    <strong>{label}</strong>
+                    <p style={{ margin: "6px 0 0", color: "#52525b", lineHeight: 1.55 }}>{value || "Sin informacion cargada."}</p>
+                  </div>
+                ))}
+                <label style={{ display: "grid", gap: "6px" }}>
+                  <span style={{ color: "#71717a", fontSize: "12px", textTransform: "uppercase" }}>Nota de revision</span>
+                  <textarea
+                    onChange={(event) => setPublicProfileReviewNotes(event.target.value)}
+                    placeholder="Motivo de rechazo/suspension o nota interna opcional."
+                    style={{ ...inputStyle, minHeight: "88px", resize: "vertical" }}
+                    value={publicProfileReviewNotes}
+                  />
+                </label>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedPublicProfile("approved")}>
+                    Aprobar perfil
+                  </Button>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedPublicProfile("rejected")} tone="danger">
+                    Rechazar
+                  </Button>
+                  <Button disabled={isSubmitting} onClick={() => void reviewSelectedPublicProfile("suspended")} tone="secondary">
+                    Suspender
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p style={{ margin: 0, color: "#52525b" }}>Selecciona un perfil publico pendiente para revisarlo.</p>
+            )}
+          </article>
+        </div>
+      </section>
       <section style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
           <div>

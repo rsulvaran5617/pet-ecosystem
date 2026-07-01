@@ -1,5 +1,28 @@
 # HANDOFF.md
 
+## Foster-5A perfil publico protector implementado local 2026-06-30
+
+- Foster-5A queda implementado localmente para perfil publico moderado de Familia Protectora.
+- Incluye migracion local `supabase/migrations/20260630110000_foster_5a_protective_public_profiles.sql` con tabla `protective_household_public_profiles`, RLS, slug publico, lectura publica solo `approved` + `is_public` y RPCs de borrador, envio, revision admin y lectura por slug.
+- `packages/types` y `packages/api-client` agregan tipos/API Foster para perfil publico protector.
+- Owner mobile > Hogares muestra `Perfil publico` solo para hogares `protective` aprobados, con politica de contacto controlada y sin direccion exacta.
+- Admin web > Familias protectoras agrega cola separada para revisar/aprobar/rechazar/suspender perfiles publicos.
+- No se aplico remoto, no se hizo commit/push y no se tocaron Payments, booking, QR, evidencia operacional, provider services, geolocalizacion ni marketplace comercial.
+- Siguiente paso: validar, correr dry-run y aplicar solo esta migracion si aparece como unica pendiente.
+
+## Foster-5 adopcion responsable operativa 2026-06-30
+
+- Se reviso el prompt de avance Foster y el estado actual del proyecto.
+- Diagnostico: Foster ya tiene perfiles protectores aprobados, transferencia privada, publicaciones moderadas con galeria, discovery owner y separacion `owner`/`protective`, pero aun no tiene perfil publico moderado de protectora, ficha compartible por slug, solicitudes formales ni pipeline de adopcion.
+- Se documento Foster-5 en `docs/modules/foster_adoption.md` como roadmap por slices:
+  - Foster-5A: perfil publico moderado de familia protectora.
+  - Foster-5B: ficha publica compartible de mascota.
+  - Foster-5C: solicitud estructurada de adopcion.
+  - Foster-5D: bandeja/pipeline de solicitudes.
+  - Foster-5E: estado adoptada conectado a transferencia privada Foster-2A.
+- Decision recomendada: implementar primero Foster-5A con tabla separada `protective_household_public_profiles`, para no mezclar revision interna/admin con datos publicos.
+- No se modifico codigo funcional, no se crearon migraciones, no se ejecuto Supabase push y no se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 ## Pet document viewer mobile 2026-06-29
 
 - Owner mobile > Mascotas > Docs ahora reemplaza la accion larga `Editar vigencia` por iconos compactos: ojo para `Ver documento` y calendario para editar vigencia.

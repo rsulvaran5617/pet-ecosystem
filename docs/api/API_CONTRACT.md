@@ -248,10 +248,19 @@ Contratos QR propuestos:
 - `POST /foster/adoption-applications/{applicationId}/transfer`
 - `GET /me/adoption-applications`
 - `POST /marketplace/adoptions/{listingId}/applications`
+- `GET /foster/protective-public-profiles/{slug}` (Foster-5A implementado local via RPC `get_public_protective_profile_by_slug`)
+- `PATCH /foster/protective-public-profile` (Foster-5A implementado local via RPC `upsert_protective_public_profile`)
+- `POST /foster/protective-public-profile/submit-review` (Foster-5A implementado local via RPC `submit_protective_public_profile`)
+- `POST /admin/foster/protective-public-profile/review` (Foster-5A implementado local via RPC `review_protective_public_profile`)
+- `GET /foster/adoptions/{slug}` (Foster-5B propuesto)
+- `POST /foster/adoptions/{slug}/applications` (Foster-5C propuesto)
+- `GET /foster/adoption-applications/incoming` (Foster-5D propuesto)
+- `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D propuesto)
+- `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E propuesto)
 
 Notas:
 
-- Foster-1A `protective-households/profile` ya cuenta con API client local tipado en `packages/api-client/src/foster.ts`; los contratos de transferencia/adopcion publica siguen como propuesta futura.
+- Foster-1A `protective-households/profile` y Foster-5A `protective-public-profile` cuentan con API client local tipado en `packages/api-client/src/foster.ts`; los contratos de ficha publica de mascota, solicitudes y pipeline siguen como propuesta futura.
 - `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
 - Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
 - estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.
@@ -263,6 +272,9 @@ Notas:
 - adopcion no usa checkout, pagos, bookings, provider availability ni QR.
 - el marketplace de adopcion debe leer solo publicaciones aprobadas/publicadas.
 - la transferencia de custodia debe ejecutarse por RPC transaccional con consentimiento y audit trail.
+- Foster-5 debe separar perfil publico protector de perfil interno de aprobacion para evitar exposicion accidental.
+- la solicitud de adopcion Foster-5 no mueve custodia; solo ordena interesados hasta iniciar transferencia privada Foster-2A.
+- la ficha publica Foster-5 debe leer solo media aprobada, ciudad/pais, historia publica y resumen sanitario no sensible.
 
 Foster-2A API client local:
 - `createPetTransferInvitation(input)` -> RPC `create_pet_transfer_invitation`.

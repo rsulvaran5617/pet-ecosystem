@@ -58,6 +58,28 @@ RPCs Foster-3B:
 - `review_pet_adoption_listing_media(target_media_id, decision, notes)`
 
 No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A/3B.
+
+## Foster-5 adopcion responsable operativa propuesta
+
+Tablas propuestas, no implementadas:
+
+- `protective_household_public_profiles`
+  - perfil publico moderado de la familia protectora.
+  - separado de `protective_household_profiles`, que conserva revision interna/admin.
+  - debe usar `public_slug`, ciudad/pais, historia/mision, necesidades y politica de contacto controlada.
+- `pet_adoption_applications`
+  - solicitud formal de adopcion para una publicacion aprobada.
+  - no cambia custodia ni mueve `pets.household_id`.
+  - estados propuestos: `submitted`, `in_review`, `interview`, `approved`, `rejected`, `withdrawn`, `converted_to_transfer`.
+- `pet_adoption_application_status_history`
+  - historial de cambios de estado del pipeline de solicitudes.
+
+Cambios propuestos:
+
+- `pet_adoption_listings.public_slug` para ficha publica compartible.
+- `pet_adoption_listings.share_status` para controlar si una ficha puede compartirse.
+
+Foster-5 debe seguir usando buckets privados y URLs firmadas temporales; no se crean buckets publicos.
 - `chat_messages`
 - `reviews`
 - `support_cases`

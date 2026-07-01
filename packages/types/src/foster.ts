@@ -1,6 +1,8 @@
 import type { TimestampedEntity, Uuid } from "./base";
 
 export type ProtectiveHouseholdProfileStatus = "draft" | "pending_review" | "approved" | "rejected" | "suspended";
+export type ProtectivePublicProfileModerationStatus = "draft" | "pending_review" | "approved" | "rejected" | "suspended";
+export type ProtectiveContactPolicy = "platform_only" | "public_email" | "public_phone" | "external_link";
 
 export type ProtectiveHouseholdOrganizationType =
   | "individual_rescuer"
@@ -53,6 +55,52 @@ export interface ProtectiveHouseholdProfileReviewInput {
 }
 
 export interface AdminProtectiveHouseholdProfile extends ProtectiveHouseholdProfile {
+  householdName: string | null;
+  createdByEmail: string | null;
+}
+
+export interface ProtectivePublicProfile extends TimestampedEntity {
+  id: Uuid;
+  householdId: Uuid;
+  publicSlug: string;
+  displayName: string;
+  mission: string | null;
+  publicStory: string | null;
+  city: string;
+  stateRegion: string | null;
+  countryCode: string;
+  contactPolicy: ProtectiveContactPolicy;
+  publicContactLabel: string | null;
+  publicContactValue: string | null;
+  needsSummary: string | null;
+  isPublic: boolean;
+  moderationStatus: ProtectivePublicProfileModerationStatus;
+  reviewNotes: string | null;
+  reviewedByUserId: Uuid | null;
+  reviewedAt: string | null;
+  createdByUserId: Uuid;
+}
+
+export interface ProtectivePublicProfileInput {
+  householdId: Uuid;
+  displayName: string;
+  mission?: string | null;
+  publicStory?: string | null;
+  city: string;
+  stateRegion?: string | null;
+  countryCode?: string;
+  contactPolicy?: ProtectiveContactPolicy;
+  publicContactLabel?: string | null;
+  publicContactValue?: string | null;
+  needsSummary?: string | null;
+}
+
+export interface ProtectivePublicProfileReviewInput {
+  decision: "approved" | "rejected" | "suspended";
+  notes?: string | null;
+}
+
+export interface AdminProtectivePublicProfile extends ProtectivePublicProfile {
   householdName: string | null;
   createdByEmail: string | null;
 }

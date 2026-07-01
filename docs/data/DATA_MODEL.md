@@ -168,6 +168,15 @@ Foster-2A implementacion local:
 - `bookings`, `chat_threads`, pagos, soporte y recordatorios conservan su `household_id` original y no se transfieren automaticamente.
 - reservas, chats, soporte y datos privados del hogar anterior no viajan automaticamente al nuevo hogar.
 
+Foster-5 diseno propuesto:
+
+- `protective_household_public_profiles` debe representar el perfil publico moderado de una familia protectora, separado de `protective_household_profiles`.
+- `pet_adoption_listings` puede ganar `public_slug` para fichas compartibles; la mascota sigue siendo `pets`.
+- `pet_adoption_applications` debe representar solicitudes formales de adopcion, sin transferir custodia por si misma.
+- `pet_adoption_application_status_history` puede registrar cambios de estado del pipeline.
+- una solicitud aprobada puede iniciar una transferencia privada existente, pero solo Foster-2A debe cambiar `pets.household_id`.
+- el perfil publico y la ficha compartible solo deben publicar ciudad/pais, historia, galeria aprobada y resumen no sensible.
+
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`
 - `profiles` concentra perfil base y preferencias

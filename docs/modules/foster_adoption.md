@@ -96,6 +96,262 @@ Decision de privacidad:
 - no se exponen documentos privados, direcciones exactas ni datos internos de la familia protectora.
 - la familia receptora puede conocer el perfil antes de coordinar una transferencia privada futura.
 
+## Foster-5 - Adopcion responsable operativa
+
+Estado: diseno tecnico preparado, sin implementacion. El alcance completo es demasiado grande para un solo slice porque combina perfil publico, ficha compartible, solicitudes, pipeline operativo y cierre conectado con transferencia privada.
+
+Objetivo:
+
+- acercar Foster a una herramienta real de adopcion responsable para familias protectoras aprobadas.
+- mantener la separacion entre adopcion responsable y marketplace comercial.
+- conservar `pets.id` y el expediente permitido de la mascota.
+- no duplicar mascotas ni mover `pets.household_id` fuera del flujo Foster-2A.
+- no exponer direcciones exactas, documentos privados, notas internas ni datos sensibles de salud.
+
+### Diagnostico actual
+
+Ya existe:
+
+- `households.household_type = owner | protective`.
+- `protective_household_profiles` con aprobacion admin.
+- transferencia privada con consentimiento (`pet_transfer_records` y `pet_custody_contexts`).
+- publicaciones moderadas (`pet_adoption_listings`) con galeria privada/moderada (`pet_adoption_listing_media`).
+- discovery owner separado del marketplace comercial.
+- CTA `Me interesa` solo informativo.
+
+Falta:
+
+- perfil publico moderado de la familia protectora.
+- slug publico estable para compartir perfil o mascota.
+- ficha publica compartible por mascota.
+- solicitud formal de adopcion.
+- bandeja/pipeline de solicitudes para la familia protectora.
+- conexion operativa entre solicitud aprobada y transferencia privada Foster-2A.
+
+### Slice Foster-5A - Perfil publico de familia protectora
+
+Objetivo:
+
+- crear una presencia publica/controlada para la familia protectora aprobada.
+
+Modelo recomendado:
+
+- crear tabla nueva `protective_household_public_profiles` en vez de ampliar demasiado `protective_household_profiles`.
+- `protective_household_profiles` conserva revision interna/admin.
+- `protective_household_public_profiles` contiene solo datos publicables y moderables.
+
+Campos sugeridos:
+
+- `id uuid primary key`.
+- `household_id uuid unique references households(id)`.
+- `public_slug text unique`.
+- `display_name text`.
+- `mission text`.
+- `public_story text`.
+- `city text`.
+- `state_region text null`.
+- `country_code text`.
+- `contact_policy text`: `platform_only | public_email | public_phone | external_link`.
+- `public_contact_label text null`.
+- `public_contact_value text null`.
+- `needs_summary text null`.
+- `is_public boolean default false`.
+- `moderation_status text`: `draft | pending_review | approved | rejected | suspended`.
+- `review_notes text null`.
+- `reviewed_by_user_id uuid null`.
+- `reviewed_at timestamptz null`.
+- timestamps.
+
+Reglas:
+
+- solo hogares `protective` aprobados pueden crear o editar su perfil publico.
+- cambios publicables deben pasar por revision admin antes de mostrarse.
+- no se publica direccion exacta.
+- no se exponen emails/telefonos salvo politica explicita y moderada.
+- la lectura publica/autenticada solo ve perfiles `approved` e `is_public = true`.
+
+UX:
+
+- Owner mobile / Hogares: bloque `Perfil publico` para familias protectoras aprobadas.
+- Admin web: cola de perfiles publicos pendientes.
+- Discovery: cada publicacion puede mostrar `Por {familia protectora}` y abrir perfil publico.
+
+Criterios de aceptacion:
+
+- una familia protectora aprobada puede preparar perfil publico.
+- admin puede aprobar/rechazar/suspender.
+- una familia owner normal no puede crear perfil publico protector.
+- el perfil aprobado no muestra datos privados ni direccion exacta.
+
+### Slice Foster-5B - Ficha publica compartible de mascota
+
+Objetivo:
+
+- permitir que una publicacion aprobada tenga una ficha compartible por slug seguro.
+
+Modelo recomendado:
+
+- agregar a `pet_adoption_listings`:
+  - `public_slug text unique`.
+  - `share_status text default 'disabled'`: `disabled | enabled`.
+  - `share_published_at timestamptz null`.
+- mantener galeria en bucket privado con URLs firmadas temporales.
+
+Ruta sugerida:
+
+- `apps/web`: `/adopciones/[slug]`.
+
+Contenido publico:
+
+- nombre de mascota.
+- fotos aprobadas.
+- historia, personalidad, ciudad/pais.
+- edad aproximada derivada.
+- especie, raza, sexo.
+- esterilizacion si esta autorizado.
+- resumen publico de salud.
+- compatibilidad y requisitos.
+- CTA `Solicitar adopcion`.
+
+No mostrar:
+
+- documentos privados.
+- historia clinica completa.
+- direccion exacta.
+- email/telefono sin politica moderada.
+- datos internos de hogar.
+
+### Slice Foster-5C - Solicitud de adopcion estructurada
+
+Objetivo:
+
+- reemplazar el CTA informativo `Me interesa` por una solicitud formal, sin transferir la mascota.
+
+Modelo recomendado:
+
+- tabla nueva `pet_adoption_applications`.
+
+Campos minimos:
+
+- `id uuid primary key`.
+- `listing_id uuid references pet_adoption_listings(id)`.
+- `pet_id uuid references pets(id)`.
+- `protective_household_id uuid references households(id)`.
+- `applicant_user_id uuid null`.
+- `applicant_household_id uuid null`.
+- `applicant_email text`.
+- `applicant_name text`.
+- `applicant_phone text null`.
+- `housing_type text`.
+- `has_children boolean null`.
+- `has_other_pets boolean null`.
+- `pet_experience text`.
+- `motivation text`.
+- `availability_notes text null`.
+- `commitment_acknowledged boolean`.
+- `status text`: `submitted | in_review | interview | approved | rejected | withdrawn | converted_to_transfer`.
+- timestamps.
+
+Decision recomendada:
+
+- exigir login para enviar solicitud en la primera version.
+- no permitir solicitudes anonimas hasta definir anti-abuso, terminos y proteccion de datos.
+
+### Slice Foster-5D - Bandeja/pipeline de solicitudes
+
+Objetivo:
+
+- dar a la familia protectora una vista operativa de solicitudes por mascota.
+
+Acciones:
+
+- marcar `in_review`.
+- marcar `interview`.
+- aprobar.
+- rechazar.
+- retirar/cerrar.
+- iniciar transferencia privada cuando la solicitud este `approved`.
+
+Reglas:
+
+- cambiar estado no mueve mascota.
+- la transferencia sigue ocurriendo por Foster-2A.
+- admin puede auditar.
+- no se borran solicitudes.
+
+### Slice Foster-5E - Estado adoptada conectado con transferencia
+
+Objetivo:
+
+- cuando una transferencia privada se acepta, cerrar la publicacion/caso de adopcion.
+
+Reglas:
+
+- Foster-2A sigue siendo el unico flujo que cambia `pets.household_id`.
+- al aceptar transferencia, la publicacion asociada puede pasar a `closed` o a un nuevo estado `adopted`.
+- la solicitud asociada puede pasar a `converted_to_transfer`.
+- no se exponen datos privados del hogar receptor.
+- no se transfieren reservas, chats, pagos, soporte ni recordatorios automaticamente.
+
+### Orden recomendado
+
+1. Foster-5A: perfil publico de familia protectora.
+2. Foster-5B: ficha publica compartible por slug.
+3. Foster-5C: solicitud estructurada con login obligatorio.
+4. Foster-5D: pipeline de solicitudes.
+5. Foster-5E: cierre adoptada conectado a transferencia privada.
+
+Foster-5A debe implementarse primero porque el adoptante necesita confiar en quien publica antes de enviar una solicitud.
+
+### Foster-5A implementacion local - Perfil publico moderado
+
+Estado: implementacion local preparada. No se aplica remoto sin dry-run y aprobacion explicita.
+
+Incluye:
+
+- migracion `supabase/migrations/20260630110000_foster_5a_protective_public_profiles.sql`.
+- tabla `protective_household_public_profiles`.
+- slug publico seguro por familia protectora.
+- RLS para lectura publica solo de perfiles `approved` + `is_public`.
+- RPCs:
+  - `upsert_protective_public_profile`.
+  - `submit_protective_public_profile`.
+  - `review_protective_public_profile`.
+  - `get_public_protective_profile_by_slug`.
+  - `list_pending_protective_public_profiles_for_admin`.
+- tipos compartidos `ProtectivePublicProfile`, `ProtectivePublicProfileInput`, `ProtectiveContactPolicy` y estados de moderacion.
+- API client Foster para owner/admin.
+- Owner mobile `Hogares`: bloque `Perfil publico` solo para hogares `protective` aprobados.
+- Admin web `Familias protectoras`: cola independiente de perfiles publicos pendientes.
+
+Fuera de alcance Foster-5A:
+
+- ficha publica de mascota por slug.
+- solicitudes formales de adopcion.
+- pipeline de solicitudes.
+- estado adoptada conectado con transferencia.
+- videos.
+- pagos, booking, QR, evidencia operacional, provider services y geolocalizacion.
+
+### Riesgos principales
+
+- exponer datos privados de hogares protectores.
+- convertir adopcion en marketplace comercial por copy o CTAs inadecuados.
+- solicitudes sin login con spam o datos falsos.
+- mover mascotas sin consentimiento.
+- mostrar salud/documentos privados como contenido publico.
+- crear duplicidad entre perfil protector interno y perfil publico.
+
+### Validacion esperada por slice
+
+- typecheck de `@pet/types`.
+- typecheck de `@pet/api-client`.
+- lint/typecheck/build mobile.
+- lint/typecheck/build admin.
+- lint/typecheck/build web si se agrega ficha publica.
+- `git diff --check`.
+- dry-run Supabase si hay migracion.
+
 ## Foster-3B - Galeria moderada en publicaciones aprobadas
 
 Objetivo:
