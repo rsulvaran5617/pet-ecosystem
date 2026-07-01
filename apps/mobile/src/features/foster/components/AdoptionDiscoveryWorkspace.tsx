@@ -1,7 +1,7 @@
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetAdoptionListing } from "@pet/types";
 import { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, Share, Text, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileFosterApiClient } from "../../core/services/supabase-mobile";
@@ -131,6 +131,12 @@ function getAdoptionPetInitial(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "M";
 }
 
+function getPublicAdoptionUrl(slug: string) {
+  const env = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  const publicWebUrl = env?.EXPO_PUBLIC_WEB_URL ?? "https://petecosyst.com";
+  return `${publicWebUrl.replace(/\/$/, "")}/adopciones/${slug}`;
+}
+
 export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: boolean; onBackHome: () => void }) {
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [selectedAdoptionListing, setSelectedAdoptionListing] = useState<PetAdoptionListing | null>(null);
@@ -166,6 +172,24 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
       setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir el perfil de adopcion.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function shareAdoptionListing(listing: PetAdoptionListing) {
+    if (!listing.publicSlug) {
+      setErrorMessage("La ficha publica aun no tiene enlace compartible.");
+      return;
+    }
+
+    try {
+      const publicUrl = getPublicAdoptionUrl(listing.publicSlug);
+      await Share.share({
+        message: `Conoce a ${listing.petName}, una mascota que busca hogar: ${publicUrl}`,
+        url: publicUrl,
+        title: `Adopcion responsable: ${listing.petName}`
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible compartir la ficha publica.");
     }
   }
 
@@ -387,6 +411,9 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
               )
             }
           />
+          {selectedAdoptionListing.publicSlug ? (
+            <Button label="Compartir ficha" onPress={() => void shareAdoptionListing(selectedAdoptionListing)} tone="secondary" />
+          ) : null}
           <Button label="Volver a mascotas publicadas" onPress={() => setCurrentView("list")} tone="secondary" />
         </View>
       ) : null}

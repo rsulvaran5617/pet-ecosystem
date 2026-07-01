@@ -252,7 +252,7 @@ Contratos QR propuestos:
 - `PATCH /foster/protective-public-profile` (Foster-5A implementado local via RPC `upsert_protective_public_profile`)
 - `POST /foster/protective-public-profile/submit-review` (Foster-5A implementado local via RPC `submit_protective_public_profile`)
 - `POST /admin/foster/protective-public-profile/review` (Foster-5A implementado local via RPC `review_protective_public_profile`)
-- `GET /foster/adoptions/{slug}` (Foster-5B propuesto)
+- `GET /foster/adoptions/{slug}` (Foster-5B implementado local via RPC `get_public_pet_adoption_listing_by_slug`)
 - `POST /foster/adoptions/{slug}/applications` (Foster-5C propuesto)
 - `GET /foster/adoption-applications/incoming` (Foster-5D propuesto)
 - `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D propuesto)
@@ -260,7 +260,7 @@ Contratos QR propuestos:
 
 Notas:
 
-- Foster-1A `protective-households/profile` y Foster-5A `protective-public-profile` cuentan con API client local tipado en `packages/api-client/src/foster.ts`; los contratos de ficha publica de mascota, solicitudes y pipeline siguen como propuesta futura.
+- Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile` y Foster-5B `getPublicPetAdoptionListingBySlug` cuentan con API client local tipado en `packages/api-client/src/foster.ts`; solicitudes y pipeline siguen como propuesta futura.
 - `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
 - Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
 - estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.

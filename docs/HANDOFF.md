@@ -1,5 +1,24 @@
 # HANDOFF.md
 
+## Foster-5B ficha publica compartible implementada local 2026-06-30
+
+- Foster-5B queda implementado localmente para ficha publica compartible de mascota por slug.
+- Incluye migracion local `supabase/migrations/20260630123000_foster_5b_public_pet_adoption_slug.sql`.
+- La migracion agrega `public_slug`, `share_status` y `share_published_at` a `pet_adoption_listings`.
+- El RPC `get_public_pet_adoption_listing_by_slug` devuelve solo datos publicables si:
+  - publicacion `published`.
+  - `share_status = enabled`.
+  - hogar `protective`.
+  - perfil protector interno `approved`.
+  - perfil publico protector `approved` e `is_public`.
+  - media `approved`.
+- Se agregan tipos `PublicPetAdoptionProfile`, `PublicPetAdoptionMedia` y `PublicProtectiveHouseholdSummary`.
+- API client Foster expone `getPublicPetAdoptionListingBySlug`.
+- Web agrega `/adopciones/[slug]` como ficha responsive de solo lectura.
+- Mobile discovery agrega `Compartir ficha` para publicar el enlace.
+- No se implementan solicitudes formales, pipeline, transferencia, chat ni cierre de adopcion.
+- No se aplica remoto sin aprobacion; Foster-5A sigue siendo prerequisito de Foster-5B.
+
 ## Foster-5A perfil publico protector implementado local 2026-06-30
 
 - Foster-5A queda implementado localmente para perfil publico moderado de Familia Protectora.

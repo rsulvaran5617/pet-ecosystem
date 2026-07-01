@@ -111,7 +111,7 @@ Reglas esperadas:
 - transferencia de custodia debe ejecutarse con RPC/control transaccional, consentimiento y audit trail.
 - adopcion no debe habilitar pagos, checkout ni bookings.
 - Foster-5A public profile: el perfil publico de familia protectora debe vivir separado del perfil interno de aprobacion; lectura publica/autenticada solo para `approved` + `is_public`.
-- Foster-5B public pet page: ficha compartible solo puede leer publicaciones `published`, media `approved`, ciudad/pais y resumen publico no sensible; no lee documentos ni direccion exacta.
+- Foster-5B public pet page: ficha compartible solo puede leer publicaciones `published` con `share_status = enabled`, media `approved`, ciudad/pais y resumen publico no sensible; no lee documentos ni direccion exacta. El RPC `get_public_pet_adoption_listing_by_slug` exige ademas hogar `protective`, perfil protector interno `approved` y perfil publico protector `approved` + `is_public`.
 - Foster-5C adoption applications: solicitudes se mutan via RPC; applicant ve sus propias solicitudes, familia protectora ve solicitudes de sus publicaciones y admin audita. La solicitud no cambia custodia ni `pets.household_id`.
 - Foster-5D/E pipeline: cambios de estado de solicitud no reemplazan Foster-2A; iniciar transferencia debe delegar a RPCs de transferencia privada.
 

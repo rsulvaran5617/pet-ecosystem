@@ -77,6 +77,12 @@ Tablas propuestas, no implementadas:
 Cambios propuestos:
 
 - `pet_adoption_listings.public_slug` para ficha publica compartible.
+- Foster-5B queda implementado localmente con:
+  - `pet_adoption_listings.public_slug text not null unique`.
+  - `pet_adoption_listings.share_status text default disabled`.
+  - `pet_adoption_listings.share_published_at timestamptz`.
+  - RPC `get_public_pet_adoption_listing_by_slug(target_slug text)`.
+  - lectura publica condicionada a publicacion `published`, `share_status = enabled`, media aprobada, hogar `protective`, perfil protector interno `approved` y perfil publico protector `approved` + `is_public`.
 - `pet_adoption_listings.share_status` para controlar si una ficha puede compartirse.
 
 Foster-5 debe seguir usando buckets privados y URLs firmadas temporales; no se crean buckets publicos.

@@ -333,6 +333,59 @@ Fuera de alcance Foster-5A:
 - videos.
 - pagos, booking, QR, evidencia operacional, provider services y geolocalizacion.
 
+### Foster-5B implementacion local - Ficha publica compartible de mascota
+
+Estado: implementacion local preparada. No se aplica remoto sin dry-run y aprobacion explicita.
+
+Incluye:
+
+- migracion `supabase/migrations/20260630123000_foster_5b_public_pet_adoption_slug.sql`.
+- columnas en `pet_adoption_listings`:
+  - `public_slug`.
+  - `share_status`.
+  - `share_published_at`.
+- slug estable por publicacion de adopcion.
+- RPC publica/controlada `get_public_pet_adoption_listing_by_slug`.
+- lectura publica solo cuando:
+  - la publicacion esta `published`.
+  - `share_status = enabled`.
+  - la familia es `household_type = protective`.
+  - el perfil protector interno esta `approved`.
+  - el perfil publico protector esta `approved` e `is_public = true`.
+  - la mascota esta `active`.
+- la galeria publica solo usa media `approved` con URL firmada temporal.
+- API client Foster `getPublicPetAdoptionListingBySlug`.
+- web publica `/adopciones/[slug]` con ficha emocional/responsable de solo lectura.
+- mobile discovery agrega accion `Compartir ficha` usando el slug.
+
+La ficha publica puede mostrar:
+
+- nombre, especie, raza, sexo, edad estimada y esterilizacion.
+- historia publica, personalidad, salud publica resumida, compatibilidad y requisitos.
+- ciudad/pais.
+- fotos aprobadas.
+- resumen publico de la familia protectora aprobada.
+- CTA informativo `Solicitar adopcion`, deshabilitado hasta Foster-5C.
+
+No expone:
+
+- `household_id`.
+- user ids.
+- direcciones exactas.
+- documentos privados.
+- salud clinica completa.
+- datos de contacto no moderados.
+- solicitudes, transferencias, chats ni pipeline de adopcion.
+
+Fuera de alcance Foster-5B:
+
+- solicitud formal de adopcion.
+- bandeja/pipeline de solicitudes.
+- transferencia de mascota.
+- cierre de adopcion.
+- videos.
+- pagos, booking, QR, evidencia operacional, provider services y geolocalizacion.
+
 ### Riesgos principales
 
 - exponer datos privados de hogares protectores.

@@ -10,6 +10,7 @@ import type {
   PetCustodyStatus,
   PetCustodyType,
   PetAdoptionListingReviewDecision,
+  PetAdoptionShareStatus,
   PetAdoptionListingStatus,
   PetAdoptionMediaReviewDecision,
   PetAdoptionMediaModerationStatus,
@@ -1084,6 +1085,9 @@ export interface Database {
           pet_id: string;
           household_id: string;
           status: PetAdoptionListingStatus;
+          public_slug: string;
+          share_status: PetAdoptionShareStatus;
+          share_published_at: string | null;
           title: string;
           public_story: string | null;
           personality_notes: string | null;
@@ -1111,6 +1115,9 @@ export interface Database {
           pet_id: string;
           household_id: string;
           status?: PetAdoptionListingStatus;
+          public_slug?: string;
+          share_status?: PetAdoptionShareStatus;
+          share_published_at?: string | null;
           title: string;
           public_story?: string | null;
           personality_notes?: string | null;
@@ -1138,6 +1145,9 @@ export interface Database {
           pet_id?: string;
           household_id?: string;
           status?: PetAdoptionListingStatus;
+          public_slug?: string;
+          share_status?: PetAdoptionShareStatus;
+          share_published_at?: string | null;
           title?: string;
           public_story?: string | null;
           personality_notes?: string | null;
@@ -2248,6 +2258,45 @@ export interface Database {
             household_name: string;
           }
         >;
+      };
+      get_public_pet_adoption_listing_by_slug: {
+        Args: {
+          target_slug: string;
+        };
+        Returns: Array<{
+          public_slug: string;
+          title: string;
+          public_story: string | null;
+          personality_notes: string | null;
+          public_health_summary: string | null;
+          adoption_requirements: string | null;
+          city: string;
+          state_region: string | null;
+          country_code: string;
+          compatibility_children: string | null;
+          compatibility_dogs: string | null;
+          compatibility_cats: string | null;
+          special_needs_notes: string | null;
+          share_published_at: string | null;
+          pet_name: string;
+          pet_species: string;
+          pet_breed: string | null;
+          pet_sex: PetSex;
+          pet_birth_date: string | null;
+          pet_is_sterilized: boolean | null;
+          protective_profile_slug: string;
+          protective_display_name: string;
+          protective_mission: string | null;
+          protective_public_story: string | null;
+          protective_city: string;
+          protective_state_region: string | null;
+          protective_country_code: string;
+          contact_policy: ProtectiveContactPolicy;
+          public_contact_label: string | null;
+          public_contact_value: string | null;
+          needs_summary: string | null;
+          media: unknown;
+        }>;
       };
       list_pending_pet_adoption_listings_for_admin: {
         Args: Record<string, never>;

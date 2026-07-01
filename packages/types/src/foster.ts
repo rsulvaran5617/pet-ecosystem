@@ -16,6 +16,7 @@ export type PetCustodyType = "owner" | "foster" | "rescue" | "temporary";
 export type PetCustodyStatus = "active" | "ended" | "transferred" | "cancelled";
 export type PetTransferStatus = "pending" | "accepted" | "rejected" | "cancelled" | "expired";
 export type PetAdoptionListingStatus = "draft" | "pending_review" | "published" | "paused" | "closed" | "rejected";
+export type PetAdoptionShareStatus = "disabled" | "enabled";
 export type PetAdoptionMediaType = "image" | "video";
 export type PetAdoptionMediaModerationStatus = "pending" | "approved" | "rejected";
 export type PetAdoptionListingReviewDecision = "approved" | "rejected" | "paused";
@@ -170,6 +171,9 @@ export interface PetAdoptionListing {
   petId: Uuid;
   householdId: Uuid;
   status: PetAdoptionListingStatus;
+  publicSlug: string | null;
+  shareStatus: PetAdoptionShareStatus;
+  sharePublishedAt: string | null;
   title: string;
   publicStory: string | null;
   personalityNotes: string | null;
@@ -199,6 +203,57 @@ export interface PetAdoptionListing {
   petIsSterilized: boolean | null;
   householdName: string;
   media: PetAdoptionListingMedia[];
+}
+
+export interface PublicPetAdoptionMedia {
+  id: Uuid;
+  mediaType: PetAdoptionMediaType;
+  storageBucket: string;
+  storagePath: string;
+  fileName: string;
+  mimeType: string | null;
+  displayOrder: number;
+  isCover: boolean;
+  signedUrl: string | null;
+}
+
+export interface PublicProtectiveHouseholdSummary {
+  publicSlug: string;
+  displayName: string;
+  mission: string | null;
+  publicStory: string | null;
+  city: string;
+  stateRegion: string | null;
+  countryCode: string;
+  contactPolicy: ProtectiveContactPolicy;
+  publicContactLabel: string | null;
+  publicContactValue: string | null;
+  needsSummary: string | null;
+}
+
+export interface PublicPetAdoptionProfile {
+  publicSlug: string;
+  title: string;
+  publicStory: string | null;
+  personalityNotes: string | null;
+  publicHealthSummary: string | null;
+  adoptionRequirements: string | null;
+  city: string;
+  stateRegion: string | null;
+  countryCode: string;
+  compatibilityChildren: string | null;
+  compatibilityDogs: string | null;
+  compatibilityCats: string | null;
+  specialNeedsNotes: string | null;
+  sharePublishedAt: string | null;
+  petName: string;
+  petSpecies: string;
+  petBreed: string | null;
+  petSex: string;
+  petBirthDate: string | null;
+  petIsSterilized: boolean | null;
+  media: PublicPetAdoptionMedia[];
+  protectiveHousehold: PublicProtectiveHouseholdSummary;
 }
 
 export interface PetAdoptionListingInput {
