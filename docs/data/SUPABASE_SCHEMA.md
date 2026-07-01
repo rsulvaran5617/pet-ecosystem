@@ -74,7 +74,9 @@ Tablas y cambios locales:
   - estados: `submitted`, `withdrawn`, `in_review`, `approved`, `rejected`, `converted_to_transfer`.
   - lectura RLS para solicitante, familia protectora propietaria de la publicacion y admin.
 - `pet_adoption_application_status_history`
-  - historial futuro de cambios de estado del pipeline de solicitudes; diferido a Foster-5D.
+  - Foster-5D.1 implementado localmente para historial de cambios de estado del pipeline de solicitudes.
+  - campos: `application_id`, `from_status`, `to_status`, `changed_by_user_id`, `change_notes`, `created_at`.
+  - no debe mover custodia ni iniciar transferencia.
 
 Cambios propuestos:
 
@@ -92,6 +94,21 @@ Cambios propuestos:
   - validacion server-side para aceptar solicitudes solo sobre publicaciones `published` + `share_status = enabled`, hogar `protective`, perfil protector interno `approved`, perfil publico protector `approved` + `is_public` y mascota `active`.
 
 Foster-5 debe seguir usando buckets privados y URLs firmadas temporales; no se crean buckets publicos.
+
+Foster-5D.1 implementado localmente:
+- amplia `pet_adoption_applications.status` para incluir `interview`.
+- mantiene `pet_adoption_applications.status` como estado actual y registra cada cambio en `pet_adoption_application_status_history`.
+- muta estados solo via RPC transaccional `update_pet_adoption_application_status`, sin update directo desde cliente.
+- agrega RPCs `get_pet_adoption_application_detail` y `list_pet_adoption_application_status_history`.
+- reserva `converted_to_transfer` para Foster-5E.
+
+Foster-5E implementado localmente:
+- amplia `pet_adoption_listings.status` con `adopted`.
+- agrega `pet_transfer_records.adoption_application_id` para vincular una transferencia privada a una solicitud aprobada.
+- agrega RPC `start_pet_adoption_transfer` para iniciar transferencia privada desde solicitud `approved` sin mover custodia.
+- extiende `accept_pet_transfer` para que, al aceptar una transferencia vinculada a adopcion, mueva custodia por Foster-2A, marque la solicitud `converted_to_transfer` y cierre la publicacion como `adopted`.
+- agrega RPC `get_pet_adoption_closure_detail`.
+- discovery publico sigue mostrando solo publicaciones `published`; la ficha por slug puede mostrar `adopted` en modo lectura.
 - `chat_messages`
 - `reviews`
 - `support_cases`

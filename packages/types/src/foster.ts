@@ -15,7 +15,14 @@ export type ProtectiveHouseholdReviewDecision = "approved" | "rejected" | "suspe
 export type PetCustodyType = "owner" | "foster" | "rescue" | "temporary";
 export type PetCustodyStatus = "active" | "ended" | "transferred" | "cancelled";
 export type PetTransferStatus = "pending" | "accepted" | "rejected" | "cancelled" | "expired";
-export type PetAdoptionListingStatus = "draft" | "pending_review" | "published" | "paused" | "closed" | "rejected";
+export type PetAdoptionListingStatus =
+  | "draft"
+  | "pending_review"
+  | "published"
+  | "paused"
+  | "closed"
+  | "rejected"
+  | "adopted";
 export type PetAdoptionShareStatus = "disabled" | "enabled";
 export type PetAdoptionMediaType = "image" | "video";
 export type PetAdoptionMediaModerationStatus = "pending" | "approved" | "rejected";
@@ -25,6 +32,7 @@ export type PetAdoptionApplicationStatus =
   | "submitted"
   | "withdrawn"
   | "in_review"
+  | "interview"
   | "rejected"
   | "approved"
   | "converted_to_transfer";
@@ -124,6 +132,7 @@ export interface PetTransferRecord {
   toHouseholdName: string | null;
   recipientEmail: string;
   recipientUserId: Uuid | null;
+  adoptionApplicationId: Uuid | null;
   status: PetTransferStatus;
   consentSnapshot: Record<string, unknown>;
   transferNotes: string | null;
@@ -239,6 +248,7 @@ export interface PublicProtectiveHouseholdSummary {
 }
 
 export interface PublicPetAdoptionProfile {
+  listingStatus: PetAdoptionListingStatus;
   publicSlug: string;
   title: string;
   publicStory: string | null;
@@ -343,3 +353,39 @@ export interface PetAdoptionApplicationInput {
 }
 
 export type AdminPetAdoptionApplication = PetAdoptionApplication;
+
+export interface PetAdoptionApplicationStatusHistory {
+  id: Uuid;
+  applicationId: Uuid;
+  fromStatus: PetAdoptionApplicationStatus | null;
+  toStatus: PetAdoptionApplicationStatus;
+  changedByUserId: Uuid;
+  changedByEmail: string | null;
+  changeNotes: string | null;
+  createdAt: string;
+}
+
+export interface PetAdoptionApplicationStatusUpdateInput {
+  applicationId: Uuid;
+  status: Exclude<PetAdoptionApplicationStatus, "submitted" | "converted_to_transfer">;
+  notes?: string | null;
+}
+
+export interface PetAdoptionClosureDetail {
+  applicationId: Uuid;
+  applicationStatus: PetAdoptionApplicationStatus;
+  listingId: Uuid;
+  listingStatus: PetAdoptionListingStatus;
+  petId: Uuid;
+  petName: string;
+  protectiveHouseholdId: Uuid;
+  protectiveHouseholdName: string;
+  applicantUserId: Uuid;
+  applicantEmail: string;
+  transferId: Uuid | null;
+  transferStatus: PetTransferStatus | null;
+  transferCreatedAt: string | null;
+  transferAcceptedAt: string | null;
+  toHouseholdId: Uuid | null;
+  toHouseholdName: string | null;
+}

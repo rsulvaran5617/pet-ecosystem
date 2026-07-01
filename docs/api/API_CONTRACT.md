@@ -258,13 +258,15 @@ Contratos QR propuestos:
 - `GET /foster/adoption-applications/received` (Foster-5C implementado local via RPC `list_received_pet_adoption_applications`)
 - `POST /foster/adoption-applications/{applicationId}/withdraw` (Foster-5C implementado local via RPC `withdraw_pet_adoption_application`)
 - `GET /admin/foster/adoption-applications` (Foster-5C implementado local via RPC `list_pet_adoption_applications_for_admin`)
-- `GET /foster/adoption-applications/incoming` (Foster-5D propuesto)
-- `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D propuesto)
-- `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E propuesto)
+- `GET /foster/adoption-applications/incoming` (Foster-5D.2 propuesto; extender `list_received_pet_adoption_applications` con filtros por hogar, mascota, publicacion, estado y fecha)
+- `GET /foster/adoption-applications/{applicationId}` (Foster-5D.1 implementado local via RPC `get_pet_adoption_application_detail`)
+- `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D.1 implementado local via RPC `update_pet_adoption_application_status`)
+- `GET /foster/adoption-applications/{applicationId}/history` (Foster-5D.1 implementado local via RPC `list_pet_adoption_application_status_history`)
+- `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E implementado localmente; pendiente de aplicar remoto)
 
 Notas:
 
-- Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile`, Foster-5B `getPublicPetAdoptionListingBySlug` y Foster-5C solicitudes estructuradas cuentan con API client local tipado en `packages/api-client/src/foster.ts`; pipeline Foster-5D sigue como propuesta futura.
+- Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile`, Foster-5B `getPublicPetAdoptionListingBySlug`, Foster-5C solicitudes estructuradas, Foster-5D.1 historial/cambio de estado y Foster-5E cierre adoptivo conectado a transferencia cuentan con API client local tipado en `packages/api-client/src/foster.ts`; la UI completa de bandeja Foster-5D.2 sigue pendiente.
 - `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
 - Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
 - estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.

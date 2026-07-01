@@ -289,15 +289,83 @@ Fuera de alcance Foster-5C:
 Objetivo:
 
 - dar a la familia protectora una vista operativa de solicitudes por mascota.
+- permitir revisar, ordenar y avanzar solicitudes sin mover custodia ni cerrar publicaciones.
 
-Acciones:
+Diagnostico Foster-5C:
 
-- marcar `in_review`.
-- marcar `interview`.
-- aprobar.
-- rechazar.
-- retirar/cerrar.
-- iniciar transferencia privada cuando la solicitud este `approved`.
+- `pet_adoption_applications` ya captura datos estructurados del solicitante y estado base.
+- `list_received_pet_adoption_applications` ya permite leer solicitudes recibidas por hogar protector.
+- falta historial auditable de cambios de estado.
+- falta RPC dedicada para cambiar estado con validacion de transiciones.
+- falta UI de bandeja/pipeline para familias protectoras.
+- `converted_to_transfer` existe como estado reservado para Foster-5E, no debe usarse en Foster-5D salvo lectura.
+
+Modelo recomendado:
+
+- mantener `pet_adoption_applications.status` como estado actual.
+- crear tabla nueva `pet_adoption_application_status_history` para trazabilidad, notas y auditoria.
+- no agregar notas internas sueltas a `pet_adoption_applications` salvo que una vista futura requiera resumen cacheado.
+
+Tabla propuesta `pet_adoption_application_status_history`:
+
+- `id uuid primary key default gen_random_uuid()`.
+- `application_id uuid not null references pet_adoption_applications(id) on delete cascade`.
+- `from_status text null`.
+- `to_status text not null`.
+- `changed_by_user_id uuid not null references auth.users(id)`.
+- `change_notes text null`.
+- `created_at timestamptz default now()`.
+
+Indices:
+
+- `(application_id, created_at desc)`.
+- `(changed_by_user_id, created_at desc)`.
+- `(to_status, created_at desc)`.
+
+Cambios esperados en `pet_adoption_applications`:
+
+- ampliar constraint de `status` para incluir `interview`.
+- conservar `submitted`, `withdrawn`, `in_review`, `approved`, `rejected`, `converted_to_transfer`.
+- no permitir updates directos de `status` desde cliente.
+- crear fila inicial de historial cuando se crea la solicitud o iniciar historial desde el primer cambio de estado; se recomienda crear historial inicial `null -> submitted` en Foster-5D para auditoria completa.
+
+Transiciones permitidas:
+
+- solicitante:
+  - `submitted -> withdrawn`.
+  - `in_review -> withdrawn`.
+- familia protectora aprobada:
+  - `submitted -> in_review`.
+  - `in_review -> interview`.
+  - `interview -> approved`.
+  - `submitted -> rejected`.
+  - `in_review -> rejected`.
+  - `interview -> rejected`.
+- admin:
+  - puede auditar todo.
+  - puede corregir estado solo si se decide explicitamente en la implementacion; por defecto Foster-5D debe dejar admin como auditor, no operador.
+- reservado Foster-5E:
+  - `approved -> converted_to_transfer`.
+
+RPCs propuestas:
+
+- `get_pet_adoption_application_detail(target_application_id uuid)`.
+  - devuelve solicitud completa para solicitante, familia protectora autorizada o admin.
+  - para solicitante no debe devolver notas internas si luego se clasifican como sensibles.
+- `update_pet_adoption_application_status(target_application_id uuid, next_status text, notes text default null)`.
+  - valida actor, transicion y notas obligatorias para rechazo.
+  - actualiza `pet_adoption_applications.status`.
+  - registra `pet_adoption_application_status_history`.
+  - no mueve custodia.
+- `list_pet_adoption_application_status_history(target_application_id uuid)`.
+  - visible para solicitante, familia protectora autorizada y admin.
+  - si hay notas sensibles futuras, filtrar por rol.
+- `list_received_pet_adoption_applications(target_household_id uuid default null, status_filter text default null, target_pet_id uuid default null, target_listing_id uuid default null)`.
+  - extension de la RPC actual para filtros.
+- `list_my_pet_adoption_applications()`.
+  - conserva estado actualizado y puede incluir ultimo evento publico.
+- `list_pet_adoption_applications_for_admin(status_filter text default null)`.
+  - auditoria por estado.
 
 Reglas:
 
@@ -305,6 +373,140 @@ Reglas:
 - la transferencia sigue ocurriendo por Foster-2A.
 - admin puede auditar.
 - no se borran solicitudes.
+- aprobar una solicitud no crea `pet_transfer_records`.
+- rechazar una solicitud no despublica la mascota.
+- retirar una solicitud no borra historial.
+- `converted_to_transfer` queda para Foster-5E cuando se conecte con transferencia privada.
+
+RLS esperada:
+
+- `pet_adoption_applications`: lectura por solicitante, hogar protector propietario de la publicacion y admin.
+- cambios de estado solo via RPC `update_pet_adoption_application_status`.
+- `pet_adoption_application_status_history`: lectura por los mismos actores autorizados sobre la solicitud.
+- insert/update/delete directo bloqueado para clientes.
+- notas internas sensibles no deben exponerse al solicitante si se separan en el futuro.
+
+UX mobile familia protectora:
+
+- agregar bandeja `Solicitudes recibidas` en el area Foster del hogar `protective` aprobado.
+- resumen superior:
+  - `Nuevas`.
+  - `En revision`.
+  - `Entrevista`.
+  - `Aprobadas`.
+  - `Rechazadas`.
+- filtros compactos:
+  - mascota.
+  - publicacion.
+  - estado.
+  - fecha.
+- lista tipo inbox:
+  - mascota.
+  - solicitante.
+  - fecha.
+  - estado.
+  - resumen corto de motivacion.
+- detalle:
+  - datos estructurados de convivencia.
+  - motivacion y experiencia.
+  - disponibilidad/notas.
+  - timeline de estados.
+  - CTAs segun estado:
+    - `Marcar en revision`.
+    - `Coordinar entrevista`.
+    - `Aprobar solicitud`.
+    - `Rechazar`.
+- exigir nota al rechazar.
+- copy obligatorio:
+  - `Aprobar solicitud no transfiere la mascota.`
+  - `La transferencia se realiza en un paso posterior con consentimiento.`
+
+UX solicitante:
+
+- en adopcion/discovery o Cuenta, mostrar `Mis solicitudes de adopcion`.
+- cada solicitud muestra mascota, familia protectora, estado y fecha.
+- permitir retirar solo en `submitted` o `in_review`.
+- explicar siguientes pasos segun estado.
+- no mostrar notas internas de la familia protectora.
+
+UX admin:
+
+- en admin Foster, agregar auditoria con filtros por estado, familia protectora, mascota y fecha.
+- mostrar historial de cambios de estado.
+- no operar pipeline por defecto para evitar que admin reemplace a la familia protectora.
+
+Datos visibles por actor:
+
+- solicitante:
+  - su solicitud, estado, fechas y timeline publico.
+  - no ve notas internas sensibles.
+- familia protectora:
+  - solicitudes de sus publicaciones, datos estructurados del solicitante y timeline completo.
+- admin:
+  - todas las solicitudes e historial para auditoria.
+
+Riesgos tecnicos:
+
+- migracion debe ampliar el constraint de estados sin romper solicitudes existentes.
+- cambios de estado deben ser transaccionales para evitar estado sin historial.
+- filtros deben reutilizar RPCs y no duplicar logica en UI.
+- Foster-5A/5B/5C deben estar aplicados remoto antes de Foster-5D.
+
+Riesgos de privacidad:
+
+- datos del solicitante son sensibles; limitar lectura al hogar protector autorizado y admin.
+- notas internas pueden ser sensibles; definir visibilidad antes de exponerlas.
+- no mostrar datos privados del household receptor fuera de la solicitud.
+
+Criterios de aceptacion:
+
+- familia protectora ve bandeja de solicitudes recibidas por hogar `protective` aprobado.
+- puede cambiar estado siguiendo transiciones permitidas.
+- cada cambio queda en historial con actor, fecha y nota.
+- solicitante ve estado actualizado sin notas internas sensibles.
+- aprobar solicitud no mueve custodia ni crea transferencia.
+- admin puede auditar solicitudes e historial.
+
+Slices pequenos recomendados:
+
+1. Foster-5D.1: migracion de historial + RPC de cambio de estado + tipos/API.
+2. Foster-5D.2: mobile familia protectora bandeja y detalle.
+3. Foster-5D.3: vista `Mis solicitudes` para solicitante.
+4. Foster-5D.4: auditoria admin con historial.
+5. Foster-5E: iniciar transferencia privada desde solicitud aprobada.
+
+### Foster-5D.1 implementacion local - Historial y cambio de estado
+
+Estado: implementacion local preparada. No se aplica remoto sin dry-run y aprobacion explicita.
+
+Incluye:
+
+- migracion local `supabase/migrations/20260701113000_foster_5d_adoption_application_pipeline.sql`.
+- ampliacion de `pet_adoption_applications.status` para incluir `interview`.
+- tabla `pet_adoption_application_status_history`.
+- backfill no destructivo de historial inicial para solicitudes existentes.
+- reemplazo de `create_pet_adoption_application` para registrar historial inicial.
+- reemplazo de `withdraw_pet_adoption_application` para reutilizar cambio controlado de estado.
+- RPCs nuevas:
+  - `get_pet_adoption_application_detail`.
+  - `update_pet_adoption_application_status`.
+  - `list_pet_adoption_application_status_history`.
+- tipos compartidos y API client para detalle, historial y cambio de estado.
+
+Transiciones implementadas:
+
+- solicitante: `submitted/in_review -> withdrawn`.
+- familia protectora: `submitted -> in_review`, `in_review -> interview`, `interview -> approved`.
+- familia protectora: `submitted/in_review/interview -> rejected` con nota obligatoria.
+
+Fuera de alcance Foster-5D.1:
+
+- UI completa de bandeja/pipeline.
+- crear chat.
+- crear transferencia privada.
+- mover `pets.household_id`.
+- cerrar publicacion o marcar mascota como adoptada.
+- usar `converted_to_transfer`; queda reservado para Foster-5E.
 
 ### Slice Foster-5E - Estado adoptada conectado con transferencia
 
@@ -319,6 +521,16 @@ Reglas:
 - la solicitud asociada puede pasar a `converted_to_transfer`.
 - no se exponen datos privados del hogar receptor.
 - no se transfieren reservas, chats, pagos, soporte ni recordatorios automaticamente.
+
+Estado local:
+
+- implementado localmente en `supabase/migrations/20260701130000_foster_5e_adoption_transfer_closure.sql`.
+- agrega estado `adopted` a `pet_adoption_listings.status`.
+- vincula `pet_transfer_records` con `pet_adoption_applications` mediante `adoption_application_id`.
+- `start_pet_adoption_transfer` inicia una transferencia privada desde una solicitud `approved`, sin mover custodia.
+- `accept_pet_transfer` mantiene Foster-2A como unico punto de movimiento de custodia; si la transferencia esta vinculada a adopcion, marca solicitud `converted_to_transfer` y publicacion `adopted`.
+- discovery publico no lista publicaciones `adopted`; ficha por slug puede quedar visible en modo lectura como cierre emocional/auditable.
+- pendiente de aplicar remoto y de QA manual despues de Foster-5A/5B/5C/5D.1.
 
 ### Orden recomendado
 

@@ -124,6 +124,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
   }, [slug]);
 
   const cover = useMemo(() => (profile ? getCover(profile) : null), [profile]);
+  const isAdopted = profile?.listingStatus === "adopted";
 
   if (isLoading) {
     return (
@@ -204,7 +205,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
                 textTransform: "uppercase"
               }}
             >
-              Busca hogar
+              {isAdopted ? "Adoptada" : "Busca hogar"}
             </span>
             <div>
               <h1 style={{ color: colors.ink, fontSize: 42, lineHeight: 1.05, margin: 0 }}>{profile.petName}</h1>
@@ -247,6 +248,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
               }}
             >
               {profile.city}, {profile.countryCode} · Publicada por {profile.protectiveHousehold.displayName}
+              {isAdopted ? " · Esta mascota ya encontro hogar" : ""}
             </div>
           </div>
         </section>
@@ -336,10 +338,12 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
               }}
               type="button"
             >
-              Solicitar adopcion
+              {isAdopted ? "Adopcion cerrada" : "Solicitar adopcion"}
             </button>
             <span style={{ color: colors.muted, fontSize: 12, lineHeight: 1.45, textAlign: "center" }}>
-              Inicia sesion desde la app para enviar una solicitud formal y responsable.
+              {isAdopted
+                ? "Esta ficha queda visible como referencia, pero ya no recibe solicitudes."
+                : "Inicia sesion desde la app para enviar una solicitud formal y responsable."}
             </span>
           </div>
         </section>

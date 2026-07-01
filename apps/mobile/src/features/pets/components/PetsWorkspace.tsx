@@ -5,6 +5,7 @@ import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   PetAdoptionListing,
   PetAdoptionListingMedia,
+  PetAdoptionApplication,
   PetDocument,
   PetDocumentType,
   PetHealthDashboard,
@@ -887,6 +888,7 @@ export function PetsWorkspace({
   const [transferNotes, setTransferNotes] = useState("");
   const [outgoingTransfers, setOutgoingTransfers] = useState<PetTransferRecord[]>([]);
   const [myAdoptionListings, setMyAdoptionListings] = useState<PetAdoptionListing[]>([]);
+  const [receivedAdoptionApplications, setReceivedAdoptionApplications] = useState<PetAdoptionApplication[]>([]);
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
@@ -931,6 +933,7 @@ export function PetsWorkspace({
       setProtectiveProfile(null);
       setOutgoingTransfers([]);
       setMyAdoptionListings([]);
+      setReceivedAdoptionApplications([]);
       return;
     }
 
@@ -940,13 +943,15 @@ export function PetsWorkspace({
     Promise.all([
       getMobileFosterApiClient().getProtectiveHouseholdProfile(selectedHouseholdId),
       getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId),
-      getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId)
+      getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId),
+      getMobileFosterApiClient().listReceivedPetAdoptionApplications(selectedHouseholdId)
     ])
-      .then(([profile, transfers, adoptionListings]) => {
+      .then(([profile, transfers, adoptionListings, adoptionApplications]) => {
         if (isCurrent) {
           setProtectiveProfile(profile);
           setOutgoingTransfers(transfers);
           setMyAdoptionListings(adoptionListings);
+          setReceivedAdoptionApplications(adoptionApplications);
         }
       })
       .catch(() => {
@@ -954,6 +959,7 @@ export function PetsWorkspace({
           setProtectiveProfile(null);
           setOutgoingTransfers([]);
           setMyAdoptionListings([]);
+          setReceivedAdoptionApplications([]);
         }
       })
       .finally(() => {
@@ -1114,6 +1120,9 @@ export function PetsWorkspace({
   const selectedPetAdoptionListing = selectedPet
     ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
     : null;
+  const selectedPetAdoptionApplications = selectedPet
+    ? receivedAdoptionApplications.filter((application) => application.petId === selectedPet.id)
+    : [];
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
   const canTransferSelectedPet =
     Boolean(selectedPetDetail) &&
@@ -1378,6 +1387,23 @@ export function PetsWorkspace({
     ).then(() => {
       if (selectedHouseholdId) {
         void getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId).then(setOutgoingTransfers);
+      }
+    });
+  };
+
+  const startAdoptionTransfer = (applicationId: Uuid) => {
+    clearMessages();
+    void runAction(
+      () => getMobileFosterApiClient().startPetAdoptionTransfer(applicationId),
+      "Transferencia de adopcion iniciada. La familia receptora debe aceptar para mover la mascota.",
+      false
+    ).then(() => {
+      if (selectedHouseholdId) {
+        void Promise.all([
+          getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId).then(setOutgoingTransfers),
+          getMobileFosterApiClient().listReceivedPetAdoptionApplications(selectedHouseholdId).then(setReceivedAdoptionApplications),
+          getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId).then(setMyAdoptionListings)
+        ]);
       }
     });
   };
@@ -2065,6 +2091,66 @@ export function PetsWorkspace({
                         </View>
                         <StatusChip label="protector" tone="active" />
                       </View>
+                      {selectedPetAdoptionApplications.length ? (
+                        <View style={{ gap: 7 }}>
+                          <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "900" }}>Solicitudes de adopcion</Text>
+                          {selectedPetAdoptionApplications.slice(0, 3).map((application) => {
+                            const linkedTransfer = outgoingTransfers.find(
+                              (transfer) => transfer.adoptionApplicationId === application.id
+                            );
+                            const canStartTransfer = application.status === "approved" && !linkedTransfer;
+
+                            return (
+                              <View
+                                key={application.id}
+                                style={{
+                                  borderColor: "rgba(15,118,110,0.14)",
+                                  borderRadius: 14,
+                                  borderWidth: 1,
+                                  backgroundColor: "rgba(255,255,255,0.7)",
+                                  gap: 6,
+                                  padding: 10
+                                }}
+                              >
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "900" }}>{application.applicantName}</Text>
+                                    <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700" }}>{application.applicantEmail}</Text>
+                                  </View>
+                                  <StatusChip
+                                    label={
+                                      linkedTransfer?.status === "accepted"
+                                        ? "Adoptada"
+                                        : linkedTransfer?.status === "pending"
+                                          ? "Transferencia pendiente"
+                                          : application.status === "approved"
+                                            ? "Aprobada"
+                                            : application.status
+                                    }
+                                    tone={linkedTransfer?.status === "accepted" || application.status === "approved" ? "active" : "neutral"}
+                                  />
+                                </View>
+                                {canStartTransfer ? (
+                                  <Pressable
+                                    accessibilityRole="button"
+                                    disabled={isSubmitting}
+                                    onPress={() => startAdoptionTransfer(application.id)}
+                                    style={{
+                                      alignSelf: "flex-start",
+                                      borderRadius: 999,
+                                      backgroundColor: "#0f766e",
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 6
+                                    }}
+                                  >
+                                    <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Iniciar transferencia</Text>
+                                  </Pressable>
+                                ) : null}
+                              </View>
+                            );
+                          })}
+                        </View>
+                      ) : null}
                       {transferPetId === selectedPetDetail.pet.id ? (
                         <View style={{ gap: 9 }}>
                           <Field

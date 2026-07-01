@@ -1025,6 +1025,7 @@ export interface Database {
           to_household_id: string | null;
           recipient_email: string;
           recipient_user_id: string | null;
+          adoption_application_id: string | null;
           initiated_by_user_id: string;
           accepted_by_user_id: string | null;
           status: PetTransferStatus;
@@ -1045,6 +1046,7 @@ export interface Database {
           to_household_id?: string | null;
           recipient_email: string;
           recipient_user_id?: string | null;
+          adoption_application_id?: string | null;
           initiated_by_user_id: string;
           accepted_by_user_id?: string | null;
           status?: PetTransferStatus;
@@ -1065,6 +1067,7 @@ export interface Database {
           to_household_id?: string | null;
           recipient_email?: string;
           recipient_user_id?: string | null;
+          adoption_application_id?: string | null;
           initiated_by_user_id?: string;
           accepted_by_user_id?: string | null;
           status?: PetTransferStatus;
@@ -1293,6 +1296,36 @@ export interface Database {
           withdrawn_at?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      pet_adoption_application_status_history: {
+        Row: {
+          id: string;
+          application_id: string;
+          from_status: PetAdoptionApplicationStatus | null;
+          to_status: PetAdoptionApplicationStatus;
+          changed_by_user_id: string;
+          change_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          application_id: string;
+          from_status?: PetAdoptionApplicationStatus | null;
+          to_status: PetAdoptionApplicationStatus;
+          changed_by_user_id: string;
+          change_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          application_id?: string;
+          from_status?: PetAdoptionApplicationStatus | null;
+          to_status?: PetAdoptionApplicationStatus;
+          changed_by_user_id?: string;
+          change_notes?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -2110,6 +2143,12 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
       };
+      start_pet_adoption_transfer: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Database["public"]["Tables"]["pet_transfer_records"]["Row"];
+      };
       accept_pet_transfer: {
         Args: {
           target_transfer_id: string;
@@ -2135,6 +2174,7 @@ export interface Database {
           Pick<
             Database["public"]["Tables"]["pet_transfer_records"]["Row"],
             | "accepted_at"
+            | "adoption_application_id"
             | "cancelled_at"
             | "consent_snapshot"
             | "created_at"
@@ -2163,6 +2203,7 @@ export interface Database {
           Pick<
             Database["public"]["Tables"]["pet_transfer_records"]["Row"],
             | "accepted_at"
+            | "adoption_application_id"
             | "cancelled_at"
             | "consent_snapshot"
             | "created_at"
@@ -2200,6 +2241,7 @@ export interface Database {
           Pick<
             Database["public"]["Tables"]["pet_transfer_records"]["Row"],
             | "accepted_at"
+            | "adoption_application_id"
             | "cancelled_at"
             | "consent_snapshot"
             | "created_at"
@@ -2220,6 +2262,29 @@ export interface Database {
             to_household_name: string | null;
           }
         >;
+      };
+      get_pet_adoption_closure_detail: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Array<{
+          application_id: string;
+          application_status: PetAdoptionApplicationStatus;
+          listing_id: string;
+          listing_status: PetAdoptionListingStatus;
+          pet_id: string;
+          pet_name: string;
+          protective_household_id: string;
+          protective_household_name: string;
+          applicant_user_id: string;
+          applicant_email: string;
+          transfer_id: string | null;
+          transfer_status: PetTransferStatus | null;
+          transfer_created_at: string | null;
+          transfer_accepted_at: string | null;
+          to_household_id: string | null;
+          to_household_name: string | null;
+        }>;
       };
       create_pet_adoption_listing: {
         Args: {
@@ -2368,6 +2433,7 @@ export interface Database {
           public_contact_label: string | null;
           public_contact_value: string | null;
           needs_summary: string | null;
+          listing_status: PetAdoptionListingStatus;
           media: unknown;
         }>;
       };
@@ -2449,6 +2515,38 @@ export interface Database {
             pet_species: string;
             pet_breed: string | null;
             protective_household_name: string;
+          }
+        >;
+      };
+      get_pet_adoption_application_detail: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Array<
+          Database["public"]["Tables"]["pet_adoption_applications"]["Row"] & {
+            listing_title: string;
+            pet_name: string;
+            pet_species: string;
+            pet_breed: string | null;
+            protective_household_name: string;
+          }
+        >;
+      };
+      update_pet_adoption_application_status: {
+        Args: {
+          target_application_id: string;
+          next_status: PetAdoptionApplicationStatus;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_applications"]["Row"];
+      };
+      list_pet_adoption_application_status_history: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Array<
+          Database["public"]["Tables"]["pet_adoption_application_status_history"]["Row"] & {
+            changed_by_email: string | null;
           }
         >;
       };

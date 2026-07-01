@@ -121,6 +121,7 @@ function formatAdoptionCompatibility(value: string | null, fallback: string) {
 const adoptionApplicationStatusLabels: Record<PetAdoptionApplication["status"], string> = {
   approved: "Aprobada",
   converted_to_transfer: "Convertida en transferencia",
+  interview: "Entrevista",
   in_review: "En revision",
   rejected: "Rechazada",
   submitted: "Enviada",

@@ -58,6 +58,7 @@ const transferStatusLabels: Record<PetTransferRecord["status"], string> = {
 };
 
 const adoptionListingStatusLabels: Record<PetAdoptionListing["status"], string> = {
+  adopted: "Adoptada",
   closed: "Cerrada",
   draft: "Borrador",
   paused: "Pausada",
@@ -75,6 +76,7 @@ const adoptionMediaStatusLabels: Record<PetAdoptionListing["media"][number]["mod
 const adoptionApplicationStatusLabels: Record<AdminPetAdoptionApplication["status"], string> = {
   approved: "Aprobada",
   converted_to_transfer: "Convertida en transferencia",
+  interview: "Entrevista",
   in_review: "En revision",
   rejected: "Rechazada",
   submitted: "Enviada",
