@@ -1,5 +1,21 @@
 # HANDOFF.md
 
+## Cierre Git Foster-5D.1/Foster-5E publicado 2026-07-01
+
+- Commit publicado en `master`: `1d10cf1 feat(foster): connect adoption applications to transfers`.
+- El commit versiona Foster-5D.1 y Foster-5E:
+  - historial/cambio controlado de estado para solicitudes de adopcion.
+  - inicio de transferencia privada desde solicitud aprobada.
+  - cierre `converted_to_transfer` + publicacion `adopted` solo al aceptar transferencia.
+- No se aplicaron migraciones remotas durante el cierre Git.
+- Cola Supabase pendiente antes de QA remoto:
+  - `20260630110000_foster_5a_protective_public_profiles.sql`.
+  - `20260630123000_foster_5b_public_pet_adoption_slug.sql`.
+  - `20260701100000_foster_5c_adoption_applications.sql`.
+  - `20260701113000_foster_5d_adoption_application_pipeline.sql`.
+  - `20260701130000_foster_5e_adoption_transfer_closure.sql`.
+- Antes de `db push` real, revisar el riesgo historico de `is_admin_user` en Foster-5B.
+
 ## Foster-5E cierre adoptivo conectado a transferencia implementado local 2026-07-01
 
 - Foster-5E queda implementado localmente y pendiente de aplicar remoto.
