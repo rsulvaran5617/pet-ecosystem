@@ -530,7 +530,7 @@ Estado local:
 - `start_pet_adoption_transfer` inicia una transferencia privada desde una solicitud `approved`, sin mover custodia.
 - `accept_pet_transfer` mantiene Foster-2A como unico punto de movimiento de custodia; si la transferencia esta vinculada a adopcion, marca solicitud `converted_to_transfer` y publicacion `adopted`.
 - discovery publico no lista publicaciones `adopted`; ficha por slug puede quedar visible en modo lectura como cierre emocional/auditable.
-- pendiente de aplicar remoto y de QA manual despues de Foster-5A/5B/5C/5D.1.
+- aplicado remoto junto con Foster-5A/5B/5C/5D.1; pendiente QA manual de flujo completo.
 
 ### Orden recomendado
 

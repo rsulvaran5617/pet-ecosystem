@@ -221,7 +221,7 @@ begin
     raise exception 'authenticated user required';
   end if;
 
-  if not public.is_admin_user(current_user_id) then
+  if not public.is_platform_admin(current_user_id) then
     raise exception 'admin role required';
   end if;
 
@@ -579,7 +579,7 @@ as $$
   join public.pets pet on pet.id = listing.pet_id
   left join public.pet_profiles profile on profile.pet_id = pet.id
   join public.households household on household.id = listing.household_id
-  where public.is_admin_user(auth.uid())
+  where public.is_platform_admin(auth.uid())
     and (
       listing.status = 'pending_review'
       or exists (

@@ -1,5 +1,25 @@
 # HANDOFF.md
 
+## Foster-5A a Foster-5E aplicados remoto 2026-07-01
+
+- Supabase remoto quedo al dia despues de aplicar la cola Foster:
+  - `20260630110000_foster_5a_protective_public_profiles.sql`.
+  - `20260630123000_foster_5b_public_pet_adoption_slug.sql`.
+  - `20260701100000_foster_5c_adoption_applications.sql`.
+  - `20260701113000_foster_5d_adoption_application_pipeline.sql`.
+  - `20260701130000_foster_5e_adoption_transfer_closure.sql`.
+- Antes de aplicar se corrigio Foster-5B para usar `public.is_platform_admin(...)` en vez de `public.is_admin_user(...)`.
+- Dry-run posterior: `Remote database is up to date`.
+- Estado funcional:
+  - Familia Protectora puede gestionar perfil publico moderado.
+  - mascotas publicadas tienen ficha publica por slug.
+  - usuarios autenticados pueden crear solicitudes estructuradas.
+  - solicitudes cuentan con historial/cambio controlado de estado.
+  - solicitud aprobada puede iniciar transferencia privada; solo aceptar la transferencia mueve custodia y marca publicacion `adopted`.
+- Pendiente de QA:
+  - flujo completo Foster-5A a Foster-5E en mobile/web/admin.
+  - UI completa de bandeja Foster-5D.2.
+
 ## Cierre Git Foster-5D.1/Foster-5E publicado 2026-07-01
 
 - Commit publicado en `master`: `1d10cf1 feat(foster): connect adoption applications to transfers`.
@@ -7,18 +27,18 @@
   - historial/cambio controlado de estado para solicitudes de adopcion.
   - inicio de transferencia privada desde solicitud aprobada.
   - cierre `converted_to_transfer` + publicacion `adopted` solo al aceptar transferencia.
-- No se aplicaron migraciones remotas durante el cierre Git.
-- Cola Supabase pendiente antes de QA remoto:
+- Las migraciones se aplicaron remoto posteriormente en el cierre controlado Foster del 2026-07-01.
+- Cola Supabase aplicada:
   - `20260630110000_foster_5a_protective_public_profiles.sql`.
   - `20260630123000_foster_5b_public_pet_adoption_slug.sql`.
   - `20260701100000_foster_5c_adoption_applications.sql`.
   - `20260701113000_foster_5d_adoption_application_pipeline.sql`.
   - `20260701130000_foster_5e_adoption_transfer_closure.sql`.
-- Antes de `db push` real, revisar el riesgo historico de `is_admin_user` en Foster-5B.
+- Foster-5B fue corregido antes del `db push` real para usar `public.is_platform_admin(...)`.
 
-## Foster-5E cierre adoptivo conectado a transferencia implementado local 2026-07-01
+## Foster-5E cierre adoptivo conectado a transferencia aplicado remoto 2026-07-01
 
-- Foster-5E queda implementado localmente y pendiente de aplicar remoto.
+- Foster-5E queda implementado y aplicado remoto.
 - Migracion local: `supabase/migrations/20260701130000_foster_5e_adoption_transfer_closure.sql`.
 - Cambios incluidos:
   - `pet_adoption_listings.status` agrega `adopted`.
@@ -36,7 +56,7 @@
   - no implementa bandeja completa Foster-5D.2.
   - no crea marketplace nuevo.
   - no toca Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
-- Pendiente antes de aplicar remoto: validar dry-run con Foster-5A/5B/5C/5D.1/5E en orden y revisar el riesgo historico de `is_admin_user` en Foster-5B.
+- Aplicado remoto despues de validar dry-run con Foster-5A/5B/5C/5D.1/5E en orden; Foster-5B quedo corregido para usar `is_platform_admin`.
 
 ## Foster-5D.1 historial de solicitudes implementado local 2026-07-01
 
@@ -57,7 +77,7 @@
   - no crea chat.
   - no cierra publicaciones.
   - no implementa UI completa de bandeja/pipeline.
-- Pendiente antes de aplicar remoto: validaciones completas y dry-run Supabase. Foster-5A/5B/5C siguen siendo prerequisitos remotos para aplicar Foster-5D.1.
+- Aplicado remoto despues de validaciones y dry-run Supabase; Foster-5A/5B/5C ya quedaron aplicados como prerequisitos.
 
 ## Foster-5D pipeline de solicitudes disenado 2026-07-01
 

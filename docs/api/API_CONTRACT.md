@@ -248,21 +248,21 @@ Contratos QR propuestos:
 - `POST /foster/adoption-applications/{applicationId}/transfer`
 - `GET /me/adoption-applications`
 - `POST /marketplace/adoptions/{listingId}/applications`
-- `GET /foster/protective-public-profiles/{slug}` (Foster-5A implementado local via RPC `get_public_protective_profile_by_slug`)
-- `PATCH /foster/protective-public-profile` (Foster-5A implementado local via RPC `upsert_protective_public_profile`)
-- `POST /foster/protective-public-profile/submit-review` (Foster-5A implementado local via RPC `submit_protective_public_profile`)
-- `POST /admin/foster/protective-public-profile/review` (Foster-5A implementado local via RPC `review_protective_public_profile`)
-- `GET /foster/adoptions/{slug}` (Foster-5B implementado local via RPC `get_public_pet_adoption_listing_by_slug`)
-- `POST /foster/adoptions/{slug}/applications` (Foster-5C implementado local via RPC `create_pet_adoption_application`; app usa `listingId`)
-- `GET /me/adoption-applications` (Foster-5C implementado local via RPC `list_my_pet_adoption_applications`)
-- `GET /foster/adoption-applications/received` (Foster-5C implementado local via RPC `list_received_pet_adoption_applications`)
-- `POST /foster/adoption-applications/{applicationId}/withdraw` (Foster-5C implementado local via RPC `withdraw_pet_adoption_application`)
-- `GET /admin/foster/adoption-applications` (Foster-5C implementado local via RPC `list_pet_adoption_applications_for_admin`)
+- `GET /foster/protective-public-profiles/{slug}` (Foster-5A aplicado remoto via RPC `get_public_protective_profile_by_slug`)
+- `PATCH /foster/protective-public-profile` (Foster-5A aplicado remoto via RPC `upsert_protective_public_profile`)
+- `POST /foster/protective-public-profile/submit-review` (Foster-5A aplicado remoto via RPC `submit_protective_public_profile`)
+- `POST /admin/foster/protective-public-profile/review` (Foster-5A aplicado remoto via RPC `review_protective_public_profile`)
+- `GET /foster/adoptions/{slug}` (Foster-5B aplicado remoto via RPC `get_public_pet_adoption_listing_by_slug`)
+- `POST /foster/adoptions/{slug}/applications` (Foster-5C aplicado remoto via RPC `create_pet_adoption_application`; app usa `listingId`)
+- `GET /me/adoption-applications` (Foster-5C aplicado remoto via RPC `list_my_pet_adoption_applications`)
+- `GET /foster/adoption-applications/received` (Foster-5C aplicado remoto via RPC `list_received_pet_adoption_applications`)
+- `POST /foster/adoption-applications/{applicationId}/withdraw` (Foster-5C aplicado remoto via RPC `withdraw_pet_adoption_application`)
+- `GET /admin/foster/adoption-applications` (Foster-5C aplicado remoto via RPC `list_pet_adoption_applications_for_admin`)
 - `GET /foster/adoption-applications/incoming` (Foster-5D.2 propuesto; extender `list_received_pet_adoption_applications` con filtros por hogar, mascota, publicacion, estado y fecha)
-- `GET /foster/adoption-applications/{applicationId}` (Foster-5D.1 implementado local via RPC `get_pet_adoption_application_detail`)
-- `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D.1 implementado local via RPC `update_pet_adoption_application_status`)
-- `GET /foster/adoption-applications/{applicationId}/history` (Foster-5D.1 implementado local via RPC `list_pet_adoption_application_status_history`)
-- `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E implementado localmente; pendiente de aplicar remoto)
+- `GET /foster/adoption-applications/{applicationId}` (Foster-5D.1 aplicado remoto via RPC `get_pet_adoption_application_detail`)
+- `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D.1 aplicado remoto via RPC `update_pet_adoption_application_status`)
+- `GET /foster/adoption-applications/{applicationId}/history` (Foster-5D.1 aplicado remoto via RPC `list_pet_adoption_application_status_history`)
+- `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E aplicado remoto via RPC `start_pet_adoption_transfer`)
 
 Notas:
 

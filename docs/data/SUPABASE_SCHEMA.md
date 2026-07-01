@@ -78,31 +78,31 @@ Tablas y cambios locales:
   - campos: `application_id`, `from_status`, `to_status`, `changed_by_user_id`, `change_notes`, `created_at`.
   - no debe mover custodia ni iniciar transferencia.
 
-Cambios propuestos:
+Foster-5 aplicado remoto:
 
 - `pet_adoption_listings.public_slug` para ficha publica compartible.
-- Foster-5B queda implementado localmente con:
+- Foster-5B queda aplicado remoto con:
   - `pet_adoption_listings.public_slug text not null unique`.
   - `pet_adoption_listings.share_status text default disabled`.
   - `pet_adoption_listings.share_published_at timestamptz`.
   - RPC `get_public_pet_adoption_listing_by_slug(target_slug text)`.
   - lectura publica condicionada a publicacion `published`, `share_status = enabled`, media aprobada, hogar `protective`, perfil protector interno `approved` y perfil publico protector `approved` + `is_public`.
 - `pet_adoption_listings.share_status` para controlar si una ficha puede compartirse.
-- Foster-5C queda implementado localmente con:
+- Foster-5C queda aplicado remoto con:
   - tabla `pet_adoption_applications`.
   - RPCs `create_pet_adoption_application`, `list_my_pet_adoption_applications`, `list_received_pet_adoption_applications`, `withdraw_pet_adoption_application` y `list_pet_adoption_applications_for_admin`.
   - validacion server-side para aceptar solicitudes solo sobre publicaciones `published` + `share_status = enabled`, hogar `protective`, perfil protector interno `approved`, perfil publico protector `approved` + `is_public` y mascota `active`.
 
 Foster-5 debe seguir usando buckets privados y URLs firmadas temporales; no se crean buckets publicos.
 
-Foster-5D.1 implementado localmente:
+Foster-5D.1 aplicado remoto:
 - amplia `pet_adoption_applications.status` para incluir `interview`.
 - mantiene `pet_adoption_applications.status` como estado actual y registra cada cambio en `pet_adoption_application_status_history`.
 - muta estados solo via RPC transaccional `update_pet_adoption_application_status`, sin update directo desde cliente.
 - agrega RPCs `get_pet_adoption_application_detail` y `list_pet_adoption_application_status_history`.
 - reserva `converted_to_transfer` para Foster-5E.
 
-Foster-5E implementado localmente:
+Foster-5E aplicado remoto:
 - amplia `pet_adoption_listings.status` con `adopted`.
 - agrega `pet_transfer_records.adoption_application_id` para vincular una transferencia privada a una solicitud aprobada.
 - agrega RPC `start_pet_adoption_transfer` para iniciar transferencia privada desde solicitud `approved` sin mover custodia.
