@@ -533,6 +533,29 @@ Reglas preservadas:
 - solo aceptar la transferencia privada mueve custodia y cierra adopcion.
 - no crea chat, no cierra publicaciones directamente y no toca reservas, pagos, soporte ni datos de proveedor.
 
+### Foster Web Console implementacion local - Consola separada
+
+Estado: implementacion web local preparada, sin migraciones nuevas.
+
+Incluye:
+
+- ruta web `/foster` separada de provider web, admin web y marketplace comercial.
+- estados guiados para usuario sin sesion, usuario sin familia protectora, familia protectora pendiente/no aprobada y familia protectora aprobada.
+- selector de household `protective`.
+- dashboard con metricas de publicaciones, solicitudes por estado y transferencias pendientes.
+- listado de publicaciones Foster de la familia protectora.
+- bandeja de solicitudes recibidas con filtros por estado y mascota.
+- detalle de solicitud con datos estructurados, timeline y acciones de pipeline.
+- inicio de transferencia privada desde solicitud `approved` usando la regla Foster-5E.
+
+Reglas preservadas:
+
+- aprobar solicitud no mueve `pets.household_id`.
+- iniciar transferencia solo crea la invitacion Foster-2A/Foster-5E.
+- solo aceptar la transferencia privada mueve custodia y cierra adopcion.
+- no crea chat, no toca provider services, booking, Payments, QR, evidencia operacional ni geolocalizacion.
+- no reemplaza la moderacion admin; admin sigue aprobando familias protectoras y auditorias.
+
 ### Slice Foster-5E - Estado adoptada conectado con transferencia
 
 Objetivo:
