@@ -24,6 +24,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileFosterApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
+import { AdoptionApplicationsInbox } from "../../foster/components/AdoptionApplicationsInbox";
 import { usePetHealthSummary } from "../../health/hooks/usePetHealthSummary";
 import { usePetsWorkspace } from "../hooks/usePetsWorkspace";
 
@@ -1120,9 +1121,6 @@ export function PetsWorkspace({
   const selectedPetAdoptionListing = selectedPet
     ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
     : null;
-  const selectedPetAdoptionApplications = selectedPet
-    ? receivedAdoptionApplications.filter((application) => application.petId === selectedPet.id)
-    : [];
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
   const canTransferSelectedPet =
     Boolean(selectedPetDetail) &&
@@ -1393,7 +1391,7 @@ export function PetsWorkspace({
 
   const startAdoptionTransfer = (applicationId: Uuid) => {
     clearMessages();
-    void runAction(
+    return runAction(
       () => getMobileFosterApiClient().startPetAdoptionTransfer(applicationId),
       "Transferencia de adopcion iniciada. La familia receptora debe aceptar para mover la mascota.",
       false
@@ -2072,6 +2070,31 @@ export function PetsWorkspace({
                     <Text style={{ color: colorTokens.muted, fontSize: 11 }}>Validando permisos de familia protectora...</Text>
                   ) : null}
                   {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+                    <AdoptionApplicationsInbox
+                      applications={receivedAdoptionApplications}
+                      disabled={isSubmitting}
+                      listings={myAdoptionListings}
+                      onRefresh={async () => {
+                        if (!selectedHouseholdId) {
+                          return;
+                        }
+
+                        const [transfers, adoptionApplications, adoptionListings] = await Promise.all([
+                          getMobileFosterApiClient().listOutgoingPetTransfers(selectedHouseholdId),
+                          getMobileFosterApiClient().listReceivedPetAdoptionApplications(selectedHouseholdId),
+                          getMobileFosterApiClient().listMyPetAdoptionListings(selectedHouseholdId)
+                        ]);
+
+                        setOutgoingTransfers(transfers);
+                        setReceivedAdoptionApplications(adoptionApplications);
+                        setMyAdoptionListings(adoptionListings);
+                      }}
+                      onStartTransfer={(applicationId) => startAdoptionTransfer(applicationId)}
+                      selectedPetId={selectedPetDetail.pet.id}
+                      transfers={outgoingTransfers}
+                    />
+                  ) : null}
+                  {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
                     <View
                       style={{
                         borderColor: "rgba(15,118,110,0.18)",
@@ -2091,66 +2114,6 @@ export function PetsWorkspace({
                         </View>
                         <StatusChip label="protector" tone="active" />
                       </View>
-                      {selectedPetAdoptionApplications.length ? (
-                        <View style={{ gap: 7 }}>
-                          <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "900" }}>Solicitudes de adopcion</Text>
-                          {selectedPetAdoptionApplications.slice(0, 3).map((application) => {
-                            const linkedTransfer = outgoingTransfers.find(
-                              (transfer) => transfer.adoptionApplicationId === application.id
-                            );
-                            const canStartTransfer = application.status === "approved" && !linkedTransfer;
-
-                            return (
-                              <View
-                                key={application.id}
-                                style={{
-                                  borderColor: "rgba(15,118,110,0.14)",
-                                  borderRadius: 14,
-                                  borderWidth: 1,
-                                  backgroundColor: "rgba(255,255,255,0.7)",
-                                  gap: 6,
-                                  padding: 10
-                                }}
-                              >
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                                  <View style={{ flex: 1 }}>
-                                    <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "900" }}>{application.applicantName}</Text>
-                                    <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700" }}>{application.applicantEmail}</Text>
-                                  </View>
-                                  <StatusChip
-                                    label={
-                                      linkedTransfer?.status === "accepted"
-                                        ? "Adoptada"
-                                        : linkedTransfer?.status === "pending"
-                                          ? "Transferencia pendiente"
-                                          : application.status === "approved"
-                                            ? "Aprobada"
-                                            : application.status
-                                    }
-                                    tone={linkedTransfer?.status === "accepted" || application.status === "approved" ? "active" : "neutral"}
-                                  />
-                                </View>
-                                {canStartTransfer ? (
-                                  <Pressable
-                                    accessibilityRole="button"
-                                    disabled={isSubmitting}
-                                    onPress={() => startAdoptionTransfer(application.id)}
-                                    style={{
-                                      alignSelf: "flex-start",
-                                      borderRadius: 999,
-                                      backgroundColor: "#0f766e",
-                                      paddingHorizontal: 10,
-                                      paddingVertical: 6
-                                    }}
-                                  >
-                                    <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Iniciar transferencia</Text>
-                                  </Pressable>
-                                ) : null}
-                              </View>
-                            );
-                          })}
-                        </View>
-                      ) : null}
                       {transferPetId === selectedPetDetail.pet.id ? (
                         <View style={{ gap: 9 }}>
                           <Field

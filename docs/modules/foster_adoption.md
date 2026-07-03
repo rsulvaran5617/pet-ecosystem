@@ -508,6 +508,31 @@ Fuera de alcance Foster-5D.1:
 - cerrar publicacion o marcar mascota como adoptada.
 - usar `converted_to_transfer`; queda reservado para Foster-5E.
 
+### Foster-5D.2 implementacion local - Bandeja mobile de solicitudes
+
+Estado: implementacion mobile local preparada, sin migraciones nuevas.
+
+Incluye:
+
+- componente mobile `AdoptionApplicationsInbox` para hogares protectores aprobados.
+- metricas por estado: nuevas, en revision, entrevista, aprobadas, rechazadas, retiradas y en transferencia.
+- filtros por mascota, estado y orden de fecha.
+- lista tipo inbox con mascota, solicitante, fecha, extracto de motivacion, publicacion y estado de transferencia.
+- detalle de solicitud con datos del solicitante, vivienda, ninos, otras mascotas, experiencia, motivacion, disponibilidad y timeline de cambios.
+- acciones controladas:
+  - `submitted -> in_review`.
+  - `in_review -> interview`.
+  - `interview -> approved`.
+  - rechazo con nota obligatoria.
+  - iniciar transferencia privada desde `approved`.
+
+Reglas preservadas:
+
+- aprobar solicitud no mueve `pets.household_id`.
+- iniciar transferencia solo crea la invitacion Foster-2A/Foster-5E.
+- solo aceptar la transferencia privada mueve custodia y cierra adopcion.
+- no crea chat, no cierra publicaciones directamente y no toca reservas, pagos, soporte ni datos de proveedor.
+
 ### Slice Foster-5E - Estado adoptada conectado con transferencia
 
 Objetivo:

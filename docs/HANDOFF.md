@@ -1,5 +1,18 @@
 # HANDOFF.md
 
+## Foster-5D.2 bandeja mobile de solicitudes implementada localmente 2026-07-03
+
+- Mobile owner `Mascotas` agrega bandeja operativa `Solicitudes de adopcion` para hogares `protective` aprobados.
+- La bandeja muestra metricas por estado, filtros por mascota/estado/orden, lista de solicitudes y detalle estructurado del solicitante.
+- El detalle permite avanzar estados usando los RPCs existentes de Foster-5D.1:
+  - `submitted -> in_review`.
+  - `in_review -> interview`.
+  - `interview -> approved`.
+  - rechazo con nota obligatoria desde estados activos.
+- Desde solicitud `approved`, el CTA `Iniciar transferencia` usa Foster-5E y mantiene la regla clave: aprobar no mueve custodia; solo aceptar la transferencia privada mueve `pets.household_id`.
+- No se crearon migraciones, no se tocaron RLS ni Supabase, no se abrio chat y no se tocaron Payments, booking, QR, evidencia, provider services ni geolocalizacion.
+- Pendiente: QA visual/mobile y cierre Git si se aprueba.
+
 ## Foster-5A a Foster-5E aplicados remoto 2026-07-01
 
 - Supabase remoto quedo al dia despues de aplicar la cola Foster:
@@ -18,7 +31,7 @@
   - solicitud aprobada puede iniciar transferencia privada; solo aceptar la transferencia mueve custodia y marca publicacion `adopted`.
 - Pendiente de QA:
   - flujo completo Foster-5A a Foster-5E en mobile/web/admin.
-  - UI completa de bandeja Foster-5D.2.
+  - UI completa de bandeja Foster-5D.2 en QA mobile.
 
 ## Cierre Git Foster-5D.1/Foster-5E publicado 2026-07-01
 
