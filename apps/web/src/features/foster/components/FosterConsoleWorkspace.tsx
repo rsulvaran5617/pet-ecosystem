@@ -1,12 +1,16 @@
 ﻿"use client";
 
 import type {
+  ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
+  ProtectivePublicProfile,
+  ProtectivePublicProfileInput,
   PetAdoptionApplication,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
-  PetTransferRecord
+  PetTransferRecord,
+  Uuid
 } from "@pet/types";
 import { useMemo, useState } from "react";
 
@@ -51,6 +55,13 @@ const organizationTypeLabels: Record<ProtectiveHouseholdOrganizationType, string
   temporary_home: "Hogar temporal"
 };
 
+const contactPolicyLabels: Record<ProtectiveContactPolicy, string> = {
+  external_link: "Enlace externo",
+  platform_only: "Solo por la plataforma",
+  public_email: "Email publico",
+  public_phone: "Telefono publico"
+};
+
 function formatDate(value: string | null | undefined) {
   if (!value) {
     return "Sin fecha";
@@ -85,6 +96,26 @@ function coverUrl(listing: PetAdoptionListing) {
   return listing.media.find((item) => item.isCover && item.signedUrl)?.signedUrl ?? listing.media.find((item) => item.signedUrl)?.signedUrl ?? null;
 }
 
+function buildPublicProfileForm(
+  publicProfile: ProtectivePublicProfile | null,
+  selectedHouseholdId: Uuid | null,
+  selectedHouseholdName: string
+): ProtectivePublicProfileInput {
+  return {
+    city: publicProfile?.city ?? "",
+    contactPolicy: publicProfile?.contactPolicy ?? "platform_only",
+    countryCode: publicProfile?.countryCode ?? "PA",
+    displayName: publicProfile?.displayName ?? selectedHouseholdName,
+    householdId: publicProfile?.householdId ?? selectedHouseholdId ?? "",
+    mission: publicProfile?.mission ?? "",
+    needsSummary: publicProfile?.needsSummary ?? "",
+    publicContactLabel: publicProfile?.publicContactLabel ?? "",
+    publicContactValue: publicProfile?.publicContactValue ?? "",
+    publicStory: publicProfile?.publicStory ?? "",
+    stateRegion: publicProfile?.stateRegion ?? ""
+  };
+}
+
 export function FosterConsoleWorkspace() {
   const {
     applications,
@@ -100,11 +131,13 @@ export function FosterConsoleWorkspace() {
     protectiveHouseholds,
     publicProfile,
     refresh,
+    savePublicProfile,
     selectedApplicationDetail,
     selectedHousehold,
     selectedHouseholdId,
     selectHousehold,
     startTransfer,
+    submitPublicProfile,
     transfers,
     updateApplicationStatus
   } = useFosterConsoleWorkspace();
@@ -245,6 +278,17 @@ export function FosterConsoleWorkspace() {
             </div>
           </section>
 
+          <PublicProfilePanel
+            key={selectedHouseholdId ?? "public-profile"}
+            disabled={isSubmitting}
+            profileStatus={profile?.status ?? null}
+            publicProfile={publicProfile}
+            selectedHouseholdId={selectedHouseholdId}
+            selectedHouseholdName={selectedHousehold?.name ?? ""}
+            onSave={savePublicProfile}
+            onSubmit={submitPublicProfile}
+          />
+
           {profile?.status !== "approved" ? (
             <InfoPanel
               title="Familia Protectora pendiente de aprobacion"
@@ -369,6 +413,233 @@ export function FosterConsoleWorkspace() {
         </>
       ) : null}
     </main>
+  );
+}
+
+function PublicProfilePanel({
+  disabled,
+  onSave,
+  onSubmit,
+  profileStatus,
+  publicProfile,
+  selectedHouseholdId,
+  selectedHouseholdName
+}: {
+  disabled: boolean;
+  onSave: (input: ProtectivePublicProfileInput) => Promise<ProtectivePublicProfile | null>;
+  onSubmit: (profileId: Uuid) => Promise<ProtectivePublicProfile | null>;
+  profileStatus: string | null;
+  publicProfile: ProtectivePublicProfile | null;
+  selectedHouseholdId: Uuid | null;
+  selectedHouseholdName: string;
+}) {
+  const canManage = Boolean(selectedHouseholdId && profileStatus === "approved");
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftProfileId, setDraftProfileId] = useState<Uuid | null>(publicProfile?.id ?? null);
+  const [form, setForm] = useState<ProtectivePublicProfileInput>(() => buildPublicProfileForm(publicProfile, selectedHouseholdId, selectedHouseholdName));
+
+  function resetForm() {
+    setForm(buildPublicProfileForm(publicProfile, selectedHouseholdId, selectedHouseholdName));
+  }
+
+  function updateField<K extends keyof ProtectivePublicProfileInput>(field: K, value: ProtectivePublicProfileInput[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  const statusLabel = publicProfile ? publicStatusLabel(publicProfile.moderationStatus) : "No configurado";
+  const actionLabel = !publicProfile ? "Crear perfil publico" : publicProfile.moderationStatus === "rejected" ? "Corregir perfil" : "Editar perfil";
+  const canSubmit = Boolean(draftProfileId ?? publicProfile?.id) && publicProfile?.moderationStatus !== "pending_review" && publicProfile?.moderationStatus !== "approved";
+
+  return (
+    <section style={styles.panel}>
+      <div style={styles.sectionHeader}>
+        <div>
+          <p style={styles.eyebrow}>Perfil publico</p>
+          <h2 style={styles.sectionTitle}>{statusLabel}</h2>
+        </div>
+        <StatusBadge
+          label={statusLabel}
+          tone={publicProfile?.moderationStatus === "approved" ? "success" : publicProfile?.moderationStatus === "pending_review" ? "warning" : "neutral"}
+        />
+      </div>
+
+      {!canManage ? (
+        <p style={styles.bodyText}>Primero espera la aprobacion de tu Familia Protectora para crear el perfil publico.</p>
+      ) : (
+        <>
+          <div style={styles.publicProfileSummary}>
+            <InfoTile label="Nombre publico" value={publicProfile?.displayName ?? "No configurado"} />
+            <InfoTile label="Ciudad" value={publicProfile ? `${publicProfile.city}, ${publicProfile.countryCode}` : "Pendiente"} />
+            <InfoTile label="Contacto" value={publicProfile ? contactPolicyLabels[publicProfile.contactPolicy] : "Solo plataforma"} />
+          </div>
+          <p style={styles.bodyText}>
+            Guardar el perfil no lo hace publico automaticamente. Despues de guardar, debes enviarlo a revision y admin debe aprobarlo.
+          </p>
+          {publicProfile?.moderationStatus === "approved" ? (
+            <p style={styles.bodyText}>El perfil esta aprobado. Si editas datos publicos importantes, revisa si corresponde reenviarlo a revision.</p>
+          ) : null}
+          {publicProfile?.moderationStatus === "pending_review" ? (
+            <p style={styles.bodyText}>El perfil esta pendiente de revision. Admin debe aprobarlo antes de mostrarlo como perfil publico confiable.</p>
+          ) : null}
+          {publicProfile?.reviewNotes ? <Notice tone="info" message={`Nota de revision: ${publicProfile.reviewNotes}`} /> : null}
+
+          <div style={styles.heroActions}>
+            <button disabled={disabled || !canManage} onClick={() => setIsEditing((current) => !current)} style={styles.primaryButton} type="button">
+              {isEditing ? "Ocultar formulario" : actionLabel}
+            </button>
+            {canSubmit ? (
+              <button
+                disabled={disabled}
+                onClick={() => void onSubmit((draftProfileId ?? publicProfile?.id) as Uuid)}
+                style={styles.secondaryButton}
+                type="button"
+              >
+                Enviar a revision
+              </button>
+            ) : null}
+          </div>
+
+          {isEditing ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void onSave({ ...form, householdId: selectedHouseholdId as Uuid }).then((saved) => {
+                  if (saved) {
+                    setDraftProfileId(saved.id);
+                    setForm(buildPublicProfileForm(saved, selectedHouseholdId, selectedHouseholdName));
+                    setIsEditing(false);
+                  }
+                });
+              }}
+              style={styles.formStack}
+            >
+              <div style={styles.formGrid}>
+                <label style={styles.fieldLabel}>
+                  Nombre publico
+                  <input
+                    disabled={disabled}
+                    onChange={(event) => updateField("displayName", event.target.value)}
+                    placeholder="Nombre visible de la familia"
+                    style={styles.input}
+                    value={form.displayName}
+                  />
+                </label>
+                <label style={styles.fieldLabel}>
+                  Ciudad
+                  <input
+                    disabled={disabled}
+                    onChange={(event) => updateField("city", event.target.value)}
+                    placeholder="Ej. Panama City"
+                    style={styles.input}
+                    value={form.city}
+                  />
+                </label>
+                <label style={styles.fieldLabel}>
+                  Region
+                  <input
+                    disabled={disabled}
+                    onChange={(event) => updateField("stateRegion", event.target.value)}
+                    placeholder="Opcional"
+                    style={styles.input}
+                    value={form.stateRegion ?? ""}
+                  />
+                </label>
+                <label style={styles.fieldLabel}>
+                  Pais
+                  <input
+                    disabled={disabled}
+                    maxLength={2}
+                    onChange={(event) => updateField("countryCode", event.target.value.toUpperCase())}
+                    placeholder="PA"
+                    style={styles.input}
+                    value={form.countryCode ?? "PA"}
+                  />
+                </label>
+                <label style={styles.fieldLabel}>
+                  Politica de contacto
+                  <select
+                    disabled={disabled}
+                    onChange={(event) => updateField("contactPolicy", event.target.value as ProtectiveContactPolicy)}
+                    style={styles.input}
+                    value={form.contactPolicy ?? "platform_only"}
+                  >
+                    {Object.entries(contactPolicyLabels).map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label style={styles.fieldLabel}>
+                  Etiqueta de contacto
+                  <input
+                    disabled={disabled}
+                    onChange={(event) => updateField("publicContactLabel", event.target.value)}
+                    placeholder="Ej. WhatsApp de adopciones"
+                    style={styles.input}
+                    value={form.publicContactLabel ?? ""}
+                  />
+                </label>
+                <label style={styles.fieldLabel}>
+                  Dato de contacto
+                  <input
+                    disabled={disabled}
+                    onChange={(event) => updateField("publicContactValue", event.target.value)}
+                    placeholder="Visible solo si decides hacerlo publico"
+                    style={styles.input}
+                    value={form.publicContactValue ?? ""}
+                  />
+                </label>
+              </div>
+              <label style={styles.fieldLabel}>
+                Mision
+                <textarea
+                  disabled={disabled}
+                  onChange={(event) => updateField("mission", event.target.value)}
+                  placeholder="Describe la mision de tu familia protectora."
+                  style={styles.textarea}
+                  value={form.mission ?? ""}
+                />
+              </label>
+              <label style={styles.fieldLabel}>
+                Historia publica
+                <textarea
+                  disabled={disabled}
+                  onChange={(event) => updateField("publicStory", event.target.value)}
+                  placeholder="Cuenta brevemente la historia o enfoque de la familia protectora."
+                  style={styles.textarea}
+                  value={form.publicStory ?? ""}
+                />
+              </label>
+              <label style={styles.fieldLabel}>
+                Necesidades principales
+                <textarea
+                  disabled={disabled}
+                  onChange={(event) => updateField("needsSummary", event.target.value)}
+                  placeholder="Ej. alimento, hogares temporales, transporte, apoyo veterinario."
+                  style={styles.textarea}
+                  value={form.needsSummary ?? ""}
+                />
+              </label>
+              <div style={styles.heroActions}>
+                <button disabled={disabled} style={styles.primaryButton} type="submit">
+                  {disabled ? "Guardando..." : "Guardar perfil"}
+                </button>
+                <button
+                  disabled={disabled}
+                  onClick={() => {
+                    resetForm();
+                    setIsEditing(false);
+                  }}
+                  style={styles.secondaryButton}
+                  type="button"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          ) : null}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -781,6 +1052,7 @@ const styles: Record<string, React.CSSProperties> = {
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
   primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
+  publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   rejectBox: { display: "grid", gap: "8px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },

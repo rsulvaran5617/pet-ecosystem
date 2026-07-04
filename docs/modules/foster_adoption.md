@@ -548,6 +548,10 @@ Incluye:
   - refresca la consola y muestra estado pendiente sin crear duplicados.
 - selector de household `protective`.
 - dashboard con metricas de publicaciones, solicitudes por estado y transferencias pendientes.
+- bloque `Perfil publico` para familias protectoras internamente aprobadas:
+  - crea o edita nombre publico, mision, historia, ciudad/pais, politica de contacto y necesidades principales.
+  - guarda borrador sin hacerlo publico automaticamente.
+  - envia a revision admin antes de quedar como perfil publico aprobado.
 - listado de publicaciones Foster de la familia protectora.
 - bandeja de solicitudes recibidas con filtros por estado y mascota.
 - detalle de solicitud con datos estructurados, timeline y acciones de pipeline.

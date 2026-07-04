@@ -7,6 +7,7 @@ import type {
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
   PetTransferRecord,
+  ProtectivePublicProfileInput,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfile,
   ProtectivePublicProfile,
@@ -312,6 +313,70 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function savePublicProfile(input: ProtectivePublicProfileInput) {
+    if (!selectedHousehold) {
+      setErrorMessage("Selecciona una Familia Protectora antes de guardar el perfil publico.");
+      return null;
+    }
+
+    if (selectedContext?.profile?.status !== "approved") {
+      setErrorMessage("Primero espera la aprobacion de tu Familia Protectora.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const savedProfile = await getBrowserFosterApiClient().upsertProtectivePublicProfile(input);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Perfil publico guardado. Recuerda enviarlo a revision para que pueda ser aprobado.");
+      }
+
+      return savedProfile;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible guardar el perfil publico."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function submitPublicProfile(profileId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const submittedProfile = await getBrowserFosterApiClient().submitProtectivePublicProfile(profileId);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Perfil publico enviado a revision. Admin debe aprobarlo antes de hacerlo publico.");
+      }
+
+      return submittedProfile;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible enviar el perfil publico a revision."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return {
     applications: selectedContext?.applications ?? [],
     authState,
@@ -333,6 +398,7 @@ export function useFosterConsoleWorkspace() {
     selectedApplicationDetail,
     selectedHousehold,
     selectedHouseholdId,
+    savePublicProfile,
     selectHousehold(householdId: Uuid) {
       setSelectedHouseholdId(householdId);
       setSelectedApplicationDetail(null);
@@ -340,6 +406,7 @@ export function useFosterConsoleWorkspace() {
       setInfoMessage(null);
     },
     startTransfer,
+    submitPublicProfile,
     transfers: selectedContext?.transfers ?? [],
     updateApplicationStatus
   };
