@@ -6,12 +6,13 @@
 - La consola no se mezcla con provider web, admin web ni marketplace comercial.
 - Estados cubiertos:
   - usuario sin sesion: invita a entrar desde `/app`.
-  - usuario sin household `protective`: muestra guia para crear/solicitar familia protectora desde mobile.
+  - usuario sin household `protective`: permite crear una Familia Protectora desde web y enviar la solicitud a revision admin.
   - familia protectora no aprobada: muestra estado de revision y siguiente paso.
   - familia protectora aprobada: muestra selector de familia, metricas, publicaciones, solicitudes, transferencias y detalle operativo.
+- El formulario web de alta pide nombre de la familia, nombre visible, tipo, ciudad, region/pais y notas de mision/contacto; reutiliza `createHousehold` con `householdType = protective`, `upsertProtectiveHouseholdProfile` y `submitProtectiveHouseholdProfile`.
 - La bandeja web usa los RPC/API existentes de Foster-5D.1/Foster-5E para avanzar solicitudes (`submitted -> in_review -> interview -> approved`), rechazar con nota e iniciar transferencia privada desde solicitudes aprobadas.
 - Regla preservada: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada mueve `pets.household_id`.
-- No se crearon migraciones, no se tocaron RLS ni Supabase, no se tocaron Payments, booking, QR, evidencia, provider services ni geolocalizacion.
+- No se crearon migraciones, no se tocaron RLS ni Supabase, no se tocaron Payments, booking, QR, evidencia, provider services, mobile/admin/provider ni geolocalizacion.
 - Pendiente: QA visual web y cierre Git si se aprueba.
 
 ## Foster-5D.2 bandeja mobile de solicitudes implementada localmente 2026-07-03

@@ -7,6 +7,7 @@ import type {
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
   PetTransferRecord,
+  ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfile,
   ProtectivePublicProfile,
   Uuid
@@ -35,6 +36,39 @@ export type FosterConsoleHouseholdContext = {
 };
 
 type FosterConsoleData = Record<Uuid, FosterConsoleHouseholdContext>;
+
+export type CreateProtectiveHouseholdInput = {
+  city: string;
+  contactNotes?: string | null;
+  countryCode: string;
+  displayName: string;
+  householdName: string;
+  organizationType: ProtectiveHouseholdOrganizationType;
+  publicNotes?: string | null;
+  stateRegion?: string | null;
+};
+
+function toHumanFosterError(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+
+  const message = error.message.toLowerCase();
+
+  if (message.includes("auth") || message.includes("session") || message.includes("jwt")) {
+    return "Tu sesion expiro. Inicia sesion nuevamente para continuar.";
+  }
+
+  if (message.includes("duplicate") || message.includes("already") || message.includes("unique")) {
+    return "Ya existe una solicitud o familia protectora con esos datos.";
+  }
+
+  if (message.includes("permission") || message.includes("policy") || message.includes("rls")) {
+    return "No tienes permisos para crear esta familia protectora con la sesion actual.";
+  }
+
+  return error.message || fallback;
+}
 
 export function useFosterConsoleWorkspace() {
   const mountedRef = useRef(true);
@@ -226,6 +260,58 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function createProtectiveHousehold(input: CreateProtectiveHouseholdInput) {
+    const householdName = input.householdName.trim();
+    const displayName = input.displayName.trim() || householdName;
+    const city = input.city.trim();
+    const countryCode = input.countryCode.trim().toUpperCase() || "PA";
+
+    if (!householdName || !displayName || !city) {
+      setErrorMessage("Completa nombre, nombre visible y ciudad antes de enviar.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const household = await getBrowserHouseholdsApiClient().createHousehold({
+        householdType: "protective",
+        name: householdName
+      });
+
+      await getBrowserFosterApiClient().upsertProtectiveHouseholdProfile({
+        city,
+        contactNotes: input.contactNotes?.trim() || null,
+        countryCode,
+        displayName,
+        householdId: household.id,
+        organizationType: input.organizationType,
+        publicNotes: input.publicNotes?.trim() || null,
+        stateRegion: input.stateRegion?.trim() || null
+      });
+
+      const submittedProfile = await getBrowserFosterApiClient().submitProtectiveHouseholdProfile(household.id);
+      const context = await loadHouseholdContext({ ...household, memberCount: 1, myMemberId: null, myPermissions: ["admin"], pendingInvitationCount: 0 });
+      await refresh();
+
+      if (mountedRef.current) {
+        setSelectedHouseholdId(household.id);
+        setDataByHousehold((current) => ({ ...current, [household.id]: { ...context, profile: submittedProfile } }));
+        setInfoMessage("Solicitud enviada. Un administrador revisara tu Familia Protectora antes de habilitar publicaciones y solicitudes.");
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible crear la Familia Protectora."));
+      }
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return {
     applications: selectedContext?.applications ?? [],
     authState,
@@ -233,6 +319,7 @@ export function useFosterConsoleWorkspace() {
       setErrorMessage(null);
       setInfoMessage(null);
     },
+    createProtectiveHousehold,
     errorMessage,
     infoMessage,
     isLoading,

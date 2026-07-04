@@ -1,5 +1,14 @@
 # households.md
 
+## Web Foster Console
+
+La ruta web `/foster` puede crear una Familia Protectora separada cuando el usuario autenticado aun no tiene un household `protective`.
+
+- El flujo reutiliza `createHousehold` con `householdType = protective`.
+- Luego prepara y envia el perfil protector a revision admin mediante el API Foster existente.
+- Un `Hogar familiar` owner no se convierte automaticamente en Familia Protectora.
+- La aprobacion admin sigue siendo obligatoria antes de publicar mascotas o gestionar solicitudes.
+
 ## Objetivo del modulo
 Permitir que varias personas compartan el cuidado de una o mas mascotas a traves de un hogar comun.
 

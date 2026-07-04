@@ -541,6 +541,11 @@ Incluye:
 
 - ruta web `/foster` separada de provider web, admin web y marketplace comercial.
 - estados guiados para usuario sin sesion, usuario sin familia protectora, familia protectora pendiente/no aprobada y familia protectora aprobada.
+- alta web de Familia Protectora cuando el usuario no tiene household `protective`:
+  - crea el household como `protective`.
+  - prepara perfil protector con nombre visible, tipo, ciudad, pais, notas de mision/contacto.
+  - envia la solicitud a revision admin.
+  - refresca la consola y muestra estado pendiente sin crear duplicados.
 - selector de household `protective`.
 - dashboard con metricas de publicaciones, solicitudes por estado y transferencias pendientes.
 - listado de publicaciones Foster de la familia protectora.

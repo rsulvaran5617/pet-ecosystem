@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import type {
+  ProtectiveHouseholdOrganizationType,
   PetAdoptionApplication,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
@@ -9,6 +10,7 @@ import type {
 } from "@pet/types";
 import { useMemo, useState } from "react";
 
+import type { CreateProtectiveHouseholdInput } from "../hooks/useFosterConsoleWorkspace";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus;
@@ -39,6 +41,14 @@ const listingStatusLabels: Record<PetAdoptionListing["status"], string> = {
   pending_review: "En revision",
   published: "Publicada",
   rejected: "Rechazada"
+};
+
+const organizationTypeLabels: Record<ProtectiveHouseholdOrganizationType, string> = {
+  foster_home: "Hogar de acogida",
+  foundation: "Fundacion",
+  individual_rescuer: "Rescatista independiente",
+  other: "Otro",
+  temporary_home: "Hogar temporal"
 };
 
 function formatDate(value: string | null | undefined) {
@@ -79,6 +89,7 @@ export function FosterConsoleWorkspace() {
   const {
     applications,
     authState,
+    createProtectiveHousehold,
     errorMessage,
     infoMessage,
     isLoading,
@@ -202,10 +213,9 @@ export function FosterConsoleWorkspace() {
       {isLoading && authState !== "signed_out" ? <InfoPanel title="Cargando consola" copy="Estamos preparando tus familias protectoras y solicitudes." /> : null}
 
       {authState === "signed_in" && !isLoading && !protectiveHouseholds.length ? (
-        <InfoPanel
-          title="Aun no tienes una Familia Protectora"
-          copy="Crea una Familia Protectora separada desde Hogares y solicita aprobacion admin antes de publicar mascotas o gestionar adopciones."
-          action={<a href="/app" style={styles.secondaryButton}>Ir a Hogares</a>}
+        <CreateProtectiveHouseholdPanel
+          disabled={isSubmitting}
+          onSubmit={createProtectiveHousehold}
         />
       ) : null}
 
@@ -359,6 +369,156 @@ export function FosterConsoleWorkspace() {
         </>
       ) : null}
     </main>
+  );
+}
+
+function CreateProtectiveHouseholdPanel({
+  disabled,
+  onSubmit
+}: {
+  disabled: boolean;
+  onSubmit: (input: CreateProtectiveHouseholdInput) => Promise<void>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [form, setForm] = useState<CreateProtectiveHouseholdInput>({
+    city: "",
+    contactNotes: "",
+    countryCode: "PA",
+    displayName: "",
+    householdName: "",
+    organizationType: "foster_home",
+    publicNotes: "",
+    stateRegion: ""
+  });
+
+  function updateField<K extends keyof CreateProtectiveHouseholdInput>(field: K, value: CreateProtectiveHouseholdInput[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  return (
+    <section style={styles.panel}>
+      <div style={styles.sectionHeader}>
+        <div>
+          <p style={styles.eyebrow}>Primer paso</p>
+          <h2 style={styles.sectionTitle}>Crea tu Familia Protectora</h2>
+        </div>
+        <button onClick={() => setIsOpen((current) => !current)} style={styles.primaryButton} type="button">
+          {isOpen ? "Ocultar formulario" : "Crear Familia Protectora"}
+        </button>
+      </div>
+      <p style={styles.bodyText}>
+        Este espacio es para hogares, fundaciones y rescatistas que cuidan mascotas y gestionan adopciones responsables.
+        La familia protectora se revisa antes de habilitar publicaciones y solicitudes.
+      </p>
+      <div style={styles.guidanceGrid}>
+        <InfoTile label="1" value="Crea una familia separada" />
+        <InfoTile label="2" value="Envia solicitud a revision" />
+        <InfoTile label="3" value="Admin aprueba antes de publicar" />
+      </div>
+
+      {isOpen ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSubmit(form);
+          }}
+          style={styles.formStack}
+        >
+          <div style={styles.formGrid}>
+            <label style={styles.fieldLabel}>
+              Nombre de la familia protectora
+              <input
+                disabled={disabled}
+                onChange={(event) => updateField("householdName", event.target.value)}
+                placeholder="Ej. Patitas en casa"
+                style={styles.input}
+                value={form.householdName}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Nombre visible
+              <input
+                disabled={disabled}
+                onChange={(event) => updateField("displayName", event.target.value)}
+                placeholder="Como quieres que lo vea admin"
+                style={styles.input}
+                value={form.displayName}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Tipo
+              <select
+                disabled={disabled}
+                onChange={(event) => updateField("organizationType", event.target.value as ProtectiveHouseholdOrganizationType)}
+                style={styles.input}
+                value={form.organizationType}
+              >
+                {Object.entries(organizationTypeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <label style={styles.fieldLabel}>
+              Ciudad
+              <input
+                disabled={disabled}
+                onChange={(event) => updateField("city", event.target.value)}
+                placeholder="Ej. Panama City"
+                style={styles.input}
+                value={form.city}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Region
+              <input
+                disabled={disabled}
+                onChange={(event) => updateField("stateRegion", event.target.value)}
+                placeholder="Opcional"
+                style={styles.input}
+                value={form.stateRegion ?? ""}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Pais
+              <input
+                disabled={disabled}
+                maxLength={2}
+                onChange={(event) => updateField("countryCode", event.target.value.toUpperCase())}
+                placeholder="PA"
+                style={styles.input}
+                value={form.countryCode}
+              />
+            </label>
+          </div>
+          <label style={styles.fieldLabel}>
+            Motivo o mision breve
+            <textarea
+              disabled={disabled}
+              onChange={(event) => updateField("publicNotes", event.target.value)}
+              placeholder="Cuenta brevemente por que quieres operar como familia protectora."
+              style={styles.textarea}
+              value={form.publicNotes ?? ""}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Contacto o disponibilidad para revision
+            <textarea
+              disabled={disabled}
+              onChange={(event) => updateField("contactNotes", event.target.value)}
+              placeholder="Indica horario, telefono de referencia o notas para que admin pueda revisar la solicitud."
+              style={styles.textarea}
+              value={form.contactNotes ?? ""}
+            />
+          </label>
+          <div style={styles.heroActions}>
+            <button disabled={disabled} style={styles.primaryButton} type="submit">
+              {disabled ? "Enviando..." : "Enviar solicitud"}
+            </button>
+            <button disabled={disabled} onClick={() => setIsOpen(false)} style={styles.secondaryButton} type="button">Cancelar</button>
+          </div>
+        </form>
+      ) : null}
+    </section>
   );
 }
 
@@ -594,6 +754,10 @@ const styles: Record<string, React.CSSProperties> = {
   errorNotice: { background: "#fef2f2", borderColor: "rgba(185, 28, 28, 0.22)", color: "#991b1b" },
   eyebrow: { color: "#0f766e", fontSize: "12px", fontWeight: 900, letterSpacing: "0.08em", margin: 0, textTransform: "uppercase" },
   filtersRow: { display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" },
+  fieldLabel: { color: "#334155", display: "grid", fontSize: "12px", fontWeight: 900, gap: "7px", textTransform: "uppercase" },
+  formGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
+  formStack: { display: "grid", gap: "14px" },
+  guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "28px", color: "white", display: "flex", gap: "24px", justifyContent: "space-between", padding: "30px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "10px" },
   heroCopy: { color: "rgba(255,255,255,0.86)", fontSize: "15px", lineHeight: 1.55, margin: "8px 0 0", maxWidth: "720px" },
@@ -603,6 +767,7 @@ const styles: Record<string, React.CSSProperties> = {
   historyTitle: { color: "#0f172a", fontSize: "15px", margin: 0 },
   infoNotice: { background: "#ecfeff", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   infoTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "grid", gap: "4px", padding: "14px" },
+  input: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 700, padding: "12px 14px", textTransform: "none" },
   itemMeta: { color: "#64748b", fontSize: "12px", lineHeight: 1.4, margin: "4px 0 0" },
   itemTitle: { color: "#0f172a", fontSize: "15px" },
   listingCard: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
