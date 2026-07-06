@@ -556,7 +556,8 @@ Incluye:
   - lista mascotas asociadas al household `protective` activo.
   - permite registrar mascota usando el API de pets con el household protector activo.
   - muestra estado de publicacion por mascota y solicitudes relacionadas.
-  - puede preparar una publicacion como borrador, sin publicarla ni enviarla automaticamente.
+  - muestra un tren de proceso `Mascota -> Publicacion -> Contenido -> Revision -> Visible`.
+  - puede preparar una publicacion como borrador, completar contenido publico y enviarla a revision admin.
 - listado de publicaciones Foster de la familia protectora.
 - bandeja de solicitudes recibidas con filtros por estado y mascota.
 - detalle de solicitud con datos estructurados, timeline y acciones de pipeline.

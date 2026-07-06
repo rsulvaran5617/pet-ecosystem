@@ -3,6 +3,7 @@
 import type {
   HouseholdSummary,
   PetAdoptionApplication,
+  PetAdoptionListingInput,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
@@ -472,6 +473,60 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function saveAdoptionListing(input: PetAdoptionListingInput) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const listing = await getBrowserFosterApiClient().updatePetAdoptionListing(input);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Publicacion guardada como borrador. Cuando este completa, enviala a revision admin.");
+      }
+
+      return listing;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible guardar la publicacion de adopcion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function submitAdoptionListing(listingId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const listing = await getBrowserFosterApiClient().submitPetAdoptionListing(listingId);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Publicacion enviada a revision. Admin debe aprobarla antes de que aparezca en Mascotas que buscan hogar.");
+      }
+
+      return listing;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible enviar la publicacion a revision."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return {
     applications: selectedContext?.applications ?? [],
     authState,
@@ -497,6 +552,7 @@ export function useFosterConsoleWorkspace() {
     selectedHousehold,
     selectedHouseholdId,
     savePublicProfile,
+    saveAdoptionListing,
     selectHousehold(householdId: Uuid) {
       setSelectedHouseholdId(householdId);
       setSelectedApplicationDetail(null);
@@ -504,6 +560,7 @@ export function useFosterConsoleWorkspace() {
       setInfoMessage(null);
     },
     startTransfer,
+    submitAdoptionListing,
     submitPublicProfile,
     transfers: selectedContext?.transfers ?? [],
     updateApplicationStatus

@@ -9,13 +9,14 @@ import type {
   PetAdoptionApplication,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
+  PetAdoptionListingInput,
   PetAdoptionListing,
   PetSex,
   PetSummary,
   PetTransferRecord,
   Uuid
 } from "@pet/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { CreateProtectiveHouseholdInput } from "../hooks/useFosterConsoleWorkspace";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
@@ -125,6 +126,67 @@ function buildPublicProfileForm(
   };
 }
 
+function buildAdoptionListingForm(listing: PetAdoptionListing | null, pet: PetSummary): PetAdoptionListingInput {
+  return {
+    adoptionRequirements: listing?.adoptionRequirements ?? "",
+    city: listing?.city ?? "",
+    compatibilityCats: listing?.compatibilityCats ?? "",
+    compatibilityChildren: listing?.compatibilityChildren ?? "",
+    compatibilityDogs: listing?.compatibilityDogs ?? "",
+    countryCode: listing?.countryCode ?? "PA",
+    listingId: listing?.id ?? "",
+    personalityNotes: listing?.personalityNotes ?? "",
+    publicHealthSummary: listing?.publicHealthSummary ?? "",
+    publicStory: listing?.publicStory ?? "",
+    specialNeedsNotes: listing?.specialNeedsNotes ?? "",
+    stateRegion: listing?.stateRegion ?? "",
+    title: listing?.title ?? `${pet.name} busca hogar`
+  };
+}
+
+function buildAdoptionSteps(listing: PetAdoptionListing | null) {
+  const status = listing?.status ?? null;
+  const prepared = Boolean(listing);
+  const sentToReview = Boolean(status && status !== "draft");
+  const visible = status === "published";
+
+  return [
+    { label: "Mascota", order: 1, state: "done" },
+    { label: "Publicacion", order: 2, state: prepared ? "done" : "active" },
+    { label: "Contenido", order: 3, state: prepared && status === "draft" ? "active" : sentToReview ? "done" : "pending" },
+    { label: "Revision", order: 4, state: status === "pending_review" ? "active" : visible ? "done" : "pending" },
+    { label: "Visible", order: 5, state: visible ? "done" : "pending" }
+  ] as Array<{ label: string; order: number; state: "active" | "done" | "pending" }>;
+}
+
+function publicationGuidance(listing: PetAdoptionListing | null) {
+  if (!listing) {
+    return "Prepara una publicacion para iniciar el proceso de adopcion. No se hara visible todavia.";
+  }
+
+  if (listing.status === "draft") {
+    return "Completa historia, salud, compatibilidad y requisitos. Luego envia a revision admin.";
+  }
+
+  if (listing.status === "pending_review") {
+    return "La publicacion esta en revision admin. Aun no aparece en Mascotas que buscan hogar.";
+  }
+
+  if (listing.status === "published") {
+    return "La publicacion esta visible para familias interesadas.";
+  }
+
+  if (listing.status === "rejected") {
+    return "Admin rechazo la publicacion. Corrige el contenido y enviala nuevamente a revision.";
+  }
+
+  if (listing.status === "adopted") {
+    return "La adopcion fue cerrada mediante transferencia privada.";
+  }
+
+  return "Revisa el estado de esta publicacion antes de continuar.";
+}
+
 export function FosterConsoleWorkspace() {
   const {
     applications,
@@ -144,11 +206,13 @@ export function FosterConsoleWorkspace() {
     publicProfile,
     refresh,
     savePublicProfile,
+    saveAdoptionListing,
     selectedApplicationDetail,
     selectedHousehold,
     selectedHouseholdId,
     selectHousehold,
     startTransfer,
+    submitAdoptionListing,
     submitPublicProfile,
     transfers,
     updateApplicationStatus
@@ -310,10 +374,12 @@ export function FosterConsoleWorkspace() {
             publicProfileStatus={publicProfile?.moderationStatus ?? null}
             onCreatePet={createFosterPet}
             onPrepareListing={prepareAdoptionListing}
+            onSaveListing={saveAdoptionListing}
             onShowApplications={(petId) => {
               setApplicationPetFilter(petId);
               setApplicationStatusFilter("all");
             }}
+            onSubmitListing={submitAdoptionListing}
           />
 
           {profile?.status !== "approved" ? (
@@ -449,7 +515,9 @@ function FosterPetsPanel({
   listings,
   onCreatePet,
   onPrepareListing,
+  onSaveListing,
   onShowApplications,
+  onSubmitListing,
   pets,
   profileStatus,
   publicProfileStatus
@@ -459,7 +527,9 @@ function FosterPetsPanel({
   listings: PetAdoptionListing[];
   onCreatePet: (input: Omit<CreatePetInput, "householdId">) => Promise<PetSummary | null>;
   onPrepareListing: (petId: Uuid) => Promise<PetAdoptionListing | null>;
+  onSaveListing: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
   onShowApplications: (petId: Uuid) => void;
+  onSubmitListing: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
   pets: PetSummary[];
   profileStatus: string | null;
   publicProfileStatus: string | null;
@@ -625,22 +695,16 @@ function FosterPetsPanel({
                   <StatusBadge label="En acogida" tone="success" />
                 </div>
                 <p style={styles.itemMeta}>{pet.notes || "Sin notas de acogida registradas."}</p>
-                <div style={styles.petActionsRow}>
-                  {listing ? (
-                    <span style={styles.countPill}>{listingStatusLabels[listing.status]}</span>
-                  ) : (
-                    <button disabled={disabled} onClick={() => void onPrepareListing(pet.id)} style={styles.secondaryButton} type="button">
-                      Preparar publicacion
-                    </button>
-                  )}
-                  {applicationCount ? (
-                    <button onClick={() => onShowApplications(pet.id)} style={styles.secondaryButton} type="button">
-                      Ver solicitudes ({applicationCount})
-                    </button>
-                  ) : (
-                    <span style={styles.itemMeta}>Sin solicitudes todavia</span>
-                  )}
-                </div>
+                <AdoptionPublicationFlow
+                  applicationCount={applicationCount}
+                  disabled={disabled}
+                  listing={listing ?? null}
+                  onPrepare={() => onPrepareListing(pet.id)}
+                  onSave={onSaveListing}
+                  onShowApplications={() => onShowApplications(pet.id)}
+                  onSubmit={onSubmitListing}
+                  pet={pet}
+                />
               </article>
             );
           })}
@@ -649,6 +713,165 @@ function FosterPetsPanel({
         <EmptyState text="Aun no tienes mascotas bajo acogida. Registra la primera mascota cuando este bajo cuidado de esta Familia Protectora." />
       )}
     </section>
+  );
+}
+
+function AdoptionPublicationFlow({
+  applicationCount,
+  disabled,
+  listing,
+  onPrepare,
+  onSave,
+  onShowApplications,
+  onSubmit,
+  pet
+}: {
+  applicationCount: number;
+  disabled: boolean;
+  listing: PetAdoptionListing | null;
+  onPrepare: () => Promise<PetAdoptionListing | null>;
+  onSave: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
+  onShowApplications: () => void;
+  onSubmit: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
+  pet: PetSummary;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [form, setForm] = useState<PetAdoptionListingInput>(() => buildAdoptionListingForm(listing, pet));
+  const steps = buildAdoptionSteps(listing);
+  const canEdit = !listing || ["draft", "rejected", "paused"].includes(listing.status);
+  const canSubmit = listing ? ["draft", "rejected", "paused"].includes(listing.status) : false;
+
+  useEffect(() => {
+    setForm(buildAdoptionListingForm(listing, pet));
+  }, [listing?.id, listing?.updatedAt, pet.id]);
+
+  function resetForm() {
+    setForm(buildAdoptionListingForm(listing, pet));
+  }
+
+  function updateField<K extends keyof PetAdoptionListingInput>(field: K, value: PetAdoptionListingInput[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  return (
+    <div style={styles.publicationFlowBox}>
+      <div style={styles.processRail}>
+        {steps.map((step) => (
+          <div key={step.label} style={{ ...styles.processStep, ...(step.state === "done" ? styles.processStepDone : {}), ...(step.state === "active" ? styles.processStepActive : {}) }}>
+            <span style={styles.processDot}>{step.state === "done" ? "✓" : step.order}</span>
+            <span>{step.label}</span>
+          </div>
+        ))}
+      </div>
+      <p style={styles.itemMeta}>{publicationGuidance(listing)}</p>
+
+      <div style={styles.petActionsRow}>
+        {!listing ? (
+          <button disabled={disabled} onClick={() => void onPrepare()} style={styles.secondaryButton} type="button">
+            Preparar publicacion
+          </button>
+        ) : null}
+        {listing && canEdit ? (
+          <button disabled={disabled} onClick={() => setIsEditing((current) => !current)} style={styles.secondaryButton} type="button">
+            {isEditing ? "Ocultar formulario" : "Completar publicacion"}
+          </button>
+        ) : null}
+        {listing && canSubmit ? (
+          <button disabled={disabled} onClick={() => void onSubmit(listing.id)} style={styles.primaryButton} type="button">
+            Enviar a revision
+          </button>
+        ) : null}
+        {applicationCount ? (
+          <button onClick={onShowApplications} style={styles.secondaryButton} type="button">
+            Ver solicitudes ({applicationCount})
+          </button>
+        ) : (
+          <span style={styles.itemMeta}>Sin solicitudes todavia</span>
+        )}
+      </div>
+
+      {isEditing && listing ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onSave(form).then((saved) => {
+              if (saved) {
+                setForm(buildAdoptionListingForm(saved, pet));
+                setIsEditing(false);
+              }
+            });
+          }}
+          style={styles.formStack}
+        >
+          <div style={styles.formGrid}>
+            <label style={styles.fieldLabel}>
+              Titulo
+              <input disabled={disabled} onChange={(event) => updateField("title", event.target.value)} style={styles.input} value={form.title} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Ciudad
+              <input disabled={disabled} onChange={(event) => updateField("city", event.target.value)} style={styles.input} value={form.city} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Region
+              <input disabled={disabled} onChange={(event) => updateField("stateRegion", event.target.value)} style={styles.input} value={form.stateRegion ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Pais
+              <input disabled={disabled} maxLength={2} onChange={(event) => updateField("countryCode", event.target.value.toUpperCase())} style={styles.input} value={form.countryCode ?? "PA"} />
+            </label>
+          </div>
+          <label style={styles.fieldLabel}>
+            Historia publica
+            <textarea disabled={disabled} onChange={(event) => updateField("publicStory", event.target.value)} style={styles.textarea} value={form.publicStory ?? ""} />
+          </label>
+          <label style={styles.fieldLabel}>
+            Personalidad
+            <textarea disabled={disabled} onChange={(event) => updateField("personalityNotes", event.target.value)} style={styles.textarea} value={form.personalityNotes ?? ""} />
+          </label>
+          <label style={styles.fieldLabel}>
+            Salud publica resumida
+            <textarea disabled={disabled} onChange={(event) => updateField("publicHealthSummary", event.target.value)} style={styles.textarea} value={form.publicHealthSummary ?? ""} />
+          </label>
+          <label style={styles.fieldLabel}>
+            Requisitos de adopcion
+            <textarea disabled={disabled} onChange={(event) => updateField("adoptionRequirements", event.target.value)} style={styles.textarea} value={form.adoptionRequirements ?? ""} />
+          </label>
+          <div style={styles.formGrid}>
+            <label style={styles.fieldLabel}>
+              Ninos
+              <input disabled={disabled} onChange={(event) => updateField("compatibilityChildren", event.target.value)} style={styles.input} value={form.compatibilityChildren ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Perros
+              <input disabled={disabled} onChange={(event) => updateField("compatibilityDogs", event.target.value)} style={styles.input} value={form.compatibilityDogs ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Gatos
+              <input disabled={disabled} onChange={(event) => updateField("compatibilityCats", event.target.value)} style={styles.input} value={form.compatibilityCats ?? ""} />
+            </label>
+          </div>
+          <label style={styles.fieldLabel}>
+            Necesidades especiales
+            <textarea disabled={disabled} onChange={(event) => updateField("specialNeedsNotes", event.target.value)} style={styles.textarea} value={form.specialNeedsNotes ?? ""} />
+          </label>
+          <div style={styles.heroActions}>
+            <button disabled={disabled} style={styles.primaryButton} type="submit">Guardar borrador</button>
+            <button
+              disabled={disabled}
+              onClick={() => {
+                resetForm();
+                setIsEditing(false);
+              }}
+              style={styles.secondaryButton}
+              type="button"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : null}
+    </div>
   );
 }
 
@@ -1291,6 +1514,12 @@ const styles: Record<string, React.CSSProperties> = {
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
   petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" },
   primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
+  processDot: { alignItems: "center", background: "rgba(15, 118, 110, 0.08)", borderRadius: "999px", display: "inline-flex", fontSize: "11px", fontWeight: 900, height: "22px", justifyContent: "center", width: "22px" },
+  processRail: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  processStep: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#64748b", display: "inline-flex", fontSize: "12px", fontWeight: 900, gap: "6px", padding: "6px 9px" },
+  processStepActive: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.24)", color: "#c2410c" },
+  processStepDone: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.22)", color: "#0f766e" },
+  publicationFlowBox: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
   publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   rejectBox: { display: "grid", gap: "8px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },

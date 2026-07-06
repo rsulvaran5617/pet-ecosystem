@@ -13,6 +13,7 @@
 - Para familias protectoras aprobadas, `/foster` agrega bloque `Perfil publico` con resumen, CTA contextual, formulario de edicion y envio a revision admin mediante `upsertProtectivePublicProfile` / `submitProtectivePublicProfile`.
 - Guardar perfil publico no lo aprueba ni publica automaticamente; admin sigue revisando y aprobando el perfil publico.
 - `/foster` agrega seccion `Mascotas bajo acogida` para familias protectoras aprobadas: lista mascotas del household `protective`, permite registrar una mascota en acogida con `createPet` usando el household activo y prepara borrador de publicacion como accion separada.
+- Cada mascota bajo acogida muestra un tren de proceso de adopcion: `Mascota`, `Publicacion`, `Contenido`, `Revision`, `Visible`; desde el borrador se pueden completar datos publicos y enviar a revision admin.
 - Registrar mascota en acogida no publica adopcion, no mueve custodia, no crea solicitudes ni transferencias y no mezcla mascotas de hogares owner.
 - La bandeja web usa los RPC/API existentes de Foster-5D.1/Foster-5E para avanzar solicitudes (`submitted -> in_review -> interview -> approved`), rechazar con nota e iniciar transferencia privada desde solicitudes aprobadas.
 - Regla preservada: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada mueve `pets.household_id`.
