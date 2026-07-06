@@ -1,5 +1,15 @@
 # pets.md
 
+## Foster web - Mascotas bajo acogida
+
+La consola web `/foster` reutiliza el modelo `pets` para registrar mascotas bajo una Familia Protectora aprobada.
+
+- La mascota se crea con `householdId` del household `protective` activo.
+- No se duplica el expediente ni se crea una entidad paralela.
+- Registrar la mascota no publica adopcion automaticamente.
+- La publicacion Foster sigue siendo flujo separado y moderado.
+- Las mascotas de hogares `owner` no deben mezclarse en esta seccion.
+
 ## Objetivo del modulo
 Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y gestionar documentos basicos ligados a esa mascota.
 

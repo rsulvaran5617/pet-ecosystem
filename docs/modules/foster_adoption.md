@@ -552,6 +552,11 @@ Incluye:
   - crea o edita nombre publico, mision, historia, ciudad/pais, politica de contacto y necesidades principales.
   - guarda borrador sin hacerlo publico automaticamente.
   - envia a revision admin antes de quedar como perfil publico aprobado.
+- seccion `Mascotas bajo acogida`:
+  - lista mascotas asociadas al household `protective` activo.
+  - permite registrar mascota usando el API de pets con el household protector activo.
+  - muestra estado de publicacion por mascota y solicitudes relacionadas.
+  - puede preparar una publicacion como borrador, sin publicarla ni enviarla automaticamente.
 - listado de publicaciones Foster de la familia protectora.
 - bandeja de solicitudes recibidas con filtros por estado y mascota.
 - detalle de solicitud con datos estructurados, timeline y acciones de pipeline.
@@ -563,6 +568,7 @@ Reglas preservadas:
 - iniciar transferencia solo crea la invitacion Foster-2A/Foster-5E.
 - solo aceptar la transferencia privada mueve custodia y cierra adopcion.
 - no crea chat, no toca provider services, booking, Payments, QR, evidencia operacional ni geolocalizacion.
+- no duplica mascotas ni mezcla mascotas de hogares owner.
 - no reemplaza la moderacion admin; admin sigue aprobando familias protectoras y auditorias.
 
 ### Slice Foster-5E - Estado adoptada conectado con transferencia

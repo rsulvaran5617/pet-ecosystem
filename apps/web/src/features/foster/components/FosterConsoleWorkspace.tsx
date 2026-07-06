@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import type {
+  CreatePetInput,
   ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
   ProtectivePublicProfile,
@@ -9,6 +10,8 @@ import type {
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
+  PetSex,
+  PetSummary,
   PetTransferRecord,
   Uuid
 } from "@pet/types";
@@ -60,6 +63,12 @@ const contactPolicyLabels: Record<ProtectiveContactPolicy, string> = {
   platform_only: "Solo por la plataforma",
   public_email: "Email publico",
   public_phone: "Telefono publico"
+};
+
+const petSexLabels: Record<PetSex, string> = {
+  female: "Hembra",
+  male: "Macho",
+  unknown: "Sin indicar"
 };
 
 function formatDate(value: string | null | undefined) {
@@ -121,12 +130,15 @@ export function FosterConsoleWorkspace() {
     applications,
     authState,
     createProtectiveHousehold,
+    createFosterPet,
     errorMessage,
     infoMessage,
     isLoading,
     isSubmitting,
     listings,
     openApplication,
+    pets,
+    prepareAdoptionListing,
     profile,
     protectiveHouseholds,
     publicProfile,
@@ -289,6 +301,21 @@ export function FosterConsoleWorkspace() {
             onSubmit={submitPublicProfile}
           />
 
+          <FosterPetsPanel
+            applications={applications}
+            disabled={isSubmitting}
+            listings={listings}
+            pets={pets}
+            profileStatus={profile?.status ?? null}
+            publicProfileStatus={publicProfile?.moderationStatus ?? null}
+            onCreatePet={createFosterPet}
+            onPrepareListing={prepareAdoptionListing}
+            onShowApplications={(petId) => {
+              setApplicationPetFilter(petId);
+              setApplicationStatusFilter("all");
+            }}
+          />
+
           {profile?.status !== "approved" ? (
             <InfoPanel
               title="Familia Protectora pendiente de aprobacion"
@@ -413,6 +440,215 @@ export function FosterConsoleWorkspace() {
         </>
       ) : null}
     </main>
+  );
+}
+
+function FosterPetsPanel({
+  applications,
+  disabled,
+  listings,
+  onCreatePet,
+  onPrepareListing,
+  onShowApplications,
+  pets,
+  profileStatus,
+  publicProfileStatus
+}: {
+  applications: PetAdoptionApplication[];
+  disabled: boolean;
+  listings: PetAdoptionListing[];
+  onCreatePet: (input: Omit<CreatePetInput, "householdId">) => Promise<PetSummary | null>;
+  onPrepareListing: (petId: Uuid) => Promise<PetAdoptionListing | null>;
+  onShowApplications: (petId: Uuid) => void;
+  pets: PetSummary[];
+  profileStatus: string | null;
+  publicProfileStatus: string | null;
+}) {
+  const canCreatePet = profileStatus === "approved";
+  const [isCreating, setIsCreating] = useState(false);
+  const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
+    birthDate: "",
+    breed: "",
+    isSterilized: null,
+    name: "",
+    notes: "",
+    sex: "unknown",
+    species: ""
+  });
+  const listingByPetId = useMemo(() => new Map(listings.map((listing) => [listing.petId, listing])), [listings]);
+  const applicationCountByPetId = useMemo(
+    () =>
+      applications.reduce((countMap, application) => {
+        countMap.set(application.petId, (countMap.get(application.petId) ?? 0) + 1);
+        return countMap;
+      }, new Map<string, number>()),
+    [applications]
+  );
+
+  function updateField<K extends keyof Omit<CreatePetInput, "householdId">>(field: K, value: Omit<CreatePetInput, "householdId">[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function resetForm() {
+    setForm({
+      birthDate: "",
+      breed: "",
+      isSterilized: null,
+      name: "",
+      notes: "",
+      sex: "unknown",
+      species: ""
+    });
+  }
+
+  return (
+    <section style={styles.panel}>
+      <div style={styles.sectionHeader}>
+        <div>
+          <p style={styles.eyebrow}>Acogida</p>
+          <h2 style={styles.sectionTitle}>Mascotas bajo acogida</h2>
+          <p style={styles.bodyText}>Mascotas registradas bajo esta Familia Protectora.</p>
+        </div>
+        <div style={styles.heroActions}>
+          <span style={styles.countPill}>{pets.length} total</span>
+          <button disabled={disabled || !canCreatePet} onClick={() => setIsCreating((current) => !current)} style={styles.primaryButton} type="button">
+            {isCreating ? "Ocultar formulario" : "Registrar mascota en acogida"}
+          </button>
+        </div>
+      </div>
+
+      {!canCreatePet ? <Notice tone="info" message="Primero espera la aprobacion de tu Familia Protectora." /> : null}
+      {canCreatePet && publicProfileStatus !== "approved" ? (
+        <Notice tone="info" message="Para publicar adopciones, completa y aprueba tu perfil publico." />
+      ) : null}
+
+      {isCreating ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void onCreatePet({
+              ...form,
+              birthDate: form.birthDate || null,
+              breed: form.breed?.trim() || null,
+              notes: form.notes?.trim() || null
+            }).then((pet) => {
+              if (pet) {
+                resetForm();
+                setIsCreating(false);
+              }
+            });
+          }}
+          style={styles.formStack}
+        >
+          <div style={styles.formGrid}>
+            <label style={styles.fieldLabel}>
+              Nombre
+              <input disabled={disabled} onChange={(event) => updateField("name", event.target.value)} placeholder="Ej. Luna" style={styles.input} value={form.name} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Especie
+              <input disabled={disabled} onChange={(event) => updateField("species", event.target.value)} placeholder="Perro, gato u otro" style={styles.input} value={form.species} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Raza o tipo
+              <input disabled={disabled} onChange={(event) => updateField("breed", event.target.value)} placeholder="Opcional" style={styles.input} value={form.breed ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Sexo
+              <select disabled={disabled} onChange={(event) => updateField("sex", event.target.value as PetSex)} style={styles.input} value={form.sex ?? "unknown"}>
+                {Object.entries(petSexLabels).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <label style={styles.fieldLabel}>
+              Fecha de nacimiento
+              <input disabled={disabled} onChange={(event) => updateField("birthDate", event.target.value)} style={styles.input} type="date" value={form.birthDate ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Esterilizada
+              <select
+                disabled={disabled}
+                onChange={(event) => updateField("isSterilized", event.target.value === "unknown" ? null : event.target.value === "yes")}
+                style={styles.input}
+                value={form.isSterilized === null ? "unknown" : form.isSterilized ? "yes" : "no"}
+              >
+                <option value="unknown">Sin indicar</option>
+                <option value="yes">Si</option>
+                <option value="no">No</option>
+              </select>
+            </label>
+          </div>
+          <label style={styles.fieldLabel}>
+            Notas breves
+            <textarea
+              disabled={disabled}
+              onChange={(event) => updateField("notes", event.target.value)}
+              placeholder="Notas de comportamiento, rescate o cuidado inicial."
+              style={styles.textarea}
+              value={form.notes ?? ""}
+            />
+          </label>
+          <div style={styles.heroActions}>
+            <button disabled={disabled} style={styles.primaryButton} type="submit">
+              {disabled ? "Guardando..." : "Registrar mascota"}
+            </button>
+            <button
+              disabled={disabled}
+              onClick={() => {
+                resetForm();
+                setIsCreating(false);
+              }}
+              style={styles.secondaryButton}
+              type="button"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {pets.length ? (
+        <div style={styles.fosterPetGrid}>
+          {pets.map((pet) => {
+            const listing = listingByPetId.get(pet.id);
+            const applicationCount = applicationCountByPetId.get(pet.id) ?? 0;
+
+            return (
+              <article key={pet.id} style={styles.fosterPetCard}>
+                <div style={styles.applicationCardHeader}>
+                  <div>
+                    <strong style={styles.itemTitle}>{pet.name}</strong>
+                    <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
+                    <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                  </div>
+                  <StatusBadge label="En acogida" tone="success" />
+                </div>
+                <p style={styles.itemMeta}>{pet.notes || "Sin notas de acogida registradas."}</p>
+                <div style={styles.petActionsRow}>
+                  {listing ? (
+                    <span style={styles.countPill}>{listingStatusLabels[listing.status]}</span>
+                  ) : (
+                    <button disabled={disabled} onClick={() => void onPrepareListing(pet.id)} style={styles.secondaryButton} type="button">
+                      Preparar publicacion
+                    </button>
+                  )}
+                  {applicationCount ? (
+                    <button onClick={() => onShowApplications(pet.id)} style={styles.secondaryButton} type="button">
+                      Ver solicitudes ({applicationCount})
+                    </button>
+                  ) : (
+                    <span style={styles.itemMeta}>Sin solicitudes todavia</span>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState text="Aun no tienes mascotas bajo acogida. Registra la primera mascota cuando este bajo cuidado de esta Familia Protectora." />
+      )}
+    </section>
   );
 }
 
@@ -1028,6 +1264,8 @@ const styles: Record<string, React.CSSProperties> = {
   fieldLabel: { color: "#334155", display: "grid", fontSize: "12px", fontWeight: 900, gap: "7px", textTransform: "uppercase" },
   formGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
   formStack: { display: "grid", gap: "14px" },
+  fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", gap: "12px", padding: "14px" },
+  fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "28px", color: "white", display: "flex", gap: "24px", justifyContent: "space-between", padding: "30px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "10px" },
@@ -1051,6 +1289,7 @@ const styles: Record<string, React.CSSProperties> = {
   notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
+  petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" },
   primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   rejectBox: { display: "grid", gap: "8px" },

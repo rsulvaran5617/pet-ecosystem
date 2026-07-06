@@ -6,7 +6,9 @@ import type {
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
+  CreatePetInput,
   PetTransferRecord,
+  PetSummary,
   ProtectivePublicProfileInput,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfile,
@@ -18,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getBrowserFosterApiClient,
   getBrowserHouseholdsApiClient,
+  getBrowserPetsApiClient,
   getBrowserSupabaseClient
 } from "../../core/services/supabase-browser";
 
@@ -31,6 +34,7 @@ export type FosterConsoleApplicationDetail = {
 export type FosterConsoleHouseholdContext = {
   applications: PetAdoptionApplication[];
   listings: PetAdoptionListing[];
+  pets: PetSummary[];
   profile: ProtectiveHouseholdProfile | null;
   publicProfile: ProtectivePublicProfile | null;
   transfers: PetTransferRecord[];
@@ -94,17 +98,19 @@ export function useFosterConsoleWorkspace() {
   );
 
   const loadHouseholdContext = useCallback(async (household: HouseholdSummary): Promise<FosterConsoleHouseholdContext> => {
-    const [profile, publicProfile, listings, applications, transfers] = await Promise.all([
+    const [profile, publicProfile, listings, applications, transfers, pets] = await Promise.all([
       getBrowserFosterApiClient().getProtectiveHouseholdProfile(household.id),
       getBrowserFosterApiClient().getProtectivePublicProfile(household.id),
       getBrowserFosterApiClient().listMyPetAdoptionListings(household.id),
       getBrowserFosterApiClient().listReceivedPetAdoptionApplications(household.id),
-      getBrowserFosterApiClient().listOutgoingPetTransfers(household.id)
+      getBrowserFosterApiClient().listOutgoingPetTransfers(household.id),
+      getBrowserPetsApiClient().listHouseholdPets(household.id)
     ]);
 
     return {
       applications,
       listings,
+      pets,
       profile,
       publicProfile,
       transfers
@@ -377,6 +383,95 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function createFosterPet(input: Omit<CreatePetInput, "householdId">) {
+    if (!selectedHousehold) {
+      setErrorMessage("Selecciona una Familia Protectora antes de registrar una mascota.");
+      return null;
+    }
+
+    if (selectedContext?.profile?.status !== "approved") {
+      setErrorMessage("Primero espera la aprobacion de tu Familia Protectora.");
+      return null;
+    }
+
+    const name = input.name.trim();
+    const species = input.species.trim();
+
+    if (!name || !species) {
+      setErrorMessage("Completa nombre y especie antes de registrar la mascota.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const pet = await getBrowserPetsApiClient().createPet({
+        ...input,
+        breed: input.breed?.trim() || null,
+        householdId: selectedHousehold.id,
+        name,
+        notes: input.notes?.trim() || null,
+        species
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Mascota registrada bajo esta Familia Protectora.");
+      }
+
+      return pet;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible registrar la mascota en acogida."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function prepareAdoptionListing(petId: Uuid) {
+    if (!selectedHousehold) {
+      setErrorMessage("Selecciona una Familia Protectora antes de preparar una publicacion.");
+      return null;
+    }
+
+    if (selectedContext?.profile?.status !== "approved") {
+      setErrorMessage("Primero espera la aprobacion de tu Familia Protectora.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const listing = await getBrowserFosterApiClient().createPetAdoptionListing(petId, selectedHousehold.id);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Publicacion preparada como borrador. Completa su historia, fotos y datos antes de enviarla a revision.");
+      }
+
+      return listing;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible preparar la publicacion de adopcion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return {
     applications: selectedContext?.applications ?? [],
     authState,
@@ -384,6 +479,7 @@ export function useFosterConsoleWorkspace() {
       setErrorMessage(null);
       setInfoMessage(null);
     },
+    createFosterPet,
     createProtectiveHousehold,
     errorMessage,
     infoMessage,
@@ -391,6 +487,8 @@ export function useFosterConsoleWorkspace() {
     isSubmitting,
     listings: selectedContext?.listings ?? [],
     openApplication,
+    pets: selectedContext?.pets ?? [],
+    prepareAdoptionListing,
     profile: selectedContext?.profile ?? null,
     protectiveHouseholds,
     publicProfile: selectedContext?.publicProfile ?? null,
