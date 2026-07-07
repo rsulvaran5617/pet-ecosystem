@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Foster hotfix detalle adopcion 2026-07-07
+
+- Se aplico remoto la migracion `20260707173000_foster_adoption_detail_ambiguous_id_fix.sql`.
+- Corrige `get_pet_adoption_listing_detail` para calificar explicitamente `id` con alias en las consultas a `list_published_pet_adoption_listings` y `list_my_pet_adoption_listings`.
+- Motivo: mobile `Mascotas que buscan hogar` podia mostrar `column reference "id" is ambiguous` al cargar/abrir publicaciones.
+- Dry-run posterior Supabase: `Remote database is up to date`.
+- No se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 ## Foster adopcion cierre UX clarificado 2026-07-07
 
 - Mobile owner `Mascotas que buscan hogar` ahora precarga nombre/correo del perfil autenticado en `Solicitar adopcion` y muestra copy por estado posterior:
