@@ -61,9 +61,22 @@ function toHumanFosterError(error: unknown, fallback: string) {
   }
 
   const message = error.message.toLowerCase();
+  const originalMessage = error.message;
 
   if (message.includes("auth") || message.includes("session") || message.includes("jwt")) {
     return "Tu sesion expiro. Inicia sesion nuevamente para continuar.";
+  }
+
+  if (message.includes("adoption_media_permission_failed") || message.includes("adoption_media_permission_check_failed")) {
+    return "La sesion activa no tiene permiso admin para subir fotos en esta publicacion. Verifica la cuenta activa y los permisos de la Familia Protectora.";
+  }
+
+  if (message.includes("adoption_media_storage_upload_failed")) {
+    return `No fue posible guardar el archivo de la foto en Storage. Detalle: ${originalMessage.replace("adoption_media_storage_upload_failed: ", "")}`;
+  }
+
+  if (message.includes("adoption_media_metadata_insert_failed")) {
+    return `La foto no pudo registrarse en la galeria de adopcion. Detalle: ${originalMessage.replace("adoption_media_metadata_insert_failed: ", "")}`;
   }
 
   if (message.includes("duplicate") || message.includes("already") || message.includes("unique")) {

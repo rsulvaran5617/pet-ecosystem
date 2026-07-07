@@ -2293,6 +2293,13 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["pet_adoption_listings"]["Row"];
       };
+      can_manage_pet_adoption_listing: {
+        Args: {
+          target_listing_id: string;
+          target_user_id?: string;
+        };
+        Returns: boolean;
+      };
       update_pet_adoption_listing: {
         Args: {
           target_listing_id: string;

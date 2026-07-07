@@ -311,6 +311,9 @@ export function FosterConsoleWorkspace() {
   const selectedTransfer = selectedApplicationDetail
     ? transfers.find((transfer) => transfer.adoptionApplicationId === selectedApplicationDetail.application.id)
     : undefined;
+  const selectedHouseholdPermissionLabel = selectedHousehold?.myPermissions.includes("admin")
+    ? "admin"
+    : selectedHousehold?.myPermissions.join(", ") || "sin permisos de gestion";
 
   return (
     <main style={styles.pageShell}>
@@ -321,7 +324,12 @@ export function FosterConsoleWorkspace() {
           <p style={styles.heroCopy}>
             Gestiona publicaciones, solicitudes y transferencias privadas sin mezclar adopcion responsable con servicios comerciales.
           </p>
-          {sessionUserEmail ? <p style={styles.sessionHint}>Sesion activa: {sessionUserEmail}</p> : null}
+          {sessionUserEmail ? (
+            <p style={styles.sessionHint}>
+              Sesion activa: {sessionUserEmail}
+              {selectedHousehold ? ` · Permisos en familia seleccionada: ${selectedHouseholdPermissionLabel}` : ""}
+            </p>
+          ) : null}
         </div>
         <div style={styles.heroActions}>
           <a href="/app" style={styles.secondaryButton}>Abrir app general</a>

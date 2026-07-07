@@ -1314,6 +1314,19 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         throw new Error("Adoption media file is required.");
       }
 
+      const { data: canManageListing, error: permissionError } = await supabase.rpc("can_manage_pet_adoption_listing", {
+        target_listing_id: input.listingId,
+        target_user_id: currentUserId
+      });
+
+      if (permissionError) {
+        throw new Error(`adoption_media_permission_check_failed: ${permissionError.message}`);
+      }
+
+      if (!canManageListing) {
+        throw new Error("adoption_media_permission_failed: current session cannot manage this adoption listing.");
+      }
+
       const { error: uploadError } = await supabase.storage
         .from("pet-adoption-media")
         .upload(storagePath, fileBlob, {
@@ -1322,7 +1335,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         });
 
       if (uploadError) {
-        fail(uploadError, "Unable to upload adoption media.");
+        throw new Error(`adoption_media_storage_upload_failed: ${uploadError.message}`);
       }
 
       const { data, error } = await supabase
@@ -1345,7 +1358,11 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
 
       if (error) {
         await supabase.storage.from("pet-adoption-media").remove([storagePath]);
-        failMissingFosterSchema(error);
+        if (isMissingFosterSchemaError(error)) {
+          failMissingFosterSchema(error);
+        }
+
+        throw new Error(`adoption_media_metadata_insert_failed: ${error.message}`);
       }
 
       return mapPetAdoptionMedia(supabase, data);
