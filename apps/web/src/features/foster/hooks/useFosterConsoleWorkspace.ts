@@ -77,6 +77,31 @@ function toHumanFosterError(error: unknown, fallback: string) {
   return error.message || fallback;
 }
 
+function normalizeAdoptionPhotoFile(file: File) {
+  const extension = file.name.split(".").pop()?.trim().toLowerCase() ?? "";
+  const mimeByExtension: Record<string, string> = {
+    jpeg: "image/jpeg",
+    jfif: "image/jpeg",
+    jpe: "image/jpeg",
+    jpg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp"
+  };
+  const normalizedMimeType = file.type === "image/jpg" ? "image/jpeg" : file.type || mimeByExtension[extension] || "";
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(normalizedMimeType)) {
+    return {
+      error: "Formato no compatible. Sube fotos en JPG, JPEG, PNG o WebP.",
+      mimeType: null
+    };
+  }
+
+  return {
+    error: null,
+    mimeType: normalizedMimeType
+  };
+}
+
 export function useFosterConsoleWorkspace() {
   const mountedRef = useRef(true);
   const [authState, setAuthState] = useState<AuthState>("checking");
@@ -529,8 +554,10 @@ export function useFosterConsoleWorkspace() {
   }
 
   async function uploadAdoptionListingPhoto(listingId: Uuid, file: File) {
-    if (!file.type.startsWith("image/")) {
-      setErrorMessage("Selecciona una imagen JPG, PNG o WebP para la galeria publica.");
+    const normalizedFile = normalizeAdoptionPhotoFile(file);
+
+    if (normalizedFile.error || !normalizedFile.mimeType) {
+      setErrorMessage(normalizedFile.error);
       return null;
     }
 
@@ -548,7 +575,7 @@ export function useFosterConsoleWorkspace() {
         fileUri,
         isCover: !contextListing?.media.some((item) => item.isCover && item.moderationStatus !== "rejected"),
         listingId,
-        mimeType: file.type
+        mimeType: normalizedFile.mimeType
       });
       await reloadSelectedHousehold();
 

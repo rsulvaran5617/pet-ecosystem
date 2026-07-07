@@ -15,6 +15,7 @@
 - `/foster` agrega seccion `Mascotas bajo acogida` para familias protectoras aprobadas: lista mascotas del household `protective`, permite registrar una mascota en acogida con `createPet` usando el household activo y prepara borrador de publicacion como accion separada.
 - Cada mascota bajo acogida muestra un tren de proceso de adopcion: `Mascota`, `Publicacion`, `Contenido`, `Fotos`, `Revision`, `Visible`; desde el borrador se pueden completar datos publicos, subir galeria publica de fotos, marcar portada y enviar a revision admin.
 - La galeria web reutiliza Foster-3B: bucket privado `pet-adoption-media`, limite de 8 fotos, URLs firmadas temporales, portada controlada y moderacion individual admin antes de hacer visible cada foto.
+- La subida web normaliza formatos JPG/JPEG/JPE/JFIF a `image/jpeg` para evitar rechazos del bucket por MIME irregular del navegador; PNG y WebP se mantienen soportados.
 - Registrar mascota en acogida no publica adopcion, no mueve custodia, no crea solicitudes ni transferencias y no mezcla mascotas de hogares owner.
 - La bandeja web usa los RPC/API existentes de Foster-5D.1/Foster-5E para avanzar solicitudes (`submitted -> in_review -> interview -> approved`), rechazar con nota e iniciar transferencia privada desde solicitudes aprobadas.
 - Regla preservada: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada mueve `pets.household_id`.

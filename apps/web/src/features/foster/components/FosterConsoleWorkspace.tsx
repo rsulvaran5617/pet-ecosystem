@@ -859,7 +859,7 @@ function AdoptionPublicationFlow({
           <label style={{ ...styles.secondaryButton, opacity: disabled || !canManageMedia || listing.media.length >= 8 ? 0.55 : 1 }}>
             + Subir foto
             <input
-              accept="image/jpeg,image/png,image/webp"
+              accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
               disabled={disabled || !canManageMedia || listing.media.length >= 8}
               onChange={(event) => {
                 const file = event.target.files?.[0];
