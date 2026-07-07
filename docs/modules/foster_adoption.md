@@ -769,6 +769,7 @@ UI implementada localmente:
 - Owner mobile `Mascotas`: bloque para preparar publicacion de adopcion, cargar fotos y enviar a revision cuando el hogar es familia protectora aprobada.
 - Owner mobile `Inicio`: vitrina read-only `Mascotas que buscan hogar` abre una pantalla dedicada con cards publicadas y CTA informativo.
 - Owner mobile `Mascotas`: solo conserva acceso compacto a publicaciones propias para familias protectoras aprobadas.
+- Web Foster Console `/foster`: cada mascota bajo acogida muestra tren `Mascota -> Publicacion -> Contenido -> Fotos -> Revision -> Visible`; permite cargar galeria publica, marcar portada, retirar fotos y enviar a revision sin exponer documentos privados.
 - Admin web `Familias protectoras`: cola de publicaciones pendientes con detalle, fotos firmadas y acciones aprobar/rechazar/pausar.
 
 ## Decision recomendada

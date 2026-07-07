@@ -11,6 +11,7 @@ import type {
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListingInput,
   PetAdoptionListing,
+  PetAdoptionListingMedia,
   PetSex,
   PetSummary,
   PetTransferRecord,
@@ -106,6 +107,18 @@ function coverUrl(listing: PetAdoptionListing) {
   return listing.media.find((item) => item.isCover && item.signedUrl)?.signedUrl ?? listing.media.find((item) => item.signedUrl)?.signedUrl ?? null;
 }
 
+function getAdoptionMediaStatusLabel(status: PetAdoptionListingMedia["moderationStatus"]) {
+  if (status === "approved") {
+    return "Aprobada";
+  }
+
+  if (status === "rejected") {
+    return "Rechazada";
+  }
+
+  return "En revision";
+}
+
 function buildPublicProfileForm(
   publicProfile: ProtectivePublicProfile | null,
   selectedHouseholdId: Uuid | null,
@@ -147,6 +160,7 @@ function buildAdoptionListingForm(listing: PetAdoptionListing | null, pet: PetSu
 function buildAdoptionSteps(listing: PetAdoptionListing | null) {
   const status = listing?.status ?? null;
   const prepared = Boolean(listing);
+  const hasMedia = Boolean(listing?.media.length);
   const sentToReview = Boolean(status && status !== "draft");
   const visible = status === "published";
 
@@ -154,8 +168,9 @@ function buildAdoptionSteps(listing: PetAdoptionListing | null) {
     { label: "Mascota", order: 1, state: "done" },
     { label: "Publicacion", order: 2, state: prepared ? "done" : "active" },
     { label: "Contenido", order: 3, state: prepared && status === "draft" ? "active" : sentToReview ? "done" : "pending" },
-    { label: "Revision", order: 4, state: status === "pending_review" ? "active" : visible ? "done" : "pending" },
-    { label: "Visible", order: 5, state: visible ? "done" : "pending" }
+    { label: "Fotos", order: 4, state: hasMedia ? "done" : prepared ? "active" : "pending" },
+    { label: "Revision", order: 5, state: status === "pending_review" ? "active" : visible ? "done" : "pending" },
+    { label: "Visible", order: 6, state: visible ? "done" : "pending" }
   ] as Array<{ label: string; order: number; state: "active" | "done" | "pending" }>;
 }
 
@@ -205,6 +220,7 @@ export function FosterConsoleWorkspace() {
     protectiveHouseholds,
     publicProfile,
     refresh,
+    removeAdoptionListingPhoto,
     savePublicProfile,
     saveAdoptionListing,
     selectedApplicationDetail,
@@ -214,7 +230,9 @@ export function FosterConsoleWorkspace() {
     startTransfer,
     submitAdoptionListing,
     submitPublicProfile,
+    setAdoptionListingCover,
     transfers,
+    uploadAdoptionListingPhoto,
     updateApplicationStatus
   } = useFosterConsoleWorkspace();
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
@@ -374,12 +392,15 @@ export function FosterConsoleWorkspace() {
             publicProfileStatus={publicProfile?.moderationStatus ?? null}
             onCreatePet={createFosterPet}
             onPrepareListing={prepareAdoptionListing}
+            onRemoveListingPhoto={removeAdoptionListingPhoto}
             onSaveListing={saveAdoptionListing}
+            onSetListingCover={setAdoptionListingCover}
             onShowApplications={(petId) => {
               setApplicationPetFilter(petId);
               setApplicationStatusFilter("all");
             }}
             onSubmitListing={submitAdoptionListing}
+            onUploadListingPhoto={uploadAdoptionListingPhoto}
           />
 
           {profile?.status !== "approved" ? (
@@ -515,9 +536,12 @@ function FosterPetsPanel({
   listings,
   onCreatePet,
   onPrepareListing,
+  onRemoveListingPhoto,
   onSaveListing,
+  onSetListingCover,
   onShowApplications,
   onSubmitListing,
+  onUploadListingPhoto,
   pets,
   profileStatus,
   publicProfileStatus
@@ -527,9 +551,12 @@ function FosterPetsPanel({
   listings: PetAdoptionListing[];
   onCreatePet: (input: Omit<CreatePetInput, "householdId">) => Promise<PetSummary | null>;
   onPrepareListing: (petId: Uuid) => Promise<PetAdoptionListing | null>;
+  onRemoveListingPhoto: (media: PetAdoptionListingMedia) => Promise<void>;
   onSaveListing: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
+  onSetListingCover: (mediaId: Uuid) => Promise<PetAdoptionListingMedia | null>;
   onShowApplications: (petId: Uuid) => void;
   onSubmitListing: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
+  onUploadListingPhoto: (listingId: Uuid, file: File) => Promise<PetAdoptionListingMedia | null>;
   pets: PetSummary[];
   profileStatus: string | null;
   publicProfileStatus: string | null;
@@ -700,9 +727,12 @@ function FosterPetsPanel({
                   disabled={disabled}
                   listing={listing ?? null}
                   onPrepare={() => onPrepareListing(pet.id)}
+                  onRemovePhoto={onRemoveListingPhoto}
                   onSave={onSaveListing}
+                  onSetCover={onSetListingCover}
                   onShowApplications={() => onShowApplications(pet.id)}
                   onSubmit={onSubmitListing}
+                  onUploadPhoto={onUploadListingPhoto}
                   pet={pet}
                 />
               </article>
@@ -721,18 +751,24 @@ function AdoptionPublicationFlow({
   disabled,
   listing,
   onPrepare,
+  onRemovePhoto,
   onSave,
+  onSetCover,
   onShowApplications,
   onSubmit,
+  onUploadPhoto,
   pet
 }: {
   applicationCount: number;
   disabled: boolean;
   listing: PetAdoptionListing | null;
   onPrepare: () => Promise<PetAdoptionListing | null>;
+  onRemovePhoto: (media: PetAdoptionListingMedia) => Promise<void>;
   onSave: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
+  onSetCover: (mediaId: Uuid) => Promise<PetAdoptionListingMedia | null>;
   onShowApplications: () => void;
   onSubmit: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
+  onUploadPhoto: (listingId: Uuid, file: File) => Promise<PetAdoptionListingMedia | null>;
   pet: PetSummary;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -740,6 +776,7 @@ function AdoptionPublicationFlow({
   const steps = buildAdoptionSteps(listing);
   const canEdit = !listing || ["draft", "rejected", "paused"].includes(listing.status);
   const canSubmit = listing ? ["draft", "rejected", "paused"].includes(listing.status) : false;
+  const canManageMedia = Boolean(listing && !["adopted", "closed"].includes(listing.status));
 
   useEffect(() => {
     setForm(buildAdoptionListingForm(listing, pet));
@@ -764,6 +801,80 @@ function AdoptionPublicationFlow({
         ))}
       </div>
       <p style={styles.itemMeta}>{publicationGuidance(listing)}</p>
+
+      {listing ? (
+        <section style={styles.mediaGalleryBox}>
+          <div style={styles.sectionHeaderCompact}>
+            <div>
+              <strong style={styles.itemTitle}>Fotos publicas</strong>
+              <p style={styles.itemMeta}>Estas fotos seran visibles para familias interesadas cuando admin las apruebe.</p>
+            </div>
+            <span style={styles.countPill}>{listing.media.length}/8 fotos</span>
+          </div>
+
+          {listing.media.length ? (
+            <div style={styles.mediaRail}>
+              {listing.media.map((media) => (
+                <article key={media.id} style={styles.mediaTile}>
+                  {media.signedUrl ? (
+                    <img alt={`Foto publica de ${pet.name}`} src={media.signedUrl} style={styles.mediaImage} />
+                  ) : (
+                    <div style={styles.mediaFallback}>{pet.name.slice(0, 1).toUpperCase()}</div>
+                  )}
+                  <div style={styles.mediaTileFooter}>
+                    <span style={styles.mediaStatus}>{getAdoptionMediaStatusLabel(media.moderationStatus)}{media.isCover ? " - Portada" : ""}</span>
+                    <div style={styles.mediaActions}>
+                      {!media.isCover ? (
+                        <button
+                          disabled={disabled || !canManageMedia}
+                          onClick={() => void onSetCover(media.id)}
+                          style={styles.iconPillButton}
+                          title="Marcar como portada"
+                          type="button"
+                        >
+                          Portada
+                        </button>
+                      ) : null}
+                      <button
+                        disabled={disabled || !canManageMedia}
+                        onClick={() => void onRemovePhoto(media)}
+                        style={styles.dangerPillButton}
+                        title="Quitar foto"
+                        type="button"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div style={styles.mediaEmptyState}>
+              <strong>Agrega fotos para hacer mas cercana la publicacion.</strong>
+              <span>Usa imagenes claras de la mascota. No subas documentos privados ni datos sensibles.</span>
+            </div>
+          )}
+
+          <label style={{ ...styles.secondaryButton, opacity: disabled || !canManageMedia || listing.media.length >= 8 ? 0.55 : 1 }}>
+            + Subir foto
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              disabled={disabled || !canManageMedia || listing.media.length >= 8}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+
+                if (file) {
+                  void onUploadPhoto(listing.id, file);
+                }
+              }}
+              style={styles.fileInput}
+              type="file"
+            />
+          </label>
+        </section>
+      ) : null}
 
       <div style={styles.petActionsRow}>
         {!listing ? (
@@ -1477,6 +1588,7 @@ const styles: Record<string, React.CSSProperties> = {
   coverFallback: { alignItems: "center", background: "#dff7f3", borderRadius: "16px", color: "#0f766e", display: "flex", fontSize: "22px", fontWeight: 900, height: "66px", justifyContent: "center", width: "66px" },
   coverImage: { borderRadius: "16px", height: "66px", objectFit: "cover", width: "66px" },
   dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: 800, padding: "10px 14px" },
+  dangerPillButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.18)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
   detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "22px", display: "grid", gap: "14px", padding: "18px" },
   detailTitle: { color: "#0f172a", fontSize: "20px", margin: 0 },
@@ -1485,6 +1597,7 @@ const styles: Record<string, React.CSSProperties> = {
   eyebrow: { color: "#0f766e", fontSize: "12px", fontWeight: 900, letterSpacing: "0.08em", margin: 0, textTransform: "uppercase" },
   filtersRow: { display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" },
   fieldLabel: { color: "#334155", display: "grid", fontSize: "12px", fontWeight: 900, gap: "7px", textTransform: "uppercase" },
+  fileInput: { height: 1, opacity: 0, overflow: "hidden", position: "absolute", width: 1 },
   formGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
   formStack: { display: "grid", gap: "14px" },
   fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", gap: "12px", padding: "14px" },
@@ -1500,6 +1613,7 @@ const styles: Record<string, React.CSSProperties> = {
   infoNotice: { background: "#ecfeff", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   infoTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "grid", gap: "4px", padding: "14px" },
   input: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 700, padding: "12px 14px", textTransform: "none" },
+  iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
   itemMeta: { color: "#64748b", fontSize: "12px", lineHeight: 1.4, margin: "4px 0 0" },
   itemTitle: { color: "#0f172a", fontSize: "15px" },
   listingCard: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
@@ -1509,6 +1623,15 @@ const styles: Record<string, React.CSSProperties> = {
   metricGrid: { display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" },
   metricLabel: { color: "#0f766e", fontSize: "12px", fontWeight: 900, textTransform: "uppercase" },
   metricValue: { color: "#0f766e", fontSize: "30px", lineHeight: 1 },
+  mediaActions: { display: "flex", flexWrap: "wrap", gap: "6px" },
+  mediaEmptyState: { background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.18)", borderRadius: "16px", color: "#64748b", display: "grid", fontSize: "12px", gap: "4px", padding: "12px" },
+  mediaFallback: { alignItems: "center", background: "#dff7f3", color: "#0f766e", display: "flex", fontSize: "24px", fontWeight: 900, height: "112px", justifyContent: "center", width: "100%" },
+  mediaGalleryBox: { background: "rgba(255, 255, 255, 0.72)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
+  mediaImage: { display: "block", height: "112px", objectFit: "cover", width: "100%" },
+  mediaRail: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
+  mediaStatus: { color: "#475569", fontSize: "11px", fontWeight: 900 },
+  mediaTile: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", overflow: "hidden" },
+  mediaTileFooter: { display: "grid", gap: "8px", padding: "10px" },
   notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
@@ -1524,6 +1647,7 @@ const styles: Record<string, React.CSSProperties> = {
   rejectBox: { display: "grid", gap: "8px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },
+  sectionHeaderCompact: { alignItems: "flex-start", display: "flex", gap: "12px", justifyContent: "space-between" },
   sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
   select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 800, padding: "10px 14px" },
   statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },

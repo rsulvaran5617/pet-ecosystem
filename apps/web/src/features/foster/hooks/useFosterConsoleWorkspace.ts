@@ -7,6 +7,7 @@ import type {
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
+  PetAdoptionListingMedia,
   CreatePetInput,
   PetTransferRecord,
   PetSummary,
@@ -527,6 +528,100 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function uploadAdoptionListingPhoto(listingId: Uuid, file: File) {
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Selecciona una imagen JPG, PNG o WebP para la galeria publica.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    const fileUri = URL.createObjectURL(file);
+
+    try {
+      const contextListing = selectedContext?.listings.find((listing) => listing.id === listingId);
+      const media = await getBrowserFosterApiClient().uploadPetAdoptionMedia({
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        fileUri,
+        isCover: !contextListing?.media.some((item) => item.isCover && item.moderationStatus !== "rejected"),
+        listingId,
+        mimeType: file.type
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Foto agregada a la galeria. Admin debe aprobarla antes de que sea visible publicamente.");
+      }
+
+      return media;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible subir la foto de adopcion."));
+      }
+
+      return null;
+    } finally {
+      URL.revokeObjectURL(fileUri);
+
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function setAdoptionListingCover(mediaId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const media = await getBrowserFosterApiClient().setPetAdoptionListingCover(mediaId);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Foto marcada como portada de la publicacion.");
+      }
+
+      return media;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible marcar la portada."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function removeAdoptionListingPhoto(media: PetAdoptionListingMedia) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      await getBrowserFosterApiClient().removePetAdoptionMedia(media.id);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Foto retirada de la galeria publica.");
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible retirar la foto de adopcion."));
+      }
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   return {
     applications: selectedContext?.applications ?? [],
     authState,
@@ -562,7 +657,10 @@ export function useFosterConsoleWorkspace() {
     startTransfer,
     submitAdoptionListing,
     submitPublicProfile,
+    removeAdoptionListingPhoto,
+    setAdoptionListingCover,
     transfers: selectedContext?.transfers ?? [],
+    uploadAdoptionListingPhoto,
     updateApplicationStatus
   };
 }
