@@ -1335,6 +1335,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
           file_name: input.fileName,
           file_size_bytes: input.fileSizeBytes ?? null,
           mime_type: input.mimeType,
+          moderation_status: "pending",
           display_order: 0,
           is_cover: input.isCover ?? false,
           created_by_user_id: currentUserId

@@ -227,6 +227,7 @@ export function FosterConsoleWorkspace() {
     selectedHousehold,
     selectedHouseholdId,
     selectHousehold,
+    sessionUserEmail,
     startTransfer,
     submitAdoptionListing,
     submitPublicProfile,
@@ -320,6 +321,7 @@ export function FosterConsoleWorkspace() {
           <p style={styles.heroCopy}>
             Gestiona publicaciones, solicitudes y transferencias privadas sin mezclar adopcion responsable con servicios comerciales.
           </p>
+          {sessionUserEmail ? <p style={styles.sessionHint}>Sesion activa: {sessionUserEmail}</p> : null}
         </div>
         <div style={styles.heroActions}>
           <a href="/app" style={styles.secondaryButton}>Abrir app general</a>
@@ -1657,6 +1659,7 @@ const styles: Record<string, React.CSSProperties> = {
   sectionHeaderCompact: { alignItems: "flex-start", display: "flex", gap: "12px", justifyContent: "space-between" },
   sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
   select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 800, padding: "10px 14px" },
+  sessionHint: { color: "rgba(255,255,255,0.72)", fontSize: "11px", fontWeight: 700, margin: "10px 0 0" },
   statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
   successBadge: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   successMetric: { background: "linear-gradient(135deg, #f0fdfa, #ffffff)" },

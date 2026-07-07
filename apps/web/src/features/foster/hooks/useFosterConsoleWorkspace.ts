@@ -71,7 +71,7 @@ function toHumanFosterError(error: unknown, fallback: string) {
   }
 
   if (message.includes("permission") || message.includes("policy") || message.includes("rls")) {
-    return "No tienes permisos para crear esta familia protectora con la sesion actual.";
+    return "No tienes permisos para completar esta accion con la sesion actual. Verifica que estes usando la cuenta administradora de esta Familia Protectora.";
   }
 
   return error.message || fallback;
@@ -113,6 +113,7 @@ export function useFosterConsoleWorkspace() {
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sessionUserEmail, setSessionUserEmail] = useState<string | null>(null);
 
   const selectedHousehold = useMemo(
     () => households.find((household) => household.id === selectedHouseholdId) ?? null,
@@ -159,6 +160,7 @@ export function useFosterConsoleWorkspace() {
           setSelectedHouseholdId(null);
           setDataByHousehold({});
           setSelectedApplicationDetail(null);
+          setSessionUserEmail(null);
         }
         return;
       }
@@ -177,6 +179,7 @@ export function useFosterConsoleWorkspace() {
         setHouseholds(nextHouseholds);
         setSelectedHouseholdId(nextSelectedHouseholdId);
         setDataByHousehold(Object.fromEntries(contextEntries));
+        setSessionUserEmail(sessionResult.data.session?.user.email ?? null);
       }
     } catch (error) {
       if (mountedRef.current) {
@@ -669,6 +672,7 @@ export function useFosterConsoleWorkspace() {
     selectedApplicationDetail,
     selectedHousehold,
     selectedHouseholdId,
+    sessionUserEmail,
     savePublicProfile,
     saveAdoptionListing,
     selectHousehold(householdId: Uuid) {
