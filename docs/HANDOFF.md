@@ -3,7 +3,9 @@
 ## Foster hotfix detalle adopcion 2026-07-07
 
 - Se aplico remoto la migracion `20260707173000_foster_adoption_detail_ambiguous_id_fix.sql`.
+- Se aplico remoto la migracion `20260707184500_foster_transfer_invitations_ambiguous_id_fix.sql`.
 - Corrige `get_pet_adoption_listing_detail` para calificar explicitamente `id` con alias en las consultas a `list_published_pet_adoption_listings` y `list_my_pet_adoption_listings`.
+- Corrige `list_incoming_pet_transfer_invitations` para calificar `profile.id`; esta RPC corre en paralelo al cargar mobile `Mascotas que buscan hogar` y podia disparar el mismo error de `id` ambiguo.
 - Motivo: mobile `Mascotas que buscan hogar` podia mostrar `column reference "id" is ambiguous` al cargar/abrir publicaciones.
 - Dry-run posterior Supabase: `Remote database is up to date`.
 - No se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
