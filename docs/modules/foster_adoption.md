@@ -725,6 +725,7 @@ Reglas:
 - Admin puede aprobar o rechazar fotos individuales sin reaprobar toda la publicacion.
 - Si se aprueba una foto y no existe portada aprobada, puede quedar como portada publica.
 - Si una portada se rechaza, se reasigna una portada aprobada disponible o se muestra placeholder.
+- El limite de 8 fotos se valida con funcion `security definer` para evitar recursion RLS sobre `pet_adoption_listing_media` durante el insert.
 
 Fuera de alcance:
 

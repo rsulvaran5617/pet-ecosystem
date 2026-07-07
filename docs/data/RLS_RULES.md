@@ -49,6 +49,7 @@ Cambiar estado `active`/`in_memory` requiere los mismos permisos de edicion del 
 ### pet_adoption_listings / pet_adoption_listing_media (Foster-3A/3B)
 Solo familias protectoras aprobadas pueden crear/editar publicaciones de mascotas activas de su hogar. La revision y moderacion corresponde a admin de plataforma. Usuarios autenticados leen solo publicaciones `published`. La media vive en bucket privado `pet-adoption-media` y se consulta con URLs firmadas temporales; no se permite lectura publica irrestricta ni direccion exacta de la familia protectora.
 Foster-3B permite agregar fotos a publicaciones `published` sin cambiar el estado de la publicacion: la media nueva queda `pending`, owner/admin la ven con estado y adoptantes solo leen media `approved`. Admin modera fotos individuales mediante RPC; owner no actualiza directamente `moderation_status`. El limite inicial es 8 fotos por publicacion y solo una portada puede quedar marcada.
+El conteo del limite de fotos debe ejecutarse mediante funcion `security definer` (`count_pet_adoption_listing_media`) y no mediante subconsulta directa en la policy, para evitar recursion RLS sobre la misma tabla.
 
 ### pet_documents
 Visible para miembros autorizados del hogar.
