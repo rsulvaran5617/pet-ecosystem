@@ -827,68 +827,68 @@ function AdoptionPublicationFlow({
             <div style={styles.mediaUploadNotice}>Subiendo foto y actualizando galeria...</div>
           ) : null}
 
-          {listing.media.length ? (
-            <div style={styles.mediaRail}>
-              {listing.media.map((media) => (
-                <article key={media.id} style={styles.mediaTile}>
-                  {media.signedUrl ? (
-                    <img alt={`Foto publica de ${pet.name}`} src={media.signedUrl} style={styles.mediaImage} />
-                  ) : (
-                    <div style={styles.mediaFallback}>{pet.name.slice(0, 1).toUpperCase()}</div>
-                  )}
-                  <div style={styles.mediaTileFooter}>
-                    <span style={styles.mediaStatus}>{getAdoptionMediaStatusLabel(media.moderationStatus)}{media.isCover ? " - Portada" : ""}</span>
-                    <div style={styles.mediaActions}>
-                      {!media.isCover ? (
-                        <button
-                          disabled={disabled || !canManageMedia}
-                          onClick={() => void onSetCover(media.id)}
-                          style={styles.iconPillButton}
-                          title="Marcar como portada"
-                          type="button"
-                        >
-                          Portada
-                        </button>
-                      ) : null}
-                      <button
-                        disabled={disabled || !canManageMedia}
-                        onClick={() => void onRemovePhoto(media)}
-                        style={styles.dangerPillButton}
-                        title="Quitar foto"
-                        type="button"
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
+          {listing.media.length ? null : (
             <div style={styles.mediaEmptyState}>
               <strong>Agrega fotos para hacer mas cercana la publicacion.</strong>
               <span>Usa imagenes claras de la mascota. No subas documentos privados ni datos sensibles.</span>
             </div>
           )}
 
-          <label style={{ ...styles.secondaryButton, opacity: disabled || !canManageMedia || listing.media.length >= 8 ? 0.55 : 1 }}>
-            {isUploadingPhoto ? "Subiendo..." : "+ Subir foto"}
-            <input
-              accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
-              disabled={disabled || isUploadingPhoto || !canManageMedia || listing.media.length >= 8}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
+          <div style={styles.mediaRail}>
+            {listing.media.map((media) => (
+              <article key={media.id} style={styles.mediaTile}>
+                <div style={styles.mediaPreview}>
+                  {media.signedUrl ? (
+                    <img alt={`Foto publica de ${pet.name}`} src={media.signedUrl} style={styles.mediaImage} />
+                  ) : (
+                    <div style={styles.mediaFallback}>{pet.name.slice(0, 1).toUpperCase()}</div>
+                  )}
+                  <span style={styles.mediaStatusOverlay}>{getAdoptionMediaStatusLabel(media.moderationStatus)}{media.isCover ? " · Portada" : ""}</span>
+                </div>
+                <div style={styles.mediaActions}>
+                  {!media.isCover ? (
+                    <button
+                      disabled={disabled || !canManageMedia}
+                      onClick={() => void onSetCover(media.id)}
+                      style={styles.iconPillButton}
+                      title="Marcar como portada"
+                      type="button"
+                    >
+                      Portada
+                    </button>
+                  ) : null}
+                  <button
+                    disabled={disabled || !canManageMedia}
+                    onClick={() => void onRemovePhoto(media)}
+                    style={styles.dangerPillButton}
+                    title="Quitar foto"
+                    type="button"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              </article>
+            ))}
+            <label style={{ ...styles.mediaUploadTile, opacity: disabled || !canManageMedia || listing.media.length >= 8 ? 0.55 : 1 }}>
+              <span style={styles.mediaUploadIcon}>+</span>
+              <span>{isUploadingPhoto ? "Subiendo..." : "Subir foto"}</span>
+              <input
+                accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
+                disabled={disabled || isUploadingPhoto || !canManageMedia || listing.media.length >= 8}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
 
-                if (file) {
-                  setIsUploadingPhoto(true);
-                  void onUploadPhoto(listing.id, file).finally(() => setIsUploadingPhoto(false));
-                }
-              }}
-              style={styles.fileInput}
-              type="file"
-            />
-          </label>
+                  if (file) {
+                    setIsUploadingPhoto(true);
+                    void onUploadPhoto(listing.id, file).finally(() => setIsUploadingPhoto(false));
+                  }
+                }}
+                style={styles.fileInput}
+                type="file"
+              />
+            </label>
+          </div>
         </section>
       ) : null}
 
@@ -1639,16 +1639,20 @@ const styles: Record<string, React.CSSProperties> = {
   metricGrid: { display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" },
   metricLabel: { color: "#0f766e", fontSize: "12px", fontWeight: 900, textTransform: "uppercase" },
   metricValue: { color: "#0f766e", fontSize: "30px", lineHeight: 1 },
-  mediaActions: { display: "flex", flexWrap: "wrap", gap: "6px" },
+  mediaActions: { display: "flex", flexWrap: "wrap", gap: "5px", padding: "7px" },
   mediaEmptyState: { background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.18)", borderRadius: "16px", color: "#64748b", display: "grid", fontSize: "12px", gap: "4px", padding: "12px" },
-  mediaFallback: { alignItems: "center", background: "#dff7f3", color: "#0f766e", display: "flex", fontSize: "18px", fontWeight: 900, height: "78px", justifyContent: "center", width: "100%" },
+  mediaFallback: { alignItems: "center", background: "#dff7f3", color: "#0f766e", display: "flex", fontSize: "18px", fontWeight: 900, height: "100%", justifyContent: "center", width: "100%" },
   mediaGalleryBox: { background: "rgba(255, 255, 255, 0.72)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "8px", padding: "10px" },
-  mediaImage: { display: "block", height: "78px", objectFit: "cover", width: "100%" },
-  mediaRail: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" },
+  mediaImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
+  mediaPreview: { aspectRatio: "1 / 1", background: "#dff7f3", position: "relative", width: "100%" },
+  mediaRail: { alignItems: "start", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fill, minmax(118px, 118px))" },
   mediaStatus: { color: "#475569", fontSize: "11px", fontWeight: 900 },
-  mediaTile: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "14px", overflow: "hidden" },
+  mediaStatusOverlay: { background: "rgba(255, 253, 248, 0.92)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", bottom: "6px", color: "#0f766e", fontSize: "10px", fontWeight: 900, left: "6px", maxWidth: "calc(100% - 12px)", overflow: "hidden", padding: "4px 6px", position: "absolute", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  mediaTile: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "14px", overflow: "hidden", width: "118px" },
   mediaTileFooter: { display: "grid", gap: "6px", padding: "8px" },
+  mediaUploadIcon: { alignItems: "center", background: "#dff7f3", borderRadius: "999px", color: "#0f766e", display: "inline-flex", fontSize: "18px", fontWeight: 900, height: "32px", justifyContent: "center", width: "32px" },
   mediaUploadNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "14px", color: "#0f766e", fontSize: "12px", fontWeight: 900, padding: "10px 12px" },
+  mediaUploadTile: { alignItems: "center", aspectRatio: "1 / 1", background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.26)", borderRadius: "14px", color: "#0f766e", cursor: "pointer", display: "flex", flexDirection: "column", fontSize: "12px", fontWeight: 900, gap: "8px", justifyContent: "center", padding: "10px", textAlign: "center", width: "118px" },
   notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
