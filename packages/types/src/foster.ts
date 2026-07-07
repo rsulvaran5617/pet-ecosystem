@@ -301,7 +301,8 @@ export interface PetAdoptionMediaReviewInput {
 
 export interface PetAdoptionMediaUploadInput {
   listingId: Uuid;
-  fileUri: string;
+  fileUri?: string;
+  fileBody?: Blob;
   fileName: string;
   mimeType: string;
   fileSizeBytes?: number | null;

@@ -1308,8 +1308,12 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       const currentUserId = await requireCurrentUserId(supabase);
       const extension = input.fileName.split(".").pop()?.toLowerCase() || "jpg";
       const storagePath = `${input.listingId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-      const response = await fetch(input.fileUri);
-      const fileBlob = await response.blob();
+      const fileBlob = input.fileBody ?? (input.fileUri ? await fetch(input.fileUri).then((response) => response.blob()) : null);
+
+      if (!fileBlob) {
+        throw new Error("Adoption media file is required.");
+      }
+
       const { error: uploadError } = await supabase.storage
         .from("pet-adoption-media")
         .upload(storagePath, fileBlob, {

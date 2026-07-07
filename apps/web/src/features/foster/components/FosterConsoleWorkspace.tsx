@@ -772,6 +772,7 @@ function AdoptionPublicationFlow({
   pet: PetSummary;
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [form, setForm] = useState<PetAdoptionListingInput>(() => buildAdoptionListingForm(listing, pet));
   const steps = buildAdoptionSteps(listing);
   const canEdit = !listing || ["draft", "rejected", "paused"].includes(listing.status);
@@ -811,6 +812,10 @@ function AdoptionPublicationFlow({
             </div>
             <span style={styles.countPill}>{listing.media.length}/8 fotos</span>
           </div>
+
+          {isUploadingPhoto ? (
+            <div style={styles.mediaUploadNotice}>Subiendo foto y actualizando galeria...</div>
+          ) : null}
 
           {listing.media.length ? (
             <div style={styles.mediaRail}>
@@ -857,16 +862,17 @@ function AdoptionPublicationFlow({
           )}
 
           <label style={{ ...styles.secondaryButton, opacity: disabled || !canManageMedia || listing.media.length >= 8 ? 0.55 : 1 }}>
-            + Subir foto
+            {isUploadingPhoto ? "Subiendo..." : "+ Subir foto"}
             <input
               accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
-              disabled={disabled || !canManageMedia || listing.media.length >= 8}
+              disabled={disabled || isUploadingPhoto || !canManageMedia || listing.media.length >= 8}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 event.target.value = "";
 
                 if (file) {
-                  void onUploadPhoto(listing.id, file);
+                  setIsUploadingPhoto(true);
+                  void onUploadPhoto(listing.id, file).finally(() => setIsUploadingPhoto(false));
                 }
               }}
               style={styles.fileInput}
@@ -1632,6 +1638,7 @@ const styles: Record<string, React.CSSProperties> = {
   mediaStatus: { color: "#475569", fontSize: "11px", fontWeight: 900 },
   mediaTile: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", overflow: "hidden" },
   mediaTileFooter: { display: "grid", gap: "8px", padding: "10px" },
+  mediaUploadNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "14px", color: "#0f766e", fontSize: "12px", fontWeight: 900, padding: "10px 12px" },
   notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
