@@ -1,10 +1,10 @@
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetAdoptionApplication, PetAdoptionApplicationInput, PetAdoptionListing } from "@pet/types";
+import type { PetAdoptionApplication, PetAdoptionApplicationInput, PetAdoptionListing, PetTransferRecord } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Share, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
-import { getMobileFosterApiClient } from "../../core/services/supabase-mobile";
+import { getMobileCoreApiClient, getMobileFosterApiClient } from "../../core/services/supabase-mobile";
 
 const inputStyle = {
   borderRadius: 16,
@@ -147,9 +147,51 @@ function getPublicAdoptionUrl(slug: string) {
   return `${publicWebUrl.replace(/\/$/, "")}/adopciones/${slug}`;
 }
 
+type AdoptionApplicantDefaults = {
+  applicantName: string;
+  applicantEmail: string;
+};
+
+const emptyApplicantDefaults: AdoptionApplicantDefaults = {
+  applicantName: "",
+  applicantEmail: ""
+};
+
+function applyApplicantDefaults(
+  current: Omit<PetAdoptionApplicationInput, "listingId">,
+  defaults: AdoptionApplicantDefaults
+) {
+  return {
+    ...current,
+    applicantName: current.applicantName.trim() ? current.applicantName : defaults.applicantName,
+    applicantEmail: current.applicantEmail.trim() ? current.applicantEmail : defaults.applicantEmail
+  };
+}
+
+function getAdoptionClosureCopy(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined) {
+  if (application.status === "converted_to_transfer") {
+    return "La adopcion ya fue cerrada mediante transferencia privada.";
+  }
+
+  if (transfer?.status === "pending") {
+    return "La transferencia fue iniciada. Revisa Hogares para aceptarla.";
+  }
+
+  if (transfer?.status === "accepted") {
+    return "La transferencia fue aceptada. La mascota ya puede verse en el hogar receptor.";
+  }
+
+  if (application.status === "approved") {
+    return "Tu solicitud fue aprobada. La familia protectora debe iniciar la transferencia privada para que esta mascota pase a tu hogar.";
+  }
+
+  return null;
+}
+
 export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: boolean; onBackHome: () => void }) {
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [myApplications, setMyApplications] = useState<PetAdoptionApplication[]>([]);
+  const [incomingTransfers, setIncomingTransfers] = useState<PetTransferRecord[]>([]);
   const [selectedAdoptionListing, setSelectedAdoptionListing] = useState<PetAdoptionListing | null>(null);
   const [currentView, setCurrentView] = useState<"list" | "detail">("list");
   const [isLoading, setIsLoading] = useState(false);
@@ -157,6 +199,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
+  const [applicantDefaults, setApplicantDefaults] = useState<AdoptionApplicantDefaults>(emptyApplicantDefaults);
   const [applicationInput, setApplicationInput] = useState<Omit<PetAdoptionApplicationInput, "listingId">>({
     applicantHouseholdId: null,
     applicantName: "",
@@ -171,18 +214,36 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
     petExperience: ""
   });
 
+  async function loadApplicantDefaults() {
+    try {
+      const snapshot = await getMobileCoreApiClient().getCoreSnapshot();
+      const applicantName = [snapshot.profile.firstName, snapshot.profile.lastName].filter(Boolean).join(" ").trim();
+      const nextDefaults = {
+        applicantName: applicantName || snapshot.profile.email,
+        applicantEmail: snapshot.profile.email
+      };
+
+      setApplicantDefaults(nextDefaults);
+      setApplicationInput((current) => applyApplicantDefaults(current, nextDefaults));
+    } catch {
+      setApplicantDefaults(emptyApplicantDefaults);
+    }
+  }
+
   async function loadAdoptionListings() {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
       const fosterApi = getMobileFosterApiClient();
-      const [listings, applications] = await Promise.all([
+      const [listings, applications, transfers] = await Promise.all([
         fosterApi.listPublishedPetAdoptionListings(),
-        fosterApi.listMyPetAdoptionApplications()
+        fosterApi.listMyPetAdoptionApplications(),
+        fosterApi.listIncomingPetTransfers()
       ]);
       setAdoptionListings(listings);
       setMyApplications(applications);
+      setIncomingTransfers(transfers);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar mascotas en adopcion.");
     } finally {
@@ -226,6 +287,11 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
 
   function updateApplicationInput(nextInput: Partial<Omit<PetAdoptionApplicationInput, "listingId">>) {
     setApplicationInput((current) => ({ ...current, ...nextInput }));
+  }
+
+  function toggleApplicationForm() {
+    setApplicationInput((current) => applyApplicantDefaults(current, applicantDefaults));
+    setIsApplicationFormOpen((current) => !current);
   }
 
   async function submitAdoptionApplication() {
@@ -275,6 +341,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
       return;
     }
 
+    void loadApplicantDefaults();
     void loadAdoptionListings();
   }, [enabled]);
 
@@ -400,6 +467,10 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
             const currentApplication = myApplications.find((application) => application.listingId === selectedAdoptionListing.id);
             const hasActiveApplication =
               currentApplication && !["withdrawn", "rejected"].includes(currentApplication.status);
+            const currentTransfer = currentApplication
+              ? incomingTransfers.find((transfer) => transfer.adoptionApplicationId === currentApplication.id)
+              : undefined;
+            const closureCopy = currentApplication ? getAdoptionClosureCopy(currentApplication, currentTransfer) : null;
 
             return (
               <>
@@ -504,6 +575,21 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
                 <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>
                   Ya enviaste una solicitud para {currentApplication.petName}.
                 </Text>
+                {closureCopy ? (
+                  <View
+                    style={{
+                      backgroundColor: "rgba(236,253,245,0.9)",
+                      borderColor: "rgba(15,118,110,0.18)",
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      padding: 10
+                    }}
+                  >
+                    <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                      {closureCopy}
+                    </Text>
+                  </View>
+                ) : null}
                 {currentApplication.status === "submitted" || currentApplication.status === "in_review" ? (
                   <View style={{ alignSelf: "flex-start" }}>
                     <Button
@@ -520,7 +606,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
                 <Button
                   disabled={isSubmittingApplication}
                   label={isApplicationFormOpen ? "Ocultar formulario" : "Solicitar adopcion"}
-                  onPress={() => setIsApplicationFormOpen((current) => !current)}
+                  onPress={toggleApplicationForm}
                 />
                 {isApplicationFormOpen ? (
                   <View style={{ gap: 10 }}>

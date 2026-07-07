@@ -102,6 +102,10 @@ function getTransferLabel(transfer: PetTransferRecord | undefined) {
   return `Transferencia ${transfer.status}`;
 }
 
+function isApprovedApplicationPendingTransfer(application: PetAdoptionApplication, transfers: PetTransferRecord[]) {
+  return application.status === "approved" && !transfers.some((transfer) => transfer.adoptionApplicationId === application.id);
+}
+
 export function AdoptionApplicationsInbox({
   applications,
   disabled = false,
@@ -137,6 +141,10 @@ export function AdoptionApplicationsInbox({
 
     return { ...nextCounts, all: applications.length };
   }, [applications]);
+  const approvedPendingTransferCount = useMemo(
+    () => applications.filter((application) => isApprovedApplicationPendingTransfer(application, transfers)).length,
+    [applications, transfers]
+  );
 
   const petOptions = useMemo(() => {
     const options = new Map<Uuid, string>();
@@ -276,6 +284,14 @@ export function AdoptionApplicationsInbox({
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.metricsRow}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setFilterStatus("approved")}
+          style={[styles.metricCard, approvedPendingTransferCount ? styles.metricCardWarning : null]}
+        >
+          <Text style={styles.metricNumber}>{approvedPendingTransferCount}</Text>
+          <Text style={styles.metricLabel}>Pendientes de transferencia</Text>
+        </Pressable>
         {statusOrder.map((status) => (
           <Pressable
             accessibilityRole="button"
@@ -423,6 +439,7 @@ function ApplicationDetail({
   transfer: PetTransferRecord | undefined;
 }) {
   const transferLabel = getTransferLabel(transfer);
+  const isApprovedWithoutTransfer = application.status === "approved" && !transfer;
 
   return (
     <View style={styles.detailCard}>
@@ -458,6 +475,14 @@ function ApplicationDetail({
           <Text style={styles.transferBoxTitle}>{transferLabel}</Text>
           <Text style={styles.transferBoxText}>
             La adopcion se completa solo cuando la familia receptora acepta la transferencia privada.
+          </Text>
+        </View>
+      ) : null}
+      {isApprovedWithoutTransfer ? (
+        <View style={styles.pendingTransferBox}>
+          <Text style={styles.pendingTransferTitle}>Solicitud aprobada, transferencia pendiente</Text>
+          <Text style={styles.pendingTransferText}>
+            Inicia la transferencia privada para que {application.petName} pueda pasar al hogar receptor. Aprobar la solicitud no mueve la custodia.
           </Text>
         </View>
       ) : null}
@@ -543,7 +568,7 @@ function ApplicationActions({
         transfer ? (
           <Text style={styles.readOnlyText}>La transferencia ya fue iniciada para esta solicitud.</Text>
         ) : (
-          <PrimaryAction disabled={actionDisabled} label="Iniciar transferencia" onPress={() => onStartTransfer(application)} />
+          <PrimaryAction disabled={actionDisabled} label={`Iniciar transferencia de ${application.petName}`} onPress={() => onStartTransfer(application)} />
         )
       ) : null}
       {application.status !== "approved" ? (
@@ -885,6 +910,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(20,184,166,0.13)",
     borderColor: "rgba(15,118,110,0.38)"
   },
+  metricCardWarning: {
+    backgroundColor: "rgba(255,247,237,0.96)",
+    borderColor: "rgba(234,88,12,0.26)"
+  },
   metricLabel: {
     color: "#0f766e",
     fontSize: 10,
@@ -909,6 +938,25 @@ const styles = StyleSheet.create({
   },
   primaryActionText: {
     color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "900"
+  },
+  pendingTransferBox: {
+    backgroundColor: "rgba(255,247,237,0.95)",
+    borderColor: "rgba(234,88,12,0.22)",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 3,
+    padding: 10
+  },
+  pendingTransferText: {
+    color: "#9a3412",
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 15
+  },
+  pendingTransferTitle: {
+    color: "#c2410c",
     fontSize: 11,
     fontWeight: "900"
   },

@@ -22,7 +22,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CreateProtectiveHouseholdInput } from "../hooks/useFosterConsoleWorkspace";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
-type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus;
+type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
 
 type MetricCard = {
   label: string;
@@ -101,6 +101,44 @@ function statusTone(status: PetAdoptionApplicationStatus) {
   }
 
   return "warning";
+}
+
+function getApplicationTransfer(application: PetAdoptionApplication, transfers: PetTransferRecord[]) {
+  return transfers.find((transfer) => transfer.adoptionApplicationId === application.id);
+}
+
+function isApprovedApplicationPendingTransfer(application: PetAdoptionApplication, transfers: PetTransferRecord[]) {
+  return application.status === "approved" && !getApplicationTransfer(application, transfers);
+}
+
+function getListingOperationalStatus(
+  listing: PetAdoptionListing,
+  applications: PetAdoptionApplication[],
+  transfers: PetTransferRecord[]
+) {
+  const listingApplications = applications.filter((application) => application.listingId === listing.id);
+
+  if (
+    listing.status === "adopted" ||
+    listingApplications.some((application) => application.status === "converted_to_transfer") ||
+    listingApplications.some((application) => getApplicationTransfer(application, transfers)?.status === "accepted")
+  ) {
+    return { label: "Adopcion cerrada", tone: "success" as const };
+  }
+
+  if (listingApplications.some((application) => getApplicationTransfer(application, transfers)?.status === "pending")) {
+    return { label: "Transferencia iniciada", tone: "warning" as const };
+  }
+
+  if (listingApplications.some((application) => isApprovedApplicationPendingTransfer(application, transfers))) {
+    return { label: "Transferencia pendiente", tone: "warning" as const };
+  }
+
+  if (listingApplications.some((application) => application.status === "approved")) {
+    return { label: "Solicitud aprobada", tone: "success" as const };
+  }
+
+  return null;
 }
 
 function coverUrl(listing: PetAdoptionListing) {
@@ -252,6 +290,10 @@ export function FosterConsoleWorkspace() {
     }),
     [applications]
   );
+  const approvedPendingTransferCount = useMemo(
+    () => applications.filter((application) => isApprovedApplicationPendingTransfer(application, transfers)).length,
+    [applications, transfers]
+  );
 
   const metrics: MetricCard[] = [
     {
@@ -285,6 +327,13 @@ export function FosterConsoleWorkspace() {
       onClick: () => setApplicationStatusFilter("interview")
     },
     {
+      label: "Aprobadas pendientes",
+      value: approvedPendingTransferCount,
+      detail: "Listas para iniciar transferencia",
+      tone: approvedPendingTransferCount ? "warning" : "default",
+      onClick: () => setApplicationStatusFilter("approved_without_transfer")
+    },
+    {
       label: "Transferencias pendientes",
       value: transfers.filter((transfer) => transfer.status === "pending").length,
       detail: "La familia receptora debe aceptar",
@@ -302,10 +351,20 @@ export function FosterConsoleWorkspace() {
   const filteredApplications = useMemo(
     () =>
       applications
-        .filter((application) => applicationStatusFilter === "all" || application.status === applicationStatusFilter)
+        .filter((application) => {
+          if (applicationStatusFilter === "all") {
+            return true;
+          }
+
+          if (applicationStatusFilter === "approved_without_transfer") {
+            return isApprovedApplicationPendingTransfer(application, transfers);
+          }
+
+          return application.status === applicationStatusFilter;
+        })
         .filter((application) => applicationPetFilter === "all" || application.petId === applicationPetFilter)
         .sort((first, second) => new Date(second.submittedAt).getTime() - new Date(first.submittedAt).getTime()),
-    [applicationPetFilter, applicationStatusFilter, applications]
+    [applicationPetFilter, applicationStatusFilter, applications, transfers]
   );
 
   const selectedTransfer = selectedApplicationDetail
@@ -445,17 +504,27 @@ export function FosterConsoleWorkspace() {
                 <span style={styles.countPill}>{listings.length} total</span>
               </div>
               <div style={styles.listStack}>
-                {listings.length ? listings.slice(0, 8).map((listing) => (
-                  <article key={listing.id} style={styles.listingCard}>
-                    {coverUrl(listing) ? <img alt="" src={coverUrl(listing) ?? ""} style={styles.coverImage} /> : <div style={styles.coverFallback}>{listing.petName.slice(0, 1).toUpperCase()}</div>}
-                    <div style={{ flex: 1 }}>
-                      <strong style={styles.itemTitle}>{listing.petName}</strong>
-                      <p style={styles.itemMeta}>{listing.title}</p>
-                      <p style={styles.itemMeta}>{listing.city}, {listing.countryCode}</p>
-                    </div>
-                    <StatusBadge label={listingStatusLabels[listing.status]} tone={listing.status === "published" ? "success" : listing.status === "pending_review" ? "warning" : "neutral"} />
-                  </article>
-                )) : <EmptyState text="Aun no hay publicaciones para esta familia protectora." />}
+                {listings.length ? listings.slice(0, 8).map((listing) => {
+                  const operationalStatus = getListingOperationalStatus(listing, applications, transfers);
+
+                  return (
+                    <article key={listing.id} style={styles.listingCard}>
+                      {coverUrl(listing) ? <img alt="" src={coverUrl(listing) ?? ""} style={styles.coverImage} /> : <div style={styles.coverFallback}>{listing.petName.slice(0, 1).toUpperCase()}</div>}
+                      <div style={{ flex: 1 }}>
+                        <strong style={styles.itemTitle}>{listing.petName}</strong>
+                        <p style={styles.itemMeta}>{listing.title}</p>
+                        <p style={styles.itemMeta}>{listing.city}, {listing.countryCode}</p>
+                        {operationalStatus ? (
+                          <p style={styles.operationalStatusText}>{operationalStatus.label}</p>
+                        ) : null}
+                      </div>
+                      <div style={styles.badgeStack}>
+                        <StatusBadge label={listingStatusLabels[listing.status]} tone={listing.status === "published" ? "success" : listing.status === "pending_review" ? "warning" : "neutral"} />
+                        {operationalStatus ? <StatusBadge label={operationalStatus.label} tone={operationalStatus.tone} /> : null}
+                      </div>
+                    </article>
+                  );
+                }) : <EmptyState text="Aun no hay publicaciones para esta familia protectora." />}
               </div>
             </div>
 
@@ -493,6 +562,7 @@ export function FosterConsoleWorkspace() {
             <div style={styles.filtersRow}>
               <select onChange={(event) => setApplicationStatusFilter(event.target.value as ApplicationStatusFilter)} style={styles.select} value={applicationStatusFilter}>
                 <option value="all">Todos los estados</option>
+                <option value="approved_without_transfer">Aprobadas pendientes de transferencia</option>
                 {Object.entries(applicationStatusLabels).map(([status, label]) => <option key={status} value={status}>{label}</option>)}
               </select>
               <select onChange={(event) => setApplicationPetFilter(event.target.value)} style={styles.select} value={applicationPetFilter}>
@@ -1405,6 +1475,7 @@ function ApplicationDetailPanel({
   }
 
   const { application, history } = detail;
+  const isApprovedWithoutTransfer = application.status === "approved" && !transfer;
 
   return (
     <aside style={styles.detailPanel}>
@@ -1432,6 +1503,12 @@ function ApplicationDetailPanel({
         <div style={styles.transferNotice}>
           <strong>Transferencia vinculada</strong>
           <span>Estado: {transfer.status}. La custodia solo cambia cuando la familia receptora acepta.</span>
+        </div>
+      ) : null}
+      {isApprovedWithoutTransfer ? (
+        <div style={styles.pendingTransferNotice}>
+          <strong>Solicitud aprobada, transferencia pendiente</strong>
+          <span>Inicia la transferencia privada para que {application.petName} pueda pasar al hogar receptor. Aprobar la solicitud no mueve la custodia.</span>
         </div>
       ) : null}
 
@@ -1489,7 +1566,7 @@ function ApplicationActions({
       {application.status === "submitted" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "in_review")} style={styles.primaryButton} type="button">Marcar en revision</button> : null}
       {application.status === "in_review" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "interview")} style={styles.primaryButton} type="button">Pasar a entrevista</button> : null}
       {application.status === "interview" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "approved")} style={styles.primaryButton} type="button">Aprobar solicitud</button> : null}
-      {application.status === "approved" && !transfer ? <button disabled={disabled} onClick={() => void onStartTransfer(application)} style={styles.primaryButton} type="button">Iniciar transferencia</button> : null}
+      {application.status === "approved" && !transfer ? <button disabled={disabled} onClick={() => void onStartTransfer(application)} style={styles.primaryButton} type="button">Iniciar transferencia de {application.petName}</button> : null}
       {application.status === "approved" && transfer ? <p style={styles.itemMeta}>La transferencia ya fue iniciada para esta solicitud.</p> : null}
       {application.status !== "approved" ? (
         <div style={styles.rejectBox}>
@@ -1598,6 +1675,7 @@ const styles: Record<string, React.CSSProperties> = {
   applicationCardHeader: { alignItems: "flex-start", display: "flex", gap: "10px", justifyContent: "space-between" },
   applicationGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(320px, 1.2fr)" },
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
+  badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
   contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
   countPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", fontSize: "12px", fontWeight: 800, padding: "8px 12px" },
@@ -1654,8 +1732,10 @@ const styles: Record<string, React.CSSProperties> = {
   mediaUploadNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "14px", color: "#0f766e", fontSize: "12px", fontWeight: 900, padding: "10px 12px" },
   mediaUploadTile: { alignItems: "center", aspectRatio: "1 / 1", background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.26)", borderRadius: "14px", color: "#0f766e", cursor: "pointer", display: "flex", flexDirection: "column", fontSize: "12px", fontWeight: 900, gap: "8px", justifyContent: "center", padding: "10px", textAlign: "center", width: "118px" },
   notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
+  operationalStatusText: { color: "#c2410c", fontSize: "12px", fontWeight: 900, margin: "6px 0 0" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
   panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
+  pendingTransferNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.22)", borderRadius: "18px", color: "#c2410c", display: "grid", gap: "5px", padding: "12px" },
   petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" },
   primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   processDot: { alignItems: "center", background: "rgba(15, 118, 110, 0.08)", borderRadius: "999px", display: "inline-flex", fontSize: "11px", fontWeight: 900, height: "22px", justifyContent: "center", width: "22px" },

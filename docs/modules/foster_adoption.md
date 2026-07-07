@@ -272,7 +272,7 @@ Incluye:
   - `list_received_pet_adoption_applications`.
   - `withdraw_pet_adoption_application`.
   - `list_pet_adoption_applications_for_admin`.
-- Mobile owner/adopcion agrega formulario compacto `Solicitar adopcion`, evita duplicados activos y permite retirar solicitudes `submitted`/`in_review`.
+- Mobile owner/adopcion agrega formulario compacto `Solicitar adopcion`, precarga nombre/correo desde el perfil autenticado, evita duplicados activos, permite retirar solicitudes `submitted`/`in_review` y aclara el cierre posterior: `approved` no mueve custodia, transferencia pendiente debe aceptarse desde `Hogares` y `converted_to_transfer` comunica adopcion cerrada.
 - Admin web agrega auditoria basica de solicitudes recientes.
 - Web publica mantiene CTA informativo hacia la app autenticada.
 
@@ -515,7 +515,7 @@ Estado: implementacion mobile local preparada, sin migraciones nuevas.
 Incluye:
 
 - componente mobile `AdoptionApplicationsInbox` para hogares protectores aprobados.
-- metricas por estado: nuevas, en revision, entrevista, aprobadas, rechazadas, retiradas y en transferencia.
+- metricas por estado: nuevas, en revision, entrevista, aprobadas, aprobadas pendientes de transferencia, rechazadas, retiradas y en transferencia.
 - filtros por mascota, estado y orden de fecha.
 - lista tipo inbox con mascota, solicitante, fecha, extracto de motivacion, publicacion y estado de transferencia.
 - detalle de solicitud con datos del solicitante, vivienda, ninos, otras mascotas, experiencia, motivacion, disponibilidad y timeline de cambios.
@@ -524,7 +524,7 @@ Incluye:
   - `in_review -> interview`.
   - `interview -> approved`.
   - rechazo con nota obligatoria.
-  - iniciar transferencia privada desde `approved`.
+  - iniciar transferencia privada desde `approved` con CTA explicito por mascota y aviso de transferencia pendiente.
 
 Reglas preservadas:
 
@@ -547,7 +547,7 @@ Incluye:
   - envia la solicitud a revision admin.
   - refresca la consola y muestra estado pendiente sin crear duplicados.
 - selector de household `protective`.
-- dashboard con metricas de publicaciones, solicitudes por estado y transferencias pendientes.
+- dashboard con metricas de publicaciones, solicitudes por estado, aprobadas pendientes de transferencia y transferencias pendientes.
 - bloque `Perfil publico` para familias protectoras internamente aprobadas:
   - crea o edita nombre publico, mision, historia, ciudad/pais, politica de contacto y necesidades principales.
   - guarda borrador sin hacerlo publico automaticamente.
@@ -561,7 +561,7 @@ Incluye:
 - listado de publicaciones Foster de la familia protectora.
 - bandeja de solicitudes recibidas con filtros por estado y mascota.
 - detalle de solicitud con datos estructurados, timeline y acciones de pipeline.
-- inicio de transferencia privada desde solicitud `approved` usando la regla Foster-5E.
+- inicio de transferencia privada desde solicitud `approved` usando la regla Foster-5E, con CTA explicito por mascota y aviso `Solicitud aprobada, transferencia pendiente`.
 
 Reglas preservadas:
 

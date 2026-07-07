@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+## Foster adopcion cierre UX clarificado 2026-07-07
+
+- Mobile owner `Mascotas que buscan hogar` ahora precarga nombre/correo del perfil autenticado en `Solicitar adopcion` y muestra copy por estado posterior:
+  - `approved`: solicitud aprobada, falta que la familia protectora inicie transferencia.
+  - transferencia `pending`: el adoptante debe revisar `Hogares` para aceptarla.
+  - `converted_to_transfer`: adopcion cerrada mediante transferencia privada.
+- Mobile Foster `Solicitudes de adopcion` agrega metrica `Pendientes de transferencia`, aviso destacado para solicitudes aprobadas sin transferencia y CTA `Iniciar transferencia de [mascota]`.
+- Web Foster `/foster` agrega metrica accionable `Aprobadas pendientes`, filtro asociado, estado operativo en publicaciones y aviso destacado `Solicitud aprobada, transferencia pendiente` en el detalle.
+- Regla preservada: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada existente mueve `pets.household_id` y cierra adopcion.
+- No se crearon migraciones, no se ejecuto Supabase push y no se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 ## Foster Web Console separada implementada localmente 2026-07-03
 
 - Web agrega ruta `/foster` como consola separada para familias protectoras aprobadas.
