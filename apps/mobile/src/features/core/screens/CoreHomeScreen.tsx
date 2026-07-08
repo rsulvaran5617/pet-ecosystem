@@ -16,7 +16,7 @@ import type {
   UserPaymentMethod,
   Uuid
 } from "@pet/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ElementRef } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -89,6 +89,7 @@ type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
 type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "profile" | "roles";
+type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
@@ -1155,6 +1156,8 @@ export function CoreHomeScreen() {
     refresh,
     runAction
   } = useCoreWorkspace();
+  const mainScrollViewRef = useRef<ElementRef<typeof ScrollView> | null>(null);
+  const accountHouseholdsYRef = useRef(0);
   const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
   const [loginForm, setLoginForm] = useState(emptyLoginForm);
   const [verifyForm, setVerifyForm] = useState(emptyVerifyForm);
@@ -1176,6 +1179,7 @@ export function CoreHomeScreen() {
   const [focusedSupportBookingId, setFocusedSupportBookingId] = useState<Uuid | null>(null);
   const [supportFocusVersion, setSupportFocusVersion] = useState(0);
   const [activeOwnerSection, setActiveOwnerSection] = useState<OwnerSectionId>("inicio");
+  const [accountFocusSection, setAccountFocusSection] = useState<AccountFocusSection | null>(null);
   const [activeProviderSection, setActiveProviderSection] = useState<ProviderSectionId>("inicio");
   const [activePetHubPanel, setActivePetHubPanel] = useState<PetHubPanel>("detalle");
   const [petHubContext, setPetHubContext] = useState<{ householdId: Uuid | null; petId: Uuid | null }>({
@@ -1250,6 +1254,37 @@ export function CoreHomeScreen() {
   const activeOwnerPetContextForModules: ActiveOwnerPetContext = activeOwnerPet
     ? { householdId: activeOwnerPet.householdId, petId: activeOwnerPet.id }
     : { householdId: activeOwnerPetContext.householdId, petId: activeOwnerPetContextId };
+
+  const handlePetTransferAccepted = async (context: { householdId: Uuid; petId: Uuid }) => {
+    setPendingPetHubPetId(context.petId);
+    setActiveOwnerPetFromSelection(context);
+    setActivePetHubPanel("detalle");
+    setActiveOwnerSection("mascotas");
+    await petsWorkspace.selectHousehold(context.householdId);
+    setPendingPetHubPetId(context.petId);
+    setActiveOwnerPetFromSelection(context);
+  };
+
+  useEffect(() => {
+    if (activeOwnerSection !== "cuenta" || accountFocusSection !== "petInvitations") {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      mainScrollViewRef.current?.scrollTo({
+        y: Math.max(accountHouseholdsYRef.current - 16, 0),
+        animated: true
+      });
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [accountFocusSection, activeOwnerSection]);
+
+  useEffect(() => {
+    if (activeOwnerSection !== "cuenta" && accountFocusSection) {
+      setAccountFocusSection(null);
+    }
+  }, [accountFocusSection, activeOwnerSection]);
 
   const openAccountPanel = (panel: AccountPanelId) => {
     setActiveAccountPanel(panel);
@@ -1368,7 +1403,7 @@ export function CoreHomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorTokens.canvas }}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView contentContainerStyle={{ padding: visualTokens.mobile.screenPadding, gap: 20 }}>
+      <ScrollView ref={mainScrollViewRef} contentContainerStyle={{ padding: visualTokens.mobile.screenPadding, gap: 20 }}>
         {authState.isAuthenticated && snapshot ? (
           isProviderMode ? (
             <ProviderShellHeader
@@ -2307,7 +2342,20 @@ export function CoreHomeScreen() {
               </CoreSectionCard>
             ) : null}
 
-            {!isProviderMode ? <HouseholdsWorkspace enabled onHouseholdCreated={petsWorkspace.refresh} /> : null}
+            {!isProviderMode ? (
+              <View
+                onLayout={(event) => {
+                  accountHouseholdsYRef.current = event.nativeEvent.layout.y;
+                }}
+              >
+                <HouseholdsWorkspace
+                  enabled
+                  focusSection={accountFocusSection}
+                  onHouseholdCreated={petsWorkspace.refresh}
+                  onPetTransferAccepted={handlePetTransferAccepted}
+                />
+              </View>
+            ) : null}
           </>
         ) : null}
 
@@ -2412,6 +2460,10 @@ export function CoreHomeScreen() {
           <AdoptionDiscoveryWorkspace
             enabled
             onBackHome={() => setActiveOwnerSection("inicio")}
+            onOpenPetInvitations={() => {
+              setAccountFocusSection("petInvitations");
+              setActiveOwnerSection("cuenta");
+            }}
           />
         ) : null}
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "reservas" ? (

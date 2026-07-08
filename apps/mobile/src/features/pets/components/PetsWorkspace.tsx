@@ -893,6 +893,7 @@ export function PetsWorkspace({
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
+  const manualSelectedPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
   const manualContextChangeRef = useRef(false);
@@ -997,6 +998,14 @@ export function PetsWorkspace({
       return;
     }
 
+    if (manualSelectedPetIdRef.current && manualSelectedPetIdRef.current !== contextPetId) {
+      return;
+    }
+
+    if (manualSelectedPetIdRef.current === contextPetId) {
+      manualSelectedPetIdRef.current = null;
+    }
+
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
@@ -1049,6 +1058,7 @@ export function PetsWorkspace({
 
   const selectActivePet = async (petId: Uuid) => {
     manualContextChangeRef.current = true;
+    manualSelectedPetIdRef.current = petId;
     await selectPet(petId);
   };
 

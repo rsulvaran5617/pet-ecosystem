@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Foster transferencia pendiente como CTA mobile 2026-07-07
+
+- Mobile owner `Mascotas que buscan hogar` convierte el aviso `La transferencia fue iniciada. Revisa Hogares para aceptarla.` en CTA cuando existe transferencia privada `pending`.
+- El CTA abre `Cuenta` y enfoca `Invitaciones de mascota`, donde el adoptante puede aceptar o rechazar la transferencia.
+- `Cuenta > Invitaciones de mascota` muestra una nota de `Transferencia pendiente` cuando se abre desde ese CTA; en navegacion normal mantiene su orden habitual.
+- Al aceptar una transferencia en mobile, el shell owner refresca el hogar receptor, marca la mascota recibida como contexto activo y abre `Mascotas > Detalle` para evitar que la mascota activa anterior quede pegada en Inicio/Mascotas.
+- No se crearon migraciones, no se tocaron RLS/API ni se modifico la regla Foster: solo aceptar la transferencia mueve custodia.
+
 ## Foster hotfix detalle adopcion 2026-07-07
 
 - Se aplico remoto la migracion `20260707173000_foster_adoption_detail_ambiguous_id_fix.sql`.

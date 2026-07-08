@@ -188,7 +188,13 @@ function getAdoptionClosureCopy(application: PetAdoptionApplication, transfer: P
   return null;
 }
 
-export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: boolean; onBackHome: () => void }) {
+type AdoptionDiscoveryWorkspaceProps = {
+  enabled: boolean;
+  onBackHome: () => void;
+  onOpenPetInvitations?: () => void;
+};
+
+export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvitations }: AdoptionDiscoveryWorkspaceProps) {
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [myApplications, setMyApplications] = useState<PetAdoptionApplication[]>([]);
   const [incomingTransfers, setIncomingTransfers] = useState<PetTransferRecord[]>([]);
@@ -471,6 +477,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
               ? incomingTransfers.find((transfer) => transfer.adoptionApplicationId === currentApplication.id)
               : undefined;
             const closureCopy = currentApplication ? getAdoptionClosureCopy(currentApplication, currentTransfer) : null;
+            const canOpenPetInvitations = currentTransfer?.status === "pending" && Boolean(onOpenPetInvitations);
 
             return (
               <>
@@ -576,19 +583,43 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome }: { enabled: b
                   Ya enviaste una solicitud para {currentApplication.petName}.
                 </Text>
                 {closureCopy ? (
-                  <View
+                  <Pressable
+                    accessibilityLabel={
+                      canOpenPetInvitations
+                        ? "Abrir invitaciones de mascota para aceptar o rechazar transferencia"
+                        : undefined
+                    }
+                    accessibilityRole={canOpenPetInvitations ? "button" : undefined}
+                    disabled={!canOpenPetInvitations}
+                    onPress={canOpenPetInvitations ? onOpenPetInvitations : undefined}
                     style={{
                       backgroundColor: "rgba(236,253,245,0.9)",
                       borderColor: "rgba(15,118,110,0.18)",
                       borderRadius: 14,
                       borderWidth: 1,
-                      padding: 10
+                      padding: 10,
+                      gap: 8
                     }}
                   >
                     <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
                       {closureCopy}
                     </Text>
-                  </View>
+                    {canOpenPetInvitations ? (
+                      <View
+                        style={{
+                          alignSelf: "flex-start",
+                          backgroundColor: colorTokens.accent,
+                          borderRadius: 999,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6
+                        }}
+                      >
+                        <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>
+                          Ir a invitaciones
+                        </Text>
+                      </View>
+                    ) : null}
+                  </Pressable>
                 ) : null}
                 {currentApplication.status === "submitted" || currentApplication.status === "in_review" ? (
                   <View style={{ alignSelf: "flex-start" }}>

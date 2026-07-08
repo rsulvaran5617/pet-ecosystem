@@ -275,6 +275,8 @@ Incluye:
   - `withdraw_pet_adoption_application`.
   - `list_pet_adoption_applications_for_admin`.
 - Mobile owner/adopcion agrega formulario compacto `Solicitar adopcion`, precarga nombre/correo desde el perfil autenticado, evita duplicados activos, permite retirar solicitudes `submitted`/`in_review` y aclara el cierre posterior: `approved` no mueve custodia, transferencia pendiente debe aceptarse desde `Hogares` y `converted_to_transfer` comunica adopcion cerrada.
+- Cuando una solicitud aprobada ya tiene transferencia privada `pending`, el aviso `La transferencia fue iniciada` funciona como CTA hacia mobile `Cuenta > Invitaciones de mascota`, donde el adoptante puede aceptar o rechazar la custodia sin salir del flujo owner.
+- Despues de aceptar la transferencia, mobile refresca el workspace de mascotas, cambia el contexto activo al `petId` recibido y evita que el contexto anterior del owner se reimponga hasta que la nueva mascota quede cargada.
 - Admin web agrega auditoria basica de solicitudes recientes.
 - Web publica mantiene CTA informativo hacia la app autenticada.
 
