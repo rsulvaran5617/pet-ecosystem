@@ -101,6 +101,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Owner Buscar usa la mascota activa como contexto de preparacion de reserva cuando no hay otra mascota elegida explicitamente.
 - Owner Buscar muestra ese contexto como pastilla compacta `Mascota activa` con selector `Cambiar`; hogar/permisos/lista completa no permanecen visibles para ahorrar espacio vertical.
 - Owner Buscar usa cards de resultado compactas para pantallas pequenas: avatar reducido, badge recomendado fuera del titulo y nombres de proveedor en hasta dos lineas para evitar solapes.
+- Owner Buscar > proveedor seleccionado muestra una ficha compacta con avatar reducido, nombre en varias lineas, ciudad, ubicacion publica y categorias reales; no muestra etiquetas tecnicas de origen como `desde resultados`.
 - Owner Inicio agrega Foster-4A como pantalla dedicada `Mascotas que buscan hogar`; Owner Buscar queda reservado para servicios/proveedores y no abre adopcion automaticamente.
 - Owner `Mascotas que buscan hogar` muestra listado de mascotas publicadas por familias protectoras aprobadas y detalle read-only con galeria, historia, salud publica, compatibilidad, requisitos y CTA informativo `Me interesa`.
 - owner web Buscar queda alineado funcionalmente con owner mobile: busqueda enfocada, recientes, sugerencias, chips rapidos, filtros bajo demanda, contexto hogar/mascota y seleccion enriquecida hacia Reservas.
@@ -114,6 +115,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - cancelacion
 - requery controlado al entrar a Reservas y despues de mutaciones criticas para reflejar estados recientes sin Realtime
 - owner reservas: la vista de historial abre por defecto en reservas Activas para reducir ruido visual; "Todas" queda disponible como filtro secundario de consulta historica
+- owner reservas: las cards del historial priorizan servicio y `Reserva #...`; el estado se muestra debajo como chip secundario para no competir con titulos largos.
 - V2 owner booking QR: en detalle de reserva confirmada, accion para mostrar QR temporal de check-in y luego check-out
 - V2 booking capacity: seleccion de slot/cupo antes de crear booking; slots como tarjetas por dia con cupos disponibles
 - owner Buscar -> Reservas: si el usuario toca `Abrir vista previa de la reserva` con slot elegido, Reservas conserva proveedor/servicio/slot y salta al paso pendiente de mascota/metodo sin consumir cupo.

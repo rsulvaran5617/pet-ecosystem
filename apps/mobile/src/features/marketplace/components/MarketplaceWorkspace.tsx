@@ -610,6 +610,13 @@ export function MarketplaceWorkspace({
     () => providers.find((provider) => provider.organizationId === selectedProviderDetail?.organizationId) ?? null,
     [providers, selectedProviderDetail]
   );
+  const selectedProviderCategoryLabels = useMemo(() => {
+    if (!selectedProviderDetail) {
+      return [];
+    }
+
+    return Array.from(new Set(selectedProviderDetail.services.map((service) => providerServiceCategoryLabels[service.category]))).slice(0, 3);
+  }, [selectedProviderDetail]);
   const handleSelectHouseholdContext = async (householdId: Uuid) => {
     await selectHousehold(householdId);
     onActivePetChange?.({ householdId, petId: null });
@@ -1353,23 +1360,31 @@ export function MarketplaceWorkspace({
           {currentView === "provider" && selectedProviderDetail ? (
             <>
               <View style={cardStyle}>
-                <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-                  <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 26, height: 52, justifyContent: "center", width: 52 }}>
+                <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+                  <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.12)", borderRadius: 22, height: 46, justifyContent: "center", overflow: "hidden", width: 46 }}>
                     {selectedProviderDetail.avatarUrl ? (
-                      <Image source={{ uri: selectedProviderDetail.avatarUrl }} style={{ borderRadius: 26, height: 52, width: 52 }} />
+                      <Image source={{ uri: selectedProviderDetail.avatarUrl }} style={{ height: 46, width: 46 }} />
                     ) : (
-                      <Text style={{ color: colorTokens.accentDark, fontSize: 13, fontWeight: "900" }}>{getProviderInitials(selectedProviderDetail.name)}</Text>
+                      <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>{getProviderInitials(selectedProviderDetail.name)}</Text>
                     )}
                   </View>
-                  <View style={{ gap: 4, flex: 1 }}>
-                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>{selectedProviderDetail.name}</Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{selectedProviderDetail.city}</Text>
+                  <View style={{ gap: 4, flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontSize: 14, fontWeight: "900", color: "#1c1917", lineHeight: 18 }} numberOfLines={3}>
+                      {selectedProviderDetail.name}
+                    </Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }} numberOfLines={2}>
+                      {selectedProviderDetail.city}
+                    </Text>
+                    {selectedProviderCategoryLabels.length ? (
+                      <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "800", lineHeight: 15 }} numberOfLines={2}>
+                        {selectedProviderCategoryLabels.join(" · ")}
+                      </Text>
+                    ) : null}
                   </View>
-                  <StatusChip label={selectedProviderSource ? "desde resultados" : "destacados"} tone="active" />
                 </View>
                 <ProviderLocationSummary provider={selectedProviderSource ?? selectedProviderDetail} />
-                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.headline}</Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{selectedProviderDetail.bio}</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }} numberOfLines={2}>{selectedProviderDetail.headline}</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }} numberOfLines={3}>{selectedProviderDetail.bio}</Text>
                 <Button label="Volver a resultados" onPress={() => setCurrentView("results")} tone="secondary" />
               </View>
 

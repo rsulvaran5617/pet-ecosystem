@@ -1,5 +1,31 @@
 # HANDOFF.md
 
+# Handoff 2026-07-08 - Estrategia limpieza selectiva productiva provider
+
+- Se agrego `docs/delivery/PRODUCTION_DATA_CLEANUP_RUNBOOK.md` como guia formal para preparar datos provider antes de produccion sin borrar historicos por defecto.
+- Se agrego `docs/delivery/PRODUCTION_DATA_CLEANUP_REVIEW.sql` como script revisable y seguro: diagnostico SELECT, candidatos a ocultar, templates comentados de updates no destructivos y verificacion posterior.
+- Se agregaron `docs/delivery/PRODUCTION_DATA_CLEANUP_CANDIDATES.sql` y `docs/delivery/PRODUCTION_DATA_CLEANUP_APPROVED_HIDE.sql` con los IDs revisados para conservar/ocultar.
+- Decision operativa: priorizar ocultar/desactivar (`is_public`, perfiles publicos, ubicaciones, servicios y disponibilidad) antes de eliminar datos.
+- Borrado queda reservado solo para proveedores sin reservas, chats, reviews, soporte, operaciones ni evidencia, preferiblemente usando la RPC existente `delete_provider_organization`.
+- Se aplico limpieza no destructiva remota: quedaron visibles en marketplace solo `AMERICAN PETS`, `American Pets local Sede` y `BLACK DOG BRISAS`.
+- Se ocultaron/desactivaron los demas providers actuales preservando reservas, chats, reviews, soporte, operaciones, evidencia y audit logs.
+- No se ejecuto `supabase db push`, no se crearon migraciones y no se tocaron backend, RLS, contratos API ni reglas de negocio.
+
+# Handoff 2026-07-08 - Polish ficha proveedor en Buscar owner
+
+- Owner mobile `Buscar > Servicios para tus mascotas` compacta la ficha del proveedor seleccionado.
+- Se elimina la etiqueta visual `desde resultados` / `destacados`; era solo origen visual y no afectaba navegacion, seleccion, slots ni handoff a Reservas.
+- La ficha ahora usa avatar/logo reducido, nombre multilinea, ciudad, ubicacion publica, categorias derivadas de servicios reales y CTA secundario `Volver a resultados`.
+- Se preservan `Ver horarios con cupo`, seleccion de servicio, calendario de slots y handoff Buscar -> Reservas.
+- No se tocaron backend, Supabase, migraciones, contratos API, booking capacity, QR, evidencia, Payments, provider/admin ni Foster.
+
+# Handoff 2026-07-08 - Polish historial reservas owner
+
+- Owner mobile `Reservas > Historial de reservas` reorganiza la cabecera de cada card.
+- El servicio y `Reserva #...` quedan como informacion principal; el estado se mueve debajo como chip secundario para que `Pendiente de aprobacion` no tape titulos largos.
+- Se preservan filtros, seleccion de reserva, `Ver detalle de reserva`, requery/polling, QR, evidencia y booking capacity.
+- No se tocaron backend, Supabase, migraciones, contratos API, reglas de booking, Payments, provider/admin ni Foster.
+
 ## Foster transferencia pendiente como CTA mobile 2026-07-07
 
 - Mobile owner `Mascotas que buscan hogar` convierte el aviso `La transferencia fue iniciada. Revisa Hogares para aceptarla.` en CTA cuando existe transferencia privada `pending`.

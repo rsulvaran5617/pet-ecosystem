@@ -734,8 +734,8 @@ export function BookingsWorkspace({
                   }
                 ]}
               >
-                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
-                  <View style={{ flex: 1, gap: 2 }}>
+                <View style={{ gap: 6 }}>
+                  <View style={{ gap: 2, minWidth: 0 }}>
                     <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 15 }}>
                       {booking.serviceName}
                     </Text>
@@ -743,7 +743,9 @@ export function BookingsWorkspace({
                       Reserva #{booking.id.slice(0, 4)}
                     </Text>
                   </View>
-                  <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
+                  <View style={{ alignSelf: "flex-start", maxWidth: "100%" }}>
+                    <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
+                  </View>
                 </View>
 
                 <View
