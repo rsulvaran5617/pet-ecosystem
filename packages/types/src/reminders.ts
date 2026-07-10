@@ -16,6 +16,7 @@ export interface Reminder extends TimestampedEntity {
   reminderType: ReminderType;
   status: ReminderStatus;
   dueAt: IsoDateString;
+  remindTimeEnabled: boolean;
   completedAt: IsoDateString | null;
   sourceRecordType: ReminderSourceRecordType | null;
   sourceRecordId: Uuid | null;
@@ -38,6 +39,7 @@ export interface CreateReminderInput {
   petId?: Uuid | null;
   title: string;
   dueAt: IsoDateString;
+  remindTimeEnabled?: boolean;
   notes?: string | null;
 }
 
@@ -57,4 +59,5 @@ export interface ListCalendarEventsFilters {
 
 export interface SnoozeReminderInput {
   dueAt: IsoDateString;
+  remindTimeEnabled?: boolean;
 }

@@ -109,8 +109,10 @@ Foster-Household-B actualiza tipos compartidos y API client para leer `household
 - `PATCH /pets/{id}/conditions/{conditionId}`
 - `GET /calendar`
 - `POST /reminders`
+  - acepta `dueAt` como `timestamptz` y `remindTimeEnabled` opcional para hora explicita/local notification.
 - `POST /reminders/{id}/complete`
 - `POST /reminders/{id}/snooze`
+  - acepta `dueAt` y `remindTimeEnabled` opcional para reprogramar fecha/hora.
 
 ### Marketplace
 

@@ -41,6 +41,7 @@ function mapReminder(row: ReminderRow): Reminder {
     reminderType: row.reminder_type,
     status: row.status,
     dueAt: row.due_at,
+    remindTimeEnabled: row.remind_time_enabled,
     completedAt: row.completed_at,
     sourceRecordType: row.source_record_type,
     sourceRecordId: row.source_record_id,
@@ -139,7 +140,8 @@ export function createRemindersApiClient(supabase: RemindersSupabaseClient): Rem
         target_pet_id: input.petId ?? null,
         next_title: input.title,
         next_due_at: input.dueAt,
-        next_notes: input.notes ?? null
+        next_notes: input.notes ?? null,
+        next_remind_time_enabled: input.remindTimeEnabled ?? false
       });
 
       if (error) {
@@ -162,7 +164,8 @@ export function createRemindersApiClient(supabase: RemindersSupabaseClient): Rem
     async snoozeReminder(reminderId, input) {
       const { data, error } = await supabase.rpc("snooze_reminder", {
         target_reminder_id: reminderId,
-        next_due_at: input.dueAt
+        next_due_at: input.dueAt,
+        next_remind_time_enabled: input.remindTimeEnabled ?? false
       });
 
       if (error) {

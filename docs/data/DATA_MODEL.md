@@ -20,6 +20,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - los documentos de mascota pueden tener vigencia controlada con fecha de emision, fecha de vencimiento y ventana de aviso configurable
 - los registros de salud base del MVP viven en `pet_vaccines`, `pet_allergies` y `pet_conditions`
 - un reminder pertenece a un hogar y opcionalmente a una mascota
+- `reminders.due_at` es `timestamptz` y puede representar fecha+hora; `remind_time_enabled` distingue hora explicita del usuario frente a recordatorios de dia completo/legacy
 - `calendar_events` refleja los reminders visibles en agenda para el MVP
 - una organizacion proveedora tiene un perfil publico, multiples servicios, disponibilidades y documentos de aprobacion
 - una organizacion proveedora sin historial operacional puede eliminarse mediante RPC controlada; si tiene reservas, conversaciones, resenas o soporte debe conservarse y ocultarse/desactivarse

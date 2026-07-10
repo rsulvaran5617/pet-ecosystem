@@ -138,6 +138,7 @@ Registrar o editar requiere permisos derivados de `edit` o `admin` sobre la masc
 ### reminders / calendar_events
 Visibles para miembros autorizados del hogar.
 Crear, completar o posponer reminders requiere permisos derivados de `edit` o `admin`.
+La hora explicita (`remind_time_enabled`) no cambia ownership ni visibilidad; las notificaciones locales se gestionan en el dispositivo del usuario y no tienen RLS propia.
 Los eventos de agenda derivados de bookings siguen fuera del baseline.
 
 ### provider_organizations / provider_public_profiles / provider_services / provider_availability / provider_documents

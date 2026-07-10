@@ -6,6 +6,7 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 ## Alcance MVP
 - calendario
 - recordatorios manuales
+- fecha y hora opcional para recordatorios manuales
 - completar o posponer
 - recordatorios automaticos por vacunas
 
@@ -19,6 +20,7 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 - medicacion
 - automatizaciones adicionales
 - eventos de agenda derivados de bookings
+- repeticion, urgente y recordatorio adelantado quedan como REM-Advanced para un slice posterior
 
 ## Entidades
 - `reminders`
@@ -26,6 +28,8 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 
 ## Reglas
 - un recordatorio puede pertenecer a una mascota o al hogar
+- `due_at` guarda la fecha/hora canonica del recordatorio; `remind_time_enabled` indica si el usuario eligio una hora explicita o si se trata como recordatorio de dia completo
+- mobile puede programar una notificacion local cuando hay hora explicita y permisos concedidos; no es push remoto ni sincroniza alertas entre dispositivos
 - si una mascota queda `in_memory`, sus recordatorios historicos se conservan; crear nuevos recordatorios debe tratarse como gestion controlada, no como flujo operativo activo
 - las vacunas con proxima fecha deben generar recordatorios
 - los eventos derivados de booking no deben adelantarse ni duplicar el dominio `bookings`

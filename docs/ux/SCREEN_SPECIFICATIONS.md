@@ -77,6 +77,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - crear reminder
 - completar o posponer
 - formularios de recordatorios usan selector de fecha con salto directo por ano respetando fecha minima cuando aplica; el encabezado mobile muestra `MM/YYYY` y controles compactos para evitar cortes visuales.
+- owner mobile Recordatorios agrega seccion compacta `Fecha y hora`: la hora es opcional con toggle, formato `HH:MM`, chips rapidos y estado de notificacion local cuando el dispositivo concede permisos.
 - owner web Recordatorios usa el patron mobile con selector hogar/mascota, resumen por secciones, formulario plegable y listas compactas de pendientes, completados y calendario.
 - V2 Pet Travel Passport futuro: recordatorios de vencimiento de vacuna, certificado, microchip/documento si aplica, ventana de desparasitacion, fecha limite de tramite y verificacion previa de requisitos oficiales.
 

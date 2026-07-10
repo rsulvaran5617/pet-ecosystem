@@ -1,4 +1,13 @@
-import { calendarEventStatusLabels, formatDateLabel, formatHouseholdPermissions, productLocale, productTimeZone, reminderStatusLabels, reminderTypeLabels } from "@pet/config";
+import {
+  calendarEventStatusLabels,
+  formatDateLabel,
+  formatDateTimeLabel,
+  formatHouseholdPermissions,
+  productLocale,
+  productTimeZone,
+  reminderStatusLabels,
+  reminderTypeLabels
+} from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { Reminder, Uuid } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
@@ -7,6 +16,11 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 
 import { getMobileRemindersApiClient } from "../../core/services/supabase-mobile";
 import { useRemindersWorkspace } from "../hooks/useRemindersWorkspace";
+import {
+  cancelReminderNotification,
+  scheduleReminderNotification,
+  type ReminderNotificationStatus
+} from "../services/reminderNotifications";
 
 const inputStyle = {
   borderRadius: 14,
@@ -46,18 +60,83 @@ function toDateInput(value: string | null | undefined) {
   return value ? value.slice(0, 10) : "";
 }
 
-function toIsoDate(dateValue: string) {
+function toIsoDateTime(dateValue: string, timeValue?: string, useExplicitTime = false) {
   const [year, month, day] = dateValue.split("-").map(Number);
 
   if (!year || !month || !day) {
     throw new Error("Se requiere una fecha valida.");
   }
 
-  return new Date(Date.UTC(year, month - 1, day, 9, 0, 0)).toISOString();
+  const [hours, minutes] = useExplicitTime ? parseTimeInput(timeValue ?? "") : [9, 0];
+
+  return new Date(year, month - 1, day, hours, minutes, 0).toISOString();
 }
 
 function formatDate(value: string) {
   return formatDateLabel(value);
+}
+
+function formatReminderSchedule(reminder: Reminder) {
+  return reminder.remindTimeEnabled ? formatDateTimeLabel(reminder.dueAt) : formatDate(reminder.dueAt);
+}
+
+function getNotificationStatusLabel(reminder: Reminder) {
+  if (reminder.status === "completed") {
+    return "Completado";
+  }
+
+  if (!reminder.remindTimeEnabled) {
+    return "Solo guardado en la app";
+  }
+
+  if (new Date(reminder.dueAt).getTime() <= Date.now()) {
+    return "Hora vencida";
+  }
+
+  return "Notificacion local activa";
+}
+
+function parseTimeInput(value: string): [number, number] {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value.trim());
+
+  if (!match) {
+    throw new Error("Usa una hora valida en formato HH:MM.");
+  }
+
+  return [Number(match[1]), Number(match[2])];
+}
+
+function normalizeTimeInput(value: string) {
+  const match = /^(\d{1,2}):(\d{1,2})$/.exec(value.trim());
+
+  if (!match) {
+    return value;
+  }
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
+  if (hours > 23 || minutes > 59) {
+    return value;
+  }
+
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+}
+
+function getNotificationInfoMessage(status: ReminderNotificationStatus) {
+  switch (status) {
+    case "active":
+      return "Recordatorio creado y notificacion local programada.";
+    case "permission-denied":
+      return "Recordatorio guardado. Activa notificaciones del sistema para recibir el aviso.";
+    case "past":
+      return "Recordatorio guardado. La hora elegida ya paso, por eso no se programo una notificacion.";
+    case "unsupported":
+      return "Recordatorio guardado. Este dispositivo no permitio programar la notificacion local.";
+    case "saved-only":
+    default:
+      return "Recordatorio guardado en la app.";
+  }
 }
 
 function formatDatePickerLabel(value: string) {
@@ -110,6 +189,23 @@ function getDefaultSnoozeDate(reminder: Reminder) {
   const nextDate = new Date(reminder.dueAt);
   nextDate.setUTCDate(nextDate.getUTCDate() + 1);
   return toDateInput(nextDate.toISOString());
+}
+
+function getDefaultSnoozeTime(reminder: Reminder) {
+  if (!reminder.remindTimeEnabled) {
+    return "09:00";
+  }
+
+  const parts = new Intl.DateTimeFormat(productLocale, {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+    timeZone: productTimeZone
+  }).formatToParts(new Date(reminder.dueAt));
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "09";
+  const minute = parts.find((part) => part.type === "minute")?.value ?? "00";
+
+  return `${hour}:${minute}`;
 }
 
 function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boolean; label: string; onPress: () => void; tone?: "primary" | "secondary" }) {
@@ -313,6 +409,75 @@ function DatePickerField({
   );
 }
 
+function TimeSelectorField({
+  enabled,
+  label = "Hora",
+  onEnabledChange,
+  onTimeChange,
+  timeValue
+}: {
+  enabled: boolean;
+  label?: string;
+  onEnabledChange: (enabled: boolean) => void;
+  onTimeChange: (value: string) => void;
+  timeValue: string;
+}) {
+  return (
+    <View
+      style={{
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: enabled ? "rgba(15,118,110,0.2)" : "rgba(28,25,23,0.1)",
+        backgroundColor: enabled ? "rgba(240,253,250,0.72)" : "#ffffff",
+        padding: 12,
+        gap: 10
+      }}
+    >
+      <View style={{ alignItems: "center", flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>{label}</Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+            {enabled ? "La app intentara avisarte a esta hora." : "Activa una hora si quieres un aviso local."}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityLabel={enabled ? "Desactivar hora del recordatorio" : "Activar hora del recordatorio"}
+          accessibilityRole="button"
+          onPress={() => onEnabledChange(!enabled)}
+          style={{
+            alignItems: enabled ? "flex-end" : "flex-start",
+            backgroundColor: enabled ? colorTokens.accent : "rgba(148,163,184,0.28)",
+            borderRadius: 999,
+            justifyContent: "center",
+            padding: 3,
+            width: 46
+          }}
+        >
+          <View style={{ backgroundColor: "#ffffff", borderRadius: 999, height: 18, width: 18 }} />
+        </Pressable>
+      </View>
+      {enabled ? (
+        <View style={{ gap: 8 }}>
+          <TextInput
+            keyboardType="numbers-and-punctuation"
+            onBlur={() => onTimeChange(normalizeTimeInput(timeValue))}
+            onChangeText={onTimeChange}
+            placeholder="09:00"
+            placeholderTextColor="#a8a29e"
+            style={[inputStyle, { fontSize: 16, fontWeight: "800" }]}
+            value={timeValue}
+          />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {["08:00", "09:00", "12:00", "18:00"].map((quickTime) => (
+              <CompactButton key={quickTime} label={quickTime} onPress={() => onTimeChange(quickTime)} tone={timeValue === quickTime ? "primary" : "secondary"} />
+            ))}
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export function RemindersWorkspace({
   contextHouseholdId,
   contextPetId,
@@ -346,15 +511,21 @@ export function RemindersWorkspace({
   } = useRemindersWorkspace(enabled);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("09:00");
+  const [isDueTimeEnabled, setIsDueTimeEnabled] = useState(false);
   const [notes, setNotes] = useState("");
   const [targetPetId, setTargetPetId] = useState<Uuid | "">("");
   const [snoozeDates, setSnoozeDates] = useState<Record<string, string>>({});
+  const [snoozeTimes, setSnoozeTimes] = useState<Record<string, string>>({});
+  const [snoozeTimeEnabled, setSnoozeTimeEnabled] = useState<Record<string, boolean>>({});
+  const [localNotificationMessage, setLocalNotificationMessage] = useState<string | null>(null);
   const [activeReminderSection, setActiveReminderSection] = useState<"pending" | "completed" | "calendar">("pending");
   const [isReminderFormOpen, setIsReminderFormOpen] = useState(false);
   const [openDatePicker, setOpenDatePicker] = useState<"dueDate" | string | null>(null);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const petNameById = useMemo(() => new Map(pets.map((pet) => [pet.id, pet.name])), [pets]);
+  const reminderById = useMemo(() => new Map(reminders.map((reminder) => [reminder.id, reminder])), [reminders]);
   const canEdit =
     selectedHousehold?.myPermissions.includes("edit") || selectedHousehold?.myPermissions.includes("admin") || false;
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
@@ -414,6 +585,7 @@ export function RemindersWorkspace({
     <View style={{ gap: 20 }}>
       {errorMessage ? <View style={cardStyle}><Text style={{ color: "#991b1b", fontWeight: "600" }}>{errorMessage}</Text></View> : null}
       {!errorMessage && infoMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{infoMessage}</Text></View> : null}
+      {!errorMessage && localNotificationMessage ? <View style={cardStyle}><Text style={{ color: "#0f766e", fontWeight: "600" }}>{localNotificationMessage}</Text></View> : null}
       <View
         style={{
           borderRadius: visualTokens.mobile.sectionRadius,
@@ -529,12 +701,18 @@ export function RemindersWorkspace({
                   </View>
                 )}
                 <DatePickerField
-                  helperText="Se guardara a las 09:00 del dia elegido. No cambia el formato enviado al MVP."
+                  helperText={isDueTimeEnabled ? "La fecha y hora se usaran para programar el aviso local." : "Si no activas hora, quedara como recordatorio de dia completo."}
                   isOpen={openDatePicker === "dueDate"}
-                  label="Fecha de vencimiento"
+                  label="Fecha del recordatorio"
                   onChange={setDueDate}
                   onToggle={() => setOpenDatePicker((currentValue) => (currentValue === "dueDate" ? null : "dueDate"))}
                   value={dueDate}
+                />
+                <TimeSelectorField
+                  enabled={isDueTimeEnabled}
+                  onEnabledChange={setIsDueTimeEnabled}
+                  onTimeChange={setDueTime}
+                  timeValue={dueTime}
                 />
                 <Field label="Notas" multiline onChange={setNotes} value={notes} />
                 <Button
@@ -542,19 +720,38 @@ export function RemindersWorkspace({
                   label="Guardar recordatorio"
                   onPress={() => {
                     clearMessages();
+                    setLocalNotificationMessage(null);
                     void runAction(
-                      () => getMobileRemindersApiClient().createReminder({
-                        householdId: selectedHousehold.id,
-                        petId: targetPetId || null,
-                        title: title.trim(),
-                        dueAt: toIsoDate(dueDate),
-                        notes: notes.trim() || null
-                      }),
+                      async () => {
+                        const createdReminder = await getMobileRemindersApiClient().createReminder({
+                          householdId: selectedHousehold.id,
+                          petId: targetPetId || null,
+                          title: title.trim(),
+                          dueAt: toIsoDateTime(dueDate, dueTime, isDueTimeEnabled),
+                          remindTimeEnabled: isDueTimeEnabled,
+                          notes: notes.trim() || null
+                        });
+
+                        if (createdReminder.remindTimeEnabled) {
+                          const notificationStatus = await scheduleReminderNotification({
+                            body: createdReminder.notes,
+                            dueAt: createdReminder.dueAt,
+                            petName: createdReminder.petId ? petNameById.get(createdReminder.petId) : null,
+                            reminderId: createdReminder.id,
+                            title: createdReminder.title
+                          });
+                          setLocalNotificationMessage(getNotificationInfoMessage(notificationStatus));
+                        }
+
+                        return createdReminder;
+                      },
                       "Recordatorio creado."
                     ).then(() => {
                       void onRemindersChanged?.();
                       setTitle("");
                       setDueDate("");
+                      setDueTime("09:00");
+                      setIsDueTimeEnabled(false);
                       setNotes("");
                       setTargetPetId("");
                       setOpenDatePicker(null);
@@ -576,8 +773,11 @@ export function RemindersWorkspace({
                 <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>{reminder.title}</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{reminderTypeLabels[reminder.reminderType]} - {reminderStatusLabels[reminder.status]}</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
-                  Vence: {formatDate(reminder.dueAt)}
+                  Programado: {formatReminderSchedule(reminder)}
                   {reminder.petId ? ` - ${petNameById.get(reminder.petId) ?? "Recordatorio de mascota"}` : " - Recordatorio del hogar"}
+                </Text>
+                <Text style={{ color: reminder.remindTimeEnabled ? colorTokens.accentDark : colorTokens.muted, fontSize: 11, fontWeight: reminder.remindTimeEnabled ? "800" : "500" }}>
+                  {getNotificationStatusLabel(reminder)}
                 </Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{reminder.notes ?? "Sin notas todavia."}</Text>
                 {canEdit ? (
@@ -588,8 +788,13 @@ export function RemindersWorkspace({
                         label="Completar"
                         onPress={() => {
                           clearMessages();
+                          setLocalNotificationMessage(null);
                           void runAction(
-                            () => getMobileRemindersApiClient().completeReminder(reminder.id),
+                            async () => {
+                              const completedReminder = await getMobileRemindersApiClient().completeReminder(reminder.id);
+                              await cancelReminderNotification(reminder.id);
+                              return completedReminder;
+                            },
                             "Recordatorio completado."
                           ).then(() => void onRemindersChanged?.());
                         }}
@@ -602,15 +807,48 @@ export function RemindersWorkspace({
                       onToggle={() => setOpenDatePicker((currentValue) => (currentValue === reminder.id ? null : reminder.id))}
                       value={snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder)}
                     />
+                    <TimeSelectorField
+                      enabled={snoozeTimeEnabled[reminder.id] ?? reminder.remindTimeEnabled}
+                      label="Hora al posponer"
+                      onEnabledChange={(enabled) => setSnoozeTimeEnabled((currentValues) => ({ ...currentValues, [reminder.id]: enabled }))}
+                      onTimeChange={(value) => setSnoozeTimes((currentTimes) => ({ ...currentTimes, [reminder.id]: value }))}
+                      timeValue={snoozeTimes[reminder.id] ?? getDefaultSnoozeTime(reminder)}
+                    />
                     <CompactButton
                       disabled={isSubmitting}
                       label="Posponer"
                       onPress={() => {
-                        clearMessages();
+                          clearMessages();
+                        setLocalNotificationMessage(null);
+                        const nextRemindTimeEnabled = snoozeTimeEnabled[reminder.id] ?? reminder.remindTimeEnabled;
+                        const nextDueAt = toIsoDateTime(
+                          snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder),
+                          snoozeTimes[reminder.id] ?? getDefaultSnoozeTime(reminder),
+                          nextRemindTimeEnabled
+                        );
                         void runAction(
-                          () => getMobileRemindersApiClient().snoozeReminder(reminder.id, {
-                            dueAt: toIsoDate(snoozeDates[reminder.id] ?? getDefaultSnoozeDate(reminder))
-                          }),
+                          async () => {
+                            const snoozedReminder = await getMobileRemindersApiClient().snoozeReminder(reminder.id, {
+                              dueAt: nextDueAt,
+                              remindTimeEnabled: nextRemindTimeEnabled
+                            });
+
+                            if (snoozedReminder.remindTimeEnabled) {
+                              const notificationStatus = await scheduleReminderNotification({
+                                body: snoozedReminder.notes,
+                                dueAt: snoozedReminder.dueAt,
+                                petName: snoozedReminder.petId ? petNameById.get(snoozedReminder.petId) : null,
+                                reminderId: snoozedReminder.id,
+                                title: snoozedReminder.title
+                              });
+                              setLocalNotificationMessage(getNotificationInfoMessage(notificationStatus));
+                            } else {
+                              await cancelReminderNotification(snoozedReminder.id);
+                              setLocalNotificationMessage("Recordatorio pospuesto sin notificacion local.");
+                            }
+
+                            return snoozedReminder;
+                          },
                           "Recordatorio pospuesto."
                         ).then(() => void onRemindersChanged?.());
                       }}
@@ -627,7 +865,9 @@ export function RemindersWorkspace({
             {calendarEvents.length ? calendarEvents.map((event) => (
               <View key={event.id} style={inputStyle}>
                 <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>{event.title}</Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{formatDate(event.startsAt)}</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                  {reminderById.get(event.reminderId)?.remindTimeEnabled ? formatDateTimeLabel(event.startsAt) : formatDate(event.startsAt)}
+                </Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{calendarEventStatusLabels[event.status]}</Text>
               </View>
             )) : <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>Todavia no hay eventos de calendario para este filtro.</Text>}

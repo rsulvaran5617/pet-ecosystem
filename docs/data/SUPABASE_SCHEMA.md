@@ -39,6 +39,16 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `booking_status_history`
 - `chat_threads`
 
+## Reminders
+
+- `reminders`
+  - `due_at timestamptz` conserva la fecha/hora canonica del recordatorio.
+  - `remind_time_enabled boolean default false` indica si el usuario activo una hora explicita para avisos locales.
+  - recordatorios existentes quedan compatibles con `remind_time_enabled = false`.
+- `calendar_events`
+  - sigue reflejando `reminders.due_at` como `starts_at`.
+  - no incorpora bookings ni push remoto.
+
 ## Foster-3A/3B adopcion controlada
 
 - `pet_adoption_listings`

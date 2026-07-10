@@ -1580,6 +1580,7 @@ export interface Database {
           reminder_type: ReminderType;
           status: ReminderStatus;
           due_at: string;
+          remind_time_enabled: boolean;
           completed_at: string | null;
           source_record_type: ReminderSourceRecordType | null;
           source_record_id: string | null;
@@ -1596,6 +1597,7 @@ export interface Database {
           reminder_type?: ReminderType;
           status?: ReminderStatus;
           due_at: string;
+          remind_time_enabled?: boolean;
           completed_at?: string | null;
           source_record_type?: ReminderSourceRecordType | null;
           source_record_id?: string | null;
@@ -1612,6 +1614,7 @@ export interface Database {
           reminder_type?: ReminderType;
           status?: ReminderStatus;
           due_at?: string;
+          remind_time_enabled?: boolean;
           completed_at?: string | null;
           source_record_type?: ReminderSourceRecordType | null;
           source_record_id?: string | null;
@@ -2682,6 +2685,7 @@ export interface Database {
           next_title: string | null;
           next_due_at: string | null;
           next_notes: string | null;
+          next_remind_time_enabled?: boolean;
         };
         Returns: Database["public"]["Tables"]["reminders"]["Row"];
       };
@@ -2695,6 +2699,7 @@ export interface Database {
         Args: {
           target_reminder_id: string;
           next_due_at: string;
+          next_remind_time_enabled?: boolean;
         };
         Returns: Database["public"]["Tables"]["reminders"]["Row"];
       };

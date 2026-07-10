@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+# Handoff 2026-07-10 - Recordatorios con hora y notificacion local
+
+- Owner mobile `Mascotas > Recordatorios` agrega hora opcional en recordatorios manuales.
+- El modelo mantiene `reminders.due_at` como fecha/hora canonica y agrega `remind_time_enabled` para distinguir hora explicita frente a recordatorios de dia completo/legacy.
+- `create_reminder` y `snooze_reminder` aceptan `next_remind_time_enabled` opcional; recordatorios existentes quedan compatibles.
+- Mobile usa `expo-notifications` para programar una notificacion local solo cuando hay hora explicita, fecha futura y permisos concedidos por el dispositivo.
+- Completar un recordatorio cancela la notificacion local almacenada en el dispositivo; posponer reprograma o cancela segun el toggle de hora.
+- No se implemento push remoto, Edge Functions, repeticion, urgente ni recordatorio adelantado. Esas capacidades quedan como REM-Advanced diferido.
+- No se tocaron Payments, booking, QR, evidencia operacional, provider services, geolocalizacion ni Foster/adopcion.
+
 # Handoff 2026-07-09 - Salud vacunas sticker viewer
 
 - Owner mobile `Mascotas > Salud > Vacunas` normaliza el sticker/soporte documental de vacunas con el patron de documentos.
