@@ -1,10 +1,12 @@
 import { formatHouseholdPermissions, petConditionStatusLabels, petConditionStatusOrder } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetConditionStatus, PetDocument, PetVaccine, UpdatePetAllergyInput, UpdatePetConditionInput, UpdatePetVaccineInput } from "@pet/types";
+import { getPetDocumentValidityStatus } from "@pet/types";
 import * as DocumentPicker from "expo-document-picker";
 import { useEffect, useState } from "react";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, Switch, Text, TextInput, View } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { getMobileHealthApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 import { useHealthWorkspace } from "../hooks/useHealthWorkspace";
@@ -23,6 +25,7 @@ const cardStyle = { borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)",
 const emptyVaccineForm: UpdatePetVaccineInput = { name: "", administeredOn: "", nextDueOn: "", notes: "" };
 const emptyAllergyForm: UpdatePetAllergyInput = { allergen: "", reaction: "", notes: "" };
 const emptyConditionForm: UpdatePetConditionInput = { name: "", status: "active", diagnosedOn: "", isCritical: false, notes: "" };
+const emptyEvidenceForm = { expirationWarningDays: 30, expiresAt: "", hasExpiration: false, issuedAt: "" };
 
 LocaleConfig.locales.es = {
   monthNames: [
@@ -69,6 +72,56 @@ function SmallButton({ label, onPress }: { label: string; onPress: () => void })
       }}
     >
       <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "800" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function StickerIconButton({
+  disabled,
+  icon,
+  label,
+  onPress,
+  tone = "secondary"
+}: {
+  disabled?: boolean;
+  icon: "calendar" | "eye";
+  label: string;
+  onPress: () => void;
+  tone?: "primary" | "secondary";
+}) {
+  const tint = tone === "primary" ? "#ffffff" : colorTokens.accentDark;
+
+  return (
+    <Pressable
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={{
+        alignItems: "center",
+        backgroundColor: tone === "primary" ? colorTokens.accent : "rgba(15,118,110,0.1)",
+        borderColor: "rgba(15,118,110,0.24)",
+        borderRadius: 18,
+        borderWidth: 1,
+        height: 34,
+        justifyContent: "center",
+        opacity: disabled ? 0.62 : 1,
+        width: 34
+      }}
+    >
+      <Svg height={17} viewBox="0 0 24 24" width={17}>
+        {icon === "eye" ? (
+          <>
+            <Path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5Z" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            <Circle cx={12} cy={12} fill="none" r={2.6} stroke={tint} strokeWidth={2} />
+          </>
+        ) : (
+          <>
+            <Rect fill="none" height={16} rx={3} stroke={tint} strokeWidth={2} width={16} x={4} y={5} />
+            <Path d="M8 3v4M16 3v4M4 10h16M8 15h3" stroke={tint} strokeLinecap="round" strokeWidth={2} />
+          </>
+        )}
+      </Svg>
     </Pressable>
   );
 }
@@ -139,6 +192,59 @@ function formatDateLabel(value: string) {
     month: "short",
     year: "numeric"
   });
+}
+
+function formatFileSize(bytes: number | null) {
+  if (!bytes) {
+    return "Tamano pendiente";
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getDocumentValidityLabel(document: Pick<PetDocument, "expirationWarningDays" | "expiresAt" | "hasExpiration">) {
+  const validity = getPetDocumentValidityStatus(document);
+
+  if (validity.status === "no_expiration") {
+    return { label: "Sin vencimiento", tone: "neutral" as const };
+  }
+
+  if (validity.status === "missing_expiration_date") {
+    return { label: "Fecha pendiente", tone: "warning" as const };
+  }
+
+  if (validity.status === "expired") {
+    return { label: "Vencido", tone: "danger" as const };
+  }
+
+  if (validity.status === "expiring_soon") {
+    return { label: validity.daysUntilExpiration === 0 ? "Vence hoy" : `Vence en ${validity.daysUntilExpiration} dias`, tone: "warning" as const };
+  }
+
+  return { label: document.expiresAt ? `Vigente hasta ${formatDateLabel(document.expiresAt)}` : "Vigente", tone: "active" as const };
+}
+
+function ValidityChip({ label, tone }: { label: string; tone: "active" | "danger" | "neutral" | "warning" }) {
+  const palette = {
+    active: { backgroundColor: "rgba(15,118,110,0.12)", borderColor: "rgba(15,118,110,0.24)", color: colorTokens.accentDark },
+    danger: { backgroundColor: "rgba(254,226,226,0.88)", borderColor: "rgba(220,38,38,0.24)", color: "#991b1b" },
+    neutral: { backgroundColor: "rgba(241,245,249,0.92)", borderColor: "rgba(15,23,42,0.08)", color: "#475569" },
+    warning: { backgroundColor: "rgba(255,237,213,0.9)", borderColor: "rgba(249,115,22,0.24)", color: "#9a3412" }
+  }[tone];
+
+  return (
+    <View style={{ alignSelf: "flex-start", backgroundColor: palette.backgroundColor, borderColor: palette.borderColor, borderRadius: 999, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 5 }}>
+      <Text numberOfLines={1} style={{ color: palette.color, fontSize: 10, fontWeight: "900" }}>{label}</Text>
+    </View>
+  );
+}
+
+function isImageDocument(document: Pick<PetDocument, "fileName" | "mimeType">) {
+  return document.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp)$/i.test(document.fileName);
 }
 
 function normalizeEvidenceText(value: string) {
@@ -332,6 +438,11 @@ export function HealthWorkspace({
   const [activeHealthForm, setActiveHealthForm] = useState<"vaccine" | "allergy" | "condition" | null>(null);
   const [vaccineEvidenceDocuments, setVaccineEvidenceDocuments] = useState<PetDocument[]>([]);
   const [isLoadingVaccineEvidence, setIsLoadingVaccineEvidence] = useState(false);
+  const [evidencePreview, setEvidencePreview] = useState<{ document: PetDocument; signedUrl: string } | null>(null);
+  const [evidencePreviewLoadingId, setEvidencePreviewLoadingId] = useState<string | null>(null);
+  const [editingEvidenceDocumentId, setEditingEvidenceDocumentId] = useState<string | null>(null);
+  const [evidenceDocumentForm, setEvidenceDocumentForm] = useState(emptyEvidenceForm);
+  const [openEvidenceDatePicker, setOpenEvidenceDatePicker] = useState<"expiresAt" | "issuedAt" | null>(null);
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -444,6 +555,83 @@ export function HealthWorkspace({
       const documents = await getMobilePetsApiClient().listPetDocuments(selectedPetId);
       setVaccineEvidenceDocuments(documents.filter((document) => document.documentType === "vaccination_record"));
     }
+  }
+
+  async function refreshVaccineEvidence() {
+    if (!selectedPetId) {
+      setVaccineEvidenceDocuments([]);
+      return;
+    }
+
+    const documents = await getMobilePetsApiClient().listPetDocuments(selectedPetId);
+    setVaccineEvidenceDocuments(documents.filter((document) => document.documentType === "vaccination_record"));
+  }
+
+  async function openVaccineStickerPreview(document: PetDocument) {
+    setEvidencePreviewLoadingId(document.id);
+
+    try {
+      const access = await getMobilePetsApiClient().getPetDocumentSignedUrl(document.id);
+      const previewDocument = { ...document, mimeType: access.mimeType ?? document.mimeType };
+
+      if (isImageDocument(previewDocument)) {
+        setEvidencePreview({ document: previewDocument, signedUrl: access.signedUrl });
+        return;
+      }
+
+      await Linking.openURL(access.signedUrl);
+    } catch {
+      Alert.alert("Sticker no disponible", "No se pudo abrir el soporte documental. Intenta nuevamente.");
+    } finally {
+      setEvidencePreviewLoadingId(null);
+    }
+  }
+
+  function openEvidenceValidityEditor(document: PetDocument) {
+    setEditingEvidenceDocumentId(document.id);
+    setEvidenceDocumentForm({
+      expirationWarningDays: document.expirationWarningDays,
+      expiresAt: document.expiresAt ?? "",
+      hasExpiration: document.hasExpiration,
+      issuedAt: document.issuedAt ?? ""
+    });
+    setOpenEvidenceDatePicker(null);
+  }
+
+  function closeEvidenceValidityEditor() {
+    setEditingEvidenceDocumentId(null);
+    setEvidenceDocumentForm(emptyEvidenceForm);
+    setOpenEvidenceDatePicker(null);
+  }
+
+  function saveEvidenceValidity(document: PetDocument) {
+    clearMessages();
+
+    void runAction(
+      async () => {
+        if (evidenceDocumentForm.hasExpiration && !evidenceDocumentForm.expiresAt) {
+          throw new Error("Indica la fecha de vencimiento del sticker.");
+        }
+
+        if (evidenceDocumentForm.issuedAt && evidenceDocumentForm.expiresAt && evidenceDocumentForm.expiresAt < evidenceDocumentForm.issuedAt) {
+          throw new Error("La fecha de vencimiento no puede ser anterior a la fecha de emision.");
+        }
+
+        return getMobilePetsApiClient().updatePetDocument(document.id, {
+          documentType: "vaccination_record",
+          expirationWarningDays: evidenceDocumentForm.expirationWarningDays,
+          expiresAt: evidenceDocumentForm.hasExpiration ? evidenceDocumentForm.expiresAt : null,
+          hasExpiration: evidenceDocumentForm.hasExpiration,
+          issuedAt: evidenceDocumentForm.issuedAt || null,
+          title: document.title
+        });
+      },
+      "Vigencia del sticker actualizada.",
+      false
+    ).then(async () => {
+      closeEvidenceValidityEditor();
+      await refreshVaccineEvidence();
+    });
   }
 
   if (!enabled) {
@@ -614,25 +802,137 @@ export function HealthWorkspace({
                 ) : !canEdit ? <Text style={{ color: colorTokens.muted }}>Hogar en modo solo lectura.</Text> : null}
                 {selectedPetHealthDetail.vaccines.map((vaccine) => {
                   const evidenceDocuments = getVaccineEvidenceDocuments(vaccine, vaccineEvidenceDocuments);
+                  const primaryEvidenceDocument = evidenceDocuments[0] ?? null;
+                  const validityBadge = primaryEvidenceDocument ? getDocumentValidityLabel(primaryEvidenceDocument) : null;
+                  const isEditingThisEvidence = Boolean(primaryEvidenceDocument && editingEvidenceDocumentId === primaryEvidenceDocument.id);
 
                   return (
-                    <View key={vaccine.id} style={[inputStyle, { gap: 6 }]}>
-                      <Text style={{ fontWeight: "600", color: "#1c1917" }}>{vaccine.name}</Text>
-                      <Text style={{ color: colorTokens.muted }}>Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}</Text>
-                      <Text style={{ color: colorTokens.muted }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
-                      <View style={{ borderRadius: 12, backgroundColor: evidenceDocuments.length ? "rgba(15,118,110,0.08)" : "rgba(250,250,249,0.88)", padding: 8, gap: 4 }}>
-                        <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900" }}>Sticker / soporte documental</Text>
+                    <View key={vaccine.id} style={[inputStyle, { gap: 8 }]}>
+                      <View style={{ gap: 3 }}>
+                        <Text style={{ fontWeight: "800", color: "#1c1917", fontSize: 13 }}>{vaccine.name}</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                          Aplicada: {vaccine.administeredOn} - Proxima dosis: {vaccine.nextDueOn ?? "Sin registro"}
+                        </Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
+                      </View>
+                      <View style={{ borderRadius: 14, backgroundColor: evidenceDocuments.length ? "rgba(15,118,110,0.08)" : "rgba(250,250,249,0.88)", padding: 9, gap: 7 }}>
+                        <View style={{ alignItems: "center", flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
+                          <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                            <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900" }}>Sticker / soporte documental</Text>
+                            <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                              Evidencia documental; no modifica fechas clinicas.
+                            </Text>
+                          </View>
+                          {validityBadge ? <ValidityChip label={validityBadge.label} tone={validityBadge.tone} /> : null}
+                        </View>
                         {isLoadingVaccineEvidence ? (
                           <Text style={{ color: colorTokens.muted, fontSize: 11 }}>Consultando documentos...</Text>
                         ) : evidenceDocuments.length ? (
-                          evidenceDocuments.slice(0, 2).map((document) => (
-                            <Text key={document.id} numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>
-                              {document.title} - {document.fileName}
-                            </Text>
-                          ))
+                          <>
+                            <View style={{ borderRadius: 12, backgroundColor: "rgba(255,255,255,0.72)", padding: 8, gap: 3 }}>
+                              <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 11, fontWeight: "800" }}>
+                                {primaryEvidenceDocument?.title ?? "Sticker cargado"}
+                              </Text>
+                              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
+                                {primaryEvidenceDocument?.fileName ?? "Archivo del sticker"}
+                              </Text>
+                              {primaryEvidenceDocument ? (
+                                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
+                                  {formatFileSize(primaryEvidenceDocument.fileSizeBytes)} - {primaryEvidenceDocument.mimeType ?? "Tipo pendiente"}
+                                </Text>
+                              ) : null}
+                              {evidenceDocuments.length > 1 ? (
+                                <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800" }}>
+                                  {evidenceDocuments.length - 1} soporte(s) adicional(es) asociado(s).
+                                </Text>
+                              ) : null}
+                            </View>
+                            {primaryEvidenceDocument ? (
+                              <View style={{ alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                <StickerIconButton
+                                  disabled={evidencePreviewLoadingId === primaryEvidenceDocument.id}
+                                  icon="eye"
+                                  label="Ver sticker de vacuna"
+                                  onPress={() => {
+                                    void openVaccineStickerPreview(primaryEvidenceDocument);
+                                  }}
+                                  tone="primary"
+                                />
+                                {canEdit ? (
+                                  <StickerIconButton
+                                    disabled={isSubmitting}
+                                    icon="calendar"
+                                    label="Editar vigencia del sticker"
+                                    onPress={() => openEvidenceValidityEditor(primaryEvidenceDocument)}
+                                  />
+                                ) : null}
+                                {evidencePreviewLoadingId === primaryEvidenceDocument.id ? <ActivityIndicator color={colorTokens.accentDark} size="small" /> : null}
+                              </View>
+                            ) : null}
+                            {primaryEvidenceDocument && isEditingThisEvidence ? (
+                              <View style={{ borderRadius: 14, backgroundColor: "#ffffff", padding: 10, gap: 8 }}>
+                                <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900" }}>Vigencia del sticker</Text>
+                                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                  {[
+                                    { label: "Sin vencimiento", value: false },
+                                    { label: "Tiene vencimiento", value: true }
+                                  ].map((option) => {
+                                    const isSelected = evidenceDocumentForm.hasExpiration === option.value;
+
+                                    return (
+                                      <Pressable
+                                        key={option.label}
+                                        accessibilityRole="button"
+                                        onPress={() =>
+                                          setEvidenceDocumentForm((current) => ({
+                                            ...current,
+                                            expiresAt: option.value ? current.expiresAt : "",
+                                            hasExpiration: option.value
+                                          }))
+                                        }
+                                        style={{
+                                          backgroundColor: isSelected ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.86)",
+                                          borderColor: isSelected ? "rgba(15,118,110,0.28)" : "rgba(15,23,42,0.1)",
+                                          borderRadius: 999,
+                                          borderWidth: 1,
+                                          paddingHorizontal: 10,
+                                          paddingVertical: 7
+                                        }}
+                                      >
+                                        <Text style={{ color: isSelected ? colorTokens.accentDark : colorTokens.ink, fontSize: 10, fontWeight: "900" }}>{option.label}</Text>
+                                      </Pressable>
+                                    );
+                                  })}
+                                </View>
+                                <DatePickerField
+                                  helperText="Fecha documental del sticker o cartilla."
+                                  isOpen={openEvidenceDatePicker === "issuedAt"}
+                                  label="Fecha de emision"
+                                  maxDate={new Date().toISOString().slice(0, 10)}
+                                  onChange={(value) => setEvidenceDocumentForm((current) => ({ ...current, issuedAt: value }))}
+                                  onToggle={() => setOpenEvidenceDatePicker((current) => (current === "issuedAt" ? null : "issuedAt"))}
+                                  value={evidenceDocumentForm.issuedAt}
+                                />
+                                {evidenceDocumentForm.hasExpiration ? (
+                                  <DatePickerField
+                                    helperText="Vigencia documental del soporte. No cambia la proxima dosis clinica."
+                                    isOpen={openEvidenceDatePicker === "expiresAt"}
+                                    onChange={(value) => setEvidenceDocumentForm((current) => ({ ...current, expiresAt: value }))}
+                                    onToggle={() => setOpenEvidenceDatePicker((current) => (current === "expiresAt" ? null : "expiresAt"))}
+                                    label="Fecha de vencimiento"
+                                    value={evidenceDocumentForm.expiresAt}
+                                  />
+                                ) : null}
+                                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                  <SmallButton label="Guardar vigencia" onPress={() => saveEvidenceValidity(primaryEvidenceDocument)} />
+                                  <SmallButton label="Cerrar" onPress={closeEvidenceValidityEditor} />
+                                </View>
+                              </View>
+                            ) : null}
+                          </>
                         ) : (
                           <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>
-                            Aun no hay foto o archivo del sticker asociado a esta vacuna.
+                            Sin sticker cargado para esta vacuna.
                           </Text>
                         )}
                       </View>
@@ -724,6 +1024,69 @@ export function HealthWorkspace({
           )}
         </View>
       </View>
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setEvidencePreview(null)}
+        transparent
+        visible={Boolean(evidencePreview)}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: "rgba(15,23,42,0.62)",
+            flex: 1,
+            justifyContent: "center",
+            padding: 18
+          }}
+        >
+          <View style={{ backgroundColor: "#ffffff", borderRadius: 22, gap: 12, maxHeight: "88%", padding: 14, width: "100%" }}>
+            <View style={{ flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900", textTransform: "uppercase" }}>
+                  Sticker de vacuna
+                </Text>
+                <Text style={{ color: colorTokens.ink, fontSize: 16, fontWeight: "900" }}>{evidencePreview?.document.title}</Text>
+                {evidencePreview ? (
+                  <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                    {getDocumentValidityLabel(evidencePreview.document).label}
+                  </Text>
+                ) : null}
+              </View>
+              <Pressable
+                accessibilityLabel="Cerrar visualizador de sticker"
+                accessibilityRole="button"
+                onPress={() => setEvidencePreview(null)}
+                style={{
+                  alignItems: "center",
+                  borderColor: "rgba(15,118,110,0.24)",
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  height: 34,
+                  justifyContent: "center",
+                  width: 34
+                }}
+              >
+                <Text style={{ color: colorTokens.accentDark, fontSize: 16, fontWeight: "900" }}>X</Text>
+              </Pressable>
+            </View>
+
+            {evidencePreview ? (
+              <View style={{ backgroundColor: "rgba(241,245,249,0.9)", borderRadius: 18, height: 420, overflow: "hidden" }}>
+                <Image resizeMode="contain" source={{ uri: evidencePreview.signedUrl }} style={{ height: "100%", width: "100%" }} />
+              </View>
+            ) : null}
+
+            {evidencePreview ? (
+              <View style={{ gap: 3 }}>
+                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>{evidencePreview.document.fileName}</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
+                  {formatFileSize(evidencePreview.document.fileSizeBytes)} - {evidencePreview.document.mimeType ?? "Tipo de archivo desconocido"}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

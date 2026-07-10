@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-09 - Salud vacunas sticker viewer
+
+- Owner mobile `Mascotas > Salud > Vacunas` normaliza el sticker/soporte documental de vacunas con el patron de documentos.
+- Cada vacuna conserva datos clinicos (`administered_on`, `next_due_on`, notas) y muestra el soporte como documento `vaccination_record`.
+- Cuando existe sticker, la card muestra estado de vigencia documental, accion de ojo para visualizarlo y accion de calendario para editar emision/vencimiento del documento.
+- Imagenes se previsualizan en modal interno con URL firmada temporal; PDFs/otros archivos se abren con el visor del dispositivo.
+- La edicion de vigencia usa `updatePetDocument` sobre `pet_documents`; no cambia fechas clinicas de la vacuna, alergias, condiciones, backend, Supabase, RLS ni contratos.
+
 # Handoff 2026-07-08 - Estrategia limpieza selectiva productiva provider
 
 - Se agrego `docs/delivery/PRODUCTION_DATA_CLEANUP_RUNBOOK.md` como guia formal para preparar datos provider antes de produccion sin borrar historicos por defecto.
