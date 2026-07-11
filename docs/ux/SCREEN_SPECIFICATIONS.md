@@ -51,6 +51,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - editar mascota
 - perfil mascota
 - perfil mascota muestra esterilizacion como dato maestro descriptivo editable, con opcion sin indicar para historicos
+- Lost Pet Alerts futuro: ficha de mascota podria incluir CTA `Reportar extraviada` solo en un slice posterior; debe pedir confirmacion, zona aproximada, foto y fecha/hora vista por ultima vez sin exponer direccion exacta.
 - documentos
 - documentos de mascota muestran vigencia con chips `Sin vencimiento`, `Fecha pendiente`, `Vigente`, `Por vencer` o `Vencido`; owner mobile/web permite editar vigencia sin reemplazar el archivo
 - owner mobile Docs usa acciones compactas por icono: ojo para visualizar documento y calendario para editar vigencia. Las imagenes se abren en un visor interno con URL firmada temporal; PDFs/otros formatos se abren con el visor del dispositivo cuando esta disponible.
@@ -58,6 +59,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas; el encabezado mobile muestra `MM/YYYY` y controles compactos `-1 ano` / `+1 ano` para no tapar el mes en pantallas pequenas.
 - owner mobile mantiene una `mascota activa` persistente en el shell: seleccionar desde Inicio/Mascotas/Salud/Recordatorios/Buscar/Reservas conserva el foco al navegar por el menu inferior y muestra una banda compacta para cambiarla.
+- futuro `Mascotas extraviadas cerca`: listado in-app con alertas activas, foto, zona aproximada, expiracion y CTA `Tengo informacion`; no debe enviar push remoto sin opt-in.
 - owner web Mascotas usa carrusel horizontal superior de mascotas y panel inferior compacto para datos maestros, resumen y documentos de la mascota seleccionada sin cambiar contratos ni reglas
 - owner mobile/web Mascotas muestra un bloque de atencion documental para documentos vencidos, por vencer o con fecha pendiente
 

@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-10 - Lost Pet Alerts documentado como futuro
+
+- Se documento `docs/modules/lost_pet_alerts.md` como desarrollo futuro para alertas comunitarias de mascota extraviada.
+- El alcance queda en `documented_on_hold`: primero in-app, luego preferencias/opt-in y solo despues push remoto segmentado.
+- Principios definidos: no exponer direccion exacta, no tracking, expiracion obligatoria, cierre como encontrada, moderacion/reportes y separacion de Foster, bookings, Payments y marketplace comercial.
+- Se agrego historia candidata en `docs/product/BACKLOG_MASTER.md`, estado en `docs/product/MODULE_STATUS.md`, nota en `docs/delivery/V2_SCOPE.md` y referencias UX futuras en `docs/ux/SCREEN_SPECIFICATIONS.md`.
+- No se modifico codigo, no se crearon migraciones, no se toco Supabase, RLS, RPCs, mobile, web, admin ni notificaciones push.
+
 # Handoff 2026-07-10 - Recordatorios con hora y notificacion local
 
 - Owner mobile `Mascotas > Recordatorios` agrega hora opcional en recordatorios manuales.

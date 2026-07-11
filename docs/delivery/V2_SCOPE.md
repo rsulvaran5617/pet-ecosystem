@@ -51,6 +51,12 @@ Agregar profundidad operativa y verticales principales del ecosistema.
   - moderacion admin de fosters, publicaciones y reportes
   - transferencia de custodia digital al nuevo hogar
   - seguimiento post-adopcion opcional
+- Lost Pet Alerts / Mascota extraviada, documentado como futuro:
+  - alerta in-app para mascotas extraviadas
+  - zona aproximada sin direccion exacta ni tracking
+  - opt-in/preferencias antes de push remoto
+  - expiracion y cierre como encontrada
+  - moderacion/reportes para evitar abuso
 
 ## No incluye
 - memberships
@@ -64,3 +70,5 @@ Agregar profundidad operativa y verticales principales del ecosistema.
 - venta de mascotas
 - pagos por adopcion dentro de la plataforma
 - mezclar adopciones con servicios comerciales o bookings
+- alerta global indiscriminada sin consentimiento
+- tracking en tiempo real de hogares o mascotas

@@ -163,3 +163,24 @@ manda el archivo de release (`docs/delivery/MVP_SCOPE.md`, `docs/delivery/V2_SCO
   - moderation/admin
   - messaging opcional
 - release: V2.5 no financiero
+
+### EP-03-LOST-V2-60 - Alerta comunitaria de mascota extraviada
+
+- ID: EP-03-LOST-V2-60
+- epica: EP-03 Mascotas, documentos y expediente base
+- actor: duenio de mascota
+- descripcion: como duenio quiero reportar una mascota extraviada y activar una alerta comunitaria controlada para que otros usuarios puedan verla y aportar informacion sin exponer mi direccion privada.
+- criterios de aceptacion:
+  - la alerta se crea desde una mascota del hogar
+  - la alerta muestra foto, nombre, especie, zona aproximada y fecha/hora vista por ultima vez
+  - no expone direccion exacta ni ubicacion en tiempo real
+  - tiene expiracion y puede cerrarse como `Encontrada`
+  - otros usuarios solo reciben o ven alertas segun consentimiento/preferencias
+  - la primera version recomendada es in-app; push remoto queda para un slice posterior
+- dependencias:
+  - pets
+  - households
+  - preferencias de notificacion
+  - privacidad y moderacion admin
+  - notificaciones push remotas solo en fase posterior
+- release: V2 futuro documentado
