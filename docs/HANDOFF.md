@@ -1178,6 +1178,28 @@ Validacion recomendada:
 - Intentar registrar con contrasenas distintas y confirmar error claro.
 - Registrar con contrasenas iguales y confirmar que el flujo pasa a verificacion OTP como antes.
 
+## Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1B hogar owner guiado
+
+Estado:
+
+- Se implementa el segundo paso del flujo owner nuevo cuando el usuario autenticado aun no tiene hogares.
+- `HouseholdsWorkspace` agrega `presentation="ownerOnboarding"` para reutilizar la logica existente sin duplicar API ni reglas.
+- En modo onboarding:
+  - se muestra una ilustracion ligera de hogar;
+  - se muestra progreso `Cuenta` completado, `Hogar` activo y `Mascota` siguiente;
+  - el tipo queda fijo como `Hogar familiar`;
+  - se ocultan lista/detalle de hogares y secciones administrativas vacias para reducir carga cognitiva;
+  - las invitaciones reales pendientes siguen disponibles si existen.
+- La creacion sigue usando `createHousehold` con `householdType = owner`.
+- No se tocaron Supabase, migraciones, RLS, contratos API, booking, QR, evidencia, Payments, provider/admin ni Foster.
+
+Validacion recomendada:
+
+- Con un owner nuevo sin hogares, iniciar sesion y verificar que aparece `Primero crea tu hogar familiar`.
+- Confirmar que el formulario muestra solo nombre del hogar y tipo fijo `Hogar familiar`.
+- Crear hogar y validar que la app refresca y pasa al Inicio owner.
+- Entrar luego a Cuenta/Hogares y confirmar que la gestion completa de hogares sigue mostrando lista, detalle, miembros e invitaciones.
+
 ### Prompt exacto recomendado para continuar
 
 ```text

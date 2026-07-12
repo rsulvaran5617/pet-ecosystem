@@ -8,6 +8,8 @@ UX-PROG-1 Owner Home progresivo queda implementado en mobile owner como primer s
 
 UX-MOBILE-FLOWS Slice 1A inicia el rediseño guiado por referencias visuales en el acceso mobile sin sesion. El alcance se limita al shell de bienvenida/login/registro/OTP/recuperacion y mantiene la misma API de autenticacion.
 
+UX-MOBILE-FLOWS Slice 1B convierte la compuerta owner sin hogar en un paso guiado para crear un `Hogar familiar` antes de mostrar Inicio/Mascotas. La gestion completa de hogares permanece disponible en Cuenta.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.

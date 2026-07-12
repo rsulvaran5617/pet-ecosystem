@@ -2466,9 +2466,9 @@ export function CoreHomeScreen() {
         {ownerNeedsHouseholdSetup && !isAccountSectionActive ? (
           <>
             <View style={{ borderRadius: 22, backgroundColor: colorTokens.accentDark, padding: 16, gap: 6, ...visualTokens.mobile.shadow }}>
-              <Text style={{ color: "#ffffff", fontSize: 16, fontWeight: "900", lineHeight: 20 }}>Primero crea tu familia</Text>
+              <Text style={{ color: "#ffffff", fontSize: 16, fontWeight: "900", lineHeight: 20 }}>Primero crea tu hogar familiar</Text>
               <Text style={{ color: "rgba(255,255,255,0.86)", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
-                Tu familia es el hogar donde se organizan mascotas, permisos y reservas. Despues podras registrar tu primera mascota.
+                Este es el espacio donde organizaras tus mascotas, reservas y recordatorios. Despues podras registrar tu primera mascota.
               </Text>
             </View>
             <HouseholdsWorkspace
@@ -2477,6 +2477,7 @@ export function CoreHomeScreen() {
                 await petsWorkspace.refresh();
                 setActiveOwnerSection("inicio");
               }}
+              presentation="ownerOnboarding"
             />
           </>
         ) : null}

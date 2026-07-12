@@ -11,6 +11,7 @@ import type {
 } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
 import { StatusChip } from "../../core/components/StatusChip";
@@ -184,6 +185,38 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
   );
 }
 
+function HouseholdOnboardingIllustration() {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        backgroundColor: "rgba(240,253,250,0.86)",
+        borderColor: "rgba(15,118,110,0.16)",
+        borderRadius: 26,
+        borderWidth: 1,
+        height: 138,
+        justifyContent: "center",
+        overflow: "hidden"
+      }}
+    >
+      <Svg height={126} viewBox="0 0 220 126" width={220}>
+        <Circle cx="54" cy="102" fill="#ccfbf1" r="34" />
+        <Circle cx="172" cy="98" fill="#ffedd5" r="42" />
+        <Path d="M55 74h110v42H55z" fill="#ffffff" stroke="#0f766e" strokeWidth="4" />
+        <Path d="M42 78 110 28l68 50" fill="#f97316" opacity="0.9" />
+        <Path d="M42 78 110 28l68 50" fill="none" stroke="#ea580c" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5" />
+        <Rect fill="#ccfbf1" height="30" rx="4" width="24" x="91" y="86" />
+        <Rect fill="#f8fafc" height="19" rx="4" stroke="#0f766e" strokeWidth="3" width="20" x="128" y="86" />
+        <Path d="M99 66c4-8 18-8 22 0 3 7-3 15-11 20-8-5-14-13-11-20Z" fill="#0f766e" />
+        <Circle cx="33" cy="105" fill="#14b8a6" r="9" />
+        <Path d="M32 105c-6-14 4-25 16-27" fill="none" stroke="#0f766e" strokeLinecap="round" strokeWidth="4" />
+        <Circle cx="187" cy="104" fill="#f59e0b" r="9" />
+        <Path d="M188 104c7-15-3-27-16-29" fill="none" stroke="#ea580c" strokeLinecap="round" strokeWidth="4" />
+      </Svg>
+    </View>
+  );
+}
+
 function PermissionRow({
   checked,
   label,
@@ -214,13 +247,15 @@ type HouseholdsWorkspaceProps = {
   focusSection?: "petInvitations" | null;
   onHouseholdCreated?: () => void | Promise<void>;
   onPetTransferAccepted?: (context: { householdId: Uuid; petId: Uuid }) => void | Promise<void>;
+  presentation?: "standard" | "ownerOnboarding";
 };
 
 export function HouseholdsWorkspace({
   enabled,
   focusSection = null,
   onHouseholdCreated,
-  onPetTransferAccepted
+  onPetTransferAccepted,
+  presentation = "standard"
 }: HouseholdsWorkspaceProps) {
   const {
     snapshot,
@@ -263,6 +298,7 @@ export function HouseholdsWorkspace({
   const [publicContactValue, setPublicContactValue] = useState("");
   const [incomingPetTransfers, setIncomingPetTransfers] = useState<PetTransferRecord[]>([]);
   const [isTransfersLoading, setIsTransfersLoading] = useState(false);
+  const isOwnerOnboarding = presentation === "ownerOnboarding";
 
   async function loadProtectiveProfile(householdId: string | null) {
     if (!householdId) {
@@ -317,6 +353,12 @@ export function HouseholdsWorkspace({
       Object.fromEntries(selectedHouseholdDetail.members.map((member) => [member.id, member.permissions]))
     );
   }, [selectedHouseholdDetail]);
+
+  useEffect(() => {
+    if (isOwnerOnboarding && createHouseholdType !== "owner") {
+      setCreateHouseholdType("owner");
+    }
+  }, [createHouseholdType, isOwnerOnboarding]);
 
   useEffect(() => {
     void loadProtectiveProfile(selectedHouseholdId);
@@ -540,55 +582,114 @@ export function HouseholdsWorkspace({
       {focusSection === "petInvitations" ? renderPetTransferInvitationsCard() : null}
 
       <CoreSectionCard
-        eyebrow="Hogar"
-        title="Crea tu hogar"
-        description="Tu hogar organiza las mascotas, las personas que pueden ayudar y las reservas familiares. Es el primer paso antes de registrar una mascota."
+        eyebrow={isOwnerOnboarding ? "Paso 6 de 10" : "Hogar"}
+        title={isOwnerOnboarding ? "Crea tu hogar" : "Crea tu hogar"}
+        description={
+          isOwnerOnboarding
+            ? "Un hogar te permite organizar tu familia, mascotas y servicios en un solo lugar."
+            : "Tu hogar organiza las mascotas, las personas que pueden ayudar y las reservas familiares. Es el primer paso antes de registrar una mascota."
+        }
       >
         <View style={{ gap: 12 }}>
+          {isOwnerOnboarding ? (
+            <>
+              <HouseholdOnboardingIllustration />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                {[
+                  { label: "Cuenta", tone: "done" },
+                  { label: "Hogar", tone: "active" },
+                  { label: "Mascota", tone: "next" }
+                ].map((step) => (
+                  <View
+                    key={step.label}
+                    style={{
+                      backgroundColor:
+                        step.tone === "active"
+                          ? "rgba(15,118,110,0.14)"
+                          : step.tone === "done"
+                            ? "rgba(16,185,129,0.12)"
+                            : "rgba(248,250,252,0.92)",
+                      borderColor: step.tone === "next" ? "rgba(28,25,23,0.1)" : "rgba(15,118,110,0.22)",
+                      borderRadius: 999,
+                      borderWidth: 1,
+                      paddingHorizontal: 10,
+                      paddingVertical: 7
+                    }}
+                  >
+                    <Text style={{ color: step.tone === "next" ? colorTokens.mutedStrong : "#0f766e", fontSize: 10, fontWeight: "900" }}>
+                      {step.tone === "done" ? "✓ " : ""}
+                      {step.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : null}
           <Field
-            helperText="Puedes usar un nombre familiar, por ejemplo: Hogar Sulvaran Velasco."
+            helperText="Puedes usar un nombre familiar, por ejemplo: Hogar Perez."
             label="Nombre del hogar"
             onChange={setCreateHouseholdName}
             placeholder="Nombre de tu hogar"
             value={createHouseholdName}
           />
-          <View style={{ gap: 8 }}>
-            <Text style={{ color: "#78716c", fontSize: 12, textTransform: "uppercase" }}>Tipo de hogar</Text>
-            <View style={{ gap: 8 }}>
-              {householdTypeOptions.map((option) => (
-                <Pressable
-                  accessibilityRole="button"
-                  key={option.value}
-                  onPress={() => setCreateHouseholdType(option.value)}
-                  style={{
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: createHouseholdType === option.value ? "rgba(15,118,110,0.32)" : "rgba(28,25,23,0.12)",
-                    backgroundColor: createHouseholdType === option.value ? "rgba(15,118,110,0.1)" : "rgba(255,255,255,0.86)",
-                    padding: 12,
-                    gap: 4
-                  }}
-                >
-                  <Text style={{ color: createHouseholdType === option.value ? "#0f766e" : "#1c1917", fontWeight: "800" }}>
-                    {option.label}
-                  </Text>
-                  <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{option.description}</Text>
-                </Pressable>
-              ))}
+          {isOwnerOnboarding ? (
+            <View
+              style={{
+                backgroundColor: "rgba(15,118,110,0.08)",
+                borderColor: "rgba(15,118,110,0.18)",
+                borderRadius: 16,
+                borderWidth: 1,
+                gap: 4,
+                padding: 12
+              }}
+            >
+              <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "900", textTransform: "uppercase" }}>Tipo de hogar</Text>
+              <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>Hogar familiar</Text>
+              <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                Este espacio sera para tus mascotas, reservas y recordatorios familiares. Las familias protectoras se crean despues en un flujo separado.
+              </Text>
             </View>
-          </View>
+          ) : (
+            <View style={{ gap: 8 }}>
+              <Text style={{ color: "#78716c", fontSize: 12, textTransform: "uppercase" }}>Tipo de hogar</Text>
+              <View style={{ gap: 8 }}>
+                {householdTypeOptions.map((option) => (
+                  <Pressable
+                    accessibilityRole="button"
+                    key={option.value}
+                    onPress={() => setCreateHouseholdType(option.value)}
+                    style={{
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: createHouseholdType === option.value ? "rgba(15,118,110,0.32)" : "rgba(28,25,23,0.12)",
+                      backgroundColor: createHouseholdType === option.value ? "rgba(15,118,110,0.1)" : "rgba(255,255,255,0.86)",
+                      padding: 12,
+                      gap: 4
+                    }}
+                  >
+                    <Text style={{ color: createHouseholdType === option.value ? "#0f766e" : "#1c1917", fontWeight: "800" }}>
+                      {option.label}
+                    </Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>{option.description}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
           <Button
             disabled={isSubmitting || isLoading || !createHouseholdName.trim()}
-            label={createHouseholdType === "protective" ? "Crear familia protectora" : "Crear mi hogar"}
+            label={isOwnerOnboarding ? "Crear hogar familiar" : createHouseholdType === "protective" ? "Crear familia protectora" : "Crear mi hogar"}
             onPress={() => {
               clearMessages();
+              const nextHouseholdType = isOwnerOnboarding ? "owner" : createHouseholdType;
+
               void runAction(
                 () =>
                   getMobileHouseholdsApiClient().createHousehold({
                     name: createHouseholdName.trim(),
-                    householdType: createHouseholdType
+                    householdType: nextHouseholdType
                   }),
-                createHouseholdType === "protective" ? "Familia protectora creada." : "Hogar creado."
+                nextHouseholdType === "protective" ? "Familia protectora creada." : "Hogar creado. Ahora puedes registrar tu primera mascota."
               ).then(async () => {
                 setCreateHouseholdName("");
                 setCreateHouseholdType("owner");
@@ -599,55 +700,58 @@ export function HouseholdsWorkspace({
         </View>
       </CoreSectionCard>
 
-      <CoreSectionCard
-        eyebrow="Invitaciones"
-        title="Invitaciones pendientes"
-        description="Las invitaciones se resuelven dentro de la app para usuarios existentes en core."
-      >
-        <View style={{ gap: 12 }}>
-          {snapshot?.pendingInvitations.length ? (
-            snapshot.pendingInvitations.map((invitation) => (
-              <View key={invitation.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{invitation.invitedEmail}</Text>
-                  <StatusChip label={invitation.status} tone="pending" />
+      {!isOwnerOnboarding || snapshot?.pendingInvitations.length ? (
+        <CoreSectionCard
+          eyebrow="Invitaciones"
+          title="Invitaciones pendientes"
+          description="Las invitaciones se resuelven dentro de la app para usuarios existentes en core."
+        >
+          <View style={{ gap: 12 }}>
+            {snapshot?.pendingInvitations.length ? (
+              snapshot.pendingInvitations.map((invitation) => (
+                <View key={invitation.id} style={{ borderRadius: 18, backgroundColor: "rgba(247,242,231,0.84)", padding: 14, gap: 8 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                    <Text style={{ fontSize: 16, fontWeight: "600", color: "#1c1917", flex: 1 }}>{invitation.invitedEmail}</Text>
+                    <StatusChip label={invitation.status} tone="pending" />
+                  </View>
+                  <Text style={{ color: colorTokens.muted }}>Permisos: {invitation.permissions.join(", ")}</Text>
+                  <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
+                    <Button
+                      disabled={isSubmitting}
+                      label="Aceptar"
+                      onPress={() => {
+                        clearMessages();
+                        void runAction(
+                          () => getMobileHouseholdsApiClient().acceptInvitation(invitation.id),
+                          "Invitacion aceptada."
+                        );
+                      }}
+                    />
+                    <Button
+                      disabled={isSubmitting}
+                      label="Rechazar"
+                      onPress={() => {
+                        clearMessages();
+                        void runAction(
+                          () => getMobileHouseholdsApiClient().rejectInvitation(invitation.id),
+                          "Invitacion rechazada."
+                        );
+                      }}
+                      tone="secondary"
+                    />
+                  </View>
                 </View>
-                <Text style={{ color: colorTokens.muted }}>Permisos: {invitation.permissions.join(", ")}</Text>
-                <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-                  <Button
-                    disabled={isSubmitting}
-                    label="Aceptar"
-                    onPress={() => {
-                      clearMessages();
-                      void runAction(
-                        () => getMobileHouseholdsApiClient().acceptInvitation(invitation.id),
-                        "Invitacion aceptada."
-                      );
-                    }}
-                  />
-                  <Button
-                    disabled={isSubmitting}
-                    label="Rechazar"
-                    onPress={() => {
-                      clearMessages();
-                      void runAction(
-                        () => getMobileHouseholdsApiClient().rejectInvitation(invitation.id),
-                        "Invitacion rechazada."
-                      );
-                    }}
-                    tone="secondary"
-                  />
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={{ color: colorTokens.muted }}>No hay invitaciones pendientes para esta cuenta.</Text>
-          )}
-        </View>
-      </CoreSectionCard>
+              ))
+            ) : (
+              <Text style={{ color: colorTokens.muted }}>No hay invitaciones pendientes para esta cuenta.</Text>
+            )}
+          </View>
+        </CoreSectionCard>
+      ) : null}
 
-      {focusSection !== "petInvitations" ? renderPetTransferInvitationsCard() : null}
+      {!isOwnerOnboarding && focusSection !== "petInvitations" ? renderPetTransferInvitationsCard() : null}
 
+      {!isOwnerOnboarding ? (
       <CoreSectionCard
         eyebrow="Hogares"
         title="Lista y detalle basico"
@@ -1202,6 +1306,7 @@ export function HouseholdsWorkspace({
           ) : null}
         </View>
       </CoreSectionCard>
+      ) : null}
     </View>
   );
 }
