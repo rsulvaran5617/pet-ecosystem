@@ -159,6 +159,7 @@ const emptyAdoptionListingForm: AdoptionListingFormState = {
 
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type PetWorkspaceView = "lista" | "crear" | "editar" | "detalle";
+type PetsWorkspacePresentation = "standard" | "firstPetOnboarding";
 
 LocaleConfig.locales.es = {
   monthNames: [
@@ -349,6 +350,36 @@ function CompactActionButton({
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+function FirstPetOnboardingIllustration() {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        alignSelf: "center",
+        backgroundColor: "rgba(240,253,250,0.82)",
+        borderColor: "rgba(15,118,110,0.16)",
+        borderRadius: 24,
+        borderWidth: 1,
+        height: 132,
+        justifyContent: "center",
+        width: "100%"
+      }}
+    >
+      <Svg height={104} viewBox="0 0 180 120" width={180}>
+        <Rect fill="#ccfbf1" height="70" rx="24" width="118" x="31" y="34" />
+        <Circle cx="90" cy="64" fill="#0f9f8f" r="26" />
+        <Circle cx="72" cy="54" fill="#0f9f8f" r="9" />
+        <Circle cx="108" cy="54" fill="#0f9f8f" r="9" />
+        <Circle cx="82" cy="42" fill="#0f9f8f" r="8" />
+        <Circle cx="98" cy="42" fill="#0f9f8f" r="8" />
+        <Path d="M70 88c6-12 13-18 20-18s14 6 20 18" fill="none" stroke="#ffffff" strokeLinecap="round" strokeWidth="7" />
+        <Path d="M49 35 90 13l41 22" fill="none" stroke="#115e59" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6" />
+        <Path d="M58 33v-9h15" fill="none" stroke="#115e59" strokeLinecap="round" strokeLinejoin="round" strokeWidth="6" />
+      </Svg>
+    </View>
   );
 }
 
@@ -844,15 +875,19 @@ export function PetsWorkspace({
   activePanel = "detalle",
   contextPetId,
   enabled,
+  presentation = "standard",
   ownerReminders = [],
   onContextChange,
+  onPetCreated,
   onPanelChange
 }: {
   activePanel?: PetHubPanel;
   contextPetId?: Uuid | null;
   enabled: boolean;
+  presentation?: PetsWorkspacePresentation;
   ownerReminders?: Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">[];
   onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
+  onPetCreated?: (context: { householdId: Uuid; petId: Uuid }) => void | Promise<void>;
   onPanelChange?: (panel: PetHubPanel) => void;
 }) {
   const {
@@ -897,6 +932,7 @@ export function PetsWorkspace({
   const onContextChangeRef = useRef(onContextChange);
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
   const manualContextChangeRef = useRef(false);
+  const isFirstPetOnboarding = presentation === "firstPetOnboarding";
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
@@ -929,6 +965,18 @@ export function PetsWorkspace({
   useEffect(() => {
     onContextChangeRef.current = onContextChange;
   }, [onContextChange]);
+
+  useEffect(() => {
+    if (!isFirstPetOnboarding || isLoading || pets.length || !selectedHousehold || !canEditSelectedHousehold) {
+      return;
+    }
+
+    setEditingPetId(null);
+    setPetForm(emptyPetForm);
+    setPetMemoryConfirmationId(null);
+    setPetView("crear");
+    onPanelChange?.("detalle");
+  }, [canEditSelectedHousehold, isFirstPetOnboarding, isLoading, onPanelChange, pets.length, selectedHousehold]);
 
   useEffect(() => {
     if (!enabled || !selectedHouseholdId) {
@@ -1498,6 +1546,7 @@ export function PetsWorkspace({
   const allergyCount = selectedPetHealthSummary?.allergyCount ?? 0;
   const conditionCount = selectedPetHealthSummary?.conditionCount ?? 0;
   const latestDocuments = selectedDocuments.slice(0, 3);
+  const hasPets = pets.length > 0;
   const activeDocumentGroup = documentGroups.find((group) => group.documentType === activeDocumentType) ?? {
     documentType: activeDocumentType,
     documents: []
@@ -1531,9 +1580,43 @@ export function PetsWorkspace({
       {!errorMessage && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}
 
       <View style={{ gap: 14 }}>
-        <View style={{ gap: 2, paddingHorizontal: 2 }}>
-          <Text style={{ color: "#111827", fontSize: 24, fontWeight: "900" }}>Mis mascotas</Text>
-        </View>
+        {isFirstPetOnboarding ? (
+          <View style={{ borderRadius: 22, backgroundColor: "#ffffff", padding: 16, gap: 14, ...visualTokens.mobile.softShadow }}>
+            <View style={{ gap: 6 }}>
+              <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900", letterSpacing: 0.6 }}>PASO 7 DE 10</Text>
+              <Text style={{ color: "#111827", fontSize: 22, fontWeight: "900", lineHeight: 27 }}>Registra tu primera mascota</Text>
+              <Text style={{ color: "#64748b", fontSize: 12, fontWeight: "700", lineHeight: 18 }}>
+                Con esto activas su ficha, salud, documentos, recordatorios y reservas.
+              </Text>
+            </View>
+            <FirstPetOnboardingIllustration />
+            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+              {["Hogar listo", "Mascota", "Cuidado"].map((step, index) => (
+                <View
+                  key={step}
+                  style={{
+                    alignItems: "center",
+                    backgroundColor: index === 1 ? "#0f9f8f" : "rgba(20,184,166,0.12)",
+                    borderRadius: 999,
+                    flexDirection: "row",
+                    gap: 6,
+                    paddingHorizontal: 10,
+                    paddingVertical: 7
+                  }}
+                >
+                  <Text style={{ color: index === 1 ? "#ffffff" : "#0f766e", fontSize: 10, fontWeight: "900" }}>
+                    {index === 0 ? "✓" : index + 1}
+                  </Text>
+                  <Text style={{ color: index === 1 ? "#ffffff" : "#0f766e", fontSize: 10, fontWeight: "900" }}>{step}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={{ gap: 2, paddingHorizontal: 2 }}>
+            <Text style={{ color: "#111827", fontSize: 24, fontWeight: "900" }}>Mis mascotas</Text>
+          </View>
+        )}
 
         {isLoading ? <Text style={{ color: colorTokens.muted }}>Preparando mascotas, documentos y permisos del hogar...</Text> : null}
         {contextPetIsLoading ? (
@@ -1546,6 +1629,7 @@ export function PetsWorkspace({
           />
         ) : null}
 
+        {hasPets || !isFirstPetOnboarding ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: "row", gap: 10, paddingRight: 4 }}>
             {pets.map((pet) => {
@@ -1649,6 +1733,7 @@ export function PetsWorkspace({
             ) : null}
           </View>
         </ScrollView>
+        ) : null}
 
         {!householdSnapshot?.households.length ? (
           <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
@@ -1688,6 +1773,7 @@ export function PetsWorkspace({
           </Pressable>
         ) : null}
 
+        {hasPets ? (
         <View
           style={{
             borderRadius: 16,
@@ -1736,11 +1822,21 @@ export function PetsWorkspace({
             );
           })}
         </View>
+        ) : null}
 
         {petView === "crear" || petView === "editar" ? (
           <View style={{ borderRadius: 18, backgroundColor: "#ffffff", padding: 14, gap: 12, ...visualTokens.mobile.softShadow }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <Text style={{ fontSize: 18, fontWeight: "800", color: "#111827" }}>{petView === "editar" ? "Editar mascota" : "Crear mascota"}</Text>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text style={{ fontSize: isFirstPetOnboarding ? 17 : 18, fontWeight: "900", color: "#111827" }}>
+                  {petView === "editar" ? "Editar mascota" : isFirstPetOnboarding ? "Datos basicos de tu mascota" : "Crear mascota"}
+                </Text>
+                {isFirstPetOnboarding ? (
+                  <Text style={{ color: "#64748b", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                    Puedes completar lo esencial ahora y agregar documentos o vacunas despues.
+                  </Text>
+                ) : null}
+              </View>
               {selectedHousehold ? (
                 <StatusChip
                   label={canEditSelectedHousehold ? "hogar editable" : "hogar solo lectura"}
@@ -1784,7 +1880,7 @@ export function PetsWorkspace({
                     <Button
                       disabled={isSubmitting}
                       labelSize={12}
-                      label="Guardar mascota"
+                      label={isFirstPetOnboarding && !editingPetId ? "Guardar y continuar" : "Guardar mascota"}
                       onPress={() => {
                         clearMessages();
 
@@ -1820,18 +1916,23 @@ export function PetsWorkspace({
                               householdId: selectedHouseholdId,
                               ...payload
                             }),
-                          "Mascota creada.",
+                          isFirstPetOnboarding ? "Mascota creada. Ya puedes completar su cuidado." : "Mascota creada.",
                           false
                         ).then(async (pet) => {
                           setPetForm(emptyPetForm);
                           setIsBirthDatePickerOpen(false);
                           await refresh();
                           await selectActivePet(pet.id);
+                          if (selectedHouseholdId) {
+                            await onPetCreated?.({ householdId: selectedHouseholdId, petId: pet.id });
+                          }
                           setPetView("detalle");
                         });
                       }}
                     />
-                    <Button disabled={isSubmitting} label="Cancelar" labelSize={12} onPress={closePetForm} tone="secondary" />
+                    {!isFirstPetOnboarding ? (
+                      <Button disabled={isSubmitting} label="Cancelar" labelSize={12} onPress={closePetForm} tone="secondary" />
+                    ) : null}
                   </View>
                 </>
               ) : (

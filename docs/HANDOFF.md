@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1C primera mascota guiada
+
+- Owner mobile con hogar creado pero sin mascotas entra en una compuerta progresiva `Ahora registra tu primera mascota`.
+- `PetsWorkspace` agrega presentacion `firstPetOnboarding`: oculta carrusel/tabs vacios, muestra ilustracion local, progreso `Hogar listo/Mascota/Cuidado`, formulario esencial y CTA `Guardar y continuar`.
+- Al crear la mascota, el shell owner refresca `usePetsWorkspace`, conserva la nueva mascota como contexto activo y abre `Mascotas > Detalle`.
+- Se reutiliza `createPet` existente; no se modifican contratos API, Supabase, RLS, documentos, salud, recordatorios, marketplace, bookings, Foster ni provider/admin.
+- QA sugerido: crear cuenta, crear hogar familiar, verificar paso de primera mascota, guardar mascota y confirmar que abre la ficha y habilita la navegacion normal.
+
 # Handoff 2026-07-10 - Lost Pet Alerts documentado como futuro
 
 - Se documento `docs/modules/lost_pet_alerts.md` como desarrollo futuro para alertas comunitarias de mascota extraviada.

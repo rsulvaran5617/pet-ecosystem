@@ -1348,6 +1348,13 @@ export function CoreHomeScreen() {
     !isProviderMode &&
     !petsWorkspace.isLoading &&
     ownerHouseholdCount === 0;
+  const ownerNeedsFirstPetSetup =
+    authState.isAuthenticated &&
+    Boolean(snapshot) &&
+    !isProviderMode &&
+    !petsWorkspace.isLoading &&
+    ownerHouseholdCount > 0 &&
+    petsWorkspace.pets.length === 0;
   const setActiveOwnerPetFromSelection = (context: ActiveOwnerPetContext) => {
     setActiveOwnerPetContext(context);
     setPetHubContext(context);
@@ -1531,6 +1538,7 @@ export function CoreHomeScreen() {
         snapshot &&
         !isProviderMode &&
         !ownerNeedsHouseholdSetup &&
+        !ownerNeedsFirstPetSetup &&
         activeOwnerSection !== "mascotas" &&
         activeOwnerPet ? (
           <ActiveOwnerPetBanner
@@ -2482,7 +2490,34 @@ export function CoreHomeScreen() {
           </>
         ) : null}
 
-        {authState.isAuthenticated && snapshot && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "inicio" ? (
+        {ownerNeedsFirstPetSetup && !isAccountSectionActive ? (
+          <>
+            <View style={{ borderRadius: 22, backgroundColor: colorTokens.accentDark, padding: 16, gap: 6, ...visualTokens.mobile.shadow }}>
+              <Text style={{ color: "#ffffff", fontSize: 16, fontWeight: "900", lineHeight: 20 }}>Ahora registra tu primera mascota</Text>
+              <Text style={{ color: "rgba(255,255,255,0.86)", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                Tu hogar ya esta listo. Agrega a tu mascota para activar su perfil, salud, documentos y recordatorios.
+              </Text>
+            </View>
+            <PetsWorkspace
+              enabled
+              onContextChange={setActiveOwnerPetFromSelection}
+              onPanelChange={setActivePetHubPanel}
+              onPetCreated={async (context) => {
+                setPendingPetHubPetId(context.petId);
+                setActiveOwnerPetFromSelection(context);
+                await petsWorkspace.refresh();
+                setPendingPetHubPetId(context.petId);
+                setActiveOwnerPetFromSelection(context);
+                setActivePetHubPanel("detalle");
+                setActiveOwnerSection("mascotas");
+              }}
+              ownerReminders={remindersWorkspace.reminders}
+              presentation="firstPetOnboarding"
+            />
+          </>
+        ) : null}
+
+        {authState.isAuthenticated && snapshot && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "inicio" ? (
           <OwnerHome
             bookings={bookingsWorkspace.bookings}
             householdName={defaultHouseholdName}
@@ -2515,7 +2550,7 @@ export function CoreHomeScreen() {
             serviceHighlights={marketplaceWorkspace.homeSnapshot?.categoryHighlights ?? []}
           />
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "mascotas" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "mascotas" ? (
           <>
             <PetsWorkspace
               activePanel={activePetHubPanel}
@@ -2552,7 +2587,7 @@ export function CoreHomeScreen() {
             ) : null}
           </>
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "buscar" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "buscar" ? (
           <MarketplaceWorkspace
             activePetContext={activeOwnerPetContextForModules}
             enabled
@@ -2572,7 +2607,7 @@ export function CoreHomeScreen() {
             }}
           />
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "adopcion" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "adopcion" ? (
           <AdoptionDiscoveryWorkspace
             enabled
             onBackHome={() => setActiveOwnerSection("inicio")}
@@ -2582,7 +2617,7 @@ export function CoreHomeScreen() {
             }}
           />
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "reservas" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "reservas" ? (
           <>
             <BookingsWorkspace
               activePanel={activeBookingHubPanel}
@@ -2634,7 +2669,7 @@ export function CoreHomeScreen() {
             ) : null}
           </>
         ) : null}
-        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "mensajes" ? (
+        {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "mensajes" ? (
           <MessagingWorkspace currentUserId={authState.userId ?? null} enabled focusedBookingId={null} focusVersion={chatFocusVersion} viewerRole="owner" />
         ) : null}
         {authState.isAuthenticated && snapshot && isProviderMode && activeProviderSection !== "mensajes" && activeProviderSection !== "cuenta" ? (
