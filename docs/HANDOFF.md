@@ -1132,6 +1132,29 @@ Validacion recomendada:
 - `git diff --check`
 - luego, con aprobacion: `corepack pnpm --filter @pet/mobile exec eas build --platform ios --profile production`
 
+## Handoff 2026-07-11 - UX-PROG-1 Owner Home progresivo
+
+Estado:
+
+- Se implementa el primer slice del modelo progresivo en owner mobile `Inicio`.
+- El encabezado saluda con el nombre real disponible y evita mostrar email/copy tecnico como foco principal.
+- Debajo del encabezado aparece una sola card `Siguiente paso` que prioriza:
+  - `Agregar mascota` si no hay mascotas.
+  - `Ver reserva` si existe una reserva activa o proxima.
+  - `Ver recordatorios` si no hay reserva y existe recordatorio pendiente.
+  - `Buscar servicios` si todo esta listo.
+- Se eliminan del Inicio owner banners secundarios que competian con la accion principal, incluyendo el bloque persistente de actividad duplicada y el bloque de metodos guardados.
+- La card de recordatorio traduce titulos automaticos de vacunas a copy en espanol.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, Payments, booking rules, QR, evidencia, provider/admin ni Foster.
+
+Validacion recomendada:
+
+- Owner sin mascotas: debe ver `Registra tu primera mascota`.
+- Owner con reserva proxima: debe ver `Ver reserva`.
+- Owner con recordatorio pendiente y sin reserva proxima: debe ver `Ver recordatorios`.
+- Owner sin pendientes: debe ver `Buscar servicios`.
+- Verificar que los accesos secundarios a mascotas, adopcion, salud y servicios siguen funcionando.
+
 ### Prompt exacto recomendado para continuar
 
 ```text

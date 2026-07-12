@@ -13,7 +13,6 @@ import type {
   UpsertAddressInput,
   PetSummary,
   Reminder,
-  UserPaymentMethod,
   Uuid
 } from "@pet/types";
 import { useEffect, useRef, useState, type ElementRef } from "react";
@@ -93,7 +92,6 @@ type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
-type OwnerHomePaymentMethod = Pick<UserPaymentMethod, "brand" | "isDefault" | "last4" | "status">;
 type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" | "providerCount" | "serviceCount">;
 type ActiveOwnerPetContext = { householdId: Uuid | null; petId: Uuid | null };
 
@@ -543,6 +541,35 @@ function formatActivityDateTime(value: string) {
   return `${formatShortDateLabel(value)} · ${formatShortTimeLabel(value)}`;
 }
 
+function getOwnerBookingStatusLabel(status: OwnerHomeBooking["status"]) {
+  if (status === "pending_approval") {
+    return "Pendiente de aprobacion";
+  }
+
+  if (status === "confirmed") {
+    return "Confirmada";
+  }
+
+  if (status === "completed") {
+    return "Completada";
+  }
+
+  if (status === "cancelled") {
+    return "Cancelada";
+  }
+
+  return "Reserva";
+}
+
+function getOwnerReminderTitle(title: string) {
+  return title
+    .replace(/^Vaccine due:/i, "Vacuna pendiente:")
+    .replace(
+      /^Automatic reminder generated from the vaccine due date\.$/i,
+      "Recordatorio creado automaticamente por la vacuna."
+    );
+}
+
 function getServiceHighlightTone(category: OwnerHomeServiceHighlight["category"], index: number) {
   if (category === "veterinary" || category === "sitting") return "accent";
   if (category === "walking" || category === "daycare") return "warning";
@@ -657,25 +684,23 @@ function OwnerHome({
   householdName,
   onNavigate,
   onOpenAdoption,
+  onOpenReminders,
   onSelectPet,
   ownerFirstName,
   pets,
-  paymentMethods,
   reminders,
-  serviceHighlights,
-  roleSwitchConfirmed
+  serviceHighlights
 }: {
   bookings: OwnerHomeBooking[];
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
   onOpenAdoption: () => void;
+  onOpenReminders: (petId: Uuid | null) => void;
   onSelectPet: (petId: Uuid) => void;
   ownerFirstName: string;
   pets: OwnerHomePet[];
-  paymentMethods: OwnerHomePaymentMethod[];
   reminders: OwnerHomeReminder[];
   serviceHighlights: OwnerHomeServiceHighlight[];
-  roleSwitchConfirmed?: boolean;
 }) {
   const toneStyles = {
     accent: { backgroundColor: colorTokens.accentSoft, color: colorTokens.accentDark },
@@ -693,7 +718,7 @@ function OwnerHome({
   const nextReminder = pendingReminders[0] ?? null;
   const nextReminderPetName = nextReminder?.petId ? pets.find((pet) => pet.id === nextReminder.petId)?.name : null;
   const nextReminderTitle = nextReminder
-    ? `${nextReminder.title}${nextReminderPetName ? ` de ${nextReminderPetName}` : ""}`
+    ? `${getOwnerReminderTitle(nextReminder.title)}${nextReminderPetName ? ` de ${nextReminderPetName}` : ""}`
     : "Sin pendientes";
   const now = Date.now();
   const nextBooking =
@@ -704,13 +729,47 @@ function OwnerHome({
       .filter((booking) => booking.status !== "cancelled")
       .sort((firstBooking, secondBooking) => new Date(secondBooking.scheduledStartAt).getTime() - new Date(firstBooking.scheduledStartAt).getTime())[0] ??
     null;
-  const defaultPaymentMethod = paymentMethods.find((paymentMethod) => paymentMethod.isDefault) ?? paymentMethods[0] ?? null;
-  const hasActivePaymentMethod = paymentMethods.some((paymentMethod) => paymentMethod.status === "active");
-  const paymentBannerTitle = hasActivePaymentMethod ? "Metodos guardados listos" : "Agrega un metodo guardado";
-  const paymentBannerSubtitle = defaultPaymentMethod
-    ? `${defaultPaymentMethod.brand.toUpperCase()} terminada en ${defaultPaymentMethod.last4}`
-    : "para futuras reservas.";
-  const greetingName = ownerFirstName.trim() || "Usuario";
+  const greetingName = ownerFirstName.trim();
+  const primaryAction = !pets.length
+    ? {
+        eyebrow: "Primer paso",
+        title: "Registra tu primera mascota",
+        description: "Crea su perfil para activar documentos, salud, recordatorios y reservas.",
+        cta: "Agregar mascota",
+        icon: "paw" as OwnerIconName,
+        tone: "accent" as const,
+        onPress: () => onNavigate("mascotas")
+      }
+    : nextBooking
+      ? {
+          eyebrow: getOwnerBookingStatusLabel(nextBooking.status),
+          title: nextBooking.serviceName,
+          description: `${formatActivityDateTime(nextBooking.scheduledStartAt)}${nextBooking.petName ? ` - ${nextBooking.petName}` : ""}`,
+          cta: "Ver reserva",
+          icon: "calendar" as OwnerIconName,
+          tone: nextBooking.status === "pending_approval" ? ("warning" as const) : ("accent" as const),
+          onPress: () => onNavigate("reservas")
+        }
+      : nextReminder
+        ? {
+            eyebrow: "Recordatorio pendiente",
+            title: nextReminderTitle,
+            description: formatShortDateTime(nextReminder.dueAt),
+            cta: "Ver recordatorios",
+            icon: "calendar" as OwnerIconName,
+            tone: "warning" as const,
+            onPress: () => onOpenReminders(nextReminder.petId)
+          }
+        : {
+            eyebrow: "Todo listo",
+            title: "Explora servicios para tus mascotas",
+            description: "Busca proveedores aprobados cuando necesites apoyo.",
+            cta: "Buscar servicios",
+            icon: "search" as OwnerIconName,
+            tone: "accent" as const,
+            onPress: () => onNavigate("buscar")
+          };
+  const primaryToneStyle = toneStyles[primaryAction.tone];
 
   return (
     <View style={{ gap: 20 }}>
@@ -725,7 +784,9 @@ function OwnerHome({
       >
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
           <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
-            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 14, lineHeight: 19 }}>Hola, {greetingName} ??</Text>
+            <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 14, lineHeight: 19 }}>
+              {greetingName ? `Hola, ${greetingName}` : "Hola"}
+            </Text>
             <Text
               numberOfLines={2}
               adjustsFontSizeToFit
@@ -753,23 +814,61 @@ function OwnerHome({
               <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "800", lineHeight: 16 }}>Propietario</Text>
               <Text style={{ color: "rgba(255,255,255,0.78)", fontSize: 10, fontWeight: "700", lineHeight: 12 }}>Hogar principal</Text>
             </View>
-            {roleSwitchConfirmed ? (
-              <View
-                style={{
-                  alignItems: "center",
-                  backgroundColor: "rgba(255,255,255,0.24)",
-                  borderRadius: 999,
-                  height: 21,
-                  justifyContent: "center",
-                  width: 21
-                }}
-              >
-                <Text style={{ color: "#ffffff", fontSize: 13, fontWeight: "900" }}>?</Text>
-              </View>
-            ) : null}
           </View>
         </View>
       </View>
+
+      <Pressable
+        accessibilityLabel={`Siguiente paso: ${primaryAction.title}`}
+        accessibilityRole="button"
+        onPress={primaryAction.onPress}
+        style={{
+          backgroundColor: primaryToneStyle.backgroundColor,
+          borderColor: "rgba(15,118,110,0.18)",
+          borderRadius: 22,
+          borderWidth: 1,
+          flexDirection: "row",
+          gap: 12,
+          padding: 14,
+          ...visualTokens.mobile.shadow
+        }}
+      >
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: colorTokens.surface,
+            borderRadius: 999,
+            height: 48,
+            justifyContent: "center",
+            width: 48
+          }}
+        >
+          <OwnerLineIcon color={primaryToneStyle.color} name={primaryAction.icon} size={24} />
+        </View>
+        <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
+          <Text style={{ color: primaryToneStyle.color, fontSize: 10, fontWeight: "900", letterSpacing: 0.2, textTransform: "uppercase" }}>
+            {primaryAction.eyebrow}
+          </Text>
+          <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 17, fontWeight: "900", lineHeight: 21 }}>
+            {primaryAction.title}
+          </Text>
+          <Text numberOfLines={2} style={{ color: colorTokens.mutedStrong, fontSize: 12, lineHeight: 17 }}>
+            {primaryAction.description}
+          </Text>
+          <View
+            style={{
+              alignSelf: "flex-start",
+              backgroundColor: primaryAction.tone === "warning" ? colorTokens.warning : colorTokens.accent,
+              borderRadius: 999,
+              marginTop: 4,
+              paddingHorizontal: 12,
+              paddingVertical: 8
+            }}
+          >
+            <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>{primaryAction.cta}</Text>
+          </View>
+        </View>
+      </Pressable>
 
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
@@ -904,92 +1003,6 @@ function OwnerHome({
           <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Ver publicaciones</Text>
         </View>
       </Pressable>
-      <View style={{ borderRadius: 22, backgroundColor: colorTokens.surface, padding: 14, gap: 12, ...visualTokens.mobile.shadow }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 1, gap: 10 }}>
-            <View
-              style={{
-                alignItems: "center",
-                backgroundColor: colorTokens.accentSoft,
-                borderRadius: 12,
-                height: 28,
-                justifyContent: "center",
-                width: 28
-              }}
-            >
-              <OwnerLineIcon color={colorTokens.accentDark} name="calendar" size={17} />
-            </View>
-            <Text style={{ color: colorTokens.ink, flex: 1, fontSize: 13, fontWeight: "800" }}>Tu proxima actividad</Text>
-          </View>
-          <OwnerLineIcon color={colorTokens.muted} name="chevron" size={18} />
-        </View>
-        <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
-          <View
-            style={{
-              alignItems: "center",
-              backgroundColor: "#e0f2ef",
-              borderColor: "rgba(0,151,143,0.12)",
-              borderRadius: 999,
-              borderWidth: 1,
-              height: 66,
-              justifyContent: "center",
-              width: 66
-            }}
-          >
-            <View
-              style={{
-                alignItems: "center",
-                backgroundColor: colorTokens.surface,
-                borderRadius: 999,
-                height: 50,
-                justifyContent: "center",
-                width: 50
-              }}
-            >
-              <OwnerLineIcon color={colorTokens.accentDark} name="paw" size={25} />
-            </View>
-          </View>
-          <View style={{ flex: 1, gap: 4, minWidth: 0 }}>
-            <View
-              style={{
-                alignSelf: "flex-start",
-                backgroundColor: colorTokens.accentSoft,
-                borderRadius: 999,
-                paddingHorizontal: 8,
-                paddingVertical: 3
-              }}
-            >
-              <Text style={{ color: colorTokens.accentDark, fontSize: 8, fontWeight: "800" }}>
-                {nextBooking ? nextBooking.status : "Sin reserva"}
-              </Text>
-            </View>
-            <Text numberOfLines={1} style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "800", lineHeight: 16 }}>
-              {nextBooking?.serviceName ?? "Sin actividad programada"}
-            </Text>
-            <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, lineHeight: 13 }}>
-              {nextBooking ? formatActivityDateTime(nextBooking.scheduledStartAt) : "Busca servicios para crear una reserva"}
-            </Text>
-            <Text numberOfLines={1} style={{ color: colorTokens.mutedStrong, fontSize: 9, fontWeight: "700", lineHeight: 13 }}>
-              {nextBooking?.petName ?? "Mascota pendiente"}
-            </Text>
-          </View>
-        </View>
-        <Pressable
-          onPress={() => onNavigate("reservas")}
-          style={{
-            alignSelf: "flex-end",
-            backgroundColor: colorTokens.accent,
-            borderRadius: 12,
-            minWidth: 118,
-            paddingHorizontal: 16,
-            paddingVertical: 9,
-            ...visualTokens.mobile.softShadow
-          }}
-        >
-          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "800", textAlign: "center" }}>Ver detalles</Text>
-        </Pressable>
-      </View>
-
       <View style={{ borderRadius: 22, backgroundColor: colorTokens.surface, padding: 14, gap: 9, ...visualTokens.mobile.shadow }}>
         <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "800" }}>Salud y recordatorios</Text>
         <View style={{ alignItems: "center", flexDirection: "row", gap: 10 }}>
@@ -1083,60 +1096,6 @@ function OwnerHome({
         </ScrollView>
       </View>
 
-      <View
-        style={{
-          alignItems: "center",
-          backgroundColor: "rgba(230,247,245,0.72)",
-          borderColor: "rgba(0,151,143,0.24)",
-          borderRadius: 16,
-          borderWidth: 1,
-          flexDirection: "row",
-          gap: 9,
-          paddingHorizontal: 11,
-          paddingVertical: 10
-        }}
-      >
-        <View
-          style={{
-            alignItems: "center",
-            backgroundColor: "#d1fae5",
-            borderRadius: 12,
-            height: 30,
-            justifyContent: "center",
-            width: 30
-          }}
-        >
-          <OwnerLineIcon color={colorTokens.success} name="card" size={17} />
-        </View>
-        <View style={{ flex: 1, gap: 1, minWidth: 0 }}>
-          <Text numberOfLines={1} style={{ color: colorTokens.ink, fontSize: 10, fontWeight: "800", lineHeight: 13 }}>
-            {paymentBannerTitle}
-          </Text>
-          <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 8, lineHeight: 11 }}>
-            {paymentBannerSubtitle}
-          </Text>
-        </View>
-        <View
-          style={{
-            alignItems: "center",
-            backgroundColor: colorTokens.surface,
-            borderRadius: 10,
-            height: 34,
-            justifyContent: "center",
-            transform: [{ rotate: "-8deg" }],
-            width: 46,
-            ...visualTokens.mobile.softShadow
-          }}
-        >
-          <OwnerLineIcon color={colorTokens.accentDark} name="card" size={20} />
-        </View>
-        <Pressable
-          accessibilityLabel="Cerrar aviso"
-          style={{ alignItems: "center", height: 24, justifyContent: "center", width: 18 }}
-        >
-          <OwnerLineIcon color={colorTokens.muted} name="close" size={14} />
-        </Pressable>
-      </View>
     </View>
   );
 }
@@ -2385,6 +2344,19 @@ export function CoreHomeScreen() {
             onOpenAdoption={() => {
               setActiveOwnerSection("adopcion");
             }}
+            onOpenReminders={(petId) => {
+              if (petId) {
+                const reminderPet = petsWorkspace.pets.find((pet) => pet.id === petId);
+
+                if (reminderPet) {
+                  setPendingPetHubPetId(petId);
+                  setActiveOwnerPetFromSelection({ householdId: reminderPet.householdId, petId });
+                }
+              }
+
+              setActivePetHubPanel("recordatorios");
+              setActiveOwnerSection("mascotas");
+            }}
             onSelectPet={(petId) => {
               setPendingPetHubPetId(petId);
               setActiveOwnerPetFromSelection({ householdId: petsWorkspace.selectedHouseholdId, petId });
@@ -2393,10 +2365,8 @@ export function CoreHomeScreen() {
             }}
             ownerFirstName={snapshot.profile.firstName}
             pets={petsWorkspace.pets}
-            paymentMethods={snapshot.paymentMethods}
             reminders={remindersWorkspace.reminders}
             serviceHighlights={marketplaceWorkspace.homeSnapshot?.categoryHighlights ?? []}
-            roleSwitchConfirmed={isRoleSwitchInfoMessage}
           />
         ) : null}
         {authState.isAuthenticated && !isProviderMode && !ownerNeedsHouseholdSetup && activeOwnerSection === "mascotas" ? (
