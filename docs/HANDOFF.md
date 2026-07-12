@@ -1155,6 +1155,29 @@ Validacion recomendada:
 - Owner sin pendientes: debe ver `Buscar servicios`.
 - Verificar que los accesos secundarios a mascotas, adopcion, salud y servicios siguen funcionando.
 
+## Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1A acceso guiado
+
+Estado:
+
+- Rama de trabajo: `ux/mobile-flows-slice-1a`.
+- Se inicio el frente `UX-MOBILE-FLOWS` con el primer slice visual sobre el acceso mobile sin sesion.
+- La pantalla sin sesion ahora usa bienvenida guiada alineada a la referencia del flujo Owner nuevo:
+  - marca Pet Ecosystem centrada;
+  - ilustracion pet ligera en SVG local;
+  - copy principal `Bienvenido a Pet Ecosystem`;
+  - CTAs claros para `Iniciar sesion` y `Registrarse`;
+  - indicador visual de progreso de acceso.
+- El panel de autenticacion conserva los modos existentes: login, registro, codigo OTP y recuperacion.
+- Registro agrega confirmacion local de contrasena antes de llamar a `register`.
+- No se tocaron Supabase, migraciones, RLS, contratos API, booking, QR, evidencia, Payments, provider/admin ni Foster.
+
+Validacion recomendada:
+
+- Abrir app sin sesion y verificar que se muestra la bienvenida guiada.
+- Cambiar entre `Iniciar sesion`, `Registrarse`, `Codigo` y `Recuperar` sin perder datos relevantes.
+- Intentar registrar con contrasenas distintas y confirmar error claro.
+- Registrar con contrasenas iguales y confirmar que el flujo pasa a verificacion OTP como antes.
+
 ### Prompt exacto recomendado para continuar
 
 ```text

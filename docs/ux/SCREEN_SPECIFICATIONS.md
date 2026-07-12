@@ -25,6 +25,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - login
 - recovery
 - pantalla de acceso mobile ordenada por pestañas: login por defecto, registro, OTP y recuperación ocultos hasta seleccionarlos
+- UX-MOBILE-FLOWS Slice 1A: pantalla sin sesion usa bienvenida guiada tipo referencia, ilustracion pet, CTAs claros `Iniciar sesion` / `Registrarse`, progreso visual de acceso y registro con confirmacion de contrasena antes de llamar al API.
 - pantalla sin sesion enfocada solo en autenticacion; marketplace, contexto de hogar y proveedores quedan ocultos hasta iniciar sesion
 - login exitoso sin aviso global persistente; los mensajes visibles quedan para errores, verificacion, recuperacion y cierre de sesion
 - registro mobile pasa a verificación OTP después de crear cuenta y permite solicitar reenvío controlado del código

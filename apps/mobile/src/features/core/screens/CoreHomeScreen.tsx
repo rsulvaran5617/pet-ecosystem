@@ -54,6 +54,7 @@ import { SupportWorkspace } from "../../support/components/SupportWorkspace";
 type RegisterFormState = {
   email: string;
   password: string;
+  confirmPassword: string;
   firstName: string;
   lastName: string;
   role: CoreRole;
@@ -139,6 +140,7 @@ const inputStyle = {
 const emptyRegisterForm: RegisterFormState = {
   email: "",
   password: "",
+  confirmPassword: "",
   firstName: "",
   lastName: "",
   role: "pet_owner"
@@ -313,6 +315,150 @@ function Notice({ message, tone }: { message: string; tone: "error" | "info" }) 
       }}
     >
       <Text style={{ color: tone === "error" ? "#991b1b" : colorTokens.accentDark, fontWeight: "700" }}>{message}</Text>
+    </View>
+  );
+}
+
+function AuthPetIllustration() {
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        backgroundColor: "rgba(240,253,250,0.94)",
+        borderColor: "rgba(0,151,143,0.18)",
+        borderRadius: 28,
+        borderWidth: 1,
+        height: 148,
+        justifyContent: "center",
+        overflow: "hidden"
+      }}
+    >
+      <Svg height={132} viewBox="0 0 220 132" width={220}>
+        <Circle cx="44" cy="108" fill="#ccfbf1" r="38" />
+        <Circle cx="172" cy="112" fill="#ffedd5" r="42" />
+        <Path d="M35 88c14-32 53-48 86-33 35 16 58 2 72-15" fill="none" stroke="#99f6e4" strokeLinecap="round" strokeWidth="8" />
+        <Circle cx="85" cy="70" fill="#f59e0b" r="24" />
+        <Path d="M64 56c-10-18 10-22 18-8M101 48c11-14 27-1 12 12" fill="#fbbf24" />
+        <Circle cx="77" cy="68" fill="#111827" r="3" />
+        <Circle cx="93" cy="68" fill="#111827" r="3" />
+        <Path d="M80 80c6 5 13 5 19 0" fill="none" stroke="#111827" strokeLinecap="round" strokeWidth="3" />
+        <Circle cx="145" cy="76" fill="#94a3b8" r="20" />
+        <Path d="M127 61c-12-12 2-22 12-8M158 52c12-12 24 2 10 12" fill="#cbd5e1" />
+        <Circle cx="139" cy="74" fill="#111827" r="3" />
+        <Circle cx="153" cy="74" fill="#111827" r="3" />
+        <Path d="M140 86c5 4 11 4 16 0" fill="none" stroke="#111827" strokeLinecap="round" strokeWidth="3" />
+        <Circle cx="110" cy="28" fill="#0f766e" r="9" />
+        <Circle cx="94" cy="39" fill="#0f766e" r="7" opacity="0.9" />
+        <Circle cx="126" cy="39" fill="#0f766e" r="7" opacity="0.9" />
+        <Circle cx="102" cy="17" fill="#0f766e" r="6" opacity="0.8" />
+        <Circle cx="119" cy="17" fill="#0f766e" r="6" opacity="0.8" />
+      </Svg>
+    </View>
+  );
+}
+
+function AuthWelcomeHero({
+  activePanel,
+  onChange
+}: {
+  activePanel: AuthAccessPanel;
+  onChange: (panel: AuthAccessPanel) => void;
+}) {
+  return (
+    <View style={{ backgroundColor: colorTokens.surface, borderRadius: 30, gap: 16, padding: 18, ...visualTokens.mobile.shadow }}>
+      <View style={{ alignItems: "center", gap: 8 }}>
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: colorTokens.accentSoft,
+            borderRadius: 999,
+            height: 58,
+            justifyContent: "center",
+            width: 58
+          }}
+        >
+          <OwnerLineIcon color={colorTokens.accentDark} name="paw" size={32} />
+        </View>
+        <Text style={{ color: colorTokens.accentDark, fontSize: 17, fontWeight: "900" }}>Pet Ecosystem</Text>
+      </View>
+      <AuthPetIllustration />
+      <View style={{ alignItems: "center", gap: 7 }}>
+        <Text style={{ color: colorTokens.ink, fontSize: 23, fontWeight: "900", lineHeight: 28, textAlign: "center" }}>
+          Bienvenido a Pet Ecosystem
+        </Text>
+        <Text style={{ color: colorTokens.muted, fontSize: 13, lineHeight: 19, maxWidth: 260, textAlign: "center" }}>
+          Todo lo que tu mascota necesita, en un solo lugar.
+        </Text>
+      </View>
+      <View style={{ gap: 9 }}>
+        <Button label="Iniciar sesion" onPress={() => onChange("login")} tone={activePanel === "login" ? "primary" : "secondary"} />
+        <Button label="Registrarse" onPress={() => onChange("register")} tone={activePanel === "register" ? "primary" : "secondary"} />
+      </View>
+      <View style={{ alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center" }}>
+        {(["login", "register", "verify", "recover"] as AuthAccessPanel[]).map((panel) => (
+          <View
+            key={panel}
+            style={{
+              backgroundColor: panel === activePanel ? colorTokens.accent : colorTokens.line,
+              borderRadius: 999,
+              height: 6,
+              width: panel === activePanel ? 20 : 6
+            }}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function AuthFlowProgress({ activePanel }: { activePanel: AuthAccessPanel }) {
+  const steps: Array<{ label: string; panel: AuthAccessPanel }> = [
+    { label: "Acceso", panel: "login" },
+    { label: "Cuenta", panel: "register" },
+    { label: "Codigo", panel: "verify" },
+    { label: "Recuperar", panel: "recover" }
+  ];
+
+  return (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+      {steps.map((step, index) => {
+        const isActive = step.panel === activePanel;
+
+        return (
+          <View
+            key={step.panel}
+            style={{
+              alignItems: "center",
+              backgroundColor: isActive ? colorTokens.accentSoft : "#f8fafc",
+              borderColor: isActive ? "rgba(0,151,143,0.32)" : colorTokens.line,
+              borderRadius: 999,
+              borderWidth: 1,
+              flexDirection: "row",
+              gap: 6,
+              paddingHorizontal: 9,
+              paddingVertical: 7
+            }}
+          >
+            <View
+              style={{
+                alignItems: "center",
+                backgroundColor: isActive ? colorTokens.accent : colorTokens.surface,
+                borderRadius: 999,
+                height: 18,
+                justifyContent: "center",
+                width: 18
+              }}
+            >
+              <Text style={{ color: isActive ? "#ffffff" : colorTokens.mutedStrong, fontSize: 9, fontWeight: "900" }}>
+                {index + 1}
+              </Text>
+            </View>
+            <Text style={{ color: isActive ? colorTokens.accentDark : colorTokens.mutedStrong, fontSize: 10, fontWeight: "900" }}>
+              {step.label}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -1375,17 +1521,7 @@ export function CoreHomeScreen() {
           />
           )
         ) : (
-          <View style={{ borderRadius: 28, backgroundColor: colorTokens.admin, padding: 22, gap: 12, ...visualTokens.mobile.shadow }}>
-            <Text style={{ fontSize: 11, fontWeight: "700", color: "#99f6e4" }}>
-              PET ECOSYSTEM
-            </Text>
-            <Text style={{ fontSize: 34, fontWeight: "700", lineHeight: 38, color: "#f8fafc" }}>
-              Entra a tu espacio de cuidado
-            </Text>
-            <Text style={{ fontSize: 15, lineHeight: 24, color: "rgba(248,250,252,0.8)" }}>
-              Inicia sesion, crea tu cuenta o recupera tu contrasena para continuar con mascotas, reservas y proveedores.
-            </Text>
-          </View>
+          <AuthWelcomeHero activePanel={authAccessPanel} onChange={setAuthAccessPanel} />
         )}
 
         {configError ? <Notice message={configError} tone="error" /> : null}
@@ -1472,7 +1608,7 @@ export function CoreHomeScreen() {
         {!authState.isAuthenticated ? (
           <>
             <CoreSectionCard
-              eyebrow="Acceso"
+              eyebrow="Acceso guiado"
               title={
                 authAccessPanel === "login"
                   ? "Iniciar sesion"
@@ -1484,25 +1620,16 @@ export function CoreHomeScreen() {
               }
               description={
                 authAccessPanel === "login"
-                  ? "Usa tu correo y contrasena para continuar."
+                  ? "Continua con tu correo y contrasena."
                   : authAccessPanel === "register"
-                    ? "Crea tu cuenta y luego verifica el codigo que recibas por correo."
+                    ? "Ingresa tus datos para empezar a cuidar a tus mascotas."
                     : authAccessPanel === "verify"
-                      ? "Ingresa el codigo de 6 digitos enviado a tu correo."
+                      ? "Ingresa el codigo que enviamos a tu correo."
                       : "Solicita un enlace seguro para definir una nueva contrasena."
               }
             >
               <View style={{ gap: 12 }}>
-                <ChoiceBar
-                  onChange={setAuthAccessPanel}
-                  options={[
-                    { label: "Entrar", value: "login" },
-                    { label: "Crear", value: "register" },
-                    { label: "Codigo", value: "verify" },
-                    { label: "Recuperar", value: "recover" }
-                  ]}
-                  value={authAccessPanel}
-                />
+                <AuthFlowProgress activePanel={authAccessPanel} />
 
                 {authAccessPanel === "login" ? (
                   <>
@@ -1510,11 +1637,13 @@ export function CoreHomeScreen() {
                       keyboardType="email-address"
                       label="Correo"
                       onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, email: value }))}
+                      placeholder="tu@email.com"
                       value={loginForm.email}
                     />
                     <Field
                       label="Contrasena"
                       onChange={(value) => setLoginForm((currentForm) => ({ ...currentForm, password: value }))}
+                      placeholder="Ingresa tu contrasena"
                       secureTextEntry
                       value={loginForm.password}
                     />
@@ -1547,24 +1676,35 @@ export function CoreHomeScreen() {
                   <>
                     <Field
                       keyboardType="email-address"
-                      label="Email"
+                      label="Correo electronico"
                       onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, email: value }))}
+                      placeholder="ejemplo@correo.com"
                       value={registerForm.email}
                     />
                     <Field
                       label="Contrasena"
                       onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, password: value }))}
+                      placeholder="Crea una contrasena"
                       secureTextEntry
                       value={registerForm.password}
                     />
                     <Field
+                      label="Confirmar contrasena"
+                      onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, confirmPassword: value }))}
+                      placeholder="Repite tu contrasena"
+                      secureTextEntry
+                      value={registerForm.confirmPassword}
+                    />
+                    <Field
                       label="Nombre"
                       onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, firstName: value }))}
+                      placeholder="Tu nombre"
                       value={registerForm.firstName}
                     />
                     <Field
                       label="Apellido"
                       onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, lastName: value }))}
+                      placeholder="Tu apellido"
                       value={registerForm.lastName}
                     />
                     <ChoiceBar
@@ -1583,14 +1723,19 @@ export function CoreHomeScreen() {
                         setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
                         setRecoverForm({ email: registerForm.email });
                         void runAction(
-                          () =>
-                            getMobileCoreApiClient().register({
+                          async () => {
+                            if (registerForm.password !== registerForm.confirmPassword) {
+                              throw new Error("Las contrasenas deben coincidir.");
+                            }
+
+                            await getMobileCoreApiClient().register({
                               email: registerForm.email,
                               password: registerForm.password,
                               firstName: registerForm.firstName,
                               lastName: registerForm.lastName,
                               requestedRoles: [registerForm.role]
-                            }),
+                            });
+                          },
                           "Registro enviado. Revisa tu correo e ingresa el codigo para verificar tu cuenta.",
                           false
                         ).then(() => setAuthAccessPanel("verify"));
