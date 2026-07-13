@@ -12,6 +12,8 @@ UX-MOBILE-FLOWS Slice 1B convierte la compuerta owner sin hogar en un paso guiad
 
 UX-MOBILE-FLOWS Slice 1C convierte el estado owner con hogar pero sin mascota en un paso guiado para registrar la primera mascota. El shell bloquea temporalmente Inicio/Buscar/Reservas/Mensajes hasta crear la mascota y luego conserva esa mascota como contexto activo.
 
+UX-MOBILE-FLOWS Slice 1D agrega una guia suave posterior a la primera mascota: desde la ficha se sugieren acciones no obligatorias para foto, documentos y busqueda de servicios, manteniendo la navegacion normal.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.

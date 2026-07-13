@@ -878,6 +878,7 @@ export function PetsWorkspace({
   presentation = "standard",
   ownerReminders = [],
   onContextChange,
+  onOpenMarketplace,
   onPetCreated,
   onPanelChange
 }: {
@@ -887,6 +888,7 @@ export function PetsWorkspace({
   presentation?: PetsWorkspacePresentation;
   ownerReminders?: Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">[];
   onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
+  onOpenMarketplace?: () => void;
   onPetCreated?: (context: { householdId: Uuid; petId: Uuid }) => void | Promise<void>;
   onPanelChange?: (panel: PetHubPanel) => void;
 }) {
@@ -927,6 +929,7 @@ export function PetsWorkspace({
   const [receivedAdoptionApplications, setReceivedAdoptionApplications] = useState<PetAdoptionApplication[]>([]);
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
+  const [dismissedNextStepPetIds, setDismissedNextStepPetIds] = useState<Uuid[]>([]);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
   const manualSelectedPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
@@ -1151,6 +1154,19 @@ export function PetsWorkspace({
     setIsDocumentFormOpen(true);
   };
 
+  const openDocumentUploadFromNextSteps = () => {
+    setActiveDocumentType("vaccination_record");
+    setDocumentForm({
+      ...emptyDocumentForm,
+      documentType: "vaccination_record",
+      hasExpiration: true
+    });
+    setEditingDocumentId(null);
+    setOpenDocumentDatePicker(null);
+    setIsDocumentFormOpen(true);
+    onPanelChange?.("documentos");
+  };
+
   const isImageDocument = (document: Pick<PetDocument, "fileName" | "mimeType">) =>
     document.mimeType?.startsWith("image/") || /\.(jpe?g|png|gif|webp)$/i.test(document.fileName);
 
@@ -1180,6 +1196,13 @@ export function PetsWorkspace({
     ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
     : null;
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
+  const shouldShowPetNextSteps =
+    Boolean(selectedPetDetail) &&
+    activePanel === "detalle" &&
+    canEditSelectedHousehold &&
+    !isSelectedPetInMemory &&
+    !dismissedNextStepPetIds.includes(selectedPetDetail?.pet.id ?? "") &&
+    (!selectedPetDetail?.pet.avatarUrl || selectedDocuments.length === 0);
   const canTransferSelectedPet =
     Boolean(selectedPetDetail) &&
     Boolean(selectedHouseholdId) &&
@@ -2171,6 +2194,128 @@ export function PetsWorkspace({
                             <Text style={{ color: "#5b21b6", fontSize: 9, fontWeight: "900" }}>{label}</Text>
                           </View>
                         ))}
+                      </View>
+                    </View>
+                  ) : null}
+                  {shouldShowPetNextSteps ? (
+                    <View
+                      style={{
+                        backgroundColor: "rgba(240,253,250,0.86)",
+                        borderColor: "rgba(15,118,110,0.18)",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        gap: 10,
+                        padding: 12
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+                        <View
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: "#ffffff",
+                            borderRadius: 15,
+                            height: 34,
+                            justifyContent: "center",
+                            width: 34
+                          }}
+                        >
+                          <PetLineIcon color="#0f766e" name="paw" size={17} />
+                        </View>
+                        <View style={{ flex: 1, gap: 3 }}>
+                          <Text style={{ color: "#0f172a", fontSize: 13, fontWeight: "900" }}>Tu mascota ya esta lista</Text>
+                          <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "700", lineHeight: 16 }}>
+                            Puedes completar su cuidado ahora o seguir explorando la app.
+                          </Text>
+                        </View>
+                        <Pressable
+                          accessibilityLabel="Ocultar siguientes pasos"
+                          accessibilityRole="button"
+                          onPress={() =>
+                            setDismissedNextStepPetIds((currentIds) =>
+                              currentIds.includes(selectedPetDetail.pet.id) ? currentIds : [...currentIds, selectedPetDetail.pet.id]
+                            )
+                          }
+                          style={{
+                            alignItems: "center",
+                            borderColor: "rgba(15,118,110,0.18)",
+                            borderRadius: 999,
+                            borderWidth: 1,
+                            height: 28,
+                            justifyContent: "center",
+                            width: 28
+                          }}
+                        >
+                          <Text style={{ color: "#0f766e", fontSize: 14, fontWeight: "900" }}>x</Text>
+                        </Pressable>
+                      </View>
+                      <View style={{ gap: 8 }}>
+                        {!selectedPetDetail.pet.avatarUrl ? (
+                          <Pressable
+                            accessibilityLabel="Agregar foto de mascota"
+                            accessibilityRole="button"
+                            onPress={() => uploadPetAvatar(selectedPetDetail.pet.id)}
+                            style={{
+                              alignItems: "center",
+                              backgroundColor: "#ffffff",
+                              borderColor: "rgba(15,118,110,0.16)",
+                              borderRadius: 14,
+                              borderWidth: 1,
+                              flexDirection: "row",
+                              gap: 8,
+                              padding: 10
+                            }}
+                          >
+                            <PetLineIcon color="#0f766e" name="camera" size={15} />
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ color: "#0f172a", fontSize: 11, fontWeight: "900" }}>Agregar foto</Text>
+                              <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700" }}>Ayuda a reconocerla rapidamente.</Text>
+                            </View>
+                          </Pressable>
+                        ) : null}
+                        {selectedDocuments.length === 0 ? (
+                          <Pressable
+                            accessibilityLabel="Agregar documentos de mascota"
+                            accessibilityRole="button"
+                            onPress={openDocumentUploadFromNextSteps}
+                            style={{
+                              alignItems: "center",
+                              backgroundColor: "#ffffff",
+                              borderColor: "rgba(15,118,110,0.16)",
+                              borderRadius: 14,
+                              borderWidth: 1,
+                              flexDirection: "row",
+                              gap: 8,
+                              padding: 10
+                            }}
+                          >
+                            <PetLineIcon color="#0f766e" name="file" size={15} />
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ color: "#0f172a", fontSize: 11, fontWeight: "900" }}>Agregar carnet o documento</Text>
+                              <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700" }}>Puedes hacerlo despues si no lo tienes a mano.</Text>
+                            </View>
+                          </Pressable>
+                        ) : null}
+                        {onOpenMarketplace ? (
+                          <Pressable
+                            accessibilityLabel="Buscar servicios para esta mascota"
+                            accessibilityRole="button"
+                            onPress={onOpenMarketplace}
+                            style={{
+                              alignItems: "center",
+                              backgroundColor: "#0f9f8f",
+                              borderRadius: 14,
+                              flexDirection: "row",
+                              gap: 8,
+                              padding: 10
+                            }}
+                          >
+                            <PetLineIcon color="#ffffff" name="chevron" size={15} />
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>Buscar un servicio</Text>
+                              <Text style={{ color: "rgba(255,255,255,0.84)", fontSize: 10, fontWeight: "700" }}>Explora proveedores cuando estes listo.</Text>
+                            </View>
+                          </Pressable>
+                        ) : null}
                       </View>
                     </View>
                   ) : null}

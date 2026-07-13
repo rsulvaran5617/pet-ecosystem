@@ -2564,6 +2564,7 @@ export function CoreHomeScreen() {
                   setPendingPetHubPetId(null);
                 }
               }}
+              onOpenMarketplace={() => setActiveOwnerSection("buscar")}
               onPanelChange={setActivePetHubPanel}
             />
             {activePetHubPanel === "salud" ? (

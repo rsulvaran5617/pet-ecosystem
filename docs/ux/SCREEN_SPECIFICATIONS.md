@@ -47,6 +47,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - compuerta owner post-login: si no existe hogar/familia, crear hogar aparece antes de Inicio/Mascotas
 - UX-MOBILE-FLOWS Slice 1B: la compuerta owner sin hogar usa flujo guiado `Crea tu hogar familiar`, ilustracion de casa, progreso `Cuenta/Hogar/Mascota`, tipo fijo `Hogar familiar` y oculta listas administrativas mientras el usuario completa el primer hogar.
 - UX-MOBILE-FLOWS Slice 1C: la compuerta owner con hogar pero sin mascotas usa flujo guiado `Registra tu primera mascota`, ilustracion pet/casa, progreso `Hogar listo/Mascota/Cuidado`, formulario esencial y CTA `Guardar y continuar`; al guardar se refresca el contexto global y abre la ficha de la mascota creada.
+- UX-MOBILE-FLOWS Slice 1D: despues de crear/ver una mascota sin foto o documentos, `Mascotas > Detalle` muestra una guia compacta `Tu mascota ya esta lista` con CTAs opcionales para agregar foto, agregar documento/carnet y buscar servicios; el usuario puede ocultarla y seguir navegando.
 - separacion Foster/Owner propuesta: `Hogar familiar` y `Familia protectora` deben verse como contextos distintos; un usuario puede crear ambos desde `Hogares`, cambiar de hogar, pero las acciones Foster solo aparecen cuando el hogar activo es tipo `protective` y esta aprobado.
 
 ### Pets

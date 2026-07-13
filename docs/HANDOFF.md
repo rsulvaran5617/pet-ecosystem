@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1D siguientes pasos mascota
+
+- Owner mobile `Mascotas > Detalle` muestra una guia compacta `Tu mascota ya esta lista` cuando la mascota activa aun no tiene foto o documentos.
+- La guia ofrece CTAs opcionales: agregar foto, agregar carnet/documento y buscar servicios conservando la mascota activa.
+- El usuario puede ocultar la guia en la sesion; no bloquea navegacion ni obliga a completar datos.
+- Se preserva `createPet`, documentos, salud, recordatorios, marketplace, bookings, Supabase, RLS y contratos API.
+
 # Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1C primera mascota guiada
 
 - Owner mobile con hogar creado pero sin mascotas entra en una compuerta progresiva `Ahora registra tu primera mascota`.
