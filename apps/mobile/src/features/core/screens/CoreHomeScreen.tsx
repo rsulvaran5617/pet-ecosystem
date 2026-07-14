@@ -92,7 +92,7 @@ type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "pro
 type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
-type OwnerHomeBooking = Pick<BookingSummary, "id" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
+type OwnerHomeBooking = Pick<BookingSummary, "id" | "petId" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
 type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" | "providerCount" | "serviceCount">;
 type ActiveOwnerPetContext = { householdId: Uuid | null; petId: Uuid | null };
 
@@ -826,6 +826,7 @@ function ProviderShellHeader({
 }
 
 function OwnerHome({
+  activePetId,
   bookings,
   householdName,
   onNavigate,
@@ -837,6 +838,7 @@ function OwnerHome({
   reminders,
   serviceHighlights
 }: {
+  activePetId: Uuid | null;
   bookings: OwnerHomeBooking[];
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
@@ -855,8 +857,9 @@ function OwnerHome({
     warning: { backgroundColor: colorTokens.warningSoft, color: colorTokens.warning }
   } as const;
   const petTones = ["accent", "blue", "purple", "warning"] as const;
+  const activePet = activePetId ? pets.find((pet) => pet.id === activePetId) ?? null : pets[0] ?? null;
   const pendingReminders = reminders
-    .filter((reminder) => reminder.status === "pending")
+    .filter((reminder) => reminder.status === "pending" && (!activePet?.id || !reminder.petId || reminder.petId === activePet.id))
     .sort((firstReminder, secondReminder) => new Date(firstReminder.dueAt).getTime() - new Date(secondReminder.dueAt).getTime());
   const completedVaccineCount = reminders.filter(
     (reminder) => reminder.reminderType === "vaccine" && reminder.status === "completed"
@@ -867,11 +870,12 @@ function OwnerHome({
     ? `${getOwnerReminderTitle(nextReminder.title)}${nextReminderPetName ? ` de ${nextReminderPetName}` : ""}`
     : "Sin pendientes";
   const now = Date.now();
+  const visibleBookings = activePet?.id ? bookings.filter((booking) => booking.petId === activePet.id) : bookings;
   const nextBooking =
-    bookings
+    visibleBookings
       .filter((booking) => booking.status !== "cancelled" && new Date(booking.scheduledStartAt).getTime() >= now)
       .sort((firstBooking, secondBooking) => new Date(firstBooking.scheduledStartAt).getTime() - new Date(secondBooking.scheduledStartAt).getTime())[0] ??
-    bookings
+    visibleBookings
       .filter((booking) => booking.status !== "cancelled")
       .sort((firstBooking, secondBooking) => new Date(secondBooking.scheduledStartAt).getTime() - new Date(firstBooking.scheduledStartAt).getTime())[0] ??
     null;
@@ -906,6 +910,16 @@ function OwnerHome({
             tone: "warning" as const,
             onPress: () => onOpenReminders(nextReminder.petId)
           }
+        : activePet && !activePet.avatarUrl
+          ? {
+              eyebrow: "Siguiente paso",
+              title: `Agrega una foto de ${activePet.name}`,
+              description: "Una imagen ayuda a reconocer su perfil rapidamente.",
+              cta: "Abrir perfil",
+              icon: "paw" as OwnerIconName,
+              tone: "blue" as const,
+              onPress: () => onSelectPet(activePet.id)
+            }
         : {
             eyebrow: "Todo listo",
             title: "Explora servicios para tus mascotas",
@@ -2519,6 +2533,7 @@ export function CoreHomeScreen() {
 
         {authState.isAuthenticated && snapshot && !isProviderMode && !ownerNeedsHouseholdSetup && !ownerNeedsFirstPetSetup && activeOwnerSection === "inicio" ? (
           <OwnerHome
+            activePetId={activeOwnerPetContextForModules.petId}
             bookings={bookingsWorkspace.bookings}
             householdName={defaultHouseholdName}
             onNavigate={setActiveOwnerSection}

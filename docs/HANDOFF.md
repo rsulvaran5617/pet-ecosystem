@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1E Inicio contextual
+
+- Owner mobile `Inicio` usa la mascota activa para elegir la accion principal del dia.
+- Prioridad: reservas vigentes de la mascota activa, recordatorios pendientes de esa mascota, completar foto si falta y, si todo esta tranquilo, buscar servicios.
+- El CTA de foto abre la ficha de la mascota activa; el CTA de recordatorios conserva contexto y abre `Mascotas > Recordatorios`; el CTA de reservas abre `Reservas`.
+- No se tocaron backend, Supabase, RLS, contratos API, reglas de booking, recordatorios, Foster ni provider/admin.
+
 # Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1D siguientes pasos mascota
 
 - Owner mobile `Mascotas > Detalle` muestra una guia compacta `Tu mascota ya esta lista` cuando la mascota activa aun no tiene foto o documentos.
