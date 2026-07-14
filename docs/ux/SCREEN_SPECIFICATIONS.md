@@ -49,6 +49,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - UX-MOBILE-FLOWS Slice 1C: la compuerta owner con hogar pero sin mascotas usa flujo guiado `Registra tu primera mascota`, ilustracion pet/casa, progreso `Hogar listo/Mascota/Cuidado`, formulario esencial y CTA `Guardar y continuar`; al guardar se refresca el contexto global y abre la ficha de la mascota creada.
 - UX-MOBILE-FLOWS Slice 1D: despues de crear/ver una mascota sin foto o documentos, `Mascotas > Detalle` muestra una guia compacta `Tu mascota ya esta lista` con CTAs opcionales para agregar foto, agregar documento/carnet y buscar servicios; el usuario puede ocultarla y seguir navegando.
 - UX-MOBILE-FLOWS Slice 1E: `Inicio` usa la mascota activa para calcular la accion principal del dia: reserva vigente, recordatorio pendiente, completar foto o buscar servicios. La accion conserva el contexto de mascota y no cambia reglas de reservas ni recordatorios.
+- UX-MOBILE-FLOWS Slice 1F: `Mascotas > Detalle` reduce ruido inicial con una accion recomendada (`Agregar foto`, `Agregar documento` o `Buscar servicios`) y mueve edicion de datos / En memoria a `Gestion avanzada` colapsable.
 - separacion Foster/Owner propuesta: `Hogar familiar` y `Familia protectora` deben verse como contextos distintos; un usuario puede crear ambos desde `Hogares`, cambiar de hogar, pero las acciones Foster solo aparecen cuando el hogar activo es tipo `protective` y esta aprobado.
 
 ### Pets

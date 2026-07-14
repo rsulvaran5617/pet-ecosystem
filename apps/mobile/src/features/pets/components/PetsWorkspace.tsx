@@ -930,6 +930,7 @@ export function PetsWorkspace({
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
   const [dismissedNextStepPetIds, setDismissedNextStepPetIds] = useState<Uuid[]>([]);
+  const [isProfileActionsOpen, setIsProfileActionsOpen] = useState(false);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
   const manualSelectedPetIdRef = useRef<Uuid | null>(null);
   const onContextChangeRef = useRef(onContextChange);
@@ -1086,6 +1087,7 @@ export function PetsWorkspace({
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
     setPetMemoryConfirmationId(null);
+    setIsProfileActionsOpen(false);
     setPetView("crear");
     onPanelChange?.("detalle");
   };
@@ -1103,6 +1105,7 @@ export function PetsWorkspace({
       notes: pet.notes ?? ""
     });
     setIsBirthDatePickerOpen(false);
+    setIsProfileActionsOpen(false);
     setPetView("editar");
     onPanelChange?.("detalle");
   };
@@ -1119,6 +1122,7 @@ export function PetsWorkspace({
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
     setIsDocumentFormOpen(false);
+    setIsProfileActionsOpen(false);
     setPetView("detalle");
     onPanelChange?.("detalle");
   };
@@ -1196,11 +1200,36 @@ export function PetsWorkspace({
     ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
     : null;
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
+  const selectedPetPrimaryAction = selectedPetDetail
+    ? !selectedPetDetail.pet.avatarUrl
+      ? {
+          description: "Ayuda a reconocer su perfil en el hogar.",
+          icon: "camera" as const,
+          label: "Agregar foto",
+          onPress: () => uploadPetAvatar(selectedPetDetail.pet.id)
+        }
+      : selectedDocuments.length === 0
+        ? {
+            description: "Guarda carnet, expediente o identificacion.",
+            icon: "file" as const,
+            label: "Agregar documento",
+            onPress: openDocumentUploadFromNextSteps
+          }
+        : onOpenMarketplace
+          ? {
+              description: "Busca proveedores usando esta mascota activa.",
+              icon: "chevron" as const,
+              label: "Buscar servicios",
+              onPress: onOpenMarketplace
+            }
+          : null
+    : null;
   const shouldShowPetNextSteps =
     Boolean(selectedPetDetail) &&
     activePanel === "detalle" &&
     canEditSelectedHousehold &&
     !isSelectedPetInMemory &&
+    !selectedPetPrimaryAction &&
     !dismissedNextStepPetIds.includes(selectedPetDetail?.pet.id ?? "") &&
     (!selectedPetDetail?.pet.avatarUrl || selectedDocuments.length === 0);
   const canTransferSelectedPet =
@@ -2089,40 +2118,115 @@ export function PetsWorkspace({
                     <StatusChip label={formatSterilizedLabel(selectedPetDetail.pet.isSterilized)} tone={selectedPetDetail.pet.isSterilized ? "active" : "neutral"} />
                     <StatusChip label={selectedPetDetail.pet.species} tone="active" />
                     <StatusChip label={canEditSelectedHousehold ? "editable" : "solo lectura"} tone={canEditSelectedHousehold ? "active" : "neutral"} />
-                    {canEditSelectedHousehold ? (
-                      <Pressable
-                        onPress={() => openEditPet(selectedPetDetail.pet)}
-                        style={{ borderColor: "rgba(15,118,110,0.18)", borderRadius: 999, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 5 }}
-                      >
-                        <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>Editar datos</Text>
-                      </Pressable>
-                    ) : null}
-                    {canEditSelectedHousehold ? (
-                      <Pressable
-                        disabled={isSubmitting}
-                        onPress={() => {
-                          if (isSelectedPetInMemory) {
-                            updatePetMemoryStatus(selectedPetDetail.pet.id, "active");
-                            return;
-                          }
-
-                          setPetMemoryConfirmationId(selectedPetDetail.pet.id);
-                        }}
-                        style={{
-                          borderColor: isSelectedPetInMemory ? "rgba(15,118,110,0.18)" : "rgba(124,58,237,0.22)",
-                          borderRadius: 999,
-                          borderWidth: 1,
-                          opacity: isSubmitting ? 0.65 : 1,
-                          paddingHorizontal: 9,
-                          paddingVertical: 5
-                        }}
-                      >
-                        <Text style={{ color: isSelectedPetInMemory ? "#0f766e" : "#6d28d9", fontSize: 10, fontWeight: "900" }}>
-                          {isSelectedPetInMemory ? "Reactivar" : "Marcar En memoria"}
-                        </Text>
-                      </Pressable>
-                    ) : null}
                   </View>
+                  {selectedPetPrimaryAction ? (
+                    <Pressable
+                      accessibilityLabel={selectedPetPrimaryAction.label}
+                      accessibilityRole="button"
+                      onPress={selectedPetPrimaryAction.onPress}
+                      style={{
+                        alignItems: "center",
+                        backgroundColor: "rgba(240,253,250,0.86)",
+                        borderColor: "rgba(15,118,110,0.18)",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        flexDirection: "row",
+                        gap: 10,
+                        padding: 12
+                      }}
+                    >
+                      <View
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: "#ffffff",
+                          borderRadius: 15,
+                          height: 34,
+                          justifyContent: "center",
+                          width: 34
+                        }}
+                      >
+                        <PetLineIcon color="#0f766e" name={selectedPetPrimaryAction.icon} size={17} />
+                      </View>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={{ color: "#0f172a", fontSize: 12, fontWeight: "900" }}>{selectedPetPrimaryAction.label}</Text>
+                        <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700", lineHeight: 14 }}>{selectedPetPrimaryAction.description}</Text>
+                      </View>
+                    </Pressable>
+                  ) : null}
+                  {canEditSelectedHousehold ? (
+                    <View
+                      style={{
+                        borderColor: "rgba(15,23,42,0.08)",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        overflow: "hidden"
+                      }}
+                    >
+                      <Pressable
+                        accessibilityLabel="Abrir gestion avanzada de mascota"
+                        accessibilityRole="button"
+                        onPress={() => setIsProfileActionsOpen((currentValue) => !currentValue)}
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: "rgba(248,250,252,0.88)",
+                          flexDirection: "row",
+                          gap: 10,
+                          padding: 11
+                        }}
+                      >
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={{ color: "#0f172a", fontSize: 11, fontWeight: "900" }}>Gestion avanzada</Text>
+                          <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700" }}>Editar datos o cambiar estados sensibles.</Text>
+                        </View>
+                        <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900" }}>{isProfileActionsOpen ? "Ocultar" : "Abrir"}</Text>
+                      </Pressable>
+                      {isProfileActionsOpen ? (
+                        <View style={{ backgroundColor: "#ffffff", borderTopColor: "rgba(15,23,42,0.06)", borderTopWidth: 1, gap: 8, padding: 11 }}>
+                          <Pressable
+                            onPress={() => openEditPet(selectedPetDetail.pet)}
+                            style={{
+                              alignItems: "center",
+                              borderColor: "rgba(15,118,110,0.18)",
+                              borderRadius: 14,
+                              borderWidth: 1,
+                              flexDirection: "row",
+                              gap: 8,
+                              padding: 10
+                            }}
+                          >
+                            <PetLineIcon color="#0f766e" name="file" size={15} />
+                            <Text style={{ color: "#0f766e", flex: 1, fontSize: 11, fontWeight: "900" }}>Editar datos basicos</Text>
+                          </Pressable>
+                          <Pressable
+                            disabled={isSubmitting}
+                            onPress={() => {
+                              if (isSelectedPetInMemory) {
+                                updatePetMemoryStatus(selectedPetDetail.pet.id, "active");
+                                return;
+                              }
+
+                              setPetMemoryConfirmationId(selectedPetDetail.pet.id);
+                            }}
+                            style={{
+                              alignItems: "center",
+                              borderColor: isSelectedPetInMemory ? "rgba(15,118,110,0.18)" : "rgba(124,58,237,0.22)",
+                              borderRadius: 14,
+                              borderWidth: 1,
+                              flexDirection: "row",
+                              gap: 8,
+                              opacity: isSubmitting ? 0.65 : 1,
+                              padding: 10
+                            }}
+                          >
+                            <PetLineIcon color={isSelectedPetInMemory ? "#0f766e" : "#6d28d9"} name="heart" size={15} />
+                            <Text style={{ color: isSelectedPetInMemory ? "#0f766e" : "#6d28d9", flex: 1, fontSize: 11, fontWeight: "900" }}>
+                              {isSelectedPetInMemory ? "Reactivar mascota" : "Marcar En memoria"}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      ) : null}
+                    </View>
+                  ) : null}
                   {petMemoryConfirmationId === selectedPetDetail.pet.id ? (
                     <View
                       style={{

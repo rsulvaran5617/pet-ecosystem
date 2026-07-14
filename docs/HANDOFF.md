@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-13 - UX-MOBILE-FLOWS Slice 1F Mascotas detalle progresivo
+
+- Owner mobile `Mascotas > Detalle` reduce acciones visibles en la ficha principal.
+- La ficha muestra una accion recomendada segun el estado: agregar foto, agregar documento o buscar servicios.
+- Las acciones menos frecuentes (`Editar datos basicos`, `Marcar En memoria` / `Reactivar`) quedan dentro de `Gestion avanzada` colapsable.
+- La guia larga de siguientes pasos queda como fallback y se evita duplicarla cuando existe una accion recomendada.
+- No se tocaron backend, Supabase, RLS, contratos API, salud, documentos, recordatorios, bookings, Foster ni provider/admin.
+
 # Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1E Inicio contextual
 
 - Owner mobile `Inicio` usa la mascota activa para elegir la accion principal del dia.
