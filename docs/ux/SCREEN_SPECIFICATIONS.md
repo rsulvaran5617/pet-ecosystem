@@ -78,6 +78,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - resumen de vacunas en ficha de mascota usa vigencia basada en `next_due_on`: `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`
 - owner mobile Salud permite cargar foto/PDF del sticker de vacuna desde cada registro; se muestra como soporte documental asociado y se guarda como documento de mascota tipo `vaccination_record`
 - owner mobile Salud > Vacunas normaliza el soporte documental con acciones compactas por icono: ojo para visualizar el sticker y calendario para editar la vigencia del documento sin cambiar fechas clinicas de la vacuna.
+- UX-MOBILE-FLOWS Slice 1G: owner mobile Salud > Vacunas muestra guia progresiva, CTA contextual de registro y valida en cliente que la proxima dosis no sea anterior a la fecha de aplicacion antes de guardar.
 - formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos; el encabezado mobile muestra `MM/YYYY` y controles compactos para evitar cortes visuales.
 - owner web Salud usa carrusel superior de mascotas y ficha inferior compacta con resumen, vacunas, alergias y condiciones para evitar columnas altas y mantener controles pequenos
 

@@ -296,6 +296,7 @@ function DatePickerField({
   isOpen,
   label,
   maxDate,
+  minDate,
   onChange,
   onToggle,
   value
@@ -304,12 +305,13 @@ function DatePickerField({
   isOpen: boolean;
   label: string;
   maxDate?: string;
+  minDate?: string;
   onChange: (value: string) => void;
   onToggle: () => void;
   value: string;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const selectedDate = value || maxDate || today;
+  const selectedDate = value || minDate || maxDate || today;
   const [visibleDate, setVisibleDate] = useState(selectedDate);
 
   useEffect(() => {
@@ -355,7 +357,7 @@ function DatePickerField({
           <View style={{ alignItems: "center", borderBottomWidth: 1, borderBottomColor: "rgba(28,25,23,0.08)", flexDirection: "row", gap: 8, justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 8 }}>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, undefined, maxDate))}
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, -1, minDate, maxDate))}
               style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, minWidth: 74, paddingHorizontal: 8, paddingVertical: 5 }}
             >
               <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>-1 ano</Text>
@@ -365,7 +367,7 @@ function DatePickerField({
             </Text>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, undefined, maxDate))}
+              onPress={() => setVisibleDate(shiftDateYear(visibleDate, 1, minDate, maxDate))}
               style={{ borderColor: "rgba(0,122,107,0.18)", borderRadius: 999, borderWidth: 1, minWidth: 74, paddingHorizontal: 8, paddingVertical: 5 }}
             >
               <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>+1 ano</Text>
@@ -375,6 +377,7 @@ function DatePickerField({
             current={visibleDate}
             key={`health-${visibleDate.slice(0, 7)}`}
             maxDate={maxDate}
+            minDate={minDate}
             markedDates={{
               [selectedDate]: {
                 selected: true,
@@ -412,6 +415,24 @@ function DatePickerField({
   );
 }
 
+function validateVaccineForm(input: UpdatePetVaccineInput) {
+  const name = input.name.trim();
+
+  if (!name) {
+    return "Escribe el nombre de la vacuna.";
+  }
+
+  if (!input.administeredOn) {
+    return "Selecciona la fecha en que fue aplicada la vacuna.";
+  }
+
+  if (input.nextDueOn && input.nextDueOn < input.administeredOn) {
+    return "La proxima dosis no puede ser anterior a la fecha de aplicacion.";
+  }
+
+  return null;
+}
+
 export function HealthWorkspace({
   contextHouseholdId,
   contextPetId,
@@ -431,6 +452,7 @@ export function HealthWorkspace({
   const [editingAllergyId, setEditingAllergyId] = useState<string | null>(null);
   const [editingConditionId, setEditingConditionId] = useState<string | null>(null);
   const [vaccineForm, setVaccineForm] = useState(emptyVaccineForm);
+  const [vaccineFormError, setVaccineFormError] = useState<string | null>(null);
   const [allergyForm, setAllergyForm] = useState(emptyAllergyForm);
   const [conditionForm, setConditionForm] = useState(emptyConditionForm);
   const [openDatePicker, setOpenDatePicker] = useState<"administeredOn" | "nextDueOn" | "diagnosedOn" | null>(null);
@@ -759,6 +781,9 @@ export function HealthWorkspace({
                             onPress={() => {
                               setActiveHealthSection(item.form);
                               setOpenDatePicker(null);
+                              if (item.form === "vaccine") {
+                                setVaccineFormError(null);
+                              }
                               setActiveHealthForm((current) => (current === item.form ? null : item.form));
                             }}
                           />
@@ -770,7 +795,27 @@ export function HealthWorkspace({
               </View>
 
               {activeHealthSection === "vaccine" ? <View style={cardStyle}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Vacunas ({selectedPetHealthDetail.vaccines.length})</Text>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                  <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+                    <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Vacunas ({selectedPetHealthDetail.vaccines.length})</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>
+                      Registra aplicacion, proxima dosis y soporte documental cuando lo tengas.
+                    </Text>
+                  </View>
+                  {canEdit && activeHealthForm !== "vaccine" ? (
+                    <AddButton
+                      isActive={false}
+                      label={selectedPetHealthDetail.vaccines.length ? "+ Vacuna" : "Registrar"}
+                      onPress={() => {
+                        setEditingVaccineId(null);
+                        setVaccineForm(emptyVaccineForm);
+                        setVaccineFormError(null);
+                        setOpenDatePicker(null);
+                        setActiveHealthForm("vaccine");
+                      }}
+                    />
+                  ) : null}
+                </View>
                 {canEdit && activeHealthForm === "vaccine" ? (
                   <>
                     <Field label="Nombre de la vacuna" onChange={(value) => setVaccineForm((current) => ({ ...current, name: value }))} value={vaccineForm.name} />
@@ -787,19 +832,41 @@ export function HealthWorkspace({
                       helperText="Opcional. Programa la fecha estimada de la siguiente dosis."
                       isOpen={openDatePicker === "nextDueOn"}
                       label="Proxima dosis"
+                      minDate={vaccineForm.administeredOn || undefined}
                       onChange={(value) => setVaccineForm((current) => ({ ...current, nextDueOn: value }))}
                       onToggle={() => setOpenDatePicker((current) => (current === "nextDueOn" ? null : "nextDueOn"))}
                       value={vaccineForm.nextDueOn ?? ""}
                     />
                     <Field label="Notas" multiline onChange={(value) => setVaccineForm((current) => ({ ...current, notes: value }))} value={vaccineForm.notes ?? ""} />
+                    {vaccineFormError ? (
+                      <View style={{ borderRadius: 14, backgroundColor: "rgba(254,226,226,0.74)", borderColor: "rgba(220,38,38,0.18)", borderWidth: 1, padding: 10 }}>
+                        <Text style={{ color: "#991b1b", fontSize: 12, fontWeight: "800", lineHeight: 17 }}>{vaccineFormError}</Text>
+                      </View>
+                    ) : null}
                     <Button disabled={isSubmitting} label={editingVaccineId ? "Guardar vacuna" : "Registrar vacuna"} onPress={() => {
                       clearMessages();
                       const payload: UpdatePetVaccineInput = { name: vaccineForm.name.trim(), administeredOn: vaccineForm.administeredOn, nextDueOn: vaccineForm.nextDueOn || null, notes: vaccineForm.notes?.trim() || null };
+                      const validationMessage = validateVaccineForm(payload);
+
+                      if (validationMessage) {
+                        setVaccineFormError(validationMessage);
+                        return;
+                      }
+
+                      setVaccineFormError(null);
                       const action = editingVaccineId ? () => getMobileHealthApiClient().updatePetVaccine(editingVaccineId, payload) : () => getMobileHealthApiClient().createPetVaccine(selectedPet.id, payload);
                       void runAction(action, editingVaccineId ? "Vacuna actualizada." : "Vacuna registrada.").then(() => { setEditingVaccineId(null); setVaccineForm(emptyVaccineForm); setOpenDatePicker(null); setActiveHealthForm(null); });
                     }} />
                   </>
                 ) : !canEdit ? <Text style={{ color: colorTokens.muted }}>Hogar en modo solo lectura.</Text> : null}
+                {selectedPetHealthDetail.vaccines.length === 0 && activeHealthForm !== "vaccine" ? (
+                  <View style={{ borderRadius: 16, backgroundColor: "rgba(15,118,110,0.08)", borderColor: "rgba(15,118,110,0.14)", borderWidth: 1, padding: 12, gap: 5 }}>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 13, fontWeight: "900" }}>Aun no hay vacunas registradas</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                      Empieza por la fecha de aplicacion. La proxima dosis puede quedar vacia si no la conoces.
+                    </Text>
+                  </View>
+                ) : null}
                 {selectedPetHealthDetail.vaccines.map((vaccine) => {
                   const evidenceDocuments = getVaccineEvidenceDocuments(vaccine, vaccineEvidenceDocuments);
                   const primaryEvidenceDocument = evidenceDocuments[0] ?? null;
@@ -939,7 +1006,7 @@ export function HealthWorkspace({
                       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                         {canEdit ? (
                           <>
-                            <SmallButton label="Editar" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); setActiveHealthSection("vaccine"); setOpenDatePicker(null); setActiveHealthForm("vaccine"); }} />
+                            <SmallButton label="Editar" onPress={() => { setEditingVaccineId(vaccine.id); setVaccineForm({ name: vaccine.name, administeredOn: vaccine.administeredOn, nextDueOn: vaccine.nextDueOn ?? "", notes: vaccine.notes ?? "" }); setVaccineFormError(null); setActiveHealthSection("vaccine"); setOpenDatePicker(null); setActiveHealthForm("vaccine"); }} />
                             <SmallButton label="Cargar sticker" onPress={() => { void uploadVaccineSticker(vaccine); }} />
                           </>
                         ) : null}

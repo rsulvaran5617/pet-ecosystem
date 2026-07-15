@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-14 - UX-MOBILE-FLOWS Slice 1G Salud vacunas progresiva
+
+- Owner mobile `Mascotas > Salud > Vacunas` agrega una guia breve y CTA contextual para registrar vacunas.
+- El formulario valida localmente nombre, fecha de aplicacion y que `Proxima dosis` no sea anterior a la fecha aplicada antes de llamar al API.
+- El selector de `Proxima dosis` usa la fecha de aplicacion como minimo visual cuando ya existe.
+- Si no hay vacunas, se muestra un empty state humano que explica que la proxima dosis puede quedar vacia si no se conoce.
+- Se preservan sticker/soporte documental, visor de sticker, edicion de vigencia documental, alergias, condiciones, backend, Supabase, RLS y contratos API.
+
 # Handoff 2026-07-13 - UX-MOBILE-FLOWS Slice 1F Mascotas detalle progresivo
 
 - Owner mobile `Mascotas > Detalle` reduce acciones visibles en la ficha principal.

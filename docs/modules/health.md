@@ -47,6 +47,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - la vigencia documental de mascota pertenece al expediente documental y puede coexistir con cartillas/certificados cargados en `pet_documents`; no altera el calculo clinico de vacunas
 - el sticker o foto de vacuna se guarda como documento de mascota tipo `vaccination_record`; Salud lo muestra como evidencia asociada a la vacuna sin crear una tabla clinica nueva
 - owner mobile Salud permite consultar el sticker asociado desde la vacuna con accion de ojo y editar su vigencia documental con accion de calendario; estas acciones operan sobre `pet_documents` y no modifican `administered_on` ni `next_due_on`
+- owner mobile Salud valida antes de guardar que `next_due_on` no sea anterior a `administered_on`, mostrando un mensaje humano y evitando exponer errores tecnicos de constraints al usuario.
 - web owner presenta salud con selector compacto de hogares, carrusel superior de mascotas y ficha inferior por mascota con resumen, vacunas, alergias y condiciones en tarjetas compactas; los formularios de alta/edicion se abren bajo demanda desde acciones `+` o desde `Editar`
 - en MVP no existe share activo hacia proveedores o clinica
 

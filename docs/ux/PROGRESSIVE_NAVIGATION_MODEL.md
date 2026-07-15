@@ -18,6 +18,8 @@ UX-MOBILE-FLOWS Slice 1E ajusta Inicio owner como guia diaria contextual: la acc
 
 UX-MOBILE-FLOWS Slice 1F simplifica `Mascotas > Detalle`: la ficha principal muestra una accion recomendada y mueve edicion/estado En memoria a `Gestion avanzada` colapsable para reducir carga visual.
 
+UX-MOBILE-FLOWS Slice 1G aplica progresion en `Mascotas > Salud > Vacunas`: el bloque muestra una guia breve, CTA contextual para registrar vacunas y validacion local para impedir que la proxima dosis sea anterior a la fecha de aplicacion antes de llamar al API.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.
