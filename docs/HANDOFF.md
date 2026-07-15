@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-15 - UX-MOBILE-FLOWS Slice 1H Documentos progresivos
+
+- Owner mobile `Mascotas > Docs` muestra una guia contextual con `Siguiente paso` o `Documento por revisar` en lugar de depender solo de listas por tipo.
+- El formulario documental agrega ayuda breve, error inline y validacion local antes de cargar/editar documentos.
+- La fecha de vencimiento usa la fecha de emision como minimo visual y se bloquea localmente si queda anterior a la emision.
+- Los estados vacios por tipo documental tienen CTA directo `Agregar documento`, manteniendo permisos del hogar y el flujo existente de upload/URL firmada.
+- No se tocaron backend, Supabase, RLS, contratos API, salud, recordatorios, marketplace, bookings, Foster ni provider/admin.
+
 # Handoff 2026-07-14 - UX-MOBILE-FLOWS Slice 1G Salud vacunas progresiva
 
 - Owner mobile `Mascotas > Salud > Vacunas` agrega una guia breve y CTA contextual para registrar vacunas.

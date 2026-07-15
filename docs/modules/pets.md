@@ -59,6 +59,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
 - los documentos basicos viven en Supabase Storage y su metadata en `pet_documents`
 - los documentos pueden indicar si tienen vencimiento, fecha de emision, fecha de vencimiento y ventana de aviso; el estado visual se calcula en cliente con helper compartido y no bloquea reservas automaticamente
+- mobile owner valida localmente que la fecha de vencimiento documental no sea anterior a la fecha de emision y muestra errores inline antes de llamar al API
 - los documentos tipo `vaccination_record` pueden cargarse desde Salud como sticker o soporte de una vacuna, manteniendo archivo y metadata en `pet_documents`
 - mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos, recordatorios, busqueda y preparacion de reservas no pierdan foco al moverse entre opciones del menu inferior
 - si la mascota activa deja de existir, cambia de hogar o queda inaccesible por permisos, el shell debe limpiar el contexto y volver a la experiencia normal sin romper la navegacion

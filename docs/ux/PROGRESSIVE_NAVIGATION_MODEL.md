@@ -20,6 +20,8 @@ UX-MOBILE-FLOWS Slice 1F simplifica `Mascotas > Detalle`: la ficha principal mue
 
 UX-MOBILE-FLOWS Slice 1G aplica progresion en `Mascotas > Salud > Vacunas`: el bloque muestra una guia breve, CTA contextual para registrar vacunas y validacion local para impedir que la proxima dosis sea anterior a la fecha de aplicacion antes de llamar al API.
 
+UX-MOBILE-FLOWS Slice 1H aplica progresion en `Mascotas > Docs`: el bloque muestra siguiente paso documental, CTA contextual, errores inline y valida que la fecha de vencimiento no sea anterior a la fecha de emision antes de llamar al API.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.

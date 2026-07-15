@@ -62,6 +62,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - documentos
 - documentos de mascota muestran vigencia con chips `Sin vencimiento`, `Fecha pendiente`, `Vigente`, `Por vencer` o `Vencido`; owner mobile/web permite editar vigencia sin reemplazar el archivo
 - owner mobile Docs usa acciones compactas por icono: ojo para visualizar documento y calendario para editar vigencia. Las imagenes se abren en un visor interno con URL firmada temporal; PDFs/otros formatos se abren con el visor del dispositivo cuando esta disponible.
+- UX-MOBILE-FLOWS Slice 1H: owner mobile Docs muestra una guia de siguiente paso, CTA contextual, empty states accionables y validacion local para impedir vencimientos anteriores a la fecha de emision antes de cargar o editar vigencia.
 - V2 Pet Travel Passport futuro: desde el detalle de mascota, CTA `Preparar viaje` hacia expediente internacional informativo con estado de preparacion, documentos de viaje, checklist manual y vencimientos. La pantalla debe aclarar que no emite documentos oficiales y que los requisitos se validan con autoridades/veterinarios/aerolineas.
 - owner mobile Mascotas permite actualizar avatar tomando foto con camara o seleccionando imagen de la galeria, con permisos nativos y misma carga controlada al bucket privado.
 - owner mobile Mascotas usa selector de fecha de nacimiento con salto directo por ano para evitar navegar mes a mes en mascotas adultas; el encabezado mobile muestra `MM/YYYY` y controles compactos `-1 ano` / `+1 ano` para no tapar el mes en pantallas pequenas.
