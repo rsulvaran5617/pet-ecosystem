@@ -32,6 +32,7 @@ Gestionar agenda y recordatorios operativos del hogar y de la mascota sin duplic
 - mobile puede programar una notificacion local cuando hay hora explicita y permisos concedidos; no es push remoto ni sincroniza alertas entre dispositivos
 - si una mascota queda `in_memory`, sus recordatorios historicos se conservan; crear nuevos recordatorios debe tratarse como gestion controlada, no como flujo operativo activo
 - las vacunas con proxima fecha deben generar recordatorios
+- mobile owner presenta recordatorios de forma progresiva: proximo cuidado, pendientes ordenados por fecha, completados recientes y validacion local de titulo/fecha/hora antes de guardar
 - los eventos derivados de booking no deben adelantarse ni duplicar el dominio `bookings`
 - web owner Recordatorios replica el patron funcional de mobile: selector compacto de hogar/mascota, resumen con secciones Pendientes/Completados/Calendario, formulario manual plegable y listas compactas sin cambiar contratos ni reglas
 

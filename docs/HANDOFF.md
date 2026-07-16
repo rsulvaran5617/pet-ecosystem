@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-15 - UX-MOBILE-FLOWS Slice 1I Recordatorios progresivos
+
+- Owner mobile `Mascotas > Recordatorios` muestra `Proximo cuidado` con el recordatorio pendiente mas cercano y estado visual `Vencido` / `Proximo` / `Programado`.
+- La lista de pendientes se ordena por fecha ascendente y los completados por fecha descendente para reducir busqueda manual.
+- El formulario manual queda organizado en pasos: que recordar, cuando avisar y detalle opcional; valida titulo, fecha y hora local antes de llamar al API.
+- Los estados vacios explican que ocurre y ofrecen CTA `Crear recordatorio` cuando el hogar permite edicion.
+- Se preservan `reminders.due_at`, `remind_time_enabled`, notificacion local, completar, posponer, Supabase, RLS, contratos API, salud, documentos, bookings, Foster y provider/admin.
+
 # Handoff 2026-07-15 - UX-MOBILE-FLOWS Slice 1H Documentos progresivos
 
 - Owner mobile `Mascotas > Docs` muestra una guia contextual con `Siguiente paso` o `Documento por revisar` en lugar de depender solo de listas por tipo.

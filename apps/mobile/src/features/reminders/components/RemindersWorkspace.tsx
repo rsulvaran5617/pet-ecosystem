@@ -139,6 +139,47 @@ function getNotificationInfoMessage(status: ReminderNotificationStatus) {
   }
 }
 
+function getReminderUrgency(reminder: Reminder) {
+  if (reminder.status === "completed") {
+    return { label: "Completado", tone: "neutral" as const };
+  }
+
+  const dueTime = new Date(reminder.dueAt).getTime();
+  const now = Date.now();
+  const tomorrow = new Date();
+  tomorrow.setHours(23, 59, 59, 999);
+
+  if (dueTime < now) {
+    return { label: "Vencido", tone: "warning" as const };
+  }
+
+  if (dueTime <= tomorrow.getTime()) {
+    return { label: "Proximo", tone: "active" as const };
+  }
+
+  return { label: "Programado", tone: "neutral" as const };
+}
+
+function validateReminderForm({ dueDate, dueTime, isDueTimeEnabled, title }: { dueDate: string; dueTime: string; isDueTimeEnabled: boolean; title: string }) {
+  if (!title.trim()) {
+    return "Indica que quieres recordar.";
+  }
+
+  if (!dueDate) {
+    return "Elige la fecha del recordatorio.";
+  }
+
+  if (isDueTimeEnabled) {
+    try {
+      parseTimeInput(dueTime);
+    } catch {
+      return "Usa una hora valida en formato HH:MM.";
+    }
+  }
+
+  return null;
+}
+
 function formatDatePickerLabel(value: string) {
   if (!value) {
     return "Seleccionar fecha";
@@ -256,6 +297,20 @@ function CompactButton({
     >
       <Text style={{ color: tone === "primary" ? "#ffffff" : "#0f766e", fontSize: 11, fontWeight: "800", textAlign: "center" }}>{label}</Text>
     </Pressable>
+  );
+}
+
+function StatusPill({ label, tone = "neutral" }: { label: string; tone?: "active" | "neutral" | "warning" }) {
+  const palette = {
+    active: { backgroundColor: "rgba(204,251,241,0.78)", color: "#0f766e" },
+    neutral: { backgroundColor: "rgba(241,245,249,0.95)", color: "#475569" },
+    warning: { backgroundColor: "rgba(255,237,213,0.92)", color: "#9a3412" }
+  }[tone];
+
+  return (
+    <View style={{ alignSelf: "flex-start", borderRadius: 999, backgroundColor: palette.backgroundColor, paddingHorizontal: 9, paddingVertical: 5 }}>
+      <Text style={{ color: palette.color, fontSize: 10, fontWeight: "900" }}>{label}</Text>
+    </View>
   );
 }
 
@@ -514,6 +569,7 @@ export function RemindersWorkspace({
   const [dueTime, setDueTime] = useState("09:00");
   const [isDueTimeEnabled, setIsDueTimeEnabled] = useState(false);
   const [notes, setNotes] = useState("");
+  const [reminderFormError, setReminderFormError] = useState<string | null>(null);
   const [targetPetId, setTargetPetId] = useState<Uuid | "">("");
   const [snoozeDates, setSnoozeDates] = useState<Record<string, string>>({});
   const [snoozeTimes, setSnoozeTimes] = useState<Record<string, string>>({});
@@ -531,11 +587,19 @@ export function RemindersWorkspace({
   const pendingReminderCount = reminders.filter((reminder) => reminder.status === "pending").length;
   const completedReminderCount = reminders.filter((reminder) => reminder.status === "completed").length;
   const vaccineReminderCount = reminders.filter((reminder) => reminder.reminderType === "vaccine").length;
-  const pendingReminders = reminders.filter((reminder) => reminder.status === "pending");
-  const completedReminders = reminders.filter((reminder) => reminder.status === "completed");
+  const pendingReminders = reminders
+    .filter((reminder) => reminder.status === "pending")
+    .sort((firstReminder, secondReminder) => new Date(firstReminder.dueAt).getTime() - new Date(secondReminder.dueAt).getTime());
+  const completedReminders = reminders
+    .filter((reminder) => reminder.status === "completed")
+    .sort((firstReminder, secondReminder) => new Date(secondReminder.dueAt).getTime() - new Date(firstReminder.dueAt).getTime());
   const activeReminders = activeReminderSection === "completed" ? completedReminders : pendingReminders;
   const selectedPet = pets.find((pet) => pet.id === selectedPetId) ?? null;
   const isPetHubMode = mode === "pet-hub";
+  const nextReminder = pendingReminders[0] ?? null;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayReminderCount = pendingReminders.filter((reminder) => toDateInput(reminder.dueAt) === todayKey).length;
+  const overdueReminderCount = pendingReminders.filter((reminder) => new Date(reminder.dueAt).getTime() < Date.now()).length;
 
   const handleSelectHousehold = async (householdId: Uuid) => {
     await selectHousehold(householdId);
@@ -636,22 +700,70 @@ export function RemindersWorkspace({
                 <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>
                   {selectedPetId ? petNameById.get(selectedPetId) ?? "Mascota seleccionada" : selectedHousehold?.name ?? "Hogar"}
                 </Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 12 }}>{canEdit ? "editable" : "solo lectura"} - {vaccineReminderCount} desde vacunas</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 12 }}>
+                  {pendingReminderCount} pendiente(s) - {todayReminderCount} para hoy - {vaccineReminderCount} desde vacunas
+                </Text>
               </View>
               {canEdit ? (
                 <CompactButton
                   label={isReminderFormOpen ? "Cerrar" : "+ Agregar"}
                   onPress={() => {
                     setOpenDatePicker(null);
+                    setReminderFormError(null);
                     setIsReminderFormOpen((currentValue) => !currentValue);
                   }}
                   tone={isReminderFormOpen ? "secondary" : "primary"}
                 />
               ) : null}
             </View>
+
+            <View
+              style={{
+                borderRadius: 16,
+                backgroundColor: nextReminder ? "rgba(240,253,250,0.86)" : "rgba(247,250,252,0.92)",
+                borderColor: nextReminder ? "rgba(15,118,110,0.2)" : "rgba(15,23,42,0.06)",
+                borderWidth: 1,
+                padding: 10,
+                gap: 8
+              }}
+            >
+              <View style={{ flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+                <View style={{ flex: 1, gap: 3 }}>
+                  <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+                    Proximo cuidado
+                  </Text>
+                  <Text style={{ color: "#111827", fontSize: 13, fontWeight: "900" }}>
+                    {nextReminder ? nextReminder.title : "Nada urgente por ahora"}
+                  </Text>
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                    {nextReminder
+                      ? `${formatReminderSchedule(nextReminder)} - ${
+                          nextReminder.petId ? petNameById.get(nextReminder.petId) ?? "Mascota" : "Hogar"
+                        }`
+                      : "Crea recordatorios para vacunas, medicinas, citas o cuidados importantes."}
+                  </Text>
+                </View>
+                <StatusPill
+                  label={nextReminder ? getReminderUrgency(nextReminder).label : overdueReminderCount ? `${overdueReminderCount} vencido(s)` : "Al dia"}
+                  tone={nextReminder ? getReminderUrgency(nextReminder).tone : overdueReminderCount ? "warning" : "active"}
+                />
+              </View>
+              {canEdit && !isReminderFormOpen ? (
+                <CompactButton
+                  label={nextReminder ? "Agregar otro" : "Crear recordatorio"}
+                  onPress={() => {
+                    setOpenDatePicker(null);
+                    setReminderFormError(null);
+                    setIsReminderFormOpen(true);
+                  }}
+                  tone="primary"
+                />
+              ) : null}
+            </View>
+
             <View style={{ gap: 8 }}>
               {[
-                { count: pendingReminderCount, detail: "Tareas por completar", id: "pending" as const, label: "Pendientes" },
+                { count: pendingReminderCount, detail: overdueReminderCount ? `${overdueReminderCount} vencido(s)` : "Tareas por completar", id: "pending" as const, label: "Pendientes" },
                 { count: completedReminderCount, detail: "Historial cerrado", id: "completed" as const, label: "Completados" },
                 { count: calendarEvents.length, detail: "Eventos programados", id: "calendar" as const, label: "Calendario" }
               ].map((item) => {
@@ -685,10 +797,34 @@ export function RemindersWorkspace({
           </View>
 
           {isReminderFormOpen ? <View style={cardStyle}>
-            <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Crear recordatorio manual</Text>
+            <View style={{ gap: 4 }}>
+              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+                Nuevo recordatorio
+              </Text>
+              <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Que no se te pase ningun cuidado</Text>
+              <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                Primero define que quieres recordar, luego fecha y hora si necesitas aviso en el telefono.
+              </Text>
+            </View>
+            {reminderFormError ? (
+              <View style={{ borderRadius: 12, backgroundColor: "rgba(254,226,226,0.72)", padding: 9 }}>
+                <Text style={{ color: "#991b1b", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>{reminderFormError}</Text>
+              </View>
+            ) : null}
             {selectedHousehold ? canEdit ? (
               <>
-                <Field label="Titulo del recordatorio" onChange={setTitle} value={title} />
+                <View style={{ gap: 8 }}>
+                  <StatusPill label="1. Que recordar" tone="neutral" />
+                  <Field
+                    helperText="Ejemplo: Dar desparasitante, renovar vacuna o llamar al veterinario."
+                    label="Titulo del recordatorio"
+                    onChange={(value) => {
+                      setReminderFormError(null);
+                      setTitle(value);
+                    }}
+                    value={title}
+                  />
+                </View>
                 {!isPetHubMode ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                   <Button label="Recordatorio para todo el hogar" onPress={() => setTargetPetId("")} tone={targetPetId === "" ? "primary" : "secondary"} />
                   {pets.map((pet) => (
@@ -700,27 +836,49 @@ export function RemindersWorkspace({
                     <Text style={{ color: colorTokens.muted, marginTop: 6 }}>{selectedPet?.name ?? "Mascota seleccionada"}</Text>
                   </View>
                 )}
-                <DatePickerField
-                  helperText={isDueTimeEnabled ? "La fecha y hora se usaran para programar el aviso local." : "Si no activas hora, quedara como recordatorio de dia completo."}
-                  isOpen={openDatePicker === "dueDate"}
-                  label="Fecha del recordatorio"
-                  onChange={setDueDate}
-                  onToggle={() => setOpenDatePicker((currentValue) => (currentValue === "dueDate" ? null : "dueDate"))}
-                  value={dueDate}
-                />
-                <TimeSelectorField
-                  enabled={isDueTimeEnabled}
-                  onEnabledChange={setIsDueTimeEnabled}
-                  onTimeChange={setDueTime}
-                  timeValue={dueTime}
-                />
-                <Field label="Notas" multiline onChange={setNotes} value={notes} />
+                <View style={{ gap: 8 }}>
+                  <StatusPill label="2. Cuando avisar" tone="neutral" />
+                  <DatePickerField
+                    helperText={isDueTimeEnabled ? "La fecha y hora se usaran para programar el aviso local." : "Si no activas hora, quedara como recordatorio de dia completo."}
+                    isOpen={openDatePicker === "dueDate"}
+                    label="Fecha del recordatorio"
+                    onChange={(value) => {
+                      setReminderFormError(null);
+                      setDueDate(value);
+                    }}
+                    onToggle={() => setOpenDatePicker((currentValue) => (currentValue === "dueDate" ? null : "dueDate"))}
+                    value={dueDate}
+                  />
+                  <TimeSelectorField
+                    enabled={isDueTimeEnabled}
+                    onEnabledChange={(value) => {
+                      setReminderFormError(null);
+                      setIsDueTimeEnabled(value);
+                    }}
+                    onTimeChange={(value) => {
+                      setReminderFormError(null);
+                      setDueTime(value);
+                    }}
+                    timeValue={dueTime}
+                  />
+                </View>
+                <View style={{ gap: 8 }}>
+                  <StatusPill label="3. Detalle opcional" tone="neutral" />
+                  <Field label="Notas" multiline onChange={setNotes} value={notes} />
+                </View>
                 <Button
                   disabled={isSubmitting}
                   label="Guardar recordatorio"
                   onPress={() => {
                     clearMessages();
                     setLocalNotificationMessage(null);
+                    const validationMessage = validateReminderForm({ dueDate, dueTime, isDueTimeEnabled, title });
+
+                    if (validationMessage) {
+                      setReminderFormError(validationMessage);
+                      return;
+                    }
+
                     void runAction(
                       async () => {
                         const createdReminder = await getMobileRemindersApiClient().createReminder({
@@ -754,6 +912,7 @@ export function RemindersWorkspace({
                       setIsDueTimeEnabled(false);
                       setNotes("");
                       setTargetPetId("");
+                      setReminderFormError(null);
                       setOpenDatePicker(null);
                       setIsReminderFormOpen(false);
                       setActiveReminderSection("pending");
@@ -768,9 +927,15 @@ export function RemindersWorkspace({
             <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>
               {activeReminderSection === "completed" ? "Completados" : "Pendientes"} ({activeReminders.length})
             </Text>
-            {activeReminders.length ? activeReminders.map((reminder) => (
+            {activeReminders.length ? activeReminders.map((reminder) => {
+              const urgency = getReminderUrgency(reminder);
+
+              return (
               <View key={reminder.id} style={inputStyle}>
-                <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>{reminder.title}</Text>
+                <View style={{ flexDirection: "row", gap: 10, justifyContent: "space-between" }}>
+                  <Text style={{ color: "#1c1917", flex: 1, fontSize: 12, fontWeight: "900" }}>{reminder.title}</Text>
+                  <StatusPill label={urgency.label} tone={urgency.tone} />
+                </View>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{reminderTypeLabels[reminder.reminderType]} - {reminderStatusLabels[reminder.status]}</Text>
                 <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
                   Programado: {formatReminderSchedule(reminder)}
@@ -857,7 +1022,28 @@ export function RemindersWorkspace({
                   </View>
                 ) : null}
               </View>
-            )) : <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>No hay recordatorios para este filtro. Crea uno desde esta mascota para mantener el cuidado al dia.</Text>}
+            );
+            }) : (
+              <View style={{ borderRadius: 16, backgroundColor: "#ffffff", padding: 12, gap: 8 }}>
+                <Text style={{ color: "#111827", fontSize: 13, fontWeight: "900" }}>
+                  {activeReminderSection === "completed" ? "Aun no hay recordatorios completados" : "No hay recordatorios pendientes"}
+                </Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                  {activeReminderSection === "completed"
+                    ? "Cuando marques cuidados como completados, quedaran aqui como historial."
+                    : `Crea un recordatorio para ${selectedPet?.name ?? "esta mascota"} cuando necesites seguimiento.`}
+                </Text>
+                {canEdit && activeReminderSection !== "completed" ? (
+                  <CompactButton
+                    label="Crear recordatorio"
+                    onPress={() => {
+                      setReminderFormError(null);
+                      setIsReminderFormOpen(true);
+                    }}
+                  />
+                ) : null}
+              </View>
+            )}
           </View> : null}
 
           {activeReminderSection === "calendar" ? <View style={cardStyle}>
