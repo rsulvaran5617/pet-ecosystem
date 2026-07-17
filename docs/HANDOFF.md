@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-17 - UX-MOBILE-FLOWS Slice 1J Buscar servicios limpio
+
+- Owner mobile `Buscar` queda mas enfocado en servicios/proveedores: se retiro la card intermedia `Explorar/Resultados/Proveedor` que duplicaba contexto en la vista de proveedor seleccionado.
+- Las cards de resultados ya no muestran copy de piloto sobre resenas; usan `Proveedor publicado` como microestado simple.
+- El panel de filtros bajo demanda conserva solo `Disponible hoy` como filtro rapido con comportamiento implementado; no se muestran opciones de ordenamiento/ranking que aun no existen.
+- No se tocaron backend, Supabase, RLS, contratos API, reservas, QR, evidencia, Payments, provider/admin ni Foster.
+
 # Handoff 2026-07-15 - UX-MOBILE-FLOWS Slice 1I Recordatorios progresivos
 
 - Owner mobile `Mascotas > Recordatorios` muestra `Proximo cuidado` con el recordatorio pendiente mas cercano y estado visual `Vencido` / `Proximo` / `Programado`.

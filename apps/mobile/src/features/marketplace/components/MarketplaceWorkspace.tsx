@@ -82,7 +82,7 @@ const preferredSearchCategories: Array<{ category: ProviderServiceCategory; help
 ];
 
 const controlledRecentSearches = ["Veterinaria general", "Paseadores cerca de mi", "Peluqueria canina"];
-const controlledQuickFilterLabels = ["Disponible hoy", "Mejor valorados", "Con cupos"];
+const controlledQuickFilterLabels = ["Disponible hoy"];
 
 const marketplaceMapStyleUrl = "https://demotiles.maplibre.org/style.json";
 const defaultMarketplaceMapCenter: [number, number] = [-79.5199, 8.9824];
@@ -142,43 +142,6 @@ function Button({ disabled, label, onPress, tone = "primary" }: { disabled?: boo
       }}
     >
       <Text style={{ color: tone === "primary" ? "#f8fafc" : colorTokens.accentDark, fontSize: 11, fontWeight: "800", textAlign: "center" }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function SectionSelector({
-  count,
-  isActive,
-  label,
-  onPress,
-  subtitle
-}: {
-  count: number;
-  isActive: boolean;
-  label: string;
-  onPress: () => void;
-  subtitle: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        borderRadius: 16,
-        backgroundColor: isActive ? "rgba(15,118,110,0.08)" : "rgba(247,250,252,0.92)",
-        borderColor: isActive ? "rgba(15,118,110,0.22)" : "rgba(15,23,42,0.06)",
-        borderWidth: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-        padding: 10
-      }}
-    >
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900" }}>{label}</Text>
-        <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11 }}>
-          {count} registro(s) - {subtitle}
-        </Text>
-      </View>
     </Pressable>
   );
 }
@@ -375,8 +338,8 @@ function ProviderVisualCard({
           {publicLocation ? `${publicLocation.city}, ${publicLocation.countryCode}` : provider.city}
           {distanceLabel ? ` - ${distanceLabel}` : ""}
         </Text>
-        <Text numberOfLines={1} style={{ color: "#f59e0b", fontSize: 9.5, fontWeight: "900" }}>
-          Perfil publicado - reseñas en piloto
+        <Text numberOfLines={1} style={{ color: colorTokens.accentDark, fontSize: 9.5, fontWeight: "900" }}>
+          Proveedor publicado
         </Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           <StatusChip label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
@@ -891,7 +854,7 @@ export function MarketplaceWorkspace({
             </View>
 
             <View style={{ gap: 8 }}>
-              <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Disponibilidad y orden</Text>
+              <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Disponibilidad</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {controlledQuickFilterLabels.map((label) => (
                   <FilterChip
@@ -949,45 +912,6 @@ export function MarketplaceWorkspace({
         </View>
         <View style={{ gap: 12 }}>
           {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
-
-          {currentView === "home" || currentView === "search" || currentView === "results" || currentView === "selection" ? null : (
-          <View style={[cardStyle, { backgroundColor: "#ffffff" }]}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>
-                  {selectedPet ? selectedPet.name : selectedHousehold?.name ?? "Explorar servicios"}
-                </Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 12 }}>
-                  {selectedPet ? "Mascota seleccionada" : selectedHousehold ? "Hogar completo" : "Sin contexto activo"}
-                </Text>
-              </View>
-              <StatusChip label={currentView} tone="active" />
-            </View>
-            <View style={{ gap: 8 }}>
-              <SectionSelector
-                count={homeSnapshot?.categoryHighlights.length ?? 0}
-                isActive={false}
-                label="Explorar"
-                onPress={() => setCurrentView("home")}
-                subtitle="Categorias y filtros"
-              />
-              <SectionSelector
-                count={providers.length}
-                isActive={false}
-                label="Resultados"
-                onPress={() => setCurrentView("results")}
-                subtitle="Proveedores encontrados"
-              />
-              <SectionSelector
-                count={selectedProviderDetail?.services.length ?? 0}
-                isActive
-                label="Proveedor"
-                onPress={() => selectedProviderDetail ? setCurrentView("provider") : setCurrentView("home")}
-                subtitle="Servicios y disponibilidad"
-              />
-            </View>
-          </View>
-          )}
 
           {currentView === "home" ? (
             <>

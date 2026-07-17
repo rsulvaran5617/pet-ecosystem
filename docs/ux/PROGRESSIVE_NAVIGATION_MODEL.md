@@ -24,6 +24,8 @@ UX-MOBILE-FLOWS Slice 1H aplica progresion en `Mascotas > Docs`: el bloque muest
 
 UX-MOBILE-FLOWS Slice 1I aplica progresion en `Mascotas > Recordatorios`: el bloque muestra el proximo cuidado, ordena pendientes/completados, usa formulario por pasos y valida titulo/fecha/hora antes de llamar al API.
 
+UX-MOBILE-FLOWS Slice 1J aplica progresion en `Owner > Buscar`: la vista de proveedor seleccionado elimina navegacion interna redundante, conserva solo acciones utiles para volver a resultados o reservar servicios y evita filtros/copy sin comportamiento funcional.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.
