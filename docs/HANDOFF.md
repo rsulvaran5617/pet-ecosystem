@@ -6,6 +6,7 @@
 - Las cards de resultados ya no muestran copy de piloto sobre resenas; usan `Proveedor publicado` como microestado simple.
 - El panel de filtros bajo demanda conserva solo `Disponible hoy` como filtro rapido con comportamiento implementado; no se muestran opciones de ordenamiento/ranking que aun no existen.
 - No se tocaron backend, Supabase, RLS, contratos API, reservas, QR, evidencia, Payments, provider/admin ni Foster.
+- APK QA Android generado: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-ux-mobile-flows-slice-1j-20260717-local-release.apk`, SHA256 `01DE3750AD34B69A3FBF51E41EA239F4BEB9F2E8AA42B0C403CE6E9BBBBD95D1`.
 
 # Handoff 2026-07-15 - UX-MOBILE-FLOWS Slice 1I Recordatorios progresivos
 

@@ -293,3 +293,21 @@ Notas de QA:
 - Enviar solicitud protectora y aprobar desde admin.
 - Confirmar que las acciones Foster aparecen solo en el hogar `protective` aprobado.
 - Confirmar que `HOGAR SULVARAN VELASCO` permanece como `Hogar familiar` y no muestra acciones Foster.
+
+## APK UX-MOBILE-FLOWS Slice 1J 2026-07-17
+
+APK generado para QA Android del polish progresivo de Owner `Buscar`:
+
+- Commit base: `670a552 feat(ux): clean owner marketplace flow`.
+- Ruta local APK: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-ux-mobile-flows-slice-1j-20260717-local-release.apk`.
+- Tamano APK: `129,355,932 bytes`.
+- SHA256 APK: `01DE3750AD34B69A3FBF51E41EA239F4BEB9F2E8AA42B0C403CE6E9BBBBD95D1`.
+- Build: Gradle local `assembleRelease` exitoso desde copia temporal corta `C:\peta`.
+- Distribucion: enlace privado manual para QA; no Play Store/Firebase.
+
+Notas de QA:
+
+- Validar Owner `Buscar` como flujo exclusivo de servicios/proveedores.
+- Abrir proveedor desde resultados y confirmar que no aparece la card redundante `Explorar/Resultados/Proveedor`.
+- Confirmar que las cards de proveedor muestran `Proveedor publicado` y no copy de piloto sobre resenas.
+- Abrir filtros y confirmar que solo aparece `Disponible hoy` como filtro rapido funcional.
