@@ -1312,39 +1312,48 @@ export function MarketplaceWorkspace({
                 <Button label="Volver a resultados" onPress={() => setCurrentView("results")} tone="secondary" />
               </View>
 
-              <View style={cardStyle}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Servicios</Text>
+              <View style={[cardStyle, { gap: 10 }]}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Servicios</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+                      Elige una opcion para consultar cupos reales.
+                    </Text>
+                  </View>
+                  <StatusChip label={`${selectedProviderDetail.services.length} oferta(s)`} tone="neutral" />
+                </View>
                 {selectedProviderDetail.services.map((service) => (
-                  <View key={service.id} style={inputStyle}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                      <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", flex: 1 }}>{service.name}</Text>
-                      <StatusChip label={providerServiceCategoryLabels[service.category]} tone="neutral" />
+                  <View
+                    key={service.id}
+                    style={{
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: "rgba(15,118,110,0.14)",
+                      backgroundColor: "rgba(255,255,255,0.98)",
+                      padding: 12,
+                      gap: 9
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                        <Text numberOfLines={3} style={{ fontSize: 13, fontWeight: "900", color: "#1c1917", lineHeight: 17 }}>
+                          {service.name}
+                        </Text>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                          {providerServiceCategoryLabels[service.category]}
+                        </Text>
+                      </View>
+                      <StatusChip label={service.bookingMode === "instant" ? "Directa" : "Con aprobacion"} tone="neutral" />
                     </View>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{service.shortDescription ?? "Todavia no hay una descripcion publica."}</Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
-                      Duracion: {service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"}
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }} numberOfLines={3}>
+                      {service.shortDescription ?? "Descripcion pendiente por el proveedor."}
                     </Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>
-                      Precio: {formatMoney(service.basePriceCents, service.currencyCode)} - {service.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
-                    </Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-                      <Button
-                        disabled={isLoadingBookingSlots}
-                        label="Ver horarios con cupo"
-                        onPress={() => void handleShowServiceSlots(service.id)}
-                      />
-                      <Button
-                        label="Seleccionar servicio"
-                        onPress={() => {
-                          setSelectedServiceId(service.id);
-                          setBookingSlots([]);
-                          setSelectedBookingSlot(null);
-                          setSelectedSlotDate(null);
-                          setSlotErrorMessage(null);
-                          setCurrentView("selection");
-                        }}
-                        tone="secondary"
-                      />
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                      <StatusChip label={service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"} tone="neutral" />
+                      <StatusChip label={formatMoney(service.basePriceCents, service.currencyCode)} tone="active" />
+                    </View>
+                    <View style={{ alignSelf: "flex-start" }}>
+                      <Button disabled={isLoadingBookingSlots} label="Ver horarios" onPress={() => void handleShowServiceSlots(service.id)} />
                     </View>
                   </View>
                 ))}
@@ -1352,8 +1361,13 @@ export function MarketplaceWorkspace({
 
               <View style={[cardStyle, { gap: 10 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917" }}>Disponibilidad</Text>
-                  <StatusChip label="Agenda semanal" tone="neutral" />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Disponibilidad</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+                      Referencia del proveedor. Los cupos reales se consultan por servicio.
+                    </Text>
+                  </View>
+                  <StatusChip label="Semanal" tone="neutral" />
                 </View>
                 {selectedProviderDetail.availability.length ? (
                   <>
@@ -1368,8 +1382,8 @@ export function MarketplaceWorkspace({
                       }}
                     >
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Semana publicada</Text>
-                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "800" }}>Ver agenda</Text>
+                        <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Agenda publicada</Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "800" }}>Referencia</Text>
                       </View>
                       <View style={{ flexDirection: "row", gap: 6 }}>
                         {weekDays.map((day) => {
@@ -1489,38 +1503,56 @@ export function MarketplaceWorkspace({
           ) : null}
 
           {currentView === "selection" && selectedProviderDetail && selectedService ? (
-            <View style={cardStyle}>
+            <View style={[cardStyle, { gap: 12 }]}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                <Text style={{ fontSize: 15, fontWeight: "800", color: "#1c1917", flex: 1 }}>Prepara tu reserva</Text>
-                <StatusChip label="lista para reserva" tone="active" />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Horarios disponibles</Text>
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+                    Selecciona un cupo para abrir el resumen en Reservas.
+                  </Text>
+                </View>
+                <StatusChip label={selectedBookingSlot ? "Cupo elegido" : "Elige cupo"} tone={selectedBookingSlot ? "active" : "neutral"} />
               </View>
-              <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>{selectedProviderDetail.name}</Text>
-              <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{selectedService.name}</Text>
-              <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
-                {providerServiceCategoryLabels[selectedService.category]}
-                {selectedService.durationMinutes ? ` - ${selectedService.durationMinutes} min` : ""}
-              </Text>
-              <Text style={{ color: colorTokens.muted, fontSize: 11 }}>
-                {formatMoney(selectedService.basePriceCents, selectedService.currencyCode)} - {selectedService.bookingMode === "instant" ? "Reserva inmediata" : "Requiere aprobacion"}
-              </Text>
-              <View style={inputStyle}>
-                <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>Hogar</Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{selectedHousehold?.name ?? "Sin contexto de hogar seleccionado"}</Text>
+              <View style={{ borderRadius: 16, borderWidth: 1, borderColor: "rgba(15,118,110,0.14)", backgroundColor: "rgba(15,118,110,0.06)", padding: 12, gap: 8 }}>
+                <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                  {selectedService.name}
+                </Text>
+                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11, fontWeight: "700" }}>
+                  {selectedProviderDetail.name}
+                </Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                  <StatusChip label={providerServiceCategoryLabels[selectedService.category]} tone="neutral" />
+                  <StatusChip label={selectedService.durationMinutes ? `${selectedService.durationMinutes} min` : "Flexible"} tone="neutral" />
+                  <StatusChip label={formatMoney(selectedService.basePriceCents, selectedService.currencyCode)} tone="active" />
+                </View>
+                <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                  {selectedService.bookingMode === "instant" ? "Reserva directa." : "El proveedor debe aprobar la solicitud."}
+                </Text>
               </View>
-              <View style={inputStyle}>
-                <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917" }}>Mascota</Text>
-                <Text style={{ color: colorTokens.muted, fontSize: 11, marginTop: 4 }}>{selectedPet?.name ?? "Todas las mascotas del hogar"}</Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={[inputStyle, { flex: 1, paddingHorizontal: 10, paddingVertical: 9 }]}>
+                  <Text style={{ fontSize: 10, fontWeight: "900", color: colorTokens.accentDark }}>HOGAR</Text>
+                  <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 11, fontWeight: "800", marginTop: 4 }}>
+                    {selectedHousehold?.name ?? "Sin hogar"}
+                  </Text>
+                </View>
+                <View style={[inputStyle, { flex: 1, paddingHorizontal: 10, paddingVertical: 9 }]}>
+                  <Text style={{ fontSize: 10, fontWeight: "900", color: colorTokens.accentDark }}>MASCOTA</Text>
+                  <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 11, fontWeight: "800", marginTop: 4 }}>
+                    {selectedPet?.name ?? "Todas"}
+                  </Text>
+                </View>
               </View>
               <View style={[cardStyle, { backgroundColor: "rgba(247,250,252,0.92)", gap: 10 }]}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <Text style={{ color: "#1c1917", flex: 1, fontSize: 13, fontWeight: "900" }}>Horarios con cupo</Text>
-                  <StatusChip label={selectedBookingSlot ? "horario listo" : `${bookingSlots.length} slot(s)`} tone={selectedBookingSlot ? "active" : "neutral"} />
+                  <Text style={{ color: "#1c1917", flex: 1, fontSize: 13, fontWeight: "900" }}>Cupos disponibles</Text>
+                  <StatusChip label={selectedBookingSlot ? "Horario listo" : `${bookingSlots.length} cupo(s)`} tone={selectedBookingSlot ? "active" : "neutral"} />
                 </View>
                 {slotErrorMessage ? <Text style={{ color: "#991b1b", fontSize: 11, fontWeight: "700" }}>{slotErrorMessage}</Text> : null}
                 {!bookingSlots.length && !isLoadingBookingSlots ? (
                   <Button
                     disabled={isLoadingBookingSlots}
-                    label="Ver horarios con cupo"
+                    label="Cargar cupos"
                     onPress={() => void loadServiceBookingSlots(selectedService.id)}
                   />
                 ) : null}
@@ -1540,7 +1572,7 @@ export function MarketplaceWorkspace({
               </View>
               <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                 <Button
-                  label="Abrir vista previa de la reserva"
+                  label="Abrir resumen en Reservas"
                   onPress={() => {
                     onSelectBookingService?.({
                       householdId: selectedHouseholdId,

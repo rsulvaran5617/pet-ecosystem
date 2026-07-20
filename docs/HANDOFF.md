@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-19 - UX-MOBILE-FLOWS Slice 1K Servicios y horarios desde Buscar
+
+- Owner mobile `Buscar > Proveedor` reorganiza la seccion de servicios con cards mas compactas, metadata breve y una sola accion primaria `Ver horarios`.
+- `Disponibilidad` queda como referencia semanal del proveedor y aclara que los cupos reales se consultan por servicio.
+- `Buscar > Horarios` muestra resumen compacto del servicio, hogar/mascota y CTA `Abrir resumen en Reservas`, preservando el handoff hacia Reservas sin crear reservas ni consumir cupos desde Marketplace.
+- No se tocaron backend, Supabase, RLS, contratos API, booking capacity, QR, evidencia, Payments, provider/admin ni Foster.
+
 # Handoff 2026-07-17 - UX-MOBILE-FLOWS Slice 1J Buscar servicios limpio
 
 - Owner mobile `Buscar` queda mas enfocado en servicios/proveedores: se retiro la card intermedia `Explorar/Resultados/Proveedor` que duplicaba contexto en la vista de proveedor seleccionado.
