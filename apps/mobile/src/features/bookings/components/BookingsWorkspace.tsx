@@ -1,6 +1,6 @@
 import { bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { BookingStatus, MarketplaceServiceSelection, Uuid } from "@pet/types";
+import type { BookingStatus, BookingSummary, MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -293,6 +293,146 @@ function getInitials(value: string) {
     .join("");
 }
 
+function getBookingGuidance(booking: BookingSummary) {
+  if (booking.status === "pending_approval") {
+    return {
+      action: "Esperando aprobacion",
+      cta: "Ver solicitud",
+      detail: "El proveedor debe aprobar esta reserva antes de operar el servicio."
+    };
+  }
+
+  if (booking.status === "confirmed") {
+    return {
+      action: "Lista para seguimiento",
+      cta: "Ver QR y timeline",
+      detail: "Cuando llegue el servicio, abre el detalle para mostrar QR y seguir la actividad."
+    };
+  }
+
+  if (booking.status === "completed") {
+    return {
+      action: "Servicio completado",
+      cta: "Revisar historial",
+      detail: "Puedes consultar timeline, evidencia disponible, chat o soporte de esta reserva."
+    };
+  }
+
+  return {
+    action: "Reserva cerrada",
+    cta: "Ver detalle",
+    detail: "El historial conserva proveedor, mascota, fecha, estado y soporte asociado."
+  };
+}
+
+function BookingHistoryCard({
+  booking,
+  isSelected,
+  onPress
+}: {
+  booking: BookingSummary;
+  isSelected: boolean;
+  onPress: () => void;
+}) {
+  const guidance = getBookingGuidance(booking);
+
+  return (
+    <Pressable
+      accessibilityLabel={`Ver detalle de reserva ${booking.serviceName}`}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={[
+        inputStyle,
+        {
+          backgroundColor: isSelected ? "rgba(0,151,143,0.08)" : "#fffdf8",
+          borderColor: isSelected ? "rgba(0,151,143,0.24)" : "rgba(15,23,42,0.08)",
+          gap: 8,
+          padding: 10
+        }
+      ]}
+    >
+      <View style={{ gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+          <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+            <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 15 }}>
+              {booking.serviceName}
+            </Text>
+            <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>
+              Reserva #{booking.id.slice(0, 6)}
+            </Text>
+          </View>
+          <View style={{ maxWidth: 112 }}>
+            <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
+          </View>
+        </View>
+        <View
+          style={{
+            alignSelf: "flex-start",
+            borderRadius: 999,
+            backgroundColor: booking.status === "confirmed" ? "rgba(0,151,143,0.09)" : "rgba(251,191,36,0.12)",
+            paddingHorizontal: 8,
+            paddingVertical: 4
+          }}
+        >
+          <Text style={{ color: booking.status === "confirmed" ? colorTokens.accentDark : "#92400e", fontSize: 9, fontWeight: "900" }}>
+            {guidance.action}
+          </Text>
+        </View>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 8,
+          borderRadius: 14,
+          backgroundColor: "rgba(248,250,252,0.86)",
+          borderWidth: 1,
+          borderColor: "rgba(226,232,240,0.92)",
+          padding: 8
+        }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={detailLabelStyle}>Proveedor</Text>
+          <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.82} style={detailValueStyle}>
+            {booking.providerName}
+          </Text>
+        </View>
+        <View style={{ width: 1, backgroundColor: colorTokens.line }} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={detailLabelStyle}>Mascota</Text>
+          <Text numberOfLines={1} style={[detailValueStyle, { fontSize: 11 }]}>
+            {booking.petName}
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={detailLabelStyle}>Fecha y hora</Text>
+          <Text numberOfLines={2} style={[detailValueStyle, { fontWeight: "800" }]}>
+            {formatDateTimeLabel(booking.scheduledStartAt)}
+          </Text>
+        </View>
+        <View style={{ flex: 0.7, gap: 2 }}>
+          <Text style={detailLabelStyle}>Total</Text>
+          <Text style={[detailValueStyle, { fontSize: 11 }]}>
+            {formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}
+          </Text>
+        </View>
+      </View>
+
+      <Text numberOfLines={2} style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "600", lineHeight: 14 }}>
+        {guidance.detail}
+      </Text>
+      <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 7 }}>
+        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>
+          {guidance.cta}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 export function BookingsWorkspace({
   activePanel = "detalle",
   activePetContext,
@@ -362,6 +502,11 @@ export function BookingsWorkspace({
       : bookingStatusFilter === "active"
         ? bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed")
         : bookings.filter((booking) => booking.status === bookingStatusFilter);
+  const nextActiveBooking =
+    bookings.find((booking) => booking.status === "confirmed") ??
+    bookings.find((booking) => booking.status === "pending_approval") ??
+    null;
+  const nextActiveBookingGuidance = nextActiveBooking ? getBookingGuidance(nextActiveBooking) : null;
   const activeStatusFilterLabel = bookingStatusFilters.find((filter) => filter.id === bookingStatusFilter)?.label.toLowerCase() ?? "reservas";
   const getBookingStatusFilterCount = (filter: BookingStatusFilter) =>
     filter === "all"
@@ -712,89 +857,67 @@ export function BookingsWorkspace({
           {bookingView === "historial" ? (
           <View style={cardStyle}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-              <Text style={[cardTitleStyle, { flex: 1 }]}>Historial de reservas</Text>
+              <Text style={[cardTitleStyle, { flex: 1 }]}>Seguimiento de reservas</Text>
               <StatusChip label={`${filteredBookings.length} visibles`} tone="neutral" />
             </View>
+            {nextActiveBooking && nextActiveBookingGuidance ? (
+              <Pressable
+                accessibilityLabel={`Abrir siguiente paso de reserva ${nextActiveBooking.serviceName}`}
+                accessibilityRole="button"
+                onPress={() => {
+                  onPanelChange?.("detalle");
+                  setLastCreatedBookingId(null);
+                  void openBookingDetail(nextActiveBooking.id).then(() => showBookingView("detalle"));
+                }}
+                style={[
+                  inputStyle,
+                  {
+                    backgroundColor: "rgba(0,151,143,0.08)",
+                    borderColor: "rgba(0,151,143,0.2)",
+                    gap: 7,
+                    padding: 10
+                  }
+                ]}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+                      Siguiente paso
+                    </Text>
+                    <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900", lineHeight: 17, marginTop: 2 }}>
+                      {nextActiveBooking.serviceName}
+                    </Text>
+                  </View>
+                  <StatusChip label={bookingStatusLabels[nextActiveBooking.status]} tone={getStatusTone(nextActiveBooking.status)} />
+                </View>
+                <Text style={{ color: colorTokens.ink, fontSize: 11, fontWeight: "800", lineHeight: 15 }}>
+                  {nextActiveBookingGuidance.action}
+                </Text>
+                <Text numberOfLines={2} style={bodyTextStyle}>
+                  {nextActiveBookingGuidance.detail}
+                </Text>
+                <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                  {nextActiveBookingGuidance.cta}
+                </Text>
+              </Pressable>
+            ) : (
+              <View style={[inputStyle, { backgroundColor: "rgba(248,250,252,0.72)", borderColor: "rgba(226,232,240,0.86)" }]}>
+                <Text style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 16 }}>Sin reservas activas</Text>
+                <Text style={[bodyTextStyle, { marginTop: 4 }]}>Cuando tengas una reserva pendiente o confirmada, veras aqui el siguiente paso.</Text>
+              </View>
+            )}
             {activeSelection ? <Button label="Preparar reserva" onPress={() => showBookingView("servicio")} /> : null}
             {filteredBookings.length ? filteredBookings.map((booking) => (
-              <Pressable
+              <BookingHistoryCard
                 key={booking.id}
+                booking={booking}
+                isSelected={selectedBookingId === booking.id}
                 onPress={() => {
                   onPanelChange?.("detalle");
                   setLastCreatedBookingId(null);
                   void openBookingDetail(booking.id).then(() => showBookingView("detalle"));
                 }}
-                style={[
-                  inputStyle,
-                  {
-                    backgroundColor: selectedBookingId === booking.id ? "rgba(0,151,143,0.08)" : "#fffdf8",
-                    borderColor: selectedBookingId === booking.id ? "rgba(0,151,143,0.24)" : "rgba(15,23,42,0.08)",
-                    gap: 8,
-                    padding: 10
-                  }
-                ]}
-              >
-                <View style={{ gap: 6 }}>
-                  <View style={{ gap: 2, minWidth: 0 }}>
-                    <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 15 }}>
-                      {booking.serviceName}
-                    </Text>
-                    <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>
-                      Reserva #{booking.id.slice(0, 4)}
-                    </Text>
-                  </View>
-                  <View style={{ alignSelf: "flex-start", maxWidth: "100%" }}>
-                    <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
-                  </View>
-                </View>
-
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 8,
-                    borderRadius: 14,
-                    backgroundColor: "rgba(248,250,252,0.86)",
-                    borderWidth: 1,
-                    borderColor: "rgba(226,232,240,0.92)",
-                    padding: 8
-                  }}
-                >
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={detailLabelStyle}>Proveedor</Text>
-                    <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.82} style={detailValueStyle}>
-                      {booking.providerName}
-                    </Text>
-                  </View>
-                  <View style={{ width: 1, backgroundColor: colorTokens.line }} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={detailLabelStyle}>Mascota</Text>
-                    <Text numberOfLines={1} style={[detailValueStyle, { fontSize: 11 }]}>
-                      {booking.petName}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={detailLabelStyle}>Fecha y hora</Text>
-                    <Text numberOfLines={2} style={[detailValueStyle, { fontWeight: "800" }]}>
-                      {formatDateTimeLabel(booking.scheduledStartAt)}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 0.7, gap: 2 }}>
-                    <Text style={detailLabelStyle}>Total</Text>
-                    <Text style={[detailValueStyle, { fontSize: 11 }]}>
-                      {formatCurrencyAmount(booking.totalPriceCents, booking.currencyCode)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 7 }}>
-                  <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textAlign: "center" }}>
-                    Ver detalle de reserva
-                  </Text>
-                </View>
-              </Pressable>
+              />
             )) : <Text style={bodyTextStyle}>No hay {activeStatusFilterLabel} para mostrar. Puedes cambiar el filtro o preparar una reserva desde un servicio publicado.</Text>}
           </View>
           ) : null}

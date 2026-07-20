@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-20 - UX-MOBILE-FLOWS Slice 1L Reservas como seguimiento
+
+- Owner mobile `Reservas` cambia el titulo de lista a `Seguimiento de reservas` y agrega un bloque superior `Siguiente paso` cuando existe una reserva activa (`confirmed` o `pending_approval`).
+- Las cards del historial reutilizan un componente compacto que separa servicio, identificador de reserva, estado, proveedor, mascota, fecha/hora, total y CTA contextual para evitar cortes en pantallas pequenas.
+- El CTA cambia segun estado: solicitud pendiente, QR/timeline para confirmadas, historial para completadas o detalle para cerradas.
+- Se preservan filtros, apertura de detalle, QR, timeline operacional, evidencia, chat, soporte, cancelacion, booking capacity y handoff desde Buscar. No se tocaron backend, Supabase, RLS, contratos API, Payments, provider/admin ni Foster.
+
 # Handoff 2026-07-19 - UX-MOBILE-FLOWS Slice 1K Servicios y horarios desde Buscar
 
 - Owner mobile `Buscar > Proveedor` reorganiza la seccion de servicios con cards mas compactas, metadata breve y una sola accion primaria `Ver horarios`.

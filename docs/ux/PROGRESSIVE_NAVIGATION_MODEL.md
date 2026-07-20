@@ -28,6 +28,8 @@ UX-MOBILE-FLOWS Slice 1J aplica progresion en `Owner > Buscar`: la vista de prov
 
 UX-MOBILE-FLOWS Slice 1K aplica progresion en `Owner > Buscar > Servicios/Horarios`: los servicios se presentan con una accion primaria para consultar cupos, la disponibilidad semanal queda como referencia y el paso de cupos entrega un resumen compacto hacia Reservas sin crear reservas desde Marketplace.
 
+UX-MOBILE-FLOWS Slice 1L aplica progresion en `Owner > Reservas`: el historial se presenta como seguimiento operativo, muestra un bloque de siguiente paso para reservas activas y reorganiza las cards para que servicio, identificador, estado y CTA no compitan en pantallas pequenas.
+
 ## Resumen ejecutivo
 
 Pet Ecosystem ya tiene una base funcional amplia para owner, provider, admin y familias protectoras. El principal riesgo antes de abrir la app a usuarios finales no es la falta de capacidades, sino la carga cognitiva generada por mostrar demasiadas opciones, estados y acciones al mismo tiempo.
