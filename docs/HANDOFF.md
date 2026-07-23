@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-22 - UX-MOBILE-FLOWS Buscar servicios con horarios inline
+
+- Owner mobile `Buscar > Proveedor` integra los horarios y cupos dentro de cada card de servicio como acordeon inline.
+- Se elimina el paso visual separado de `Disponibilidad`/`Horarios disponibles` para reducir clicks y mantener al usuario dentro del proveedor seleccionado.
+- `Ver horarios` despliega el calendario del servicio, `Ocultar horarios` o `Cambiar servicio` permite devolverse sin perder contexto y `Continuar reserva` envia proveedor, servicio, hogar/mascota y slot elegido a Reservas.
+- Marketplace sigue sin crear reservas ni consumir cupos; la confirmacion se mantiene exclusivamente en Reservas.
+- No se tocaron backend, Supabase, RLS, contratos API, booking capacity, QR, evidencia, Payments, provider/admin ni Foster.
+
 # Handoff 2026-07-20 - UX-MOBILE-FLOWS Slice 1L Reservas como seguimiento
 
 - Owner mobile `Reservas` cambia el titulo de lista a `Seguimiento de reservas` y agrega un bloque superior `Siguiente paso` cuando existe una reserva activa (`confirmed` o `pending_approval`).

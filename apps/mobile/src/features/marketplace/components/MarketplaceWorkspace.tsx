@@ -1,11 +1,11 @@
-import { providerDayOfWeekLabels, providerServiceCategoryLabels } from "@pet/config";
+import { providerServiceCategoryLabels } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingSlot,
+  MarketplaceProviderDetail,
   MarketplaceProviderSummary,
   MarketplaceSearchFilters,
   MarketplaceServiceSelection,
-  ProviderAvailabilitySlot,
   ProviderDayOfWeek,
   ProviderServiceCategory,
   Uuid
@@ -37,17 +37,6 @@ const cardStyle = {
   gap: 10,
   ...visualTokens.mobile.softShadow
 } as const;
-
-const weekDays: ProviderDayOfWeek[] = [1, 2, 3, 4, 5, 6, 0];
-const weekDayShortLabels: Record<ProviderDayOfWeek, string> = {
-  0: "DOM",
-  1: "LUN",
-  2: "MAR",
-  3: "MIE",
-  4: "JUE",
-  5: "VIE",
-  6: "SAB"
-};
 
 type DistanceOrigin =
   | { type: "none"; id: "none"; label: string; detail: string; latitude: null; longitude: null }
@@ -100,10 +89,6 @@ function formatSpeciesLabel(value: string) {
     .filter(Boolean)
     .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
     .join(" ");
-}
-
-function formatTimeRange(startsAt: string, endsAt: string) {
-  return `${startsAt.slice(0, 5)} - ${endsAt.slice(0, 5)}`;
 }
 
 function getProviderInitials(name: string) {
@@ -495,7 +480,6 @@ export function MarketplaceWorkspace({
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedSpecies, setSelectedSpecies] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [selectedAvailabilityDay, setSelectedAvailabilityDay] = useState<ProviderDayOfWeek>(1);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [activeQuickFilters, setActiveQuickFilters] = useState<string[]>([]);
   const [selectedDistanceOrigin, setSelectedDistanceOrigin] = useState<DistanceOrigin>(noDistanceOrigin);
@@ -651,24 +635,6 @@ export function MarketplaceWorkspace({
 
     return [...categorySuggestions, ...providerSuggestions].slice(0, 8);
   }, [availableQuickCategories, homeSnapshot?.featuredProviders, searchQuery]);
-  const availabilityByDay = useMemo(
-    () =>
-      weekDays.reduce<Record<ProviderDayOfWeek, ProviderAvailabilitySlot[]>>((accumulator, day) => {
-        accumulator[day] = selectedProviderDetail?.availability.filter((slot) => slot.dayOfWeek === day && slot.isActive) ?? [];
-        return accumulator;
-      }, {
-        0: [],
-        1: [],
-        2: [],
-        3: [],
-        4: [],
-        5: [],
-        6: []
-      }),
-    [selectedProviderDetail]
-  );
-  const selectedAvailabilitySlots = availabilityByDay[selectedAvailabilityDay] ?? [];
-
   if (!enabled) {
     return null;
   }
@@ -743,9 +709,7 @@ export function MarketplaceWorkspace({
     setSelectedBookingSlot(null);
     setSelectedSlotDate(null);
     setSlotErrorMessage(null);
-    const providerDetail = await openProvider(providerId);
-    const nextAvailabilityDay = weekDays.find((day) => providerDetail.availability.some((slot) => slot.dayOfWeek === day && slot.isActive)) ?? 1;
-    setSelectedAvailabilityDay(nextAvailabilityDay);
+    await openProvider(providerId);
     setCurrentView("provider");
   }
 
@@ -778,13 +742,44 @@ export function MarketplaceWorkspace({
   }
 
   async function handleShowServiceSlots(serviceId: string) {
+    if (currentView === "provider" && selectedServiceId === serviceId) {
+      setSelectedServiceId(null);
+      setBookingSlots([]);
+      setSelectedBookingSlot(null);
+      setSelectedSlotDate(null);
+      setSlotErrorMessage(null);
+      return;
+    }
+
     setSelectedServiceId(serviceId);
     setBookingSlots([]);
     setSelectedBookingSlot(null);
     setSelectedSlotDate(null);
     setSlotErrorMessage(null);
-    setCurrentView("selection");
+    setCurrentView("provider");
     await loadServiceBookingSlots(serviceId);
+  }
+
+  function continueWithSelectedService(service: MarketplaceProviderDetail["services"][number]) {
+    if (!selectedProviderDetail) {
+      return;
+    }
+
+    onSelectBookingService?.({
+      householdId: selectedHouseholdId,
+      petId: selectedPetId,
+      providerId: selectedProviderDetail.organizationId,
+      serviceId: service.id,
+      providerName: selectedProviderDetail.name,
+      serviceName: service.name,
+      serviceDurationMinutes: service.durationMinutes,
+      serviceBookingMode: service.bookingMode,
+      serviceBasePriceCents: service.basePriceCents,
+      serviceCurrencyCode: service.currencyCode,
+      serviceCancellationWindowHours: service.cancellationWindowHours,
+      selectedBookingSlot,
+      selectedAt: new Date().toISOString()
+    });
   }
 
   return (
@@ -1333,191 +1328,105 @@ export function MarketplaceWorkspace({
               </View>
 
               <View style={[cardStyle, { gap: 10 }]}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Servicios</Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
-                      Elige una opcion para consultar cupos reales.
-                    </Text>
-                  </View>
-                  <StatusChip label={`${selectedProviderDetail.services.length} oferta(s)`} tone="neutral" />
-                </View>
-                {selectedProviderDetail.services.map((service) => (
-                  <View
-                    key={service.id}
-                    style={{
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: "rgba(15,118,110,0.14)",
-                      backgroundColor: "rgba(255,255,255,0.98)",
-                      padding: 12,
-                      gap: 9
-                    }}
-                  >
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
-                      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-                        <Text numberOfLines={3} style={{ fontSize: 13, fontWeight: "900", color: "#1c1917", lineHeight: 17 }}>
-                          {service.name}
-                        </Text>
-                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
-                          {providerServiceCategoryLabels[service.category]}
-                        </Text>
-                      </View>
-                      <StatusChip label={service.bookingMode === "instant" ? "Directa" : "Con aprobacion"} tone="neutral" />
-                    </View>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }} numberOfLines={3}>
-                      {service.shortDescription ?? "Descripcion pendiente por el proveedor."}
-                    </Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                      <StatusChip label={service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"} tone="neutral" />
-                      <StatusChip label={formatMoney(service.basePriceCents, service.currencyCode)} tone="active" />
-                    </View>
-                    <View style={{ alignSelf: "flex-start" }}>
-                      <Button disabled={isLoadingBookingSlots} label="Ver horarios" onPress={() => void handleShowServiceSlots(service.id)} />
-                    </View>
-                  </View>
-                ))}
-              </View>
+                <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Servicios</Text>
+                {selectedProviderDetail.services.map((service) => {
+                  const isExpanded = selectedServiceId === service.id;
 
-              <View style={[cardStyle, { gap: 10 }]}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={{ fontSize: 15, fontWeight: "900", color: "#1c1917" }}>Disponibilidad</Text>
-                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
-                      Referencia del proveedor. Los cupos reales se consultan por servicio.
-                    </Text>
-                  </View>
-                  <StatusChip label="Semanal" tone="neutral" />
-                </View>
-                {selectedProviderDetail.availability.length ? (
-                  <>
+                  return (
                     <View
+                      key={service.id}
                       style={{
-                        borderRadius: 18,
-                        backgroundColor: "#ffffff",
-                        borderColor: "rgba(15,23,42,0.08)",
+                        borderRadius: 16,
                         borderWidth: 1,
-                        padding: 10,
-                        gap: 8
+                        borderColor: isExpanded ? "rgba(15,118,110,0.3)" : "rgba(15,118,110,0.14)",
+                        backgroundColor: isExpanded ? "rgba(15,118,110,0.06)" : "rgba(255,255,255,0.98)",
+                        padding: 12,
+                        gap: 9
                       }}
                     >
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                        <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Agenda publicada</Text>
-                        <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "800" }}>Referencia</Text>
-                      </View>
-                      <View style={{ flexDirection: "row", gap: 6 }}>
-                        {weekDays.map((day) => {
-                          const daySlots = availabilityByDay[day] ?? [];
-                          const isSelected = selectedAvailabilityDay === day;
-                          const hasSlots = daySlots.length > 0;
-
-                          return (
-                            <Pressable
-                              key={day}
-                              disabled={!hasSlots}
-                              onPress={() => setSelectedAvailabilityDay(day)}
-                              style={{
-                                alignItems: "center",
-                                backgroundColor: isSelected ? colorTokens.accent : hasSlots ? "rgba(15,118,110,0.09)" : "rgba(148,163,184,0.08)",
-                                borderRadius: 999,
-                                flex: 1,
-                                gap: 3,
-                                minHeight: 44,
-                                justifyContent: "center",
-                                opacity: hasSlots ? 1 : 0.5,
-                                paddingVertical: 7
-                              }}
-                            >
-                              <Text style={{ color: isSelected ? "#ffffff" : "#64748b", fontSize: 8, fontWeight: "900" }}>
-                                {weekDayShortLabels[day]}
-                              </Text>
-                              <Text style={{ color: isSelected ? "#ffffff" : hasSlots ? "#0f766e" : "#94a3b8", fontSize: 11, fontWeight: "900" }}>
-                                {daySlots.length}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </View>
-
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                      <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>
-                        {providerDayOfWeekLabels[selectedAvailabilityDay]}
-                      </Text>
-                      <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>
-                        {selectedAvailabilitySlots.length} horario(s)
-                      </Text>
-                    </View>
-
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      {selectedAvailabilitySlots.length ? selectedAvailabilitySlots.map((slot) => (
-                        <View
-                          key={slot.id}
-                          style={{
-                            borderRadius: 14,
-                            borderWidth: 1,
-                            borderColor: "rgba(15,118,110,0.2)",
-                            backgroundColor: "rgba(15,118,110,0.07)",
-                            minWidth: "47%",
-                            paddingHorizontal: 10,
-                            paddingVertical: 9
-                          }}
-                        >
-                          <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", textAlign: "center" }}>
-                            {formatTimeRange(slot.startsAt, slot.endsAt)}
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                        <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                          <Text numberOfLines={3} style={{ fontSize: 13, fontWeight: "900", color: "#1c1917", lineHeight: 17 }}>
+                            {service.name}
                           </Text>
-                          <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "800", marginTop: 4, textAlign: "center" }}>
-                            Disponible
+                          <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                            {providerServiceCategoryLabels[service.category]}
                           </Text>
                         </View>
-                      )) : (
-                        <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                          No hay horarios publicados para este dia.
-                        </Text>
-                      )}
-                    </View>
-                  </>
-                ) : selectedProviderDetail.services.length ? (
-                  <View style={{ gap: 10 }}>
-                    <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                      La agenda se consulta por servicio. Elige una opcion para ver horarios reales con cupo.
-                    </Text>
-                    <View style={{ gap: 8 }}>
-                      {selectedProviderDetail.services.map((service) => (
+                        <StatusChip label={service.bookingMode === "instant" ? "Directa" : "Con aprobacion"} tone="neutral" />
+                      </View>
+                      <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }} numberOfLines={2}>
+                        {service.shortDescription ?? "Descripcion pendiente por el proveedor."}
+                      </Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                        <StatusChip label={service.durationMinutes ? `${service.durationMinutes} min` : "Flexible"} tone="neutral" />
+                        <StatusChip label={formatMoney(service.basePriceCents, service.currencyCode)} tone="active" />
+                      </View>
+                      <View style={{ alignSelf: "flex-start" }}>
+                        <Button
+                          disabled={isLoadingBookingSlots && !isExpanded}
+                          label={isExpanded ? "Ocultar horarios" : "Ver horarios"}
+                          onPress={() => void handleShowServiceSlots(service.id)}
+                          tone={isExpanded ? "secondary" : "primary"}
+                        />
+                      </View>
+                      {isExpanded ? (
                         <View
-                          key={`availability-service-${service.id}`}
                           style={{
-                            borderRadius: 14,
+                            borderRadius: 16,
                             borderWidth: 1,
-                            borderColor: "rgba(15,118,110,0.16)",
-                            backgroundColor: "rgba(15,118,110,0.06)",
+                            borderColor: "rgba(15,118,110,0.18)",
+                            backgroundColor: "#ffffff",
                             padding: 10,
-                            gap: 8
+                            gap: 10
                           }}
                         >
-                          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
-                            <View style={{ flex: 1, gap: 3 }}>
-                              <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 11, fontWeight: "900", lineHeight: 14 }}>
-                                {service.name}
-                              </Text>
-                              <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 13 }}>
-                                {service.durationMinutes ? `${service.durationMinutes} min` : "Horario flexible"} - {formatMoney(service.basePriceCents, service.currencyCode)}
-                              </Text>
-                            </View>
-                            <StatusChip label={providerServiceCategoryLabels[service.category]} tone="neutral" />
+                          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                            <Text style={{ color: "#1c1917", flex: 1, fontSize: 12, fontWeight: "900" }}>Horarios con cupo</Text>
+                            <StatusChip label={selectedBookingSlot ? "Horario elegido" : `${bookingSlots.length} cupo(s)`} tone={selectedBookingSlot ? "active" : "neutral"} />
                           </View>
-                          <Button
-                            disabled={isLoadingBookingSlots}
-                            label="Ver cupos"
-                            onPress={() => void handleShowServiceSlots(service.id)}
-                          />
+                          {slotErrorMessage ? <Text style={{ color: "#991b1b", fontSize: 11, fontWeight: "700" }}>{slotErrorMessage}</Text> : null}
+                          {!bookingSlots.length && !isLoadingBookingSlots ? (
+                            <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 15 }}>
+                              No hay cupos disponibles para este servicio en los proximos dias.
+                            </Text>
+                          ) : null}
+                          {bookingSlots.length || isLoadingBookingSlots ? (
+                            <BookingSlotsCalendar
+                              isLoading={isLoadingBookingSlots}
+                              onSelectDate={(slotDate) => {
+                                setSelectedSlotDate(slotDate);
+                                setSelectedBookingSlot(null);
+                              }}
+                              onSelectSlot={setSelectedBookingSlot}
+                              selectedDate={selectedSlotDate}
+                              selectedSlot={selectedBookingSlot}
+                              slots={bookingSlots}
+                            />
+                          ) : null}
+                          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                            <Button
+                              disabled={!selectedBookingSlot}
+                              label="Continuar reserva"
+                              onPress={() => continueWithSelectedService(service)}
+                            />
+                            <Button
+                              label="Cambiar servicio"
+                              onPress={() => {
+                                setSelectedServiceId(null);
+                                setBookingSlots([]);
+                                setSelectedBookingSlot(null);
+                                setSelectedSlotDate(null);
+                                setSlotErrorMessage(null);
+                              }}
+                              tone="secondary"
+                            />
+                          </View>
                         </View>
-                      ))}
+                      ) : null}
                     </View>
-                  </View>
-                ) : (
-                  <Text style={{ color: colorTokens.muted }}>Todavia no hay servicios publicados para consultar cupos.</Text>
-                )}
+                  );
+                })}
               </View>
             </>
           ) : null}
