@@ -7,6 +7,10 @@
 - `Ver horarios` despliega el calendario del servicio, `Ocultar horarios` o `Cambiar servicio` permite devolverse sin perder contexto y `Continuar reserva` envia proveedor, servicio, hogar/mascota y slot elegido a Reservas.
 - Marketplace sigue sin crear reservas ni consumir cupos; la confirmacion se mantiene exclusivamente en Reservas.
 - No se tocaron backend, Supabase, RLS, contratos API, booking capacity, QR, evidencia, Payments, provider/admin ni Foster.
+- Commit publicado en `ux/mobile-flows-slice-1a`: `cae2298 feat(ux): streamline marketplace service selection`.
+- APK QA Android corregida con variables `EXPO_PUBLIC_*` embebidas: `dist/pilot/android/pet-ecosystem-pilot-v0.3.1-marketplace-service-selection-cae2298-20260723-0614-envfixed-release.apk`, SHA256 `69C4A39B72538BC8E0F491148A2C0102B5D0726F766AA08B7FA512546DE6A1E6`.
+- iOS EAS production build generado y enviado a TestFlight: version `0.3.1`, build `30`, EAS build `9f2bb3a4-08d7-4b2e-be4a-fab923c28af6`, submission `9f385060-5a67-4cb7-bc1c-5245babbda3c`. Apple queda procesando en App Store Connect.
+- IPA QA local: `dist/pilot/ios/pet-ecosystem-ios-v0.3.1-build30-cae2298-20260723.ipa`, SHA256 `1F46A7DD2D9A699DF6CC9D96BFC8423626BA3010E06E8531BA3222EA9C1B6D8B`.
 
 # Handoff 2026-07-20 - UX-MOBILE-FLOWS Slice 1L Reservas como seguimiento
 
