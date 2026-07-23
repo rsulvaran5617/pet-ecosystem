@@ -913,6 +913,26 @@ export function MarketplaceWorkspace({
         <View style={{ gap: 12 }}>
           {isLoading && !homeSnapshot ? <Text style={{ color: colorTokens.muted }}>Preparando proveedores aprobados...</Text> : null}
 
+          {currentView === "provider" && selectedHousehold ? (
+            <View
+              style={{
+                backgroundColor: "rgba(20,184,166,0.08)",
+                borderColor: "rgba(15,118,110,0.16)",
+                borderRadius: 14,
+                borderWidth: 1,
+                paddingHorizontal: 10,
+                paddingVertical: 8
+              }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900", letterSpacing: 0.2 }}>
+                HOGAR
+              </Text>
+              <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 12, fontWeight: "900", marginTop: 2 }}>
+                {selectedHousehold.name}
+              </Text>
+            </View>
+          ) : null}
+
           {currentView === "home" ? (
             <>
               <View style={[cardStyle, { backgroundColor: "#fbfaf7", borderColor: "rgba(15,23,42,0.06)", gap: 14 }]}>
