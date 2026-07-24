@@ -195,6 +195,7 @@ Riesgos:
 - provider web debe resolver nombres minimos de hogar, cliente y mascota por `get_booking_participant_summaries`, no por lectura directa de tablas owner protegidas por RLS.
 - despues de mutaciones criticas de reserva u operaciones (`approve`, `reject`, `complete`, cancelacion, check-in/check-out QR/manual y evidencia), mobile debe reflejar cambios de estado con Realtime sobre `bookings` y conservar requery controlado como respaldo
 - `bookings` esta publicado en `supabase_realtime` para que owner mobile pueda actualizar reservas cuando provider web aprueba, rechaza, completa o modifica estado de una cita
+- mobile debe normalizar a espanol los errores conocidos de booking/cancelacion que lleguen desde RPC para evitar mensajes tecnicos o en ingles al usuario final.
 - al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto; si Realtime no esta disponible, el polling de respaldo mantiene convergencia
 - el canal Realtime mobile de bookings debe usar un nombre unico por instancia de workspace para evitar colisiones al desmontar/remontar `Reservas` desde otras secciones owner
 

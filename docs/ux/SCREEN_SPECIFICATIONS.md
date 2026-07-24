@@ -80,6 +80,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - owner mobile Salud permite cargar foto/PDF del sticker de vacuna desde cada registro; se muestra como soporte documental asociado y se guarda como documento de mascota tipo `vaccination_record`
 - owner mobile Salud > Vacunas normaliza el soporte documental con acciones compactas por icono: ojo para visualizar el sticker y calendario para editar la vigencia del documento sin cambiar fechas clinicas de la vacuna.
 - UX-MOBILE-FLOWS Slice 1G: owner mobile Salud > Vacunas muestra guia progresiva, CTA contextual de registro y valida en cliente que la proxima dosis no sea anterior a la fecha de aplicacion antes de guardar.
+- owner mobile Salud > Vacunas mantiene chips de vigencia/documento en linea propia cuando el texto sea largo para que el nombre del sticker, archivo y notas no se compriman.
 - formularios de salud usan selectores de fecha con salto directo por ano para vacunas, proxima dosis y diagnosticos; el encabezado mobile muestra `MM/YYYY` y controles compactos para evitar cortes visuales.
 - owner web Salud usa carrusel superior de mascotas y ficha inferior compacta con resumen, vacunas, alergias y condiciones para evitar columnas altas y mantener controles pequenos
 
@@ -141,6 +142,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - owner Reservas: flujo de preparacion usa stepper horizontal tipo etiquetas con estados completado, activo y pendiente para Servicio, Mascota, Horario, Resumen y Confirmar.
 - owner Reservas preview: mostrar resumen tipo ticket compacto con estado, proveedor/servicio, mascota, horario, precio, metodo y CTA principal `Confirmar reserva`.
 - owner Reservas mantiene el bloque QR operacional compacto: texto de accion legible en dos lineas y boton QR iconografico para evitar cortes en mobile pequeno.
+- owner Reservas abre `Abrir chat` como acordeon inline de la reserva seleccionada, mostrando solo ese hilo y un cierre contextual; la bandeja completa queda reservada para la seccion `Mensajes`.
 
 ### Messaging
 - inbox
@@ -225,6 +227,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - V2 provider booking operations: scanner QR en detalle de reserva confirmada para check-in/check-out; botones manuales quedan fallback piloto
 - provider reservas: los contadores Pendientes, Confirmadas, Completadas y Canceladas actuan como filtros tactiles; el detalle de una reserva se muestra como acordeon debajo de la card seleccionada
 - provider reservas usa cards compactas con titulos de servicio en hasta dos lineas y datos de mascota/cliente ajustados para evitar truncados criticos en pantallas pequenas
+- provider reservas mantiene chips de estado largos en una linea separada dentro del detalle expandido para no competir con servicio/mascota ni forzar columnas estrechas.
 - owner mensajes: bandeja tipo correo con hilos de reserva ordenados por actividad reciente, cabeceras compactas y detalle desplegable por acordeon; el filtro queda simplificado a un dropdown de estado de reserva
 - owner mascotas: la mascota seleccionada se conserva como contexto activo al navegar por el menu inferior y se rehidrata al volver a Mascotas, Salud, Documentos o Recordatorios
 - provider negocio: la ubicacion publica puede heredar coordenadas aproximadas desde ciudad/zona soportada sin solicitar GPS ni publicar direccion privada.

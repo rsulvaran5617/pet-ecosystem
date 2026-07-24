@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-24 - Mobile polish vacunas y reservas
+
+- Owner mobile `Mascotas > Salud > Vacunas` ajusta el bloque `Sticker / soporte documental`: el chip de vigencia pasa a una linea propia y los nombres de archivo/sticker admiten dos lineas para evitar compresion en pantallas pequenas.
+- Provider mobile `Reservas` ajusta el detalle expandido: el estado largo de la reserva ya no comparte fila con `Detalle abierto`, permitiendo leer servicio y mascota sin cortes.
+- Owner mobile `Reservas` traduce el error de cancelacion fuera de ventana a espanol: `El plazo para cancelar esta reserva ya vencio.`
+- Owner mobile `Reservas` abre `Abrir chat` como conversacion inline de la reserva seleccionada; ya no muestra la bandeja completa debajo del detalle y permite cerrar el desplegable para volver al resumen.
+- No se tocaron backend, Supabase, RLS, contratos API, reglas de booking, QR, evidencia, Payments, provider web/admin ni Foster.
+
 # Handoff 2026-07-22 - UX-MOBILE-FLOWS Buscar servicios con horarios inline
 
 - Owner mobile `Buscar > Proveedor` integra los horarios y cupos dentro de cada card de servicio como acordeon inline.

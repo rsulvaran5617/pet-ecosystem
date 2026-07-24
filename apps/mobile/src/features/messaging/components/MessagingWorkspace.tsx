@@ -149,7 +149,7 @@ function DropdownOption({ count, isActive, label, onPress }: { count: number; is
       }}
     >
       <Text numberOfLines={1} style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", lineHeight: 13 }}>
-        {label} · {count}
+        {label} Â· {count}
       </Text>
     </Pressable>
   );
@@ -211,12 +211,16 @@ export function MessagingWorkspace({
   enabled,
   focusedBookingId,
   focusVersion,
+  onClose,
+  presentation = "full",
   viewerRole = "owner"
 }: {
   currentUserId?: Uuid | null;
   enabled: boolean;
   focusedBookingId: Uuid | null;
   focusVersion: number;
+  onClose?: () => void;
+  presentation?: "full" | "inline";
   viewerRole?: "owner" | "provider";
 }) {
   const {
@@ -282,6 +286,109 @@ export function MessagingWorkspace({
 
   if (!enabled) {
     return null;
+  }
+
+  if (presentation === "inline") {
+    return (
+      <View style={[inputStyle, { gap: 10, backgroundColor: "rgba(0,151,143,0.04)" }]}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+          <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+            <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Chat de la reserva</Text>
+            <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900", lineHeight: 17 }}>Conversacion de esta reserva</Text>
+            <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+              Este hilo queda ligado solo a la reserva seleccionada.
+            </Text>
+          </View>
+          {onClose ? (
+            <Pressable
+              accessibilityLabel="Cerrar chat de la reserva"
+              accessibilityRole="button"
+              onPress={onClose}
+              style={{
+                alignItems: "center",
+                backgroundColor: "rgba(255,255,255,0.92)",
+                borderColor: "rgba(0,151,143,0.2)",
+                borderRadius: 999,
+                borderWidth: 1,
+                height: 30,
+                justifyContent: "center",
+                width: 30
+              }}
+            >
+              <Text style={{ color: colorTokens.accentDark, fontSize: 13, fontWeight: "900" }}>x</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        {errorMessage ? <Text style={{ color: "#991b1b", fontSize: 11, fontWeight: "800", lineHeight: 15 }}>{errorMessage}</Text> : null}
+        {!errorMessage && infoMessage ? <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", lineHeight: 14 }}>{infoMessage}</Text> : null}
+
+        {isLoading && !selectedThreadDetail ? <Text style={bodyTextStyle}>Abriendo el chat de esta reserva...</Text> : null}
+        {!isLoading && !selectedThreadDetail ? (
+          <Text style={bodyTextStyle}>Todavia no encontramos un hilo vinculado para esta reserva.</Text>
+        ) : null}
+
+        {selectedThreadDetail ? (
+          <>
+            <View style={[inputStyle, { backgroundColor: "rgba(255,255,255,0.82)", gap: 5 }]}>
+              <Text numberOfLines={2} style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 16 }}>
+                {selectedThreadDetail.thread.serviceName}
+              </Text>
+              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                {selectedThreadDetail.thread.providerDisplayName}
+              </Text>
+              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+                Mascota: {selectedThreadDetail.thread.petName}
+              </Text>
+            </View>
+
+            <View style={{ gap: 8 }}>
+              {selectedThreadDetail.messages.length ? selectedThreadDetail.messages.map((message) => {
+                const isMine = isMessageMine(message.senderUserId, message.senderRole);
+
+                return (
+                  <View
+                    key={message.id}
+                    style={{
+                      alignSelf: isMine ? "flex-end" : "flex-start",
+                      backgroundColor: isMine ? "rgba(15,118,110,0.12)" : "rgba(255,255,255,0.92)",
+                      borderColor: "rgba(28,25,23,0.08)",
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      gap: 5,
+                      padding: 9,
+                      width: "100%"
+                    }}
+                  >
+                    <View style={{ gap: 3 }}>
+                      <Text style={{ fontWeight: "900", color: colorTokens.ink, fontSize: 11 }}>
+                        {getVisibleSenderName(message.senderUserId, message.senderRole, message.senderDisplayName)}
+                      </Text>
+                      <Text style={{ color: "#78716c", fontSize: 9 }}>{formatDateTime(message.createdAt)}</Text>
+                    </View>
+                    <Text style={{ color: "#44403c", fontSize: 12, lineHeight: 17 }}>{message.messageText}</Text>
+                  </View>
+                );
+              }) : (
+                <Text style={bodyTextStyle}>Todavia no se han enviado mensajes para esta reserva.</Text>
+              )}
+            </View>
+
+            <TextInput
+              multiline
+              onChangeText={setMessageDraft}
+              placeholder="Escribe un mensaje relacionado con la reserva..."
+              style={[inputStyle, { minHeight: 78, textAlignVertical: "top", color: colorTokens.ink, fontSize: 12 }]}
+              value={messageDraft}
+            />
+            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+              <Button disabled={isSubmitting} label="Enviar mensaje" onPress={() => void sendMessage()} />
+              <Button disabled={isSubmitting} label="Limpiar borrador" onPress={() => setMessageDraft("")} tone="secondary" />
+            </View>
+          </>
+        ) : null}
+      </View>
+    );
   }
 
   return (
@@ -379,7 +486,7 @@ export function MessagingWorkspace({
                     {thread.providerDisplayName}
                   </Text>
                   <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11, fontWeight: "800", lineHeight: 15 }}>
-                    {thread.petName} · {thread.serviceName}
+                    {thread.petName} Â· {thread.serviceName}
                   </Text>
                   <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                     <Text numberOfLines={1} style={{ flex: 1, color: "#57534e", fontSize: 11, lineHeight: 15 }}>

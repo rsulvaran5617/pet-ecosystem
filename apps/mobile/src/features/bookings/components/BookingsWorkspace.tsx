@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
+import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
 import { BookingOperationsTimeline } from "./BookingOperationsTimeline";
 import { BookingProgressStepper, type BookingProgressStepId } from "./BookingProgressStepper";
 import { BookingPreviewTicket } from "./BookingPreviewTicket";
@@ -436,6 +437,7 @@ function BookingHistoryCard({
 export function BookingsWorkspace({
   activePanel = "detalle",
   activePetContext,
+  currentUserId = null,
   enabled,
   marketplaceSelection,
   onClearMarketplaceSelection,
@@ -448,6 +450,7 @@ export function BookingsWorkspace({
 }: {
   activePanel?: BookingHubPanel;
   activePetContext?: { householdId: Uuid | null; petId: Uuid | null };
+  currentUserId?: Uuid | null;
   enabled: boolean;
   marketplaceSelection: MarketplaceServiceSelection | null;
   onClearMarketplaceSelection?: () => void;
@@ -495,6 +498,7 @@ export function BookingsWorkspace({
   const selectedBookingId = selectedBookingDetail?.booking.id ?? null;
   const [bookingView, setBookingView] = useState<BookingWorkspaceView>(marketplaceSelection ? "servicio" : "historial");
   const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>("active");
+  const [inlineChatFocusVersion, setInlineChatFocusVersion] = useState(0);
   const [lastCreatedBookingId, setLastCreatedBookingId] = useState<Uuid | null>(null);
   const filteredBookings =
     bookingStatusFilter === "all"
@@ -532,6 +536,12 @@ export function BookingsWorkspace({
   useEffect(() => {
     onBookingContextChange?.({ bookingId: selectedBookingId });
   }, [onBookingContextChange, selectedBookingId]);
+
+  useEffect(() => {
+    if (activePanel === "chat" && selectedBookingId) {
+      setInlineChatFocusVersion(Date.now());
+    }
+  }, [activePanel, selectedBookingId]);
 
   useEffect(() => {
     if (!marketplaceSelection) {
@@ -1035,17 +1045,25 @@ export function BookingsWorkspace({
                   await openBookingDetail(selectedBookingDetail.booking.id);
                 }}
               />
-              {activePanel !== "detalle" ? (
+              {activePanel === "chat" ? (
+                <MessagingWorkspace
+                  currentUserId={currentUserId}
+                  enabled
+                  focusedBookingId={selectedBookingDetail.booking.id}
+                  focusVersion={inlineChatFocusVersion}
+                  onClose={() => onPanelChange?.("detalle")}
+                  presentation="inline"
+                  viewerRole="owner"
+                />
+              ) : activePanel !== "detalle" ? (
                 <View style={inputStyle}>
                   <Text style={{ fontSize: 12, fontWeight: "800", color: colorTokens.ink }}>
-                    {activePanel === "chat" ? "Conversacion de esta reserva" : activePanel === "review" ? "Reseña de esta reserva" : "Soporte de esta reserva"}
+                    {activePanel === "review" ? "Resena de esta reserva" : "Soporte de esta reserva"}
                   </Text>
                   <Text style={[bodyTextStyle, { marginTop: 6 }]}>
-                    {activePanel === "chat"
-                      ? "El hilo queda ligado al booking; no hay chat libre fuera de una reserva."
-                      : activePanel === "review"
-                        ? "La reseña se habilita solo cuando la reserva esta completada."
-                        : "El caso de soporte queda ligado a esta reserva. En MVP no hay disputas ni chat de soporte."}
+                    {activePanel === "review"
+                      ? "La resena se habilita solo cuando la reserva esta completada."
+                      : "El caso de soporte queda ligado a esta reserva. En MVP no hay disputas ni chat de soporte."}
                   </Text>
                 </View>
               ) : null}
@@ -1064,7 +1082,18 @@ export function BookingsWorkspace({
                     tone="danger"
                   />
                   {onOpenChatForBooking ? (
-                    <DetailFooterButton disabled={isSubmitting} label="Abrir chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} />
+                    <DetailFooterButton
+                      disabled={isSubmitting}
+                      label={activePanel === "chat" ? "Cerrar chat" : "Abrir chat"}
+                      onPress={() => {
+                        if (activePanel === "chat") {
+                          onPanelChange?.("detalle");
+                          return;
+                        }
+
+                        onOpenChatForBooking(selectedBookingDetail.booking.id);
+                      }}
+                    />
                   ) : null}
                   {onOpenReviewForBooking && selectedBookingDetail.booking.status === "completed" ? (
                     <DetailFooterButton disabled={isSubmitting} label="Dejar reseña" onPress={() => onOpenReviewForBooking(selectedBookingDetail.booking.id)} />
@@ -1077,7 +1106,18 @@ export function BookingsWorkspace({
               ) : onOpenChatForBooking || onOpenReviewForBooking || onOpenSupportForBooking ? (
                 <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
                   {onOpenChatForBooking ? (
-                    <DetailFooterButton disabled={isSubmitting} label="Abrir chat" onPress={() => onOpenChatForBooking(selectedBookingDetail.booking.id)} />
+                    <DetailFooterButton
+                      disabled={isSubmitting}
+                      label={activePanel === "chat" ? "Cerrar chat" : "Abrir chat"}
+                      onPress={() => {
+                        if (activePanel === "chat") {
+                          onPanelChange?.("detalle");
+                          return;
+                        }
+
+                        onOpenChatForBooking(selectedBookingDetail.booking.id);
+                      }}
+                    />
                   ) : null}
                   {onOpenSupportForBooking ? (
                     <DetailFooterButton disabled={isSubmitting} label="Abrir soporte" onPress={() => onOpenSupportForBooking(selectedBookingDetail.booking.id)} />

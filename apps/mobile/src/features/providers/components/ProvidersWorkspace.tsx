@@ -870,24 +870,26 @@ export function ProvidersWorkspace({
 
     return (
       <View style={{ borderRadius: 15, backgroundColor: "rgba(247,242,231,0.58)", padding: 12, gap: 12, width: "100%" }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10, width: "100%" }}>
-          <View style={{ flex: 1, gap: 4 }}>
+        <View style={{ gap: 8, width: "100%" }}>
+          <View style={{ gap: 4, minWidth: 0 }}>
             <Text style={{ fontSize: 12, fontWeight: "900", color: "#1c1917", lineHeight: 16 }}>Detalle abierto</Text>
-            <Text style={{ fontSize: 10, color: colorTokens.muted, lineHeight: 14 }} numberOfLines={2}>
+            <Text style={{ fontSize: 10, color: colorTokens.muted, lineHeight: 14 }} numberOfLines={3}>
               {displayBookingValue(selectedProviderBookingDetail.booking.serviceName, "Servicio no disponible")} -{" "}
               {displayBookingValue(selectedProviderBookingDetail.booking.petName, "Mascota no disponible")}
             </Text>
           </View>
-          <StatusChip
-            label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
-            tone={
-              selectedProviderBookingDetail.booking.status === "pending_approval"
-                ? "pending"
-                : selectedProviderBookingDetail.booking.status === "cancelled"
-                  ? "neutral"
-                  : "active"
-            }
-          />
+          <View style={{ alignSelf: "flex-start" }}>
+            <StatusChip
+              label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
+              tone={
+                selectedProviderBookingDetail.booking.status === "pending_approval"
+                  ? "pending"
+                  : selectedProviderBookingDetail.booking.status === "cancelled"
+                    ? "neutral"
+                    : "active"
+              }
+            />
+          </View>
         </View>
         <View style={{ gap: 10, width: "100%" }}>
           <BookingInfoRow label="Hogar" value={displayBookingValue(selectedProviderBookingDetail.booking.householdName, "Hogar no disponible")} />

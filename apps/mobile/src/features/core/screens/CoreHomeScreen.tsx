@@ -1291,7 +1291,6 @@ export function CoreHomeScreen() {
   const [isAddressFormVisible, setIsAddressFormVisible] = useState(false);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
   const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
-  const [focusedBookingId, setFocusedBookingId] = useState<Uuid | null>(null);
   const [chatFocusVersion, setChatFocusVersion] = useState(0);
   const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
   const [reviewFocusVersion, setReviewFocusVersion] = useState(0);
@@ -2638,13 +2637,13 @@ export function CoreHomeScreen() {
             <BookingsWorkspace
               activePanel={activeBookingHubPanel}
               activePetContext={activeOwnerPetContextForModules}
+              currentUserId={authState.userId ?? null}
               enabled
               marketplaceSelection={marketplaceSelection}
               onClearMarketplaceSelection={() => setMarketplaceSelection(null)}
               onBookingContextChange={setBookingHubContext}
               onPanelChange={setActiveBookingHubPanel}
-              onOpenChatForBooking={(bookingId) => {
-                setFocusedBookingId(bookingId);
+              onOpenChatForBooking={() => {
                 setChatFocusVersion(Date.now());
                 setActiveBookingHubPanel("chat");
               }}
@@ -2660,15 +2659,6 @@ export function CoreHomeScreen() {
               }}
               onActivePetChange={setActiveOwnerPetFromSelection}
             />
-            {activeBookingHubPanel === "chat" ? (
-              <MessagingWorkspace
-                currentUserId={authState.userId ?? null}
-                enabled
-                focusedBookingId={focusedBookingId ?? bookingHubContext.bookingId}
-                focusVersion={chatFocusVersion}
-                viewerRole="owner"
-              />
-            ) : null}
             {activeBookingHubPanel === "review" ? (
               <ReviewsWorkspace
                 enabled
@@ -2753,7 +2743,6 @@ export function CoreHomeScreen() {
                   if (isProviderMode) {
                     setActiveProviderSection(section.id as ProviderSectionId);
                     if (section.id === "mensajes") {
-                      setFocusedBookingId(null);
                       setChatFocusVersion((currentVersion) => currentVersion + 1);
                     }
                     return;
@@ -2764,7 +2753,6 @@ export function CoreHomeScreen() {
                     void bookingsWorkspace.refresh();
                   }
                   if (section.id === "mensajes") {
-                    setFocusedBookingId(null);
                     setChatFocusVersion((currentVersion) => currentVersion + 1);
                   }
                 }}

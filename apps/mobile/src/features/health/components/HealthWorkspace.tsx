@@ -883,8 +883,8 @@ export function HealthWorkspace({
                         <Text style={{ color: colorTokens.muted, fontSize: 11 }}>{vaccine.notes ?? "Sin notas todavia."}</Text>
                       </View>
                       <View style={{ borderRadius: 14, backgroundColor: evidenceDocuments.length ? "rgba(15,118,110,0.08)" : "rgba(250,250,249,0.88)", padding: 9, gap: 7 }}>
-                        <View style={{ alignItems: "center", flexDirection: "row", gap: 8, justifyContent: "space-between" }}>
-                          <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+                        <View style={{ gap: 6 }}>
+                          <View style={{ gap: 2, minWidth: 0 }}>
                             <Text style={{ color: "#0f766e", fontSize: 11, fontWeight: "900" }}>Sticker / soporte documental</Text>
                             <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
                               Evidencia documental; no modifica fechas clinicas.
@@ -897,14 +897,14 @@ export function HealthWorkspace({
                         ) : evidenceDocuments.length ? (
                           <>
                             <View style={{ borderRadius: 12, backgroundColor: "rgba(255,255,255,0.72)", padding: 8, gap: 3 }}>
-                              <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 11, fontWeight: "800" }}>
+                              <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 10.5, fontWeight: "800", lineHeight: 14 }}>
                                 {primaryEvidenceDocument?.title ?? "Sticker cargado"}
                               </Text>
-                              <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
+                              <Text numberOfLines={2} style={{ color: colorTokens.muted, fontSize: 9.5, lineHeight: 13 }}>
                                 {primaryEvidenceDocument?.fileName ?? "Archivo del sticker"}
                               </Text>
                               {primaryEvidenceDocument ? (
-                                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 10 }}>
+                                <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 9.5, lineHeight: 13 }}>
                                   {formatFileSize(primaryEvidenceDocument.fileSizeBytes)} - {primaryEvidenceDocument.mimeType ?? "Tipo pendiente"}
                                 </Text>
                               ) : null}

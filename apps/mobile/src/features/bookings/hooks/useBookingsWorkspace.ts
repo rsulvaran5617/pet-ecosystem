@@ -125,6 +125,10 @@ export function useBookingsWorkspace(
       return "Esta mascota esta en memoria. Conservamos su historial, pero no puede usarse para nuevas reservas.";
     }
 
+    if (error instanceof Error && error.message === "The basic cancellation window has already passed") {
+      return "El plazo para cancelar esta reserva ya vencio.";
+    }
+
     return error instanceof Error ? error.message : fallbackMessage;
   }
 

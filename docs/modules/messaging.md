@@ -40,6 +40,7 @@ Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una
 - mientras `Mensajes` esta activo en mobile, la app hace polling liviano de hilos y muestra un aviso emergente in-app con vibracion corta cuando detecta un mensaje entrante de la contraparte
 - owner mobile presenta la bandeja como una lista tipo correo: hilos ordenados de mas reciente a mas antiguo, cabecera compacta con fecha corta, negocio, mascota, servicio y preview; el detalle se despliega como acordeon dentro de la misma lista
 - el filtro visible de la bandeja owner se reduce a un selector compacto por estado de reserva, con Activas como vista inicial
+- desde `Owner > Reservas > Abrir chat`, mobile debe abrir solo el hilo de la reserva seleccionada como acordeon inline; la bandeja completa queda para el menu `Mensajes`
 - web provider muestra conversaciones activas del negocio seleccionado dentro de `Reservas`, permite abrir el hilo y enviar respuestas de texto usando `POST /chats/{threadId}/messages`
 - mientras provider web esta abierto, la bandeja de conversaciones y el hilo seleccionado se refrescan por Realtime con polling liviano como respaldo para reflejar mensajes enviados desde mobile sin obligar al usuario a recargar la pagina
 - web provider muestra un aviso emergente in-app cuando detecta un nuevo mensaje entrante del owner en una cita; el CTA `Responder` cambia al negocio correcto, abre `Reservas`, expande la cita y selecciona el hilo para contestar rapido.
