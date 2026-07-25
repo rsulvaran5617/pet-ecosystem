@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1D publicacion guiada
+
+- Owner mobile `Mascotas > Detalle` para hogares `protective` aprobados reorganiza `Vitrina de adopcion responsable` como tren `Mascota -> Historia -> Salud -> Fotos -> Revision/Visible`.
+- El wizard mantiene las mismas acciones existentes: guardar publicacion, agregar foto con moderacion individual, enviar a revision, pausar y cerrar.
+- Registrar una mascota no publica adopcion; guardar textos no despublica publicaciones `published`.
+- No se tocaron Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni geolocalizacion.
+
 # Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1C solicitud protectora guiada
 
 - Owner mobile `Cuenta > Hogares > Familia protectora` convierte la solicitud interna en wizard corto: `Identidad`, `Ubicacion`, `Contacto` y `Revision`.

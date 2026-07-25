@@ -160,6 +160,7 @@ const emptyAdoptionListingForm: AdoptionListingFormState = {
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type PetWorkspaceView = "lista" | "crear" | "editar" | "detalle";
 type PetsWorkspacePresentation = "standard" | "firstPetOnboarding";
+type AdoptionListingStep = "pet" | "story" | "health" | "photos" | "review";
 
 LocaleConfig.locales.es = {
   monthNames: [
@@ -954,6 +955,7 @@ export function PetsWorkspace({
   const [receivedAdoptionApplications, setReceivedAdoptionApplications] = useState<PetAdoptionApplication[]>([]);
   const [adoptionListingPetId, setAdoptionListingPetId] = useState<Uuid | null>(null);
   const [adoptionListingForm, setAdoptionListingForm] = useState<AdoptionListingFormState>(emptyAdoptionListingForm);
+  const [adoptionListingStep, setAdoptionListingStep] = useState<AdoptionListingStep>("pet");
   const [dismissedNextStepPetIds, setDismissedNextStepPetIds] = useState<Uuid[]>([]);
   const [isProfileActionsOpen, setIsProfileActionsOpen] = useState(false);
   const pendingContextPetIdRef = useRef<Uuid | null>(null);
@@ -1231,6 +1233,25 @@ export function PetsWorkspace({
   const selectedPetAdoptionListing = selectedPet
     ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
     : null;
+  const adoptionListingTextIsReady = Boolean(adoptionListingForm.title.trim()) && Boolean(adoptionListingForm.city.trim());
+  const adoptionListingHasHealthInfo =
+    Boolean(adoptionListingForm.publicHealthSummary.trim()) ||
+    Boolean(adoptionListingForm.adoptionRequirements.trim()) ||
+    Boolean(adoptionListingForm.personalityNotes.trim());
+  const adoptionListingPhotoCount = selectedPetAdoptionListing?.media.length ?? 0;
+  const adoptionListingIsVisible = selectedPetAdoptionListing?.status === "published";
+  const adoptionListingSteps = [
+    { id: "pet", label: "Mascota", isComplete: true },
+    { id: "story", label: "Historia", isComplete: Boolean(selectedPetAdoptionListing?.title) || adoptionListingTextIsReady },
+    { id: "health", label: "Salud", isComplete: Boolean(selectedPetAdoptionListing?.publicHealthSummary) || adoptionListingHasHealthInfo },
+    { id: "photos", label: "Fotos", isComplete: adoptionListingPhotoCount > 0 },
+    {
+      id: "review",
+      label: adoptionListingIsVisible ? "Visible" : "Revision",
+      isComplete: adoptionListingIsVisible || selectedPetAdoptionListing?.status === "pending_review"
+    }
+  ] as const;
+  const currentAdoptionListingStepIndex = adoptionListingSteps.findIndex((step) => step.id === adoptionListingStep);
   const isSelectedPetInMemory = selectedPet?.status === "in_memory";
   const selectedPetPrimaryAction = selectedPetDetail
     ? !selectedPetDetail.pet.avatarUrl
@@ -1331,6 +1352,7 @@ export function PetsWorkspace({
   const openAdoptionListingForm = (pet: NonNullable<typeof selectedPet>) => {
     const currentListing = myAdoptionListings.find((listing) => listing.petId === pet.id && listing.status !== "closed") ?? null;
     setAdoptionListingPetId(pet.id);
+    setAdoptionListingStep("story");
     setAdoptionListingForm(
       currentListing
         ? {
@@ -2628,48 +2650,164 @@ export function PetsWorkspace({
                           tone={selectedPetAdoptionListing?.status === "published" ? "active" : "pending"}
                         />
                       </View>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+                        {adoptionListingSteps.map((step, index) => {
+                          const isActive = step.id === adoptionListingStep;
+
+                          return (
+                            <Pressable
+                              accessibilityRole="button"
+                              key={step.id}
+                              onPress={() => setAdoptionListingStep(step.id)}
+                              style={{
+                                alignItems: "center",
+                                backgroundColor: isActive ? "rgba(15,118,110,0.14)" : step.isComplete ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.86)",
+                                borderColor: isActive || step.isComplete ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.12)",
+                                borderRadius: 999,
+                                borderWidth: 1,
+                                flexDirection: "row",
+                                gap: 6,
+                                paddingHorizontal: 9,
+                                paddingVertical: 7
+                              }}
+                            >
+                              <Text style={{ color: isActive || step.isComplete ? "#0f766e" : colorTokens.mutedStrong, fontSize: 9, fontWeight: "900" }}>
+                                {step.isComplete ? "OK" : index + 1}
+                              </Text>
+                              <Text style={{ color: isActive || step.isComplete ? "#0f766e" : colorTokens.mutedStrong, fontSize: 9, fontWeight: "900" }}>
+                                {step.label}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
                       {adoptionListingPetId === selectedPetDetail.pet.id ? (
                         <View style={{ gap: 9 }}>
-                          <Field
-                            label="Titulo publico"
-                            onChange={(value) => setAdoptionListingForm((current) => ({ ...current, title: value }))}
-                            value={adoptionListingForm.title}
-                          />
-                          <MultilineField
-                            label="Historia breve"
-                            onChange={(value) => setAdoptionListingForm((current) => ({ ...current, publicStory: value }))}
-                            value={adoptionListingForm.publicStory}
-                          />
-                          <MultilineField
-                            label="Personalidad"
-                            onChange={(value) => setAdoptionListingForm((current) => ({ ...current, personalityNotes: value }))}
-                            value={adoptionListingForm.personalityNotes}
-                          />
-                          <MultilineField
-                            label="Resumen publico de salud"
-                            onChange={(value) => setAdoptionListingForm((current) => ({ ...current, publicHealthSummary: value }))}
-                            value={adoptionListingForm.publicHealthSummary}
-                          />
-                          <MultilineField
-                            label="Requisitos de adopcion/acogida"
-                            onChange={(value) => setAdoptionListingForm((current) => ({ ...current, adoptionRequirements: value }))}
-                            value={adoptionListingForm.adoptionRequirements}
-                          />
-                          <View style={{ flexDirection: "row", gap: 8 }}>
-                            <View style={{ flex: 1 }}>
-                              <Field
-                                label="Ciudad"
-                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, city: value }))}
-                                value={adoptionListingForm.city}
-                              />
+                          {adoptionListingStep === "pet" ? (
+                            <View style={{ backgroundColor: "rgba(255,255,255,0.78)", borderRadius: 14, gap: 5, padding: 10 }}>
+                              <Text style={{ color: "#115e59", fontSize: 12, fontWeight: "900" }}>{selectedPetDetail.pet.name}</Text>
+                              <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, lineHeight: 16 }}>
+                                {selectedPetDetail.pet.species}
+                                {selectedPetDetail.pet.breed ? ` - ${selectedPetDetail.pet.breed}` : ""} - {formatSterilizedLabel(selectedPetDetail.pet.isSterilized)}
+                              </Text>
+                              <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                                Registrar una mascota no la publica. La vitrina se guarda y luego se envia a revision admin.
+                              </Text>
                             </View>
-                            <View style={{ width: 78 }}>
+                          ) : null}
+                          {adoptionListingStep === "story" ? (
+                            <>
                               <Field
-                                label="Pais"
-                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, countryCode: value }))}
-                                value={adoptionListingForm.countryCode}
+                                label="Titulo publico"
+                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, title: value }))}
+                                value={adoptionListingForm.title}
                               />
+                              <MultilineField
+                                label="Historia breve"
+                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, publicStory: value }))}
+                                value={adoptionListingForm.publicStory}
+                              />
+                              <View style={{ flexDirection: "row", gap: 8 }}>
+                                <View style={{ flex: 1 }}>
+                                  <Field
+                                    label="Ciudad"
+                                    onChange={(value) => setAdoptionListingForm((current) => ({ ...current, city: value }))}
+                                    value={adoptionListingForm.city}
+                                  />
+                                </View>
+                                <View style={{ width: 78 }}>
+                                  <Field
+                                    label="Pais"
+                                    onChange={(value) => setAdoptionListingForm((current) => ({ ...current, countryCode: value }))}
+                                    value={adoptionListingForm.countryCode}
+                                  />
+                                </View>
+                              </View>
+                            </>
+                          ) : null}
+                          {adoptionListingStep === "health" ? (
+                            <>
+                              <MultilineField
+                                label="Personalidad"
+                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, personalityNotes: value }))}
+                                value={adoptionListingForm.personalityNotes}
+                              />
+                              <MultilineField
+                                label="Resumen publico de salud"
+                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, publicHealthSummary: value }))}
+                                value={adoptionListingForm.publicHealthSummary}
+                              />
+                              <MultilineField
+                                label="Requisitos de adopcion/acogida"
+                                onChange={(value) => setAdoptionListingForm((current) => ({ ...current, adoptionRequirements: value }))}
+                                value={adoptionListingForm.adoptionRequirements}
+                              />
+                            </>
+                          ) : null}
+                          {adoptionListingStep === "photos" ? (
+                            <View style={{ gap: 8 }}>
+                              <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                                {selectedPetAdoptionListing
+                                  ? `${selectedPetAdoptionListing.media.length}/${adoptionMediaLimit} fotos cargadas. Las fotos nuevas pasan por revision individual.`
+                                  : "Guarda la publicacion como borrador antes de agregar fotos."}
+                              </Text>
+                              {selectedPetAdoptionListing?.media.length ? (
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                  <View style={{ flexDirection: "row", gap: 8 }}>
+                                    {selectedPetAdoptionListing.media.map((media) => (
+                                      <View key={media.id} style={{ backgroundColor: "#ffffff", borderColor: media.isCover ? "rgba(15,118,110,0.36)" : "rgba(15,23,42,0.08)", borderRadius: 14, borderWidth: 1, gap: 5, padding: 6, width: 104 }}>
+                                        {media.signedUrl ? (
+                                          <Image source={{ uri: media.signedUrl }} style={{ borderRadius: 10, height: 66, width: "100%" }} />
+                                        ) : (
+                                          <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.1)", borderRadius: 10, height: 66, justifyContent: "center" }}>
+                                            <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Sin vista</Text>
+                                          </View>
+                                        )}
+                                        <Text style={{ color: "#115e59", fontSize: 9, fontWeight: "900" }}>
+                                          {getAdoptionMediaStatusLabel(media.moderationStatus)}
+                                          {media.isCover ? " - Portada" : ""}
+                                        </Text>
+                                      </View>
+                                    ))}
+                                  </View>
+                                </ScrollView>
+                              ) : null}
                             </View>
+                          ) : null}
+                          {adoptionListingStep === "review" ? (
+                            <View style={{ backgroundColor: "rgba(255,255,255,0.78)", borderRadius: 14, gap: 7, padding: 10 }}>
+                              <Text style={{ color: "#115e59", fontSize: 12, fontWeight: "900" }}>Resumen de publicacion</Text>
+                              <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "800" }}>{adoptionListingForm.title.trim() || "Titulo pendiente"}</Text>
+                              <Text style={{ color: colorTokens.mutedStrong, fontSize: 11, lineHeight: 16 }}>
+                                {adoptionListingForm.city.trim() || "Ciudad pendiente"}, {adoptionListingForm.countryCode.trim().toUpperCase() || "PA"}
+                              </Text>
+                              <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                                Fotos: {adoptionListingPhotoCount}/{adoptionMediaLimit}. Guardar no publica automaticamente; enviar a revision solicita aprobacion admin.
+                              </Text>
+                            </View>
+                          ) : null}
+                          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
+                            <Button
+                              disabled={currentAdoptionListingStepIndex <= 0}
+                              label="Atras"
+                              labelSize={11}
+                              onPress={() => {
+                                const previousStep = adoptionListingSteps[Math.max(currentAdoptionListingStepIndex - 1, 0)];
+                                setAdoptionListingStep(previousStep.id);
+                              }}
+                              tone="secondary"
+                            />
+                            {adoptionListingStep !== "review" ? (
+                              <Button
+                                disabled={adoptionListingStep === "story" ? !adoptionListingTextIsReady : false}
+                                label="Continuar"
+                                labelSize={11}
+                                onPress={() => {
+                                  const nextStep = adoptionListingSteps[Math.min(currentAdoptionListingStepIndex + 1, adoptionListingSteps.length - 1)];
+                                  setAdoptionListingStep(nextStep.id);
+                                }}
+                              />
+                            ) : null}
                           </View>
                           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                             <Button
@@ -2678,7 +2816,35 @@ export function PetsWorkspace({
                               labelSize={11}
                               onPress={() => saveAdoptionListing(selectedPetDetail.pet)}
                             />
-                            <Button disabled={isSubmitting} label="Cerrar" labelSize={11} onPress={() => setAdoptionListingPetId(null)} tone="secondary" />
+                            {adoptionListingStep === "photos" && selectedPetAdoptionListing ? (
+                              <Button
+                                disabled={isSubmitting || selectedPetAdoptionListing.status === "pending_review" || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
+                                label="Agregar foto"
+                                labelSize={11}
+                                onPress={() => void uploadAdoptionCoverPhoto(selectedPetAdoptionListing)}
+                                tone="secondary"
+                              />
+                            ) : null}
+                            {adoptionListingStep === "review" &&
+                            (selectedPetAdoptionListing?.status === "draft" || selectedPetAdoptionListing?.status === "rejected" || selectedPetAdoptionListing?.status === "paused") ? (
+                              <Button
+                                disabled={isSubmitting || !selectedPetAdoptionListing.title.trim()}
+                                label="Enviar a revision"
+                                labelSize={11}
+                                onPress={() => submitAdoptionListing(selectedPetAdoptionListing.id)}
+                                tone="secondary"
+                              />
+                            ) : null}
+                            <Button
+                              disabled={isSubmitting}
+                              label="Cerrar"
+                              labelSize={11}
+                              onPress={() => {
+                                setAdoptionListingPetId(null);
+                                setAdoptionListingStep("pet");
+                              }}
+                              tone="secondary"
+                            />
                           </View>
                         </View>
                       ) : (

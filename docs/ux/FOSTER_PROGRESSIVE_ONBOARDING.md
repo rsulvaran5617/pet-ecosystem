@@ -507,9 +507,13 @@ Validaciones:
 
 ### UX-FOSTER-1D - Wizard de publicacion de mascota
 
+Estado: implementado localmente.
+
 Objetivo:
 
 - Reorganizar publicacion como tren: mascota, historia, salud publica, fotos, revision, visible.
+- La implementacion mobile divide la vitrina de adopcion en pasos `Mascota`, `Historia`, `Salud`, `Fotos` y `Revision/Visible`, reutilizando las mismas acciones de guardar, subir fotos, enviar a revision, pausar y cerrar.
+- Registrar mascota sigue sin publicar adopcion; las fotos nuevas mantienen moderacion individual y guardar textos no despublica publicaciones visibles.
 
 Archivos probables:
 
