@@ -85,6 +85,14 @@ Role-Foster-A:
 - mantiene la autorizacion real en el household: solo `household_type = protective` con perfil protector aprobado puede operar Foster.
 - un usuario con rol `protective_family` aun debe crear o pertenecer a una Familia Protectora separada; no se convierte ningun hogar `owner` automaticamente.
 
+Role-Foster-B:
+
+- mobile acota la lectura/seleccion de hogares segun el rol activo:
+  - `pet_owner` ve hogares `owner`.
+  - `protective_family` ve hogares `protective`.
+- la separacion es de experiencia y scoping en cliente; las politicas RLS y RPCs Foster siguen siendo la barrera transaccional.
+- no se mueven mascotas ni se convierte ningun hogar existente.
+
 ## Dependencias minimas
 - core
 

@@ -4,6 +4,15 @@
 
 Documento de diseno UX/arquitectura de navegacion. UX-FOSTER-1A queda implementado en mobile como intencion guiada de registro. Role-Foster-A supersede la decision inicial de no crear rol global y agrega `protective_family` como rol de experiencia, sin reemplazar las validaciones por household protector aprobado.
 
+Actualizacion Role-Foster-B 2026-07-25:
+
+- Mobile separa el shell visible de `pet_owner` y `protective_family`.
+- `pet_owner` conserva navegacion owner para mascotas propias, servicios, reservas, mensajes y cuenta.
+- `protective_family` usa navegacion Foster propia: Inicio, Acogida, Publicaciones, Solicitudes y Cuenta.
+- Los workspaces compartidos de hogares/mascotas se filtran por `household_type` para evitar que hogares familiares aparezcan como familias protectoras o que mascotas bajo acogida se mezclen con mascotas propias.
+- Web general conserva CTA hacia `/foster` para `protective_family`; `/foster` sigue siendo la consola web operativa de familias protectoras.
+- No se mueve `pets.household_id`, no se convierte ningun hogar y no se agregan migraciones.
+
 Este documento prepara la separacion de experiencia entre:
 
 - hogar owner normal: mascotas propias, salud, documentos, recordatorios, marketplace de servicios y reservas.
@@ -124,7 +133,7 @@ Razon:
 | Rechazada | `status = rejected` | Motivo y posibilidad de corregir | Corregir solicitud | Mascotas/publicaciones publicas |
 | Aprobada sin perfil publico | `status = approved`, sin public profile | Explicar confianza publica | Crear perfil publico | Publicar publicamente |
 | Perfil publico en revision | public profile `pending_review` | Estado de revision | Esperar revision | Discovery publico |
-| Lista para operar | familia approved + public profile approved/is_public | Dashboard Foster simple | Registrar mascota bajo acogida | Setup repetitivo |
+| Lista para operar | familia approved + public profile approved/is_public | Dashboard Foster simple y bottom nav Foster separado | Registrar mascota bajo acogida | Setup repetitivo |
 | Mascota bajo acogida sin publicacion | pet activa en hogar protective sin listing | Ficha de mascota y guia | Preparar publicacion | Solicitudes |
 | Publicacion en borrador | listing `draft` | Completar contenido/fotos | Enviar a revision | Compartir publicamente |
 | Publicacion en revision | listing `pending_review` | Estado de espera admin | Revisar estado | Solicitudes nuevas |

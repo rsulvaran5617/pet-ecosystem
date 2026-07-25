@@ -1278,6 +1278,16 @@ Validacion recomendada:
 - Owner sin pendientes: debe ver `Buscar servicios`.
 - Verificar que los accesos secundarios a mascotas, adopcion, salud y servicios siguen funcionando.
 
+## Role-Foster-B mobile shell separado 2026-07-25
+
+- Se implementa separacion visual/funcional en mobile para `protective_family` sin migraciones nuevas.
+- `pet_owner` queda limitado a experiencia Owner: Inicio, Mascotas propias, Buscar servicios, Reservas, Mensajes y Cuenta. La vitrina de adopcion se mantiene como adoptante, separada de la operacion Foster.
+- `protective_family` ahora usa shell mobile Foster propio con navegacion inferior: Inicio, Acogida, Publicaciones, Solicitudes y Cuenta.
+- Los workspaces mobile de `Pets` y `Households` aceptan scope por `household_type`, de modo que Owner opera hogares `owner` y Familia Protectora opera hogares `protective`.
+- La web general ya mantiene compuerta por rol: `protective_family` no ve consola owner y recibe CTA hacia `/foster`, que sigue siendo la consola principal web de familias protectoras.
+- No se tocaron Payments, booking capacity, QR, evidencia operacional, provider services, geolocalizacion, Supabase, RLS ni migraciones.
+- Pendiente QA visual: usuario owner puro, protective puro y usuario dual cambiando rol explicitamente.
+
 ## Handoff 2026-07-12 - UX-MOBILE-FLOWS Slice 1A acceso guiado
 
 Estado:

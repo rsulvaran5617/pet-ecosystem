@@ -90,6 +90,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
 type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta" | "adopcion";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
+type FosterSectionId = "inicio" | "acogida" | "publicaciones" | "solicitudes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
 type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "profile" | "roles";
 type AccountFocusSection = "petInvitations";
@@ -128,6 +129,18 @@ const providerSections: Array<{ description: string; id: ProviderSectionId; labe
 const providerSectionLookup = Object.fromEntries(
   providerSections.map((section) => [section.id, section])
 ) as Record<ProviderSectionId, (typeof providerSections)[number]>;
+
+const fosterSections: Array<{ description: string; id: FosterSectionId; label: string }> = [
+  { id: "inicio", label: "Inicio", description: "Estado guiado de tu familia protectora." },
+  { id: "acogida", label: "Acogida", description: "Mascotas bajo tu cuidado temporal." },
+  { id: "publicaciones", label: "Publicaciones", description: "Historias, fotos y revision de adopcion." },
+  { id: "solicitudes", label: "Solicitudes", description: "Familias interesadas y cierre responsable." },
+  { id: "cuenta", label: "Cuenta", description: "Familia protectora, perfil publico y roles." }
+];
+
+const fosterSectionLookup = Object.fromEntries(
+  fosterSections.map((section) => [section.id, section])
+) as Record<FosterSectionId, (typeof fosterSections)[number]>;
 
 const inputStyle = {
   borderRadius: 14,
@@ -828,6 +841,33 @@ function ProviderShellHeader({
   );
 }
 
+function FosterShellHeader({
+  section
+}: {
+  section: FosterSectionId;
+}) {
+  const sectionConfig = fosterSectionLookup[section];
+
+  return (
+    <View style={{ borderRadius: 28, backgroundColor: colorTokens.accentDark, padding: 20, gap: 10, ...visualTokens.mobile.shadow }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <View style={{ gap: 4, flex: 1, minWidth: 0 }}>
+          <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+            Familia protectora
+          </Text>
+          <Text numberOfLines={2} style={{ fontSize: section === "inicio" ? 24 : 18, fontWeight: "900", lineHeight: section === "inicio" ? 28 : 22, color: "#ffffff" }}>
+            {sectionConfig.label}
+          </Text>
+          <Text style={{ fontSize: 10, fontWeight: "800", lineHeight: 14, color: "rgba(255,255,255,0.88)" }}>
+            {sectionConfig.description}
+          </Text>
+        </View>
+        <StatusChip label="Protectora" tone="active" />
+      </View>
+    </View>
+  );
+}
+
 function OwnerHome({
   activePetId,
   bookings,
@@ -1266,13 +1306,11 @@ function OwnerHome({
 function FosterHome({
   householdName,
   onNavigate,
-  onOpenAdoption,
   pets,
   protectiveProfile
 }: {
   householdName: string;
-  onNavigate: (section: OwnerSectionId) => void;
-  onOpenAdoption: () => void;
+  onNavigate: (section: FosterSectionId) => void;
   pets: OwnerHomePet[];
   protectiveProfile: ProtectiveHouseholdProfile | null;
 }) {
@@ -1299,12 +1337,12 @@ function FosterHome({
       : status === "approved" && pets.length === 0
         ? {
             eyebrow: "Aprobada",
-            title: "Registra una mascota bajo acogida",
-            description: "Crea su expediente para preparar una publicacion responsable.",
-            cta: "Agregar mascota",
-            icon: "paw" as OwnerIconName,
-            onPress: () => onNavigate("mascotas")
-          }
+              title: "Registra una mascota bajo acogida",
+              description: "Crea su expediente para preparar una publicacion responsable.",
+              cta: "Agregar mascota",
+              icon: "paw" as OwnerIconName,
+              onPress: () => onNavigate("acogida")
+            }
         : status === "approved"
           ? {
               eyebrow: "Operacion Foster",
@@ -1312,7 +1350,7 @@ function FosterHome({
               description: "Revisa tus mascotas bajo acogida y avanza adopciones con consentimiento.",
               cta: "Abrir mascotas",
               icon: "heart" as OwnerIconName,
-              onPress: () => onNavigate("mascotas")
+              onPress: () => onNavigate("acogida")
             }
           : {
               eyebrow: status === "rejected" ? "Requiere ajuste" : "Estado protector",
@@ -1417,8 +1455,8 @@ function FosterHome({
       {isApproved ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
           {[
-            { label: "Mascotas bajo acogida", value: pets.length.toString(), onPress: () => onNavigate("mascotas") },
-            { label: "Vitrina publica", value: "Ver", onPress: onOpenAdoption },
+            { label: "Mascotas bajo acogida", value: pets.length.toString(), onPress: () => onNavigate("acogida") },
+            { label: "Publicaciones", value: "Ver", onPress: () => onNavigate("publicaciones") },
             { label: "Perfil y revision", value: "Hogares", onPress: () => onNavigate("cuenta") }
           ].map((item) => (
             <Pressable
@@ -1489,6 +1527,7 @@ export function CoreHomeScreen() {
   const [activeOwnerSection, setActiveOwnerSection] = useState<OwnerSectionId>("inicio");
   const [accountFocusSection, setAccountFocusSection] = useState<AccountFocusSection | null>(null);
   const [activeProviderSection, setActiveProviderSection] = useState<ProviderSectionId>("inicio");
+  const [activeFosterSection, setActiveFosterSection] = useState<FosterSectionId>("inicio");
   const [activePetHubPanel, setActivePetHubPanel] = useState<PetHubPanel>("detalle");
   const [petHubContext, setPetHubContext] = useState<{ householdId: Uuid | null; petId: Uuid | null }>({
     householdId: null,
@@ -1532,11 +1571,14 @@ export function CoreHomeScreen() {
     (role) => !assignedAccountRoles.includes(role)
   );
   const isProviderMode = activeRole === "provider" && hasProviderRole;
+  const isProtectiveMode = authState.isAuthenticated && activeRole === "protective_family";
+  const isOwnerMode = authState.isAuthenticated && activeRole === "pet_owner";
+  const petsHouseholdScope = isProtectiveMode ? "protective" : isOwnerMode ? "owner" : undefined;
   const isRoleSwitchInfoMessage = infoMessage?.startsWith("Rol activo cambiado a ") ?? false;
-  const petsWorkspace = usePetsWorkspace(authState.isAuthenticated && !isProviderMode);
-  const remindersWorkspace = useRemindersWorkspace(authState.isAuthenticated && !isProviderMode);
-  const bookingsWorkspace = useBookingsWorkspace(authState.isAuthenticated && !isProviderMode, null);
-  const marketplaceWorkspace = useMarketplaceWorkspace(authState.isAuthenticated && !isProviderMode);
+  const petsWorkspace = usePetsWorkspace(authState.isAuthenticated && !isProviderMode, petsHouseholdScope);
+  const remindersWorkspace = useRemindersWorkspace(isOwnerMode);
+  const bookingsWorkspace = useBookingsWorkspace(isOwnerMode, null);
+  const marketplaceWorkspace = useMarketplaceWorkspace(isOwnerMode);
   const selectedHouseholdSummary =
     petsWorkspace.householdSnapshot?.households.find((household) => household.id === petsWorkspace.selectedHouseholdId) ??
     petsWorkspace.householdSnapshot?.households[0] ??
@@ -1545,8 +1587,12 @@ export function CoreHomeScreen() {
     selectedHouseholdSummary?.name ?? "Hogar principal";
   const selectedHouseholdIsProtective = selectedHouseholdSummary?.householdType === "protective";
   const accountOnboardingTasks =
-    snapshot?.onboardingTasks.filter((task) => !isProviderMode || task.id !== "add_payment_method") ?? [];
-  const isAccountSectionActive = isProviderMode ? activeProviderSection === "cuenta" : activeOwnerSection === "cuenta";
+    snapshot?.onboardingTasks.filter((task) => isOwnerMode || task.id !== "add_payment_method") ?? [];
+  const isAccountSectionActive = isProviderMode
+    ? activeProviderSection === "cuenta"
+    : isProtectiveMode
+      ? activeFosterSection === "cuenta"
+      : activeOwnerSection === "cuenta";
   const ownerHouseholdCount = petsWorkspace.householdSnapshot?.households.length ?? 0;
   const protectiveHouseholdCount =
     petsWorkspace.householdSnapshot?.households.filter((household) => household.householdType === "protective").length ?? 0;
@@ -1554,21 +1600,20 @@ export function CoreHomeScreen() {
   const ownerNeedsHouseholdSetup =
     authState.isAuthenticated &&
     Boolean(snapshot) &&
-    !isProviderMode &&
+    isOwnerMode &&
     !petsWorkspace.isLoading &&
     !isFosterOnboardingIntent &&
     ownerHouseholdCount === 0;
   const ownerNeedsProtectiveHouseholdSetup =
     authState.isAuthenticated &&
     Boolean(snapshot) &&
-    !isProviderMode &&
+    (isProtectiveMode || isFosterOnboardingIntent) &&
     !petsWorkspace.isLoading &&
-    isFosterOnboardingIntent &&
     protectiveHouseholdCount === 0;
   const ownerNeedsFirstPetSetup =
     authState.isAuthenticated &&
     Boolean(snapshot) &&
-    !isProviderMode &&
+    isOwnerMode &&
     !petsWorkspace.isLoading &&
     !isFosterOnboardingIntent &&
     ownerHouseholdCount > 0 &&
@@ -1589,7 +1634,11 @@ export function CoreHomeScreen() {
     setPendingPetHubPetId(context.petId);
     setActiveOwnerPetFromSelection(context);
     setActivePetHubPanel("detalle");
-    setActiveOwnerSection("mascotas");
+    if (isProtectiveMode) {
+      setActiveFosterSection("acogida");
+    } else {
+      setActiveOwnerSection("mascotas");
+    }
     await petsWorkspace.selectHousehold(context.householdId);
     setPendingPetHubPetId(context.petId);
     setActiveOwnerPetFromSelection(context);
@@ -1701,7 +1750,7 @@ export function CoreHomeScreen() {
     }
 
     if (task.id === "add_payment_method") {
-      if (isProviderMode) {
+      if (!isOwnerMode) {
         Alert.alert("No disponible en este modo", "Los metodos guardados se gestionan desde el modo Propietario de mascota.");
         return;
       }
@@ -1766,10 +1815,12 @@ export function CoreHomeScreen() {
               ownerName={`${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || snapshot.profile.email}
               section={activeProviderSection}
             />
+          ) : isProtectiveMode ? (
+            <FosterShellHeader section={activeFosterSection} />
           ) : activeOwnerSection === "inicio" ? null : (
-          <OwnerShellHeader
-            section={activeOwnerSection}
-          />
+            <OwnerShellHeader
+              section={activeOwnerSection}
+            />
           )
         ) : (
           <AuthWelcomeHero activePanel={authAccessPanel} onChange={setAuthAccessPanel} />
@@ -1780,7 +1831,7 @@ export function CoreHomeScreen() {
         {!configError && infoMessage && !isRoleSwitchInfoMessage ? <Notice message={infoMessage} tone="info" /> : null}
         {authState.isAuthenticated &&
         snapshot &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -2621,7 +2672,7 @@ export function CoreHomeScreen() {
               </View>
             </CoreSectionCard>
 
-            {!isProviderMode ? (
+            {isOwnerMode ? (
               <CoreSectionCard
                 eyebrow="Pagos"
                 title="Tarjetas guardadas"
@@ -2732,6 +2783,7 @@ export function CoreHomeScreen() {
                 <HouseholdsWorkspace
                   enabled
                   focusSection={accountFocusSection}
+                  householdTypeScope={isProtectiveMode ? "protective" : "owner"}
                   onHouseholdCreated={petsWorkspace.refresh}
                   onPetTransferAccepted={handlePetTransferAccepted}
                 />
@@ -2750,10 +2802,15 @@ export function CoreHomeScreen() {
             </View>
             <HouseholdsWorkspace
               enabled
+              householdTypeScope="protective"
               onHouseholdCreated={async () => {
                 await petsWorkspace.refresh();
                 setPostAuthOwnerIntent(null);
-                setActiveOwnerSection("cuenta");
+                if (isProtectiveMode) {
+                  setActiveFosterSection("cuenta");
+                } else {
+                  setActiveOwnerSection("cuenta");
+                }
               }}
               presentation="protectiveOnboarding"
             />
@@ -2770,6 +2827,7 @@ export function CoreHomeScreen() {
             </View>
             <HouseholdsWorkspace
               enabled
+              householdTypeScope="owner"
               onHouseholdCreated={async () => {
                 await petsWorkspace.refresh();
                 setActiveOwnerSection("inicio");
@@ -2808,23 +2866,62 @@ export function CoreHomeScreen() {
 
         {authState.isAuthenticated &&
         snapshot &&
-        !isProviderMode &&
+        isProtectiveMode &&
+        !ownerNeedsProtectiveHouseholdSetup &&
+        activeFosterSection === "inicio" ? (
+          <FosterHome
+            householdName={selectedHouseholdIsProtective ? defaultHouseholdName : "Familia protectora"}
+            onNavigate={setActiveFosterSection}
+            pets={petsWorkspace.pets.filter((pet) => pet.householdId === selectedHouseholdSummary?.id)}
+            protectiveProfile={activeProtectiveProfile}
+          />
+        ) : null}
+
+        {authState.isAuthenticated &&
+        isProtectiveMode &&
+        !ownerNeedsProtectiveHouseholdSetup &&
+        (activeFosterSection === "acogida" || activeFosterSection === "publicaciones" || activeFosterSection === "solicitudes") ? (
+          <>
+            {activeFosterSection !== "acogida" ? (
+              <CoreSectionCard
+                eyebrow={activeFosterSection === "publicaciones" ? "Publicaciones" : "Solicitudes"}
+                title={activeFosterSection === "publicaciones" ? "Gestiona publicaciones de adopcion" : "Revisa familias interesadas"}
+                description={
+                  activeFosterSection === "publicaciones"
+                    ? "Selecciona una mascota bajo acogida para preparar historia, fotos, revision y visibilidad."
+                    : "Selecciona una mascota publicada para ver solicitudes, avanzar estados e iniciar transferencia cuando corresponda."
+                }
+              >
+                <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                  Las acciones se muestran dentro del expediente de cada mascota bajo acogida y siguen protegidas por familia protectora aprobada.
+                </Text>
+              </CoreSectionCard>
+            ) : null}
+            <PetsWorkspace
+              activePanel={activePetHubPanel}
+              contextPetId={activeOwnerPetContextId}
+              enabled
+              ownerReminders={[]}
+              onContextChange={(context) => {
+                setActiveOwnerPetFromSelection(context);
+
+                if (pendingPetHubPetId && context.petId === pendingPetHubPetId) {
+                  setPendingPetHubPetId(null);
+                }
+              }}
+              onPanelChange={setActivePetHubPanel}
+            />
+          </>
+        ) : null}
+
+        {authState.isAuthenticated &&
+        snapshot &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
         activeOwnerSection === "inicio" ? (
-          selectedHouseholdIsProtective ? (
-            <FosterHome
-              householdName={defaultHouseholdName}
-              onNavigate={setActiveOwnerSection}
-              onOpenAdoption={() => {
-                setActiveOwnerSection("adopcion");
-              }}
-              pets={petsWorkspace.pets.filter((pet) => pet.householdId === selectedHouseholdSummary?.id)}
-              protectiveProfile={activeProtectiveProfile}
-            />
-          ) : (
-            <OwnerHome
+          <OwnerHome
               activePetId={activeOwnerPetContextForModules.petId}
               bookings={bookingsWorkspace.bookings}
               householdName={defaultHouseholdName}
@@ -2856,10 +2953,9 @@ export function CoreHomeScreen() {
               reminders={remindersWorkspace.reminders}
               serviceHighlights={marketplaceWorkspace.homeSnapshot?.categoryHighlights ?? []}
             />
-          )
         ) : null}
         {authState.isAuthenticated &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -2902,7 +2998,7 @@ export function CoreHomeScreen() {
           </>
         ) : null}
         {authState.isAuthenticated &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -2927,7 +3023,7 @@ export function CoreHomeScreen() {
           />
         ) : null}
         {authState.isAuthenticated &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -2942,7 +3038,7 @@ export function CoreHomeScreen() {
           />
         ) : null}
         {authState.isAuthenticated &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -2990,7 +3086,7 @@ export function CoreHomeScreen() {
           </>
         ) : null}
         {authState.isAuthenticated &&
-        !isProviderMode &&
+        isOwnerMode &&
         !ownerNeedsHouseholdSetup &&
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
@@ -3024,8 +3120,12 @@ export function CoreHomeScreen() {
             ...visualTokens.mobile.softShadow
           }}
         >
-          {(isProviderMode ? providerSections : ownerBottomSections).map((section) => {
-            const isActive = isProviderMode ? activeProviderSection === section.id : activeOwnerSection === section.id;
+          {(isProviderMode ? providerSections : isProtectiveMode ? fosterSections : ownerBottomSections).map((section) => {
+            const isActive = isProviderMode
+              ? activeProviderSection === section.id
+              : isProtectiveMode
+                ? activeFosterSection === section.id
+                : activeOwnerSection === section.id;
             const ownerNavIcon =
               section.id === "inicio"
                 ? "home"
@@ -3054,6 +3154,16 @@ export function CoreHomeScreen() {
                           : section.id === "estado"
                             ? "shield"
                             : "user";
+            const fosterNavIcon: OwnerIconName =
+              section.id === "inicio"
+                ? "home"
+                : section.id === "acogida"
+                  ? "paw"
+                  : section.id === "publicaciones"
+                    ? "heart"
+                    : section.id === "solicitudes"
+                      ? "chat"
+                      : "user";
 
             return (
               <Pressable
@@ -3064,6 +3174,11 @@ export function CoreHomeScreen() {
                     if (section.id === "mensajes") {
                       setChatFocusVersion((currentVersion) => currentVersion + 1);
                     }
+                    return;
+                  }
+
+                  if (isProtectiveMode) {
+                    setActiveFosterSection(section.id as FosterSectionId);
                     return;
                   }
 
@@ -3086,7 +3201,7 @@ export function CoreHomeScreen() {
                   paddingVertical: 7
                 }}
               >
-                {!isProviderMode ? (
+                {!isProviderMode && !isProtectiveMode ? (
                   <View>
                     <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={ownerNavIcon} size={21} />
                     {section.id === "mensajes" ? (
@@ -3105,6 +3220,8 @@ export function CoreHomeScreen() {
                       />
                     ) : null}
                   </View>
+                ) : isProtectiveMode ? (
+                  <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={fosterNavIcon} size={20} />
                 ) : (
                   <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={providerNavIcon} size={20} />
                 )}
@@ -3113,7 +3230,7 @@ export function CoreHomeScreen() {
                   adjustsFontSizeToFit
                   style={{
                     color: isActive ? colorTokens.accentDark : colorTokens.muted,
-                    fontSize: isProviderMode ? 9 : 10,
+                    fontSize: isProviderMode || isProtectiveMode ? 9 : 10,
                     fontWeight: isActive ? "800" : "600",
                     minWidth: 0,
                     textAlign: "center"

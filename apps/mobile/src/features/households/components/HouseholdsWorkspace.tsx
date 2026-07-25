@@ -245,6 +245,7 @@ function togglePermission(currentPermissions: HouseholdPermission[], permission:
 type HouseholdsWorkspaceProps = {
   enabled: boolean;
   focusSection?: "petInvitations" | null;
+  householdTypeScope?: HouseholdType;
   onHouseholdCreated?: () => void | Promise<void>;
   onPetTransferAccepted?: (context: { householdId: Uuid; petId: Uuid }) => void | Promise<void>;
   presentation?: "standard" | "ownerOnboarding" | "protectiveOnboarding";
@@ -253,6 +254,7 @@ type HouseholdsWorkspaceProps = {
 export function HouseholdsWorkspace({
   enabled,
   focusSection = null,
+  householdTypeScope,
   onHouseholdCreated,
   onPetTransferAccepted,
   presentation = "standard"
@@ -268,7 +270,7 @@ export function HouseholdsWorkspace({
     clearMessages,
     selectHousehold,
     runAction
-  } = useHouseholdsWorkspace(enabled);
+  } = useHouseholdsWorkspace(enabled, householdTypeScope);
   const [createHouseholdName, setCreateHouseholdName] = useState("");
   const [createHouseholdType, setCreateHouseholdType] = useState<HouseholdType>("owner");
   const [inviteEmail, setInviteEmail] = useState("");

@@ -21,7 +21,24 @@ interface UsePetsWorkspaceResult {
   runAction: <T>(action: () => Promise<T>, successMessage?: string, refreshAfter?: boolean) => Promise<T>;
 }
 
-export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
+type HouseholdTypeScope = "owner" | "protective";
+
+function applyHouseholdTypeScope(snapshot: HouseholdsSnapshot, householdTypeScope?: HouseholdTypeScope): HouseholdsSnapshot {
+  if (!householdTypeScope) {
+    return snapshot;
+  }
+
+  const scopedHouseholds = snapshot.households.filter((household) => household.householdType === householdTypeScope);
+  const scopedHouseholdIds = new Set(scopedHouseholds.map((household) => household.id));
+
+  return {
+    ...snapshot,
+    households: scopedHouseholds,
+    pendingInvitations: snapshot.pendingInvitations.filter((invitation) => scopedHouseholdIds.has(invitation.householdId))
+  };
+}
+
+export function usePetsWorkspace(enabled: boolean, householdTypeScope?: HouseholdTypeScope): UsePetsWorkspaceResult {
   const mountedRef = useRef(true);
   const selectedHouseholdIdRef = useRef<Uuid | null>(null);
   const selectedPetIdRef = useRef<Uuid | null>(null);
@@ -106,7 +123,10 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
     setIsLoading(true);
 
     try {
-      const nextHouseholdSnapshot = await getMobileHouseholdsApiClient().getHouseholdsSnapshot();
+      const nextHouseholdSnapshot = applyHouseholdTypeScope(
+        await getMobileHouseholdsApiClient().getHouseholdsSnapshot(),
+        householdTypeScope
+      );
 
       if (!mountedRef.current) {
         return;
@@ -174,7 +194,7 @@ export function usePetsWorkspace(enabled: boolean): UsePetsWorkspaceResult {
     return () => {
       mountedRef.current = false;
     };
-  }, [enabled]);
+  }, [enabled, householdTypeScope]);
 
   return {
     householdSnapshot,

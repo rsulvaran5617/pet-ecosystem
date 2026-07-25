@@ -1,4 +1,4 @@
-import type { HouseholdDetail, HouseholdsSnapshot, Uuid } from "@pet/types";
+import type { HouseholdDetail, HouseholdsSnapshot, HouseholdType, Uuid } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
 import { getMobileHouseholdsApiClient } from "../../core/services/supabase-mobile";
@@ -17,7 +17,22 @@ interface UseHouseholdsWorkspaceResult {
   runAction: <T>(action: () => Promise<T>, successMessage?: string, refreshAfter?: boolean) => Promise<T>;
 }
 
-export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspaceResult {
+function applyHouseholdTypeScope(snapshot: HouseholdsSnapshot, householdTypeScope?: HouseholdType): HouseholdsSnapshot {
+  if (!householdTypeScope) {
+    return snapshot;
+  }
+
+  const scopedHouseholds = snapshot.households.filter((household) => household.householdType === householdTypeScope);
+  const scopedHouseholdIds = new Set(scopedHouseholds.map((household) => household.id));
+
+  return {
+    ...snapshot,
+    households: scopedHouseholds,
+    pendingInvitations: snapshot.pendingInvitations.filter((invitation) => scopedHouseholdIds.has(invitation.householdId))
+  };
+}
+
+export function useHouseholdsWorkspace(enabled: boolean, householdTypeScope?: HouseholdType): UseHouseholdsWorkspaceResult {
   const mountedRef = useRef(true);
   const selectedHouseholdIdRef = useRef<Uuid | null>(null);
   const [snapshot, setSnapshot] = useState<HouseholdsSnapshot | null>(null);
@@ -62,7 +77,10 @@ export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspace
     setIsLoading(true);
 
     try {
-      const nextSnapshot = await getMobileHouseholdsApiClient().getHouseholdsSnapshot();
+      const nextSnapshot = applyHouseholdTypeScope(
+        await getMobileHouseholdsApiClient().getHouseholdsSnapshot(),
+        householdTypeScope
+      );
 
       if (!mountedRef.current) {
         return;
@@ -130,7 +148,7 @@ export function useHouseholdsWorkspace(enabled: boolean): UseHouseholdsWorkspace
     return () => {
       mountedRef.current = false;
     };
-  }, [enabled]);
+  }, [enabled, householdTypeScope]);
 
   return {
     snapshot,

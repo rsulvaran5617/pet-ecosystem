@@ -64,6 +64,16 @@ Decision 2026-07-25:
 - no hay backfill automatico de roles ni conversion de hogares existentes.
 - `pet_owner` queda reservado para hogares familiares y mascotas propias.
 
+## Role-Foster-B - separacion de experiencia
+
+Decision 2026-07-25:
+
+- mobile renderiza un shell propio cuando el rol activo es `protective_family`.
+- el shell Foster no muestra marketplace comercial, reservas owner, payment-ready owner ni gestion de mascotas propias como navegacion principal.
+- mobile owner (`pet_owner`) conserva experiencia de hogares familiares, mascotas propias, servicios, reservas, mensajes y cuenta.
+- web general mantiene `protective_family` como entrada hacia `/foster`, no como owner web.
+- un usuario dual puede cambiar de rol explicitamente; el rol activo decide la experiencia visible.
+
 ## APIs esperadas
 - `POST /auth/register`
 - `POST /auth/login`

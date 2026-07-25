@@ -8,6 +8,8 @@ Foster-1A, Foster-2A y Foster-3A ya estan implementados y aplicados remoto: fami
 
 Este alcance no modifica flujos actuales de owner, provider, bookings, payments, QR, evidencias, geolocalizacion ni marketplace comercial de servicios.
 
+Nota Role-Foster-B 2026-07-25: la operacion de familia protectora queda separada visualmente del rol owner en mobile. `protective_family` usa navegacion Foster propia y trabaja sobre households `protective`; `pet_owner` conserva mascotas propias, servicios y reservas, y puede interactuar con adopciones solo como adoptante. Esta separacion no mueve `pets.household_id`, no duplica mascotas y no agrega migraciones.
+
 Nota operativa 2026-06-24: se agrega hotfix remoto para `create_pet_adoption_listing`, manteniendo la misma regla funcional y corrigiendo el orden de parametros usado al escribir `audit_logs`. Sin este ajuste, guardar una publicacion podia fallar con `function public.insert_audit_log(...) does not exist`.
 
 Nota operativa 2026-07-07: se aplican hotfixes remotos `20260707173000_foster_adoption_detail_ambiguous_id_fix.sql` y `20260707184500_foster_transfer_invitations_ambiguous_id_fix.sql`. `get_pet_adoption_listing_detail` ahora filtra resultados derivados con alias explicitos (`published_listing.id`, `owned_listing.id`) y `list_incoming_pet_transfer_invitations` califica `profile.id`; ambos evitan el error `column reference "id" is ambiguous` al cargar publicaciones en mobile `Mascotas que buscan hogar`.
