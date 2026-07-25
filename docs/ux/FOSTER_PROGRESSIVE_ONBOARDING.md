@@ -476,9 +476,13 @@ Validaciones:
 
 ### UX-FOSTER-1C - Wizard de creacion/solicitud de Familia Protectora
 
+Estado: implementado localmente.
+
 Objetivo:
 
 - Convertir la solicitud protectora en pasos cortos: identidad, ubicacion, experiencia/contacto, revision.
+- La implementacion mobile reutiliza `HouseholdsWorkspace` y los RPC/API existentes; no cambia modelo, RLS ni contratos.
+- El usuario avanza por pasos, ve completitud, revisa un resumen final y solo desde `Revision` puede guardar borrador o enviar a revision administrativa.
 
 Archivos probables:
 

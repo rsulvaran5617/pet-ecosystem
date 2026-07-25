@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1C solicitud protectora guiada
+
+- Owner mobile `Cuenta > Hogares > Familia protectora` convierte la solicitud interna en wizard corto: `Identidad`, `Ubicacion`, `Contacto` y `Revision`.
+- El wizard reutiliza los campos y API Foster existentes, muestra completitud por paso, bloquea avance minimo donde aplica y deja `Guardar borrador` / `Enviar a revision` solo en el resumen final.
+- No se tocaron Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni geolocalizacion.
+
 # Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1B home progresiva
 
 - Owner mobile `Inicio` detecta si el household activo es `protective` y muestra una home de Familia Protectora en lugar del dashboard owner normal.
