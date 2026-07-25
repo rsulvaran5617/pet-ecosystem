@@ -247,7 +247,7 @@ type HouseholdsWorkspaceProps = {
   focusSection?: "petInvitations" | null;
   onHouseholdCreated?: () => void | Promise<void>;
   onPetTransferAccepted?: (context: { householdId: Uuid; petId: Uuid }) => void | Promise<void>;
-  presentation?: "standard" | "ownerOnboarding";
+  presentation?: "standard" | "ownerOnboarding" | "protectiveOnboarding";
 };
 
 export function HouseholdsWorkspace({
@@ -299,6 +299,8 @@ export function HouseholdsWorkspace({
   const [incomingPetTransfers, setIncomingPetTransfers] = useState<PetTransferRecord[]>([]);
   const [isTransfersLoading, setIsTransfersLoading] = useState(false);
   const isOwnerOnboarding = presentation === "ownerOnboarding";
+  const isProtectiveOnboarding = presentation === "protectiveOnboarding";
+  const isGuidedOnboarding = isOwnerOnboarding || isProtectiveOnboarding;
 
   async function loadProtectiveProfile(householdId: string | null) {
     if (!householdId) {
@@ -358,7 +360,10 @@ export function HouseholdsWorkspace({
     if (isOwnerOnboarding && createHouseholdType !== "owner") {
       setCreateHouseholdType("owner");
     }
-  }, [createHouseholdType, isOwnerOnboarding]);
+    if (isProtectiveOnboarding && createHouseholdType !== "protective") {
+      setCreateHouseholdType("protective");
+    }
+  }, [createHouseholdType, isOwnerOnboarding, isProtectiveOnboarding]);
 
   useEffect(() => {
     void loadProtectiveProfile(selectedHouseholdId);
@@ -582,24 +587,34 @@ export function HouseholdsWorkspace({
       {focusSection === "petInvitations" ? renderPetTransferInvitationsCard() : null}
 
       <CoreSectionCard
-        eyebrow={isOwnerOnboarding ? "Paso 6 de 10" : "Hogar"}
-        title={isOwnerOnboarding ? "Crea tu hogar" : "Crea tu hogar"}
+        eyebrow={isOwnerOnboarding ? "Paso 6 de 10" : isProtectiveOnboarding ? "Familia protectora" : "Hogar"}
+        title={isProtectiveOnboarding ? "Crea tu Familia Protectora" : "Crea tu hogar"}
         description={
           isOwnerOnboarding
             ? "Un hogar te permite organizar tu familia, mascotas y servicios en un solo lugar."
+            : isProtectiveOnboarding
+              ? "Este espacio estara separado de tu hogar familiar y necesitara revision admin antes de publicar mascotas en adopcion."
             : "Tu hogar organiza las mascotas, las personas que pueden ayudar y las reservas familiares. Es el primer paso antes de registrar una mascota."
         }
       >
         <View style={{ gap: 12 }}>
-          {isOwnerOnboarding ? (
+          {isGuidedOnboarding ? (
             <>
               <HouseholdOnboardingIllustration />
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-                {[
-                  { label: "Cuenta", tone: "done" },
-                  { label: "Hogar", tone: "active" },
-                  { label: "Mascota", tone: "next" }
-                ].map((step) => (
+                {(isProtectiveOnboarding
+                  ? [
+                      { label: "Cuenta", tone: "done" },
+                      { label: "Familia", tone: "active" },
+                      { label: "Revision", tone: "next" },
+                      { label: "Publicar", tone: "next" }
+                    ]
+                  : [
+                      { label: "Cuenta", tone: "done" },
+                      { label: "Hogar", tone: "active" },
+                      { label: "Mascota", tone: "next" }
+                    ]
+                ).map((step) => (
                   <View
                     key={step.label}
                     style={{
@@ -626,13 +641,17 @@ export function HouseholdsWorkspace({
             </>
           ) : null}
           <Field
-            helperText="Puedes usar un nombre familiar, por ejemplo: Hogar Perez."
-            label="Nombre del hogar"
+            helperText={
+              isProtectiveOnboarding
+                ? "Usa el nombre con el que tu familia protectora sera reconocida internamente."
+                : "Puedes usar un nombre familiar, por ejemplo: Hogar Perez."
+            }
+            label={isProtectiveOnboarding ? "Nombre de la familia protectora" : "Nombre del hogar"}
             onChange={setCreateHouseholdName}
-            placeholder="Nombre de tu hogar"
+            placeholder={isProtectiveOnboarding ? "Ej. Familia Protectora Patitas" : "Nombre de tu hogar"}
             value={createHouseholdName}
           />
-          {isOwnerOnboarding ? (
+          {isGuidedOnboarding ? (
             <View
               style={{
                 backgroundColor: "rgba(15,118,110,0.08)",
@@ -644,9 +663,13 @@ export function HouseholdsWorkspace({
               }}
             >
               <Text style={{ color: "#0f766e", fontSize: 12, fontWeight: "900", textTransform: "uppercase" }}>Tipo de hogar</Text>
-              <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>Hogar familiar</Text>
+              <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>
+                {isProtectiveOnboarding ? "Familia protectora" : "Hogar familiar"}
+              </Text>
               <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                Este espacio sera para tus mascotas, reservas y recordatorios familiares. Las familias protectoras se crean despues en un flujo separado.
+                {isProtectiveOnboarding
+                  ? "Aqui administraras mascotas bajo acogida, publicaciones y solicitudes de adopcion despues de la aprobacion."
+                  : "Este espacio sera para tus mascotas, reservas y recordatorios familiares. Las familias protectoras se crean despues en un flujo separado."}
               </Text>
             </View>
           ) : (
@@ -678,10 +701,18 @@ export function HouseholdsWorkspace({
           )}
           <Button
             disabled={isSubmitting || isLoading || !createHouseholdName.trim()}
-            label={isOwnerOnboarding ? "Crear hogar familiar" : createHouseholdType === "protective" ? "Crear familia protectora" : "Crear mi hogar"}
+            label={
+              isProtectiveOnboarding
+                ? "Crear familia protectora"
+                : isOwnerOnboarding
+                  ? "Crear hogar familiar"
+                  : createHouseholdType === "protective"
+                    ? "Crear familia protectora"
+                    : "Crear mi hogar"
+            }
             onPress={() => {
               clearMessages();
-              const nextHouseholdType = isOwnerOnboarding ? "owner" : createHouseholdType;
+              const nextHouseholdType = isOwnerOnboarding ? "owner" : isProtectiveOnboarding ? "protective" : createHouseholdType;
 
               void runAction(
                 () =>
@@ -689,7 +720,9 @@ export function HouseholdsWorkspace({
                     name: createHouseholdName.trim(),
                     householdType: nextHouseholdType
                   }),
-                nextHouseholdType === "protective" ? "Familia protectora creada." : "Hogar creado. Ahora puedes registrar tu primera mascota."
+                nextHouseholdType === "protective"
+                  ? "Familia protectora creada. Ahora puedes solicitar revision admin."
+                  : "Hogar creado. Ahora puedes registrar tu primera mascota."
               ).then(async () => {
                 setCreateHouseholdName("");
                 setCreateHouseholdType("owner");
@@ -700,7 +733,7 @@ export function HouseholdsWorkspace({
         </View>
       </CoreSectionCard>
 
-      {!isOwnerOnboarding || snapshot?.pendingInvitations.length ? (
+      {!isGuidedOnboarding || snapshot?.pendingInvitations.length ? (
         <CoreSectionCard
           eyebrow="Invitaciones"
           title="Invitaciones pendientes"
@@ -749,9 +782,9 @@ export function HouseholdsWorkspace({
         </CoreSectionCard>
       ) : null}
 
-      {!isOwnerOnboarding && focusSection !== "petInvitations" ? renderPetTransferInvitationsCard() : null}
+      {!isGuidedOnboarding && focusSection !== "petInvitations" ? renderPetTransferInvitationsCard() : null}
 
-      {!isOwnerOnboarding ? (
+      {!isGuidedOnboarding ? (
       <CoreSectionCard
         eyebrow="Hogares"
         title="Lista y detalle basico"

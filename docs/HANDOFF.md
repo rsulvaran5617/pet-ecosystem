@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1A onboarding
+
+- Owner mobile `Crear cuenta` agrega una intencion explicita `Familia protectora` sin crear rol global nuevo; se registra como rol tecnico `pet_owner` y Foster sigue siendo capacidad de `household`.
+- Tras el registro/verificacion en la misma sesion, si no existe un household `protective`, la app guia a crear una `Familia Protectora` separada con copy de revision admin y sin forzar el alta de mascota propia.
+- `HouseholdsWorkspace` suma `presentation="protectiveOnboarding"` para crear hogares protectores de forma guiada, manteniendo `ownerOnboarding` como hogar familiar.
+- No se tocaron Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni geolocalizacion.
+
 # Handoff 2026-07-24 - Mobile polish vacunas y reservas
 
 - Owner mobile `Mascotas > Salud > Vacunas` ajusta el bloque `Sticker / soporte documental`: el chip de vigencia pasa a una linea propia y los nombres de archivo/sticker admiten dos lineas para evitar compresion en pantallas pequenas.
