@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1B home progresiva
+
+- Owner mobile `Inicio` detecta si el household activo es `protective` y muestra una home de Familia Protectora en lugar del dashboard owner normal.
+- La home Foster muestra estado de revision, tren `Familia -> Revision -> Mascotas -> Publicar -> Adoptar`, siguiente paso contextual y accesos a mascotas bajo acogida, vitrina publica y perfil/revision.
+- Si el household activo es `owner`, se conserva el Inicio owner actual; el banner `Mascota activa` no se muestra encima de la home Foster para reducir confusion.
+- No se tocaron Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni geolocalizacion.
+
 # Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1A onboarding
 
 - Owner mobile `Crear cuenta` agrega una intencion explicita `Familia protectora` sin crear rol global nuevo; se registra como rol tecnico `pet_owner` y Foster sigue siendo capacidad de `household`.

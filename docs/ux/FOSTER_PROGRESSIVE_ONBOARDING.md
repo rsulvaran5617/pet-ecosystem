@@ -443,9 +443,13 @@ Validaciones:
 
 ### UX-FOSTER-1B - Home/estado progresivo para familia protectora mobile
 
+Estado: implementado localmente.
+
 Objetivo:
 
 - Si el contexto activo es `protective`, mostrar una home Foster con siguiente paso y evitar que la familia protectora parezca un owner normal.
+- La pantalla `Inicio` muestra estado de revision, tren corto `Familia -> Revision -> Mascotas -> Publicar -> Adoptar`, CTA contextual y accesos a mascotas bajo acogida, vitrina y perfil/revision.
+- Si el hogar activo es `owner`, se conserva la home owner actual.
 
 Archivos probables:
 
