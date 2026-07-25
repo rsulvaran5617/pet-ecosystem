@@ -2,7 +2,7 @@
 
 ## Estado
 
-Documento de diseno UX/arquitectura de navegacion. UX-FOSTER-1A queda implementado en mobile como intencion guiada de registro sin cambios Supabase, migraciones, RLS ni contratos API.
+Documento de diseno UX/arquitectura de navegacion. UX-FOSTER-1A queda implementado en mobile como intencion guiada de registro. Role-Foster-A supersede la decision inicial de no crear rol global y agrega `protective_family` como rol de experiencia, sin reemplazar las validaciones por household protector aprobado.
 
 Este documento prepara la separacion de experiencia entre:
 
@@ -13,11 +13,11 @@ Este documento prepara la separacion de experiencia entre:
 
 El modelo tecnico Foster ya esta avanzado: existen hogares `owner` y `protective`, perfiles protectores, perfil publico moderado, publicaciones con galeria, solicitudes, pipeline y transferencia privada. El principal problema actual es de experiencia: una familia protectora puede sentirse como un owner normal que descubre funciones escondidas dentro de Hogares o Mascotas.
 
-La recomendacion es mantener Foster como capacidad del `household`, no como rol global duro, pero presentar la experiencia como una intencion clara desde el registro y onboarding: `Rescatar o dar mascotas en adopcion`. Esa intencion debe guiar al usuario a crear una `Familia protectora` separada (`household_type = protective`) y luego avanzar por un tren de pasos.
+La recomendacion vigente es mantener Foster como capacidad operacional del `household`, pero agregar el rol global `protective_family` para separar la experiencia desde registro y cambio de modo. Ese rol debe guiar al usuario a crear una `Familia protectora` separada (`household_type = protective`) y luego avanzar por un tren de pasos.
 
 Principio central:
 
-> A nivel UX, el usuario elige "Soy familia protectora / rescatista"; a nivel datos, se crea y opera un household `protective` aprobado por admin.
+> A nivel UX, el usuario elige "Soy familia protectora / rescatista"; a nivel cuenta queda rol `protective_family`; a nivel permisos, se crea y opera un household `protective` aprobado por admin.
 
 ## Diagnostico del flujo actual
 
@@ -69,7 +69,7 @@ Principio central:
 
 ## Decision de arquitectura UX
 
-Decision recomendada:
+Decision original, supersedida por Role-Foster-A:
 
 - Mantener Foster como capacidad del `household`.
 - No crear un rol global nuevo como primer paso.
@@ -77,12 +77,18 @@ Decision recomendada:
 - Esa intencion debe crear o guiar a crear un household `protective`.
 - El usuario puede tener hogar owner y familia protectora, pero deben operar como contextos separados.
 
+Decision vigente Role-Foster-A:
+
+- Crear rol global `protective_family` para intencion, navegacion y comunicacion clara.
+- Mantener permisos Foster ligados al household `protective` aprobado por admin.
+- No convertir hogares `owner` ni mover mascotas por tener el nuevo rol.
+
 Razon:
 
 - El modelo actual ya protege ownership y custodia desde `household_members`.
 - La aprobacion debe depender de la familia/hogar, no solo del usuario.
 - Un mismo usuario puede administrar una familia protectora y tambien tener mascotas propias, sin mezclar mascotas ni historial.
-- Cambiar a rol global duro ahora aumentaria riesgo de permisos, migraciones y regresiones.
+- El rol `protective_family` debe mantenerse como capa de experiencia; permisos, custodia y publicaciones siguen protegidos por household `protective` aprobado.
 
 ## Principios UX para Familias Protectoras
 
@@ -644,7 +650,7 @@ Implementacion esperada:
    - `Cuidar mis mascotas`
    - `Ofrecer servicios`
    - `Rescatar o dar mascotas en adopcion`
-2. Mantener los roles existentes sin crear rol global Foster.
+2. Registrar la intencion Foster con rol `protective_family`.
 3. Si el usuario elige Foster:
    - despues de login/registro, dirigirlo al flujo de Hogares con tipo `protective` preseleccionado;
    - mostrar copy: `Crea una Familia Protectora separada para mascotas bajo acogida.`;

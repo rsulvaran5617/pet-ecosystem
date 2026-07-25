@@ -79,6 +79,12 @@ Foster-Household-B:
 - reporte de impacto: `docs/delivery/FOSTER_HOUSEHOLD_TYPE_IMPACT_REPORT.md`.
 - decision vigente: `HOGAR SULVARAN VELASCO` permanece `owner`; antes de aplicar remoto se debe crear o seleccionar un hogar protector separado.
 
+Role-Foster-A:
+
+- agrega el rol global `protective_family` para diferenciar la intencion de la cuenta desde registro/cambio de rol.
+- mantiene la autorizacion real en el household: solo `household_type = protective` con perfil protector aprobado puede operar Foster.
+- un usuario con rol `protective_family` aun debe crear o pertenecer a una Familia Protectora separada; no se convierte ningun hogar `owner` automaticamente.
+
 ## Dependencias minimas
 - core
 

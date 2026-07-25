@@ -17,6 +17,7 @@ Un usuario solo ve y modifica su propio perfil.
 
 ### user_roles
 Un usuario solo ve y modifica sus propios roles.
+Roles soportados: `pet_owner`, `provider`, `protective_family` y `admin`. `protective_family` puede ser autogestionado como intencion de experiencia, pero no reemplaza las validaciones Foster basadas en household `protective` aprobado.
 
 ### user_addresses
 Un usuario solo ve y modifica sus propias direcciones.

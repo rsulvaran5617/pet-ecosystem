@@ -123,7 +123,7 @@ function maskEmail(email: string) {
 }
 
 function isSelfServiceCoreRole(value: unknown): value is Exclude<CoreRole, "admin"> {
-  return value === "pet_owner" || value === "provider";
+  return value === "pet_owner" || value === "provider" || value === "protective_family";
 }
 
 function getRequestedRolesFromMetadata(metadata: User["user_metadata"] | null | undefined): CoreRole[] {

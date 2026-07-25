@@ -65,7 +65,8 @@ Riesgos:
 
 - hogares actuales con perfil protector podrian estar mezclando mascotas propias y en acogida.
 - publicaciones Foster existentes dependen de `household_id`; cambiar el tipo sin criterio podria ocultar acciones al usuario correcto.
-- separar por rol global de usuario no es suficiente porque el comportamiento depende del hogar/custodia, no solo del usuario.
+- separar por rol global de usuario no es suficiente como regla de permisos porque el comportamiento depende del hogar/custodia, no solo del usuario.
+- Role-Foster-A agrega `protective_family` como rol de entrada y experiencia para evitar que una Familia Protectora se perciba como un owner normal con extras; las mutaciones Foster siguen bloqueadas si no existe household `protective` aprobado.
 - requiere QA de owners con multiples hogares y familias protectoras con muchas mascotas.
 
 ## Foster-4A - Discovery de adopcion desde Inicio

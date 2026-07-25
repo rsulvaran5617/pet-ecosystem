@@ -36,7 +36,8 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - un usuario puede tener multiples roles
 - solo puede existir un rol activo por usuario
 - el rol activo define el contexto visible
-- `pet_owner` y `provider` siguen siendo roles autogestionables; `admin` solo se provisiona de forma administrativa
+- `pet_owner`, `provider` y `protective_family` son roles autogestionables; `admin` solo se provisiona de forma administrativa
+- `protective_family` separa la intencion y experiencia de familias protectoras desde el registro, pero no habilita por si solo publicaciones ni transferencias Foster
 - las preferencias forman parte del perfil base del usuario
 - las direcciones pertenecen al usuario, no al hogar
 - los metodos de pago guardados pertenecen al usuario
@@ -52,6 +53,16 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - la recuperacion incluye solicitud de email y actualizacion de password dentro de la sesion recovery de Supabase Auth
 - `public.profiles` se sincroniza desde `auth.users` mediante trigger y backfill en base de datos
 - la orquestacion de cobro real queda para `bookings` y `payments`
+
+## Role-Foster-A - rol Familia protectora
+
+Decision 2026-07-25:
+
+- se agrega el rol global `protective_family` para distinguir claramente una cuenta de Familia Protectora desde registro/login/cambio de modo.
+- el rol es una senal de experiencia y navegacion, no un permiso transaccional suficiente.
+- las acciones Foster siguen requiriendo un household separado `household_type = protective` y `protective_household_profiles.status = approved`.
+- no hay backfill automatico de roles ni conversion de hogares existentes.
+- `pet_owner` queda reservado para hogares familiares y mascotas propias.
 
 ## APIs esperadas
 - `POST /auth/register`

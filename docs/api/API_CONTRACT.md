@@ -44,6 +44,11 @@ Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas qued
 - `POST /auth/recover-access/complete`
 - `POST /auth/logout`
 
+Notas Role-Foster-A:
+
+- `RegisterInput.requestedRoles` acepta `protective_family` ademas de `pet_owner` y `provider`.
+- `protective_family` identifica la experiencia de Familia Protectora desde la cuenta; las APIs Foster siguen validando household `protective` aprobado antes de publicar, transferir o gestionar adopciones.
+
 ### Me
 
 - `GET /me`
@@ -58,6 +63,8 @@ Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas qued
 - `GET /me/payment-methods`
 - `POST /me/payment-methods`
 - `PATCH /me/payment-methods/{paymentMethodId}/default`
+
+`POST /me/roles/switch` acepta `pet_owner`, `provider` y `protective_family` para usuarios autenticados; `admin` debe permanecer provisionado administrativamente.
 
 ### Households
 

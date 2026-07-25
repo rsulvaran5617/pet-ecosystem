@@ -184,7 +184,9 @@ Foster-5 diseno propuesto:
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`
 - `profiles` concentra perfil base y preferencias
-- `user_roles` resuelve el cambio de rol basico del MVP; `admin` existe como rol global y requiere provision explicita
+- `user_roles` resuelve el cambio de rol basico del MVP; valores vigentes: `pet_owner`, `provider`, `protective_family`, `admin`
+- `protective_family` separa la experiencia de familias protectoras desde la cuenta; los permisos Foster reales dependen de un household `protective` aprobado
+- `admin` existe como rol global y requiere provision explicita
 - `user_addresses` pertenece al usuario, no al hogar
 - `payment_methods` almacena metodos guardados del usuario; la captura real de pago queda diferida
 - no mezclar ownership de dueno con ownership de proveedor

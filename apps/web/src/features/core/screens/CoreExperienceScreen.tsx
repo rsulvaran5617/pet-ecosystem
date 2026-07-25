@@ -1057,7 +1057,7 @@ function getRoleTone(role: CoreRole, isActive: boolean) {
     return "active" as const;
   }
 
-  return role === "provider" ? ("pending" as const) : ("neutral" as const);
+  return role === "provider" || role === "protective_family" ? ("pending" as const) : ("neutral" as const);
 }
 
 function getShellCopy(activeRole: CoreRole, isAuthenticated: boolean) {
@@ -1076,6 +1076,15 @@ function getShellCopy(activeRole: CoreRole, isAuthenticated: boolean) {
       title: "Consola de gestion para tu negocio pet",
       description: "Administra publicacion, servicios, disponibilidad, documentos y reservas desde una superficie web enfocada en proveedor.",
       accent: "Modo proveedor"
+    };
+  }
+
+  if (activeRole === "protective_family") {
+    return {
+      eyebrow: "Familia protectora",
+      title: "Centro de gestion para acogida y adopciones",
+      description: "Gestiona una familia protectora separada, mascotas bajo acogida, publicaciones y solicitudes responsables.",
+      accent: "Modo protector"
     };
   }
 
@@ -1290,11 +1299,15 @@ export function CoreExperienceScreen() {
             }}
           >
             <div style={{ display: "grid", gap: "4px" }}>
-              <strong>{isProviderMode ? "Vista de proveedor" : "Vista de propietario"}</strong>
+              <strong>
+                {isProviderMode ? "Vista de proveedor" : activeRole === "protective_family" ? "Vista de familia protectora" : "Vista de propietario"}
+              </strong>
               <span style={{ color: "#57534e", fontSize: "14px" }}>
                 {isProviderMode
                   ? "Solo se muestra la consola del negocio. Cambia de rol para ver hogares, mascotas y reservas como propietario."
-                  : "Solo se muestra el contexto del hogar y las reservas como propietario. Cambia de rol para operar negocios."}
+                  : activeRole === "protective_family"
+                    ? "Solo se muestra el contexto compatible con familias protectoras. Usa la consola Foster para gestionar adopciones."
+                    : "Solo se muestra el contexto del hogar y las reservas como propietario. Cambia de rol para operar negocios."}
               </span>
             </div>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
@@ -1465,7 +1478,8 @@ export function CoreExperienceScreen() {
                       onChange={(value) => setRegisterForm((currentForm) => ({ ...currentForm, role: value }))}
                       options={[
                         { label: coreRoleLabels.pet_owner, value: "pet_owner" },
-                        { label: coreRoleLabels.provider, value: "provider" }
+                        { label: coreRoleLabels.provider, value: "provider" },
+                        { label: coreRoleLabels.protective_family, value: "protective_family" }
                       ]}
                       value={registerForm.role}
                     />
@@ -1845,7 +1859,7 @@ export function CoreExperienceScreen() {
             <CoreSection
               eyebrow="Roles"
               title="Cambio basico de rol"
-              description="Aqui solo existen los contextos de propietario y proveedor; la operacion del proveedor queda fuera de EP-01."
+              description="Aqui se gestionan los modos principales de la cuenta: propietario, proveedor o familia protectora."
             >
               <div style={{ display: "grid", gap: "12px" }}>
                 {snapshot.roles.map((role) => (
@@ -2230,6 +2244,23 @@ export function CoreExperienceScreen() {
 
         {!isLoading && isProviderMode ? (
           <ProvidersWorkspace enabled hasProviderRole={hasProviderRole} providerRoleActive />
+        ) : null}
+
+        {!isLoading && authState.isAuthenticated && activeRole === "protective_family" ? (
+          <CoreSection
+            eyebrow="Familia protectora"
+            title="Continua en tu consola Foster"
+            description="La gestion de acogida, publicaciones, solicitudes y transferencias vive en una consola separada para no mezclarla con hogares familiares ni servicios comerciales."
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
+              <Button onClick={() => { window.location.href = "/foster"; }} tone="primary">
+                Abrir consola Foster
+              </Button>
+              <Button onClick={() => void refresh()} tone="secondary">
+                Actualizar estado
+              </Button>
+            </div>
+          </CoreSection>
         ) : null}
       </section>
     </main>

@@ -1528,7 +1528,9 @@ export function CoreHomeScreen() {
   const hasProviderRole = snapshot?.roles.some((role) => role.role === "provider") ?? false;
   const activeRole = snapshot?.roles.find((role) => role.isActive)?.role ?? "pet_owner";
   const assignedAccountRoles = snapshot?.roles.map((role) => role.role) ?? [];
-  const missingAccountRoles = (["pet_owner", "provider"] as CoreRole[]).filter((role) => !assignedAccountRoles.includes(role));
+  const missingAccountRoles = (["pet_owner", "provider", "protective_family"] as CoreRole[]).filter(
+    (role) => !assignedAccountRoles.includes(role)
+  );
   const isProviderMode = activeRole === "provider" && hasProviderRole;
   const isRoleSwitchInfoMessage = infoMessage?.startsWith("Rol activo cambiado a ") ?? false;
   const petsWorkspace = usePetsWorkspace(authState.isAuthenticated && !isProviderMode);
@@ -1968,7 +1970,7 @@ export function CoreHomeScreen() {
                           setRegistrationIntent(value);
                           setRegisterForm((currentForm) => ({
                             ...currentForm,
-                            role: value === "provider" ? "provider" : "pet_owner"
+                            role: value === "provider" ? "provider" : value === "foster" ? "protective_family" : "pet_owner"
                           }));
                         }}
                         options={[
@@ -1980,8 +1982,8 @@ export function CoreHomeScreen() {
                       />
                       {registrationIntent === "foster" ? (
                         <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                          Crearemos tu cuenta como propietario y luego te guiaremos para crear una Familia Protectora separada,
-                          con revision admin antes de publicar mascotas en adopcion.
+                          Crearemos tu cuenta como Familia protectora y luego te guiaremos para crear una familia separada,
+                          solicitar revision admin y publicar mascotas en adopcion solo cuando corresponda.
                         </Text>
                       ) : null}
                     </View>
@@ -2425,7 +2427,9 @@ export function CoreHomeScreen() {
                     <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
                       {role.role === "provider"
                         ? "Modo para gestionar negocios, servicios, horarios y reservas entrantes."
-                        : "Modo para gestionar hogar, mascotas, busqueda de servicios y reservas."}
+                        : role.role === "protective_family"
+                          ? "Modo para gestionar familias protectoras, mascotas bajo acogida, publicaciones y adopciones responsables."
+                          : "Modo para gestionar hogar, mascotas propias, busqueda de servicios y reservas."}
                     </Text>
                     {!role.isActive ? (
                       <Button

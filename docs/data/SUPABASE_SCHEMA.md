@@ -15,6 +15,8 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 ## Tablas MVP implementadas
 - `profiles`
 - `user_roles`
+  - `role text`: `pet_owner`, `provider`, `protective_family` o `admin`.
+  - Role-Foster-A permite `protective_family` como rol autogestionable de experiencia; no concede por si solo permisos Foster.
 - `user_addresses`
 - `payment_methods`
 - `households`

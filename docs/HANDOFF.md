@@ -22,7 +22,7 @@
 
 # Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1A onboarding
 
-- Owner mobile `Crear cuenta` agrega una intencion explicita `Familia protectora` sin crear rol global nuevo; se registra como rol tecnico `pet_owner` y Foster sigue siendo capacidad de `household`.
+- Owner mobile `Crear cuenta` agrega una intencion explicita `Familia protectora` con rol tecnico `protective_family`; Foster sigue requiriendo household separado `protective` aprobado.
 - Tras el registro/verificacion en la misma sesion, si no existe un household `protective`, la app guia a crear una `Familia Protectora` separada con copy de revision admin y sin forzar el alta de mascota propia.
 - `HouseholdsWorkspace` suma `presentation="protectiveOnboarding"` para crear hogares protectores de forma guiada, manteniendo `ownerOnboarding` como hogar familiar.
 - No se tocaron Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni geolocalizacion.
@@ -648,7 +648,7 @@
   - QA usuario confirmada: los recordatorios aparecen para la mascota.
 - `PROF-001` queda implementado, publicado e instalado en Xiaomi:
   - `Cuenta > Modo de uso` muestra rol activo, roles disponibles y descripcion de cada modo.
-  - Si falta `pet_owner` o `provider`, se muestra instruccion clara para solicitar habilitacion al equipo interno durante piloto.
+  - Si falta `pet_owner`, `provider` o `protective_family`, se muestra instruccion clara para solicitar habilitacion al equipo interno durante piloto.
   - No se crean roles automaticamente, no se tocan permisos, Supabase, DB ni contratos.
 - Validaciones ejecutadas para los cierres recientes:
   - `corepack pnpm --filter @pet/mobile lint` PASS.
