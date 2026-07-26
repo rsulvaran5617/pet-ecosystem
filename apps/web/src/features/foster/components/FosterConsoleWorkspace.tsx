@@ -255,6 +255,128 @@ function getListingOperationalStatus(
   return null;
 }
 
+type AdoptionTimelineItem = {
+  id: string;
+  title: string;
+  date: string | null;
+  summary: string;
+  detail: string;
+  tone?: "default" | "warning" | "success";
+};
+
+function getClosedAdoptionApplication(
+  listing: PetAdoptionListing,
+  applications: PetAdoptionApplication[],
+  transfers: PetTransferRecord[]
+) {
+  const listingApplications = applications.filter((application) => application.listingId === listing.id);
+  const acceptedTransfer = transfers.find((transfer) => transfer.petId === listing.petId && transfer.status === "accepted");
+
+  return (
+    listingApplications.find((application) => application.id === acceptedTransfer?.adoptionApplicationId) ??
+    listingApplications.find((application) => application.status === "converted_to_transfer") ??
+    listingApplications.find((application) => application.status === "approved") ??
+    null
+  );
+}
+
+function buildListingAdoptionTimeline(
+  listing: PetAdoptionListing,
+  applications: PetAdoptionApplication[],
+  transfers: PetTransferRecord[]
+): AdoptionTimelineItem[] {
+  const listingApplications = applications
+    .filter((application) => application.listingId === listing.id)
+    .sort((first, second) => new Date(first.submittedAt).getTime() - new Date(second.submittedAt).getTime());
+  const timeline: AdoptionTimelineItem[] = [
+    {
+      date: listing.createdAt,
+      detail: `${listing.petName} fue preparada como publicacion de adopcion dentro de esta Familia Protectora.`,
+      id: "listing-created",
+      summary: "La ficha quedo disponible para completar contenido, fotos y requisitos.",
+      title: "Publicacion creada"
+    }
+  ];
+
+  if (listing.publishedAt || listing.sharePublishedAt) {
+    timeline.push({
+      date: listing.publishedAt ?? listing.sharePublishedAt,
+      detail: "La mascota quedo visible para familias interesadas en la vitrina de adopcion.",
+      id: "listing-published",
+      summary: `${listing.city}, ${listing.countryCode}.`,
+      title: "Publicacion visible",
+      tone: "success"
+    });
+  }
+
+  listingApplications.forEach((application) => {
+    const transfer = getApplicationTransfer(application, transfers);
+
+    timeline.push({
+      date: application.submittedAt,
+      detail: `${getApplicantDisplayName(application)} envio una solicitud para adoptar a ${application.petName}. Vivienda: ${application.housingType}.`,
+      id: `application-${application.id}-submitted`,
+      summary: application.applicantEmail,
+      title: "Solicitud recibida"
+    });
+
+    if (application.status !== "submitted") {
+      timeline.push({
+        date: application.updatedAt,
+        detail:
+          application.status === "rejected"
+            ? "La Familia Protectora decidio no continuar con esta solicitud."
+            : application.status === "approved"
+              ? "La Familia Protectora selecciono esta solicitud para continuar hacia transferencia privada."
+              : application.status === "converted_to_transfer"
+                ? "La solicitud quedo asociada al cierre de adopcion."
+                : `La solicitud avanzo al estado ${applicationStatusLabels[application.status]}.`,
+        id: `application-${application.id}-status`,
+        summary: `${getApplicantDisplayName(application)} - ${applicationStatusLabels[application.status]}`,
+        title: application.status === "rejected" ? "Solicitud no seleccionada" : `Solicitud ${applicationStatusLabels[application.status].toLowerCase()}`,
+        tone: application.status === "rejected" ? "warning" : application.status === "approved" || application.status === "converted_to_transfer" ? "success" : "default"
+      });
+    }
+
+    if (transfer) {
+      timeline.push({
+        date: transfer.createdAt,
+        detail: `Se inicio transferencia privada hacia ${transfer.toHouseholdName ?? transfer.recipientEmail}. La custodia solo cambia al aceptar.`,
+        id: `transfer-${transfer.id}-created`,
+        summary: transfer.recipientEmail,
+        title: "Transferencia iniciada",
+        tone: "warning"
+      });
+
+      if (transfer.acceptedAt) {
+        timeline.push({
+          date: transfer.acceptedAt,
+          detail: `${listing.petName} conserva su identidad digital y expediente permitido en el hogar receptor${
+            transfer.toHouseholdName ? ` ${transfer.toHouseholdName}` : ""
+          }.`,
+          id: `transfer-${transfer.id}-accepted`,
+          summary: `Familia adoptante: ${transfer.toHouseholdName ?? getApplicantDisplayName(application)}`,
+          title: "Adopcion completada",
+          tone: "success"
+        });
+      }
+    }
+  });
+
+  if (listing.status === "adopted" || listing.closedAt) {
+    timeline.push({
+      date: listing.closedAt ?? listing.updatedAt,
+      detail: "La publicacion quedo cerrada para nuevas solicitudes. El expediente conserva trazabilidad de la adopcion.",
+      id: "listing-closed",
+      summary: listing.status === "adopted" ? "Estado final: adoptada." : "Estado final: cerrada.",
+      title: "Publicacion cerrada",
+      tone: "success"
+    });
+  }
+
+  return timeline.sort((first, second) => new Date(first.date ?? 0).getTime() - new Date(second.date ?? 0).getTime());
+}
+
 function coverUrl(listing: PetAdoptionListing) {
   return listing.media.find((item) => item.isCover && item.signedUrl)?.signedUrl ?? listing.media.find((item) => item.signedUrl)?.signedUrl ?? null;
 }
@@ -448,6 +570,8 @@ export function FosterConsoleWorkspace() {
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
   const [applicationPetFilter, setApplicationPetFilter] = useState("all");
   const [activeSection, setActiveSection] = useState<FosterConsoleSection>("panel");
+  const [expandedListingId, setExpandedListingId] = useState<Uuid | null>(null);
+  const [expandedTimelineItemId, setExpandedTimelineItemId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
 
   const applicationCounts = useMemo(
@@ -746,22 +870,46 @@ export function FosterConsoleWorkspace() {
               <div style={styles.listStack}>
                 {listings.length ? listings.slice(0, 8).map((listing) => {
                   const operationalStatus = getListingOperationalStatus(listing, applications, transfers);
+                  const isClosureListing = listing.status === "adopted" || operationalStatus?.label === "Adopcion cerrada";
 
                   return (
-                    <article key={listing.id} style={styles.listingCard}>
-                      {coverUrl(listing) ? <img alt="" src={coverUrl(listing) ?? ""} style={styles.coverImage} /> : <div style={styles.coverFallback}>{listing.petName.slice(0, 1).toUpperCase()}</div>}
-                      <div style={{ flex: 1 }}>
-                        <strong style={styles.itemTitle}>{listing.petName}</strong>
-                        <p style={styles.itemMeta}>{listing.title}</p>
-                        <p style={styles.itemMeta}>{listing.city}, {listing.countryCode}</p>
-                        {operationalStatus ? (
-                          <p style={styles.operationalStatusText}>{operationalStatus.label}</p>
-                        ) : null}
+                    <article key={listing.id} style={styles.listingHistoryCard}>
+                      <div style={styles.listingCard}>
+                        {coverUrl(listing) ? <img alt="" src={coverUrl(listing) ?? ""} style={styles.coverImage} /> : <div style={styles.coverFallback}>{listing.petName.slice(0, 1).toUpperCase()}</div>}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <strong style={styles.itemTitle}>{listing.petName}</strong>
+                          <p style={styles.itemMeta}>{listing.title}</p>
+                          <p style={styles.itemMeta}>{listing.city}, {listing.countryCode}</p>
+                          {operationalStatus ? (
+                            <p style={styles.operationalStatusText}>{operationalStatus.label}</p>
+                          ) : null}
+                        </div>
+                        <div style={styles.badgeStack}>
+                          <StatusBadge label={listingStatusLabels[listing.status]} tone={listing.status === "published" ? "success" : listing.status === "pending_review" ? "warning" : "neutral"} />
+                          {operationalStatus ? <StatusBadge label={operationalStatus.label} tone={operationalStatus.tone} /> : null}
+                          {isClosureListing ? (
+                            <button
+                              onClick={() => {
+                                setExpandedListingId((current) => (current === listing.id ? null : listing.id));
+                                setExpandedTimelineItemId(null);
+                              }}
+                              style={styles.secondaryButtonCompact}
+                              type="button"
+                            >
+                              {expandedListingId === listing.id ? "Ocultar historia" : "Ver historia"}
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
-                      <div style={styles.badgeStack}>
-                        <StatusBadge label={listingStatusLabels[listing.status]} tone={listing.status === "published" ? "success" : listing.status === "pending_review" ? "warning" : "neutral"} />
-                        {operationalStatus ? <StatusBadge label={operationalStatus.label} tone={operationalStatus.tone} /> : null}
-                      </div>
+                      {isClosureListing && expandedListingId === listing.id ? (
+                        <AdoptionClosureTimeline
+                          applications={applications}
+                          expandedItemId={expandedTimelineItemId}
+                          listing={listing}
+                          onToggleItem={(itemId) => setExpandedTimelineItemId((current) => (current === itemId ? null : itemId))}
+                          transfers={transfers}
+                        />
+                      ) : null}
                     </article>
                   );
                 }) : <EmptyState text="Aun no hay publicaciones para esta familia protectora." />}
@@ -860,6 +1008,72 @@ export function FosterConsoleWorkspace() {
         </section>
       ) : null}
     </main>
+  );
+}
+
+function AdoptionClosureTimeline({
+  applications,
+  expandedItemId,
+  listing,
+  onToggleItem,
+  transfers
+}: {
+  applications: PetAdoptionApplication[];
+  expandedItemId: string | null;
+  listing: PetAdoptionListing;
+  onToggleItem: (itemId: string) => void;
+  transfers: PetTransferRecord[];
+}) {
+  const selectedApplication = getClosedAdoptionApplication(listing, applications, transfers);
+  const selectedTransfer = selectedApplication ? getApplicationTransfer(selectedApplication, transfers) : undefined;
+  const timeline = buildListingAdoptionTimeline(listing, applications, transfers);
+  const applicantName = selectedApplication ? getApplicantDisplayName(selectedApplication) : null;
+  const adopterLabel = selectedTransfer?.toHouseholdName ?? applicantName ?? "Familia adoptante no identificada";
+
+  return (
+    <div style={styles.closureTimelineBox}>
+      <div style={styles.closureSummaryGrid}>
+        <InfoTile label="Familia adoptante" value={adopterLabel} />
+        <InfoTile label="Solicitante" value={selectedApplication?.applicantEmail ?? "Sin solicitud vinculada"} />
+        <InfoTile label="Transferencia" value={selectedTransfer?.status === "accepted" ? "Aceptada" : selectedTransfer?.status ?? "Sin registro"} />
+        <InfoTile label="Cierre" value={formatDate(selectedTransfer?.acceptedAt ?? listing.closedAt ?? listing.updatedAt)} />
+      </div>
+      <div style={styles.historyBox}>
+        <div style={styles.sectionHeaderCompact}>
+          <div>
+            <h4 style={styles.historyTitle}>Historia de adopcion</h4>
+            <p style={styles.itemMeta}>Abre cada evento para revisar que paso y con quien.</p>
+          </div>
+          <span style={styles.countPill}>{timeline.length} evento(s)</span>
+        </div>
+        {timeline.map((item) => {
+          const isOpen = expandedItemId === `${listing.id}:${item.id}`;
+
+          return (
+            <div key={item.id} style={styles.timelineAccordionItem}>
+              <button
+                aria-expanded={isOpen}
+                onClick={() => onToggleItem(`${listing.id}:${item.id}`)}
+                style={styles.timelineAccordionHeader}
+                type="button"
+              >
+                <span style={item.tone === "success" ? { ...styles.timelineDot, ...styles.timelineDotSuccess } : item.tone === "warning" ? { ...styles.timelineDot, ...styles.timelineDotWarning } : styles.timelineDot} />
+                <span style={styles.timelineText}>
+                  <strong style={styles.itemTitle}>{item.title}</strong>
+                  <span style={styles.itemMeta}>{formatDate(item.date)} · {item.summary}</span>
+                </span>
+                <span style={styles.accordionChevron}>{isOpen ? "Ocultar" : "Abrir"}</span>
+              </button>
+              {isOpen ? (
+                <div style={styles.timelineAccordionBody}>
+                  <p style={styles.bodyText}>{item.detail}</p>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -2364,6 +2578,8 @@ const styles: Record<string, React.CSSProperties> = {
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
   checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
   checklistItem: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "10px", padding: "10px" },
+  closureSummaryGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
+  closureTimelineBox: { background: "#f8fffd", borderTop: "1px solid rgba(15, 118, 110, 0.12)", display: "grid", gap: "12px", padding: "14px" },
   consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
   consoleShell: { alignItems: "start", display: "grid", gap: "18px", gridTemplateColumns: "260px minmax(0, 1fr)" },
   contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
@@ -2407,7 +2623,8 @@ const styles: Record<string, React.CSSProperties> = {
   iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
   itemMeta: { color: "#64748b", fontSize: "12px", lineHeight: 1.4, margin: "4px 0 0" },
   itemTitle: { color: "#0f172a", fontSize: "15px" },
-  listingCard: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
+  listingCard: { alignItems: "center", background: "#fffdf8", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
+  listingHistoryCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   listStack: { display: "grid", gap: "10px" },
   logoImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
   logoPreview: { alignItems: "center", background: "#dff7f3", borderRadius: "18px", color: "#0f766e", display: "flex", flexShrink: 0, fontSize: "18px", fontWeight: 900, height: "76px", justifyContent: "center", overflow: "hidden", width: "76px" },
@@ -2481,6 +2698,13 @@ const styles: Record<string, React.CSSProperties> = {
   tileEmptyValue: { color: "#94a3b8", fontSize: "13px", fontWeight: 800, lineHeight: 1.35 },
   tileLabel: { color: "#64748b", fontSize: "11px", fontWeight: 900, textTransform: "uppercase" },
   tileValue: { color: "#0f172a", fontSize: "15px", lineHeight: 1.25 },
+  timelineAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.1)", padding: "10px 12px 12px 42px" },
+  timelineAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "10px", padding: "11px 12px", textAlign: "left", width: "100%" },
+  timelineAccordionItem: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", overflow: "hidden" },
+  timelineDot: { background: "#cbd5e1", borderRadius: "999px", display: "inline-block", flexShrink: 0, height: "10px", width: "10px" },
+  timelineDotSuccess: { background: "#0f766e" },
+  timelineDotWarning: { background: "#f97316" },
+  timelineText: { display: "grid", flex: 1, gap: "2px", minWidth: 0 },
   transferCard: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "18px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "13px" },
   transferNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "18px", color: "#0f766e", display: "grid", gap: "4px", padding: "12px" },
   twoColumnGrid: { display: "grid", gap: "18px", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" },

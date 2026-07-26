@@ -18,6 +18,8 @@ Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. La
 
 Nota operativa 2026-07-26: se prepara redes sociales publicas para el perfil de Familia Protectora. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
 
+Nota operativa 2026-07-26: Web Foster `Publicaciones` agrega historia read-only para adopciones cerradas. La Familia Protectora puede abrir `Ver historia` en publicaciones `adopted`/cerradas para revisar familia adoptante, solicitud vinculada, transferencia privada y eventos clave del cierre en formato acordeon. Esta vista no crea nuevas reglas, no mueve custodia y reutiliza publicaciones, solicitudes y transferencias existentes.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

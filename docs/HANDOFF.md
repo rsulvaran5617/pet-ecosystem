@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster historia de adopcion cerrada web
+
+- Web `/foster > Publicaciones` agrega `Ver historia` para publicaciones con adopcion cerrada/adoptada.
+- La historia muestra resumen de familia adoptante, solicitante, transferencia y fecha de cierre usando datos existentes de publicaciones, solicitudes y transferencias.
+- Cada evento se presenta como acordeon: publicacion creada, visible, solicitud recibida, cambios de estado, transferencia iniciada, adopcion completada y publicacion cerrada.
+- No se agregaron migraciones, RPCs ni cambios de reglas; es una vista read-only para auditoria operativa de la Familia Protectora.
+- Se preserva la regla central: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada completa la adopcion.
+
 # Handoff 2026-07-26 - Foster redes sociales en perfil publico
 
 - Web `/foster > Perfil` agrega campos opcionales de redes sociales publicas para la Familia Protectora: sitio web, Instagram, Facebook, TikTok y WhatsApp publico.
