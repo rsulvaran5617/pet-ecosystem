@@ -56,6 +56,9 @@ const statusOrder: PetAdoptionApplicationStatus[] = [
   "converted_to_transfer"
 ];
 
+const defaultAdoptionRejectionMessage =
+  "Gracias por tu interes y por abrir tu hogar a una mascota. En esta oportunidad la Familia Protectora decidio continuar el proceso con otra familia que se ajustaba mejor a las necesidades de la mascota. Agradecemos mucho tu disposicion y esperamos que pronto encuentres una mascota con la que puedas crear un vinculo especial.";
+
 function formatShortDate(value: string | null | undefined) {
   if (!value) {
     return "Sin fecha";
@@ -106,6 +109,40 @@ function isApprovedApplicationPendingTransfer(application: PetAdoptionApplicatio
   return application.status === "approved" && !transfers.some((transfer) => transfer.adoptionApplicationId === application.id);
 }
 
+function buildAdoptionClosureChecklist(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined) {
+  const isApprovedOrClosed = application.status === "approved" || application.status === "converted_to_transfer";
+
+  return [
+    {
+      detail: isApprovedOrClosed ? "La familia fue seleccionada para continuar." : "Aprueba la solicitud antes de iniciar custodia.",
+      done: isApprovedOrClosed,
+      label: "Solicitud aprobada"
+    },
+    {
+      detail: application.status === "interview" || isApprovedOrClosed ? "Datos revisados en el pipeline." : "Usa revision o entrevista antes de decidir.",
+      done: application.status === "interview" || isApprovedOrClosed,
+      label: "Datos revisados"
+    },
+    {
+      detail: transfer ? `Transferencia ${transfer.status}.` : "Se iniciara solo cuando todo este listo.",
+      done: Boolean(transfer),
+      label: "Transferencia privada"
+    }
+  ];
+}
+
+function getAdoptionClosureSummary(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined) {
+  if (application.status === "converted_to_transfer" || transfer?.status === "accepted") {
+    return "Adopcion cerrada. La mascota conserva su identidad digital y expediente permitido en el hogar receptor.";
+  }
+
+  if (transfer?.status === "pending") {
+    return "Transferencia pendiente de aceptacion por la familia receptora.";
+  }
+
+  return null;
+}
+
 export function AdoptionApplicationsInbox({
   applications,
   disabled = false,
@@ -123,7 +160,7 @@ export function AdoptionApplicationsInbox({
   const [sortOrder, setSortOrder] = useState<ApplicationSortOrder>("newest");
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [rejectNote, setRejectNote] = useState("");
+  const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -189,7 +226,7 @@ export function AdoptionApplicationsInbox({
     setDetailApplication(application);
     setHistory([]);
     setMessage(null);
-    setRejectNote("");
+    setRejectNote(defaultAdoptionRejectionMessage);
     setIsDetailLoading(true);
 
     try {
@@ -235,7 +272,7 @@ export function AdoptionApplicationsInbox({
       setSelectedApplicationId(updated.id);
       setDetailApplication(updated);
       setHistory(nextHistory);
-      setRejectNote("");
+      setRejectNote(defaultAdoptionRejectionMessage);
       await onRefresh();
       setMessage("Estado actualizado.");
     } catch {
@@ -440,6 +477,12 @@ function ApplicationDetail({
 }) {
   const transferLabel = getTransferLabel(transfer);
   const isApprovedWithoutTransfer = application.status === "approved" && !transfer;
+  const closureChecklist = buildAdoptionClosureChecklist(application, transfer);
+  const closureSummary = getAdoptionClosureSummary(application, transfer);
+  const rejectionNote =
+    history.find((entry) => entry.toStatus === "rejected" && entry.changeNotes?.trim())?.changeNotes?.trim() ??
+    defaultAdoptionRejectionMessage;
+  const showClosureChecklist = application.status === "approved" || application.status === "converted_to_transfer" || Boolean(transfer);
 
   return (
     <View style={styles.detailCard}>
@@ -470,6 +513,13 @@ function ApplicationDetail({
       <DetailSection label="Experiencia con mascotas" value={application.petExperience} />
       <DetailSection label="Disponibilidad / notas" value={application.availabilityNotes || "Sin notas adicionales."} />
 
+      {application.status === "rejected" ? (
+        <View style={styles.rejectionBox}>
+          <Text style={styles.rejectionTitle}>Solicitud no seleccionada</Text>
+          <Text style={styles.rejectionText}>{rejectionNote}</Text>
+        </View>
+      ) : null}
+
       {transferLabel ? (
         <View style={styles.transferBox}>
           <Text style={styles.transferBoxTitle}>{transferLabel}</Text>
@@ -484,6 +534,31 @@ function ApplicationDetail({
           <Text style={styles.pendingTransferText}>
             Inicia la transferencia privada para que {application.petName} pueda pasar al hogar receptor. Aprobar la solicitud no mueve la custodia.
           </Text>
+        </View>
+      ) : null}
+      {showClosureChecklist ? (
+        <View style={styles.closureChecklistBox}>
+          <View style={styles.closureChecklistHeader}>
+            <Text style={styles.infoLabel}>Cierre responsable</Text>
+            <StatusChip label={transfer ? "En curso" : "Listo"} tone={transfer ? "pending" : "active"} />
+          </View>
+          {closureChecklist.map((item) => (
+            <View key={item.label} style={styles.checklistItem}>
+              <View style={[styles.checklistDot, item.done ? styles.checklistDotDone : styles.checklistDotPending]}>
+                <Text style={styles.checklistDotText}>{item.done ? "✓" : "!"}</Text>
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text style={styles.checklistTitle}>{item.label}</Text>
+                <Text style={styles.checklistText}>{item.detail}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {closureSummary ? (
+        <View style={styles.transferBox}>
+          <Text style={styles.transferBoxTitle}>Trazabilidad de adopcion</Text>
+          <Text style={styles.transferBoxText}>{closureSummary}</Text>
         </View>
       ) : null}
 
@@ -577,7 +652,7 @@ function ApplicationActions({
             editable={!actionDisabled}
             multiline
             onChangeText={onRejectNoteChange}
-            placeholder="Nota obligatoria para rechazar"
+            placeholder={defaultAdoptionRejectionMessage}
             placeholderTextColor={colorTokens.muted}
             style={styles.rejectInput}
             value={rejectNote}
@@ -715,6 +790,58 @@ const styles = StyleSheet.create({
     color: "#0f172a",
     fontSize: 13,
     fontWeight: "900"
+  },
+  checklistDot: {
+    alignItems: "center",
+    borderRadius: 999,
+    height: 22,
+    justifyContent: "center",
+    width: 22
+  },
+  checklistDotDone: {
+    backgroundColor: "#ccfbf1"
+  },
+  checklistDotPending: {
+    backgroundColor: "#ffedd5"
+  },
+  checklistDotText: {
+    color: "#0f766e",
+    fontSize: 10,
+    fontWeight: "900"
+  },
+  checklistItem: {
+    alignItems: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.78)",
+    borderColor: "rgba(15,118,110,0.12)",
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    padding: 9
+  },
+  checklistText: {
+    color: "#64748b",
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 14
+  },
+  checklistTitle: {
+    color: "#0f172a",
+    fontSize: 11,
+    fontWeight: "900"
+  },
+  closureChecklistBox: {
+    backgroundColor: "rgba(248,255,253,0.94)",
+    borderColor: "rgba(15,118,110,0.14)",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 8,
+    padding: 10
+  },
+  closureChecklistHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
   },
   container: {
     backgroundColor: "rgba(240,253,250,0.82)",
@@ -968,6 +1095,25 @@ const styles = StyleSheet.create({
   },
   rejectBox: {
     gap: 7
+  },
+  rejectionBox: {
+    backgroundColor: "rgba(255,247,237,0.95)",
+    borderColor: "rgba(234,88,12,0.2)",
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 4,
+    padding: 10
+  },
+  rejectionText: {
+    color: "#9a3412",
+    fontSize: 10,
+    fontWeight: "700",
+    lineHeight: 15
+  },
+  rejectionTitle: {
+    color: "#c2410c",
+    fontSize: 11,
+    fontWeight: "900"
   },
   rejectInput: {
     backgroundColor: "#ffffff",

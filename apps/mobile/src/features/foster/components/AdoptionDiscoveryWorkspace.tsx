@@ -165,6 +165,20 @@ function getAdoptionPetInitial(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "M";
 }
 
+function getProtectiveHouseholdDisplayName(listing: PetAdoptionListing) {
+  return listing.householdName?.trim() || null;
+}
+
+function getProtectiveHouseholdInitials(name: string) {
+  const segments = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return segments.map((segment) => segment[0]?.toUpperCase()).join("") || "FP";
+}
+
 function getPublicAdoptionUrl(slug: string) {
   const env = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env;
   const publicWebUrl = env?.EXPO_PUBLIC_WEB_URL ?? "https://petecosyst.com";
@@ -181,6 +195,9 @@ const emptyApplicantDefaults: AdoptionApplicantDefaults = {
   applicantEmail: ""
 };
 
+const defaultAdoptionRejectionMessage =
+  "Gracias por tu interes y por abrir tu hogar a una mascota. En esta oportunidad la Familia Protectora decidio continuar el proceso con otra familia que se ajustaba mejor a las necesidades de la mascota. Agradecemos mucho tu disposicion y esperamos que pronto encuentres una mascota con la que puedas crear un vinculo especial.";
+
 function applyApplicantDefaults(
   current: Omit<PetAdoptionApplicationInput, "listingId">,
   defaults: AdoptionApplicantDefaults
@@ -193,6 +210,10 @@ function applyApplicantDefaults(
 }
 
 function getAdoptionClosureCopy(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined) {
+  if (application.status === "rejected") {
+    return defaultAdoptionRejectionMessage;
+  }
+
   if (application.status === "converted_to_transfer") {
     return "La adopcion ya fue cerrada mediante transferencia privada.";
   }
@@ -576,6 +597,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
 
           {adoptionListings.map((listing) => {
             const cover = getAdoptionListingCover(listing);
+            const protectiveHouseholdName = getProtectiveHouseholdDisplayName(listing);
 
             return (
               <Pressable
@@ -615,6 +637,11 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                       <Text numberOfLines={1} style={{ color: colorTokens.muted, fontSize: 11, marginTop: 3 }}>
                         {formatSpeciesLabel(listing.petSpecies)}{listing.petBreed ? ` - ${listing.petBreed}` : ""} - {formatAdoptionPetAge(listing.petBirthDate)}
                       </Text>
+                      {protectiveHouseholdName ? (
+                        <Text numberOfLines={1} style={{ color: "#0f766e", fontSize: 10, fontWeight: "800", marginTop: 3 }}>
+                          Publica: {protectiveHouseholdName}
+                        </Text>
+                      ) : null}
                     </View>
                     <StatusChip label="Busca hogar" tone="pending" />
                   </View>
@@ -645,6 +672,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
               : undefined;
             const closureCopy = currentApplication ? getAdoptionClosureCopy(currentApplication, currentTransfer) : null;
             const canOpenPetInvitations = currentTransfer?.status === "pending" && Boolean(onOpenPetInvitations);
+            const protectiveHouseholdName = getProtectiveHouseholdDisplayName(selectedAdoptionListing);
 
             return (
               <>
@@ -660,6 +688,47 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
             </View>
             <StatusChip label="Busca hogar" tone="pending" />
           </View>
+
+          {protectiveHouseholdName ? (
+            <View
+              style={{
+                alignItems: "center",
+                backgroundColor: "rgba(236,253,245,0.72)",
+                borderColor: "rgba(15,118,110,0.16)",
+                borderRadius: 16,
+                borderWidth: 1,
+                flexDirection: "row",
+                gap: 10,
+                padding: 10
+              }}
+            >
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: "rgba(20,184,166,0.14)",
+                  borderRadius: 14,
+                  height: 38,
+                  justifyContent: "center",
+                  width: 38
+                }}
+              >
+                <Text style={{ color: colorTokens.accentDark, fontSize: 12, fontWeight: "900" }}>
+                  {getProtectiveHouseholdInitials(protectiveHouseholdName)}
+                </Text>
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ color: colorTokens.muted, fontSize: 10, fontWeight: "900" }}>
+                  Familia protectora aprobada
+                </Text>
+                <Text numberOfLines={2} style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                  {protectiveHouseholdName}
+                </Text>
+                <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", marginTop: 2 }}>
+                  {selectedAdoptionListing.city}, {selectedAdoptionListing.countryCode}
+                </Text>
+              </View>
+            </View>
+          ) : null}
 
           {(() => {
             const cover = getAdoptionListingCover(selectedAdoptionListing);
@@ -814,6 +883,25 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                 <StatusChip label={adoptionApplicationStatusLabels[currentApplication.status]} tone={hasActiveApplication ? "active" : "neutral"} />
               ) : null}
             </View>
+            {currentApplication?.status === "rejected" && closureCopy ? (
+              <View
+                style={{
+                  backgroundColor: "rgba(255,247,237,0.9)",
+                  borderColor: "rgba(234,88,12,0.18)",
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  gap: 6,
+                  padding: 10
+                }}
+              >
+                <Text style={{ color: "#9a3412", fontSize: 11, fontWeight: "900" }}>
+                  Solicitud no seleccionada
+                </Text>
+                <Text style={{ color: "#9a3412", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
+                  {closureCopy}
+                </Text>
+              </View>
+            ) : null}
             {hasActiveApplication && currentApplication ? (
               <View style={{ gap: 8 }}>
                 <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900" }}>

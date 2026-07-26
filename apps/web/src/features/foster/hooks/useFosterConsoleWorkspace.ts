@@ -5,6 +5,7 @@ import type {
   AdoptionCommitmentDocumentStatus,
   HouseholdSummary,
   PetAdoptionApplication,
+  PetAdoptionClosureDetail,
   PetAdoptionListingInput,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
@@ -34,6 +35,7 @@ type AuthState = "checking" | "signed_out" | "signed_in";
 
 export type FosterConsoleApplicationDetail = {
   application: PetAdoptionApplication;
+  closureDetail: PetAdoptionClosureDetail | null;
   commitmentDocument: ApplicationCommitmentDocument | null;
   history: PetAdoptionApplicationStatusHistory[];
 };
@@ -285,14 +287,15 @@ export function useFosterConsoleWorkspace() {
     setInfoMessage(null);
 
     try {
-      const [detail, history, commitmentDocument] = await Promise.all([
+      const [detail, history, commitmentDocument, closureDetail] = await Promise.all([
         getBrowserFosterApiClient().getPetAdoptionApplicationDetail(application.id),
         getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id),
-        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id)
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id),
+        getBrowserFosterApiClient().getPetAdoptionClosureDetail(application.id)
       ]);
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: detail ?? application, commitmentDocument, history });
+        setSelectedApplicationDetail({ application: detail ?? application, closureDetail, commitmentDocument, history });
       }
     } catch (error) {
       if (mountedRef.current) {
@@ -320,14 +323,15 @@ export function useFosterConsoleWorkspace() {
         notes: notes?.trim() || null,
         status
       });
-      const [history, commitmentDocument] = await Promise.all([
+      const [history, commitmentDocument, closureDetail] = await Promise.all([
         getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(updated.id),
-        getBrowserFosterApiClient().getApplicationCommitmentDocument(updated.id)
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(updated.id),
+        getBrowserFosterApiClient().getPetAdoptionClosureDetail(updated.id)
       ]);
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: updated, commitmentDocument, history });
+        setSelectedApplicationDetail({ application: updated, closureDetail, commitmentDocument, history });
         setInfoMessage("Estado de solicitud actualizado.");
       }
     } catch (error) {
@@ -348,15 +352,16 @@ export function useFosterConsoleWorkspace() {
 
     try {
       await getBrowserFosterApiClient().startPetAdoptionTransfer(application.id);
-      const [detail, history, commitmentDocument] = await Promise.all([
+      const [detail, history, commitmentDocument, closureDetail] = await Promise.all([
         getBrowserFosterApiClient().getPetAdoptionApplicationDetail(application.id),
         getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id),
-        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id)
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id),
+        getBrowserFosterApiClient().getPetAdoptionClosureDetail(application.id)
       ]);
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: detail ?? application, commitmentDocument, history });
+        setSelectedApplicationDetail({ application: detail ?? application, closureDetail, commitmentDocument, history });
         setInfoMessage("Transferencia privada iniciada. La familia receptora debe aceptarla.");
       }
     } catch (error) {

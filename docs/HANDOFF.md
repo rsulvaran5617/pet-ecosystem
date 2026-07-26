@@ -1,14 +1,29 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster discovery confianza de familia protectora
+
+- Owner mobile `Mascotas que buscan hogar` muestra discretamente la Familia Protectora que publica cada mascota.
+- La card de publicaciones usa `Publica: [Familia Protectora]` con `householdName` real.
+- El detalle `Ver perfil` agrega bloque compacto de confianza con iniciales, nombre de la Familia Protectora aprobada y ciudad/pais.
+- No se exponen direcciones exactas, documentos privados ni datos internos de la Familia Protectora.
+- No se tocaron Supabase, migraciones, RLS, solicitudes, transferencias, Payments, booking, QR, evidencia, provider ni admin.
+
+# Handoff 2026-07-26 - Foster 7A/7B/7C cierre de solicitudes
+
+- Web `/foster > Solicitudes` mejora el cierre del pipeline: rechazo con mensaje calido por defecto, checklist `Cierre responsable` antes de iniciar transferencia y trazabilidad de transferencia/adopcion cerrada.
+- Mobile Foster `Solicitudes de adopcion` alinea el mismo criterio en formato compacto: nota de rechazo humana, checklist previo a transferencia y resumen de cierre/transferencia.
+- Owner mobile `Mascotas que buscan hogar` muestra un mensaje respetuoso cuando una solicitud queda rechazada; la transferencia pendiente conserva el CTA hacia `Cuenta > Invitaciones de mascota`.
+- Se preserva la regla central: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada mueve `pets.household_id` y conserva el expediente permitido.
+- No se crearon migraciones ni se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 # Handoff 2026-07-26 - Foster compromiso documental de adopcion
 
-- Foster-6A/6B queda implementado localmente para compromiso documental de adopcion.
-- Nueva migracion local `20260726143000_foster_adoption_commitment_documents.sql` crea bucket privado `foster-adoption-documents`, tablas `protective_household_adoption_commitment_templates` y `pet_adoption_application_commitment_documents`, policies RLS/Storage y RPCs de plantilla, carga, consulta y revision.
+- Foster-6A/6B queda implementado y aplicado remoto para compromiso documental de adopcion.
+- Migracion `20260726143000_foster_adoption_commitment_documents.sql` crea bucket privado `foster-adoption-documents`, tablas `protective_household_adoption_commitment_templates` y `pet_adoption_application_commitment_documents`, policies RLS/Storage y RPCs de plantilla, carga, consulta y revision.
 - Web `/foster > Perfil` permite a la Familia Protectora aprobada subir/reemplazar plantilla PDF/imagen, definir politica (`informativo`, `requerido antes de aprobar`, `requerido antes de transferir`) y descargar el archivo activo.
 - Web `/foster > Solicitudes` muestra el documento firmado retornado por el solicitante y permite marcarlo `Revisado` o `Requiere correccion`.
 - Owner mobile `Mascotas que buscan hogar` muestra el bloque `Compromiso de adopcion` en el detalle, permite descargar la plantilla y subir/reemplazar el documento firmado desde una solicitud propia.
-- El slice no implementa firma digital, OCR, bloqueo automatico de transferencia ni validacion legal. Pet Ecosystem solo facilita intercambio documental bajo bucket privado y URLs firmadas.
-- Pendiente: validar dry-run y aplicar remoto solo la migracion Foster-6A/6B antes de probar end-to-end.
+- El slice no implementa firma digital, OCR ni validacion legal. Pet Ecosystem solo facilita intercambio documental bajo bucket privado y URLs firmadas.
 
 # Handoff 2026-07-26 - Foster publicacion responsable directa
 

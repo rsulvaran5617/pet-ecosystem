@@ -2048,3 +2048,40 @@ Foster-6A/6B agrega un flujo documental simple para adopcion responsable, sin fi
 - Solo el solicitante de una solicitud puede subir/reemplazar su compromiso firmado.
 - Solo la familia protectora de la publicacion puede revisar el documento retornado.
 - El documento no mueve custodia ni cierra adopcion; Foster-5E sigue siendo el unico camino para iniciar transferencia privada.
+
+## Foster-7A/7B/7C comunicacion y cierre responsable
+
+Estado: implementado sin migraciones nuevas.
+
+### Foster-7A rechazo humano
+
+- La bandeja Foster usa un mensaje calido por defecto al rechazar una solicitud:
+  - agradece el interes del solicitante;
+  - explica que se continuo con otra familia mas alineada con las necesidades de la mascota;
+  - evita lenguaje frio o punitivo.
+- La Familia Protectora puede editar la nota antes de rechazar.
+- El adoptante ve un mensaje respetuoso si su solicitud queda `rejected`.
+
+### Foster-7B checklist antes de transferencia
+
+- Web Foster y mobile Foster muestran checklist `Cierre responsable` en solicitudes aprobadas o vinculadas a transferencia.
+- El checklist resume:
+  - solicitud aprobada;
+  - datos del solicitante revisados;
+  - compromiso documental revisado si la Familia Protectora lo configuro como requerido;
+  - transferencia privada iniciada o pendiente.
+- Si el compromiso esta marcado como requerido antes de transferir y aun no esta revisado, la UI bloquea el CTA de inicio de transferencia hasta que la Familia Protectora lo revise.
+- No se agrega una regla nueva en base de datos; Foster-5E sigue siendo el unico punto transaccional para crear transferencia.
+
+### Foster-7C trazabilidad de cierre
+
+- Cuando una transferencia esta pendiente, la UI aclara que la familia receptora debe aceptar desde `Hogares`.
+- Cuando la transferencia fue aceptada o la solicitud paso a `converted_to_transfer`, la UI muestra resumen de adopcion cerrada.
+- La regla central se mantiene: aprobar solicitud no mueve custodia; solo aceptar la transferencia privada cambia `pets.household_id`, conserva `pets.id` y cierra la publicacion como `adopted`.
+
+## Foster discovery owner - confianza de Familia Protectora
+
+- Owner mobile `Mascotas que buscan hogar` muestra discretamente que Familia Protectora publica cada mascota usando el dato real `householdName`.
+- En la lista se muestra una linea secundaria `Publica: [Familia Protectora]`.
+- En el detalle se muestra un bloque compacto de confianza con iniciales, nombre de la Familia Protectora aprobada y ciudad/pais.
+- No se exponen direcciones exactas, documentos privados ni datos internos de la Familia Protectora.

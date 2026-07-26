@@ -10,6 +10,7 @@ import type {
   ProtectivePublicProfile,
   ProtectivePublicProfileInput,
   PetAdoptionApplication,
+  PetAdoptionClosureDetail,
   PetAdoptionApplicationStatus,
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListingInput,
@@ -46,6 +47,9 @@ const applicationStatusLabels: Record<PetAdoptionApplicationStatus, string> = {
   submitted: "Nueva",
   withdrawn: "Retirada"
 };
+
+const defaultAdoptionRejectionMessage =
+  "Gracias por tu interes y por abrir tu hogar a una mascota. En esta oportunidad la Familia Protectora decidio continuar el proceso con otra familia que se ajustaba mejor a las necesidades de la mascota. Agradecemos mucho tu disposicion y esperamos que pronto encuentres una mascota con la que puedas crear un vinculo especial.";
 
 const listingStatusLabels: Record<PetAdoptionListing["status"], string> = {
   adopted: "Adoptada",
@@ -127,6 +131,98 @@ function getApplicationTransfer(application: PetAdoptionApplication, transfers: 
 
 function isApprovedApplicationPendingTransfer(application: PetAdoptionApplication, transfers: PetTransferRecord[]) {
   return application.status === "approved" && !getApplicationTransfer(application, transfers);
+}
+
+function getCommitmentReviewState(
+  commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null,
+  commitmentDocument: ApplicationCommitmentDocument | null
+) {
+  if (!commitmentTemplate) {
+    return {
+      blocksTransfer: false,
+      detail: "La Familia Protectora no configuro compromiso documental.",
+      done: true,
+      label: "Compromiso no solicitado"
+    };
+  }
+
+  if (commitmentTemplate.requirementPolicy === "informational") {
+    return {
+      blocksTransfer: false,
+      detail: "La plantilla es informativa para el solicitante.",
+      done: true,
+      label: "Compromiso informativo"
+    };
+  }
+
+  if (commitmentDocument?.status === "reviewed") {
+    return {
+      blocksTransfer: false,
+      detail: "Documento recibido y revisado por la Familia Protectora.",
+      done: true,
+      label: "Compromiso revisado"
+    };
+  }
+
+  return {
+    blocksTransfer: true,
+    detail: commitmentDocument ? "El documento requiere revision antes de cerrar la adopcion." : "Falta recibir el compromiso firmado.",
+    done: false,
+    label: "Compromiso pendiente"
+  };
+}
+
+function buildAdoptionClosureChecklist(
+  application: PetAdoptionApplication,
+  commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null,
+  commitmentDocument: ApplicationCommitmentDocument | null,
+  transfer: PetTransferRecord | undefined
+) {
+  const commitmentState = getCommitmentReviewState(commitmentTemplate, commitmentDocument);
+  const isApprovedOrClosed = application.status === "approved" || application.status === "converted_to_transfer";
+
+  return {
+    blocksTransfer: commitmentState.blocksTransfer,
+    items: [
+      {
+        detail: isApprovedOrClosed ? "La familia fue seleccionada para continuar." : "Aprueba la solicitud antes de iniciar custodia.",
+        done: isApprovedOrClosed,
+        label: "Solicitud aprobada"
+      },
+      {
+        detail: application.status === "interview" || isApprovedOrClosed ? "Datos revisados en el pipeline." : "Usa revision o entrevista antes de decidir.",
+        done: application.status === "interview" || isApprovedOrClosed,
+        label: "Datos del solicitante revisados"
+      },
+      commitmentState,
+      {
+        detail: transfer ? `Transferencia ${transfer.status}.` : "Se iniciara solo cuando todo este listo.",
+        done: Boolean(transfer),
+        label: "Transferencia privada"
+      }
+    ]
+  };
+}
+
+function getAdoptionClosureSummary(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined, closureDetail: PetAdoptionClosureDetail | null) {
+  if (application.status === "converted_to_transfer" || transfer?.status === "accepted" || closureDetail?.transferStatus === "accepted") {
+    const acceptedAt = closureDetail?.transferAcceptedAt ?? transfer?.acceptedAt;
+    return {
+      detail: `${application.petName} conserva su identidad digital y expediente permitido en el hogar receptor.${
+        closureDetail?.toHouseholdName ? ` Hogar receptor: ${closureDetail.toHouseholdName}.` : ""
+      }`,
+      title: acceptedAt ? `Adopcion cerrada el ${formatDate(acceptedAt)}` : "Adopcion cerrada"
+    };
+  }
+
+  if (transfer?.status === "pending" || closureDetail?.transferStatus === "pending") {
+    return {
+      detail: "La familia receptora debe aceptar desde Hogares para completar el cambio de custodia.",
+      title: "Transferencia pendiente de aceptacion"
+    };
+  }
+
+  return null;
 }
 
 function getListingOperationalStatus(
@@ -309,7 +405,7 @@ export function FosterConsoleWorkspace() {
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
   const [applicationPetFilter, setApplicationPetFilter] = useState("all");
   const [activeSection, setActiveSection] = useState<FosterConsoleSection>("panel");
-  const [rejectNote, setRejectNote] = useState("");
+  const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
 
   const applicationCounts = useMemo(
     () => ({
@@ -682,7 +778,7 @@ export function FosterConsoleWorkspace() {
                   <button
                     key={application.id}
                     onClick={() => {
-                      setRejectNote("");
+                      setRejectNote(defaultAdoptionRejectionMessage);
                       void openApplication(application);
                     }}
                     style={styles.applicationCard}
@@ -1802,8 +1898,14 @@ function ApplicationDetailPanel({
     return <EmptyState text="Selecciona una solicitud para revisar motivacion, datos y timeline." />;
   }
 
-  const { application, commitmentDocument, history } = detail;
+  const { application, closureDetail, commitmentDocument, history } = detail;
   const isApprovedWithoutTransfer = application.status === "approved" && !transfer;
+  const closureChecklist = buildAdoptionClosureChecklist(application, commitmentTemplate, commitmentDocument, transfer);
+  const closureSummary = getAdoptionClosureSummary(application, transfer, closureDetail);
+  const rejectionNote =
+    history.find((entry) => entry.toStatus === "rejected" && entry.changeNotes?.trim())?.changeNotes?.trim() ??
+    defaultAdoptionRejectionMessage;
+  const showClosureChecklist = application.status === "approved" || application.status === "converted_to_transfer" || Boolean(transfer);
 
   return (
     <aside style={styles.detailPanel}>
@@ -1822,6 +1924,13 @@ function ApplicationDetailPanel({
       <TextBlock label="Motivacion" value={application.motivation} />
       <TextBlock label="Experiencia" value={application.petExperience} />
       <TextBlock label="Disponibilidad" value={application.availabilityNotes || "Sin notas adicionales."} />
+
+      {application.status === "rejected" ? (
+        <div style={styles.rejectionNotice}>
+          <strong>Solicitud no seleccionada</strong>
+          <span>{rejectionNote}</span>
+        </div>
+      ) : null}
 
       <section style={styles.subPanel}>
         <div style={styles.sectionHeaderCompact}>
@@ -1879,14 +1988,44 @@ function ApplicationDetailPanel({
           <span>Inicia la transferencia privada para que {application.petName} pueda pasar al hogar receptor. Aprobar la solicitud no mueve la custodia.</span>
         </div>
       ) : null}
+      {showClosureChecklist ? (
+        <section style={styles.subPanel}>
+          <div style={styles.sectionHeaderCompact}>
+            <div>
+              <p style={styles.eyebrow}>Cierre responsable</p>
+              <h4 style={styles.historyTitle}>Checklist antes de transferir</h4>
+            </div>
+            <StatusBadge label={closureChecklist.blocksTransfer ? "Pendiente" : "Listo"} tone={closureChecklist.blocksTransfer ? "warning" : "success"} />
+          </div>
+          <div style={styles.checklistGrid}>
+            {closureChecklist.items.map((item) => (
+              <div key={item.label} style={styles.checklistItem}>
+                <span style={{ ...styles.processDot, ...(item.done ? styles.processDotDone : styles.processDotPending) }}>{item.done ? "✓" : "!"}</span>
+                <div>
+                  <strong style={styles.itemTitle}>{item.label}</strong>
+                  <p style={styles.itemMeta}>{item.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {closureSummary ? (
+        <div style={styles.transferNotice}>
+          <strong>{closureSummary.title}</strong>
+          <span>{closureSummary.detail}</span>
+        </div>
+      ) : null}
 
       <ApplicationActions
         application={application}
+        canStartTransfer={!closureChecklist.blocksTransfer}
         disabled={disabled}
         onRejectNoteChange={onRejectNoteChange}
         onStartTransfer={onStartTransfer}
         onUpdateStatus={onUpdateStatus}
         rejectNote={rejectNote}
+        startTransferBlockedReason="Revisa el compromiso documental antes de iniciar la transferencia."
         transfer={transfer}
       />
 
@@ -1906,14 +2045,17 @@ function ApplicationDetailPanel({
 
 function ApplicationActions({
   application,
+  canStartTransfer,
   disabled,
   onRejectNoteChange,
   onStartTransfer,
   onUpdateStatus,
   rejectNote,
+  startTransferBlockedReason,
   transfer
 }: {
   application: PetAdoptionApplication;
+  canStartTransfer: boolean;
   disabled: boolean;
   onRejectNoteChange: (value: string) => void;
   onStartTransfer: (application: PetAdoptionApplication) => Promise<void>;
@@ -1923,6 +2065,7 @@ function ApplicationActions({
     notes?: string | null
   ) => Promise<void>;
   rejectNote: string;
+  startTransferBlockedReason: string;
   transfer: PetTransferRecord | undefined;
 }) {
   if (["rejected", "withdrawn", "converted_to_transfer"].includes(application.status)) {
@@ -1934,14 +2077,19 @@ function ApplicationActions({
       {application.status === "submitted" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "in_review")} style={styles.primaryButton} type="button">Marcar en revision</button> : null}
       {application.status === "in_review" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "interview")} style={styles.primaryButton} type="button">Pasar a entrevista</button> : null}
       {application.status === "interview" ? <button disabled={disabled} onClick={() => void onUpdateStatus(application, "approved")} style={styles.primaryButton} type="button">Aprobar solicitud</button> : null}
-      {application.status === "approved" && !transfer ? <button disabled={disabled} onClick={() => void onStartTransfer(application)} style={styles.primaryButton} type="button">Iniciar transferencia de {application.petName}</button> : null}
+      {application.status === "approved" && !transfer ? (
+        <>
+          {!canStartTransfer ? <p style={styles.itemMeta}>{startTransferBlockedReason}</p> : null}
+          <button disabled={disabled || !canStartTransfer} onClick={() => void onStartTransfer(application)} style={styles.primaryButton} type="button">Iniciar transferencia de {application.petName}</button>
+        </>
+      ) : null}
       {application.status === "approved" && transfer ? <p style={styles.itemMeta}>La transferencia ya fue iniciada para esta solicitud.</p> : null}
       {application.status !== "approved" ? (
         <div style={styles.rejectBox}>
           <textarea
             disabled={disabled}
             onChange={(event) => onRejectNoteChange(event.target.value)}
-            placeholder="Nota obligatoria para rechazar"
+            placeholder={defaultAdoptionRejectionMessage}
             style={styles.textarea}
             value={rejectNote}
           />
@@ -2097,6 +2245,8 @@ const styles: Record<string, React.CSSProperties> = {
   accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, justifyContent: "center", minHeight: "31px", padding: "6px 10px", whiteSpace: "nowrap" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
+  checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
+  checklistItem: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "10px", padding: "10px" },
   consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
   consoleShell: { alignItems: "start", display: "grid", gap: "18px", gridTemplateColumns: "260px minmax(0, 1fr)" },
   contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
@@ -2172,6 +2322,8 @@ const styles: Record<string, React.CSSProperties> = {
   petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" },
   primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   processDot: { alignItems: "center", background: "rgba(15, 118, 110, 0.08)", borderRadius: "999px", display: "inline-flex", fontSize: "11px", fontWeight: 900, height: "22px", justifyContent: "center", width: "22px" },
+  processDotDone: { background: "#ccfbf1", color: "#0f766e" },
+  processDotPending: { background: "#ffedd5", color: "#c2410c" },
   processRail: { display: "flex", flexWrap: "wrap", gap: "8px" },
   processStep: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#64748b", display: "inline-flex", fontSize: "12px", fontWeight: 900, gap: "6px", padding: "6px 9px" },
   processStepActive: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.24)", color: "#c2410c" },
@@ -2181,6 +2333,7 @@ const styles: Record<string, React.CSSProperties> = {
   publicContentGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
   publicContentTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "4px", minHeight: "74px", padding: "10px" },
   publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
+  rejectionNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.2)", borderRadius: "18px", color: "#9a3412", display: "grid", gap: "6px", lineHeight: 1.45, padding: "12px" },
   rejectBox: { display: "grid", gap: "8px" },
   responsibilityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "3px", lineHeight: 1.4, padding: "10px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
