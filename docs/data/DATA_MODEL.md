@@ -172,6 +172,7 @@ Foster-2A implementacion local:
 Foster-5 diseno propuesto:
 
 - `protective_household_public_profiles` debe representar el perfil publico moderado de una familia protectora, separado de `protective_household_profiles`.
+- `protective_household_public_profiles` incluye enlaces publicos opcionales (`website_url`, `instagram_url`, `facebook_url`, `tiktok_url`, `whatsapp_url`) para ampliar confianza/comunicacion complementaria en el detalle de adopcion. Son nullable, no reemplazan la solicitud formal y no deben exponer datos privados.
 - El perfil publico protector puede tener logo moderado mediante `logo_storage_bucket` y `logo_storage_path`; el archivo vive en Storage privado y se expone con URL firmada controlada.
 - `pet_adoption_listings` puede ganar `public_slug` para fichas compartibles; la mascota sigue siendo `pets`.
 - Foster-5B agrega `public_slug`, `share_status` y `share_published_at` a `pet_adoption_listings`; el enlace publico no cambia la custodia ni duplica la mascota.

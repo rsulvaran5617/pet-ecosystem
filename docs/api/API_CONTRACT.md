@@ -282,6 +282,7 @@ Contratos QR propuestos:
 Notas:
 
 - Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile`, Foster-5B `getPublicPetAdoptionListingBySlug`, Foster-5C solicitudes estructuradas, Foster-5D.1 historial/cambio de estado, Foster-5E cierre adoptivo conectado a transferencia y Foster-6A/6B compromiso documental cuentan con API client local tipado en `packages/api-client/src/foster.ts`.
+- `protective-public-profile` acepta redes sociales publicas opcionales (`websiteUrl`, `instagramUrl`, `facebookUrl`, `tiktokUrl`, `whatsappUrl`). Los listados de adopcion no deben destacarlas; el detalle `getPetAdoptionListingDetail` / `getPublicPetAdoptionListingBySlug` puede exponerlas para el bloque interno de confianza de la Familia Protectora.
 - `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
 - Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
 - estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.

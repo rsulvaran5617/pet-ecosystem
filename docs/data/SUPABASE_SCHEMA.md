@@ -82,6 +82,7 @@ Tablas y cambios locales:
   - separado de `protective_household_profiles`, que conserva revision interna/admin.
   - debe usar `public_slug`, ciudad/pais, historia/mision, necesidades y politica de contacto controlada.
   - puede usar logo controlado con `logo_storage_bucket` / `logo_storage_path` en bucket privado `protective-household-logos`; cambiarlo requiere nueva moderacion.
+  - puede declarar redes sociales publicas opcionales (`website_url`, `instagram_url`, `facebook_url`, `tiktok_url`, `whatsapp_url`) para mostrarlas solo en el detalle de adopcion.
 - `pet_adoption_applications`
   - solicitud formal de adopcion para una publicacion aprobada.
   - no cambia custodia ni mueve `pets.household_id`.

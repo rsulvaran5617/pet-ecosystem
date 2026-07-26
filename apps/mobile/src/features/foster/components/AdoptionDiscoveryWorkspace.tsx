@@ -179,6 +179,24 @@ function getProtectiveHouseholdInitials(name: string) {
   return segments.map((segment) => segment[0]?.toUpperCase()).join("") || "FP";
 }
 
+function getProtectiveSocialLinks(listing: PetAdoptionListing) {
+  return [
+    { label: "Web", url: listing.protectiveWebsiteUrl },
+    { label: "Instagram", url: listing.protectiveInstagramUrl },
+    { label: "Facebook", url: listing.protectiveFacebookUrl },
+    { label: "TikTok", url: listing.protectiveTiktokUrl },
+    { label: "WhatsApp", url: listing.protectiveWhatsappUrl }
+  ].filter((link): link is { label: string; url: string } => Boolean(link.url?.trim()));
+}
+
+async function openProtectiveSocialLink(url: string) {
+  if (!/^https:\/\//i.test(url)) {
+    return;
+  }
+
+  await Linking.openURL(url);
+}
+
 function getPublicAdoptionUrl(slug: string) {
   const env = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process?.env;
   const publicWebUrl = env?.EXPO_PUBLIC_WEB_URL ?? "https://petecosyst.com";
@@ -673,6 +691,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
             const closureCopy = currentApplication ? getAdoptionClosureCopy(currentApplication, currentTransfer) : null;
             const canOpenPetInvitations = currentTransfer?.status === "pending" && Boolean(onOpenPetInvitations);
             const protectiveHouseholdName = getProtectiveHouseholdDisplayName(selectedAdoptionListing);
+            const protectiveSocialLinks = getProtectiveSocialLinks(selectedAdoptionListing);
 
             return (
               <>
@@ -726,6 +745,30 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                 <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800", marginTop: 2 }}>
                   {selectedAdoptionListing.city}, {selectedAdoptionListing.countryCode}
                 </Text>
+                {protectiveSocialLinks.length ? (
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {protectiveSocialLinks.map((link) => (
+                      <Pressable
+                        accessibilityLabel={`Abrir ${link.label} de ${protectiveHouseholdName}`}
+                        accessibilityRole="link"
+                        key={link.label}
+                        onPress={() => void openProtectiveSocialLink(link.url)}
+                        style={{
+                          backgroundColor: "#ffffff",
+                          borderColor: "rgba(15,118,110,0.18)",
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          paddingHorizontal: 9,
+                          paddingVertical: 5
+                        }}
+                      >
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>
+                          {link.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
               </View>
             </View>
           ) : null}

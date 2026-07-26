@@ -923,6 +923,11 @@ export interface Database {
           public_contact_label: string | null;
           public_contact_value: string | null;
           needs_summary: string | null;
+          website_url: string | null;
+          instagram_url: string | null;
+          facebook_url: string | null;
+          tiktok_url: string | null;
+          whatsapp_url: string | null;
           logo_storage_bucket: string | null;
           logo_storage_path: string | null;
           is_public: boolean;
@@ -948,6 +953,11 @@ export interface Database {
           public_contact_label?: string | null;
           public_contact_value?: string | null;
           needs_summary?: string | null;
+          website_url?: string | null;
+          instagram_url?: string | null;
+          facebook_url?: string | null;
+          tiktok_url?: string | null;
+          whatsapp_url?: string | null;
           logo_storage_bucket?: string | null;
           logo_storage_path?: string | null;
           is_public?: boolean;
@@ -973,6 +983,11 @@ export interface Database {
           public_contact_label?: string | null;
           public_contact_value?: string | null;
           needs_summary?: string | null;
+          website_url?: string | null;
+          instagram_url?: string | null;
+          facebook_url?: string | null;
+          tiktok_url?: string | null;
+          whatsapp_url?: string | null;
           logo_storage_bucket?: string | null;
           logo_storage_path?: string | null;
           is_public?: boolean;
@@ -2227,6 +2242,11 @@ export interface Database {
           next_public_contact_label?: string | null;
           next_public_contact_value?: string | null;
           next_needs_summary?: string | null;
+          next_website_url?: string | null;
+          next_instagram_url?: string | null;
+          next_facebook_url?: string | null;
+          next_tiktok_url?: string | null;
+          next_whatsapp_url?: string | null;
         };
         Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
       };
@@ -2505,6 +2525,11 @@ export interface Database {
             pet_birth_date: string | null;
             pet_is_sterilized: boolean | null;
             household_name: string;
+            protective_website_url: string | null;
+            protective_instagram_url: string | null;
+            protective_facebook_url: string | null;
+            protective_tiktok_url: string | null;
+            protective_whatsapp_url: string | null;
           }
         >;
       };
@@ -2519,6 +2544,11 @@ export interface Database {
             pet_birth_date: string | null;
             pet_is_sterilized: boolean | null;
             household_name: string;
+            protective_website_url: string | null;
+            protective_instagram_url: string | null;
+            protective_facebook_url: string | null;
+            protective_tiktok_url: string | null;
+            protective_whatsapp_url: string | null;
           }
         >;
       };
@@ -2535,6 +2565,11 @@ export interface Database {
             pet_birth_date: string | null;
             pet_is_sterilized: boolean | null;
             household_name: string;
+            protective_website_url: string | null;
+            protective_instagram_url: string | null;
+            protective_facebook_url: string | null;
+            protective_tiktok_url: string | null;
+            protective_whatsapp_url: string | null;
           }
         >;
       };
@@ -2574,6 +2609,11 @@ export interface Database {
           public_contact_label: string | null;
           public_contact_value: string | null;
           needs_summary: string | null;
+          protective_website_url: string | null;
+          protective_instagram_url: string | null;
+          protective_facebook_url: string | null;
+          protective_tiktok_url: string | null;
+          protective_whatsapp_url: string | null;
           listing_status: PetAdoptionListingStatus;
           media: unknown;
         }>;

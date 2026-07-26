@@ -269,6 +269,11 @@ async function mapProtectivePublicProfile(
     publicContactLabel: row.public_contact_label,
     publicContactValue: row.public_contact_value,
     needsSummary: row.needs_summary,
+    websiteUrl: row.website_url,
+    instagramUrl: row.instagram_url,
+    facebookUrl: row.facebook_url,
+    tiktokUrl: row.tiktok_url,
+    whatsappUrl: row.whatsapp_url,
     logoUrl: await getProtectivePublicProfileLogoSignedUrl(supabase, row),
     logoStorageBucket: row.logo_storage_bucket,
     logoStoragePath: row.logo_storage_path,
@@ -457,6 +462,11 @@ function mapPetAdoptionListing(
     petBirthDate: row.pet_birth_date,
     petIsSterilized: row.pet_is_sterilized,
     householdName: row.household_name,
+    protectiveWebsiteUrl: "protective_website_url" in row ? row.protective_website_url : null,
+    protectiveInstagramUrl: "protective_instagram_url" in row ? row.protective_instagram_url : null,
+    protectiveFacebookUrl: "protective_facebook_url" in row ? row.protective_facebook_url : null,
+    protectiveTiktokUrl: "protective_tiktok_url" in row ? row.protective_tiktok_url : null,
+    protectiveWhatsappUrl: "protective_whatsapp_url" in row ? row.protective_whatsapp_url : null,
     media
   };
 }
@@ -642,7 +652,12 @@ async function mapPublicPetAdoptionProfile(
       contactPolicy: row.contact_policy,
       publicContactLabel: row.public_contact_label,
       publicContactValue: row.public_contact_value,
-      needsSummary: row.needs_summary
+      needsSummary: row.needs_summary,
+      websiteUrl: row.protective_website_url,
+      instagramUrl: row.protective_instagram_url,
+      facebookUrl: row.protective_facebook_url,
+      tiktokUrl: row.protective_tiktok_url,
+      whatsappUrl: row.protective_whatsapp_url
     }
   };
 }
@@ -826,7 +841,12 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         next_contact_policy: input.contactPolicy ?? "platform_only",
         next_public_contact_label: input.publicContactLabel ?? null,
         next_public_contact_value: input.publicContactValue ?? null,
-        next_needs_summary: input.needsSummary ?? null
+        next_needs_summary: input.needsSummary ?? null,
+        next_website_url: input.websiteUrl ?? null,
+        next_instagram_url: input.instagramUrl ?? null,
+        next_facebook_url: input.facebookUrl ?? null,
+        next_tiktok_url: input.tiktokUrl ?? null,
+        next_whatsapp_url: input.whatsappUrl ?? null
       });
 
       if (error) {

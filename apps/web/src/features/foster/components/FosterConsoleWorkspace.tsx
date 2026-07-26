@@ -287,8 +287,51 @@ function buildPublicProfileForm(
     publicContactLabel: publicProfile?.publicContactLabel ?? "",
     publicContactValue: publicProfile?.publicContactValue ?? "",
     publicStory: publicProfile?.publicStory ?? "",
-    stateRegion: publicProfile?.stateRegion ?? ""
+    stateRegion: publicProfile?.stateRegion ?? "",
+    websiteUrl: publicProfile?.websiteUrl ?? "",
+    instagramUrl: publicProfile?.instagramUrl ?? "",
+    facebookUrl: publicProfile?.facebookUrl ?? "",
+    tiktokUrl: publicProfile?.tiktokUrl ?? "",
+    whatsappUrl: publicProfile?.whatsappUrl ?? ""
   };
+}
+
+function isValidProtectiveSocialUrl(field: keyof ProtectivePublicProfileInput, value: string | null | undefined) {
+  const trimmedValue = value?.trim();
+
+  if (!trimmedValue) {
+    return true;
+  }
+
+  if (field === "instagramUrl") {
+    return /^https:\/\/(www\.)?instagram\.com\//i.test(trimmedValue);
+  }
+
+  if (field === "facebookUrl") {
+    return /^https:\/\/(www\.)?facebook\.com\//i.test(trimmedValue);
+  }
+
+  if (field === "tiktokUrl") {
+    return /^https:\/\/(www\.)?tiktok\.com\//i.test(trimmedValue);
+  }
+
+  if (field === "whatsappUrl") {
+    return /^https:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(trimmedValue);
+  }
+
+  return /^https:\/\//i.test(trimmedValue);
+}
+
+function validateProtectiveSocialLinks(form: ProtectivePublicProfileInput) {
+  const checks: Array<[keyof ProtectivePublicProfileInput, string]> = [
+    ["websiteUrl", "El sitio web debe iniciar con https://."],
+    ["instagramUrl", "Instagram debe ser un enlace https://instagram.com/..."],
+    ["facebookUrl", "Facebook debe ser un enlace https://facebook.com/..."],
+    ["tiktokUrl", "TikTok debe ser un enlace https://tiktok.com/..."],
+    ["whatsappUrl", "WhatsApp debe ser un enlace https://wa.me/... o https://api.whatsapp.com/..."]
+  ];
+
+  return checks.find(([field]) => !isValidProtectiveSocialUrl(field, form[field] as string | null | undefined))?.[1] ?? null;
 }
 
 function buildAdoptionListingForm(listing: PetAdoptionListing | null, pet: PetSummary): PetAdoptionListingInput {
@@ -1575,6 +1618,13 @@ function PublicProfilePanel({
             <form
               onSubmit={(event) => {
                 event.preventDefault();
+                const socialLinkError = validateProtectiveSocialLinks(form);
+
+                if (socialLinkError) {
+                  window.alert(socialLinkError);
+                  return;
+                }
+
                 void onSave({ ...form, householdId: selectedHouseholdId as Uuid }).then((saved) => {
                   if (saved) {
                     setDraftProfileId(saved.id);
@@ -1691,6 +1741,73 @@ function PublicProfilePanel({
                   value={form.needsSummary ?? ""}
                 />
               </label>
+              <section style={styles.subPanel}>
+                <div style={styles.sectionHeaderCompact}>
+                  <div>
+                    <p style={styles.eyebrow}>Redes sociales</p>
+                    <h3 style={styles.itemTitle}>Canales publicos complementarios</h3>
+                    <p style={styles.itemMeta}>
+                      Estos enlaces solo se muestran dentro del detalle de una mascota publicada, cuando una familia interesada presiona Ver perfil.
+                    </p>
+                  </div>
+                  <StatusBadge label="Opcional" tone="neutral" />
+                </div>
+                <div style={styles.formGrid}>
+                  <label style={styles.fieldLabel}>
+                    Sitio web
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("websiteUrl", event.target.value)}
+                      placeholder="https://..."
+                      style={styles.input}
+                      value={form.websiteUrl ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    Instagram
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("instagramUrl", event.target.value)}
+                      placeholder="https://instagram.com/..."
+                      style={styles.input}
+                      value={form.instagramUrl ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    Facebook
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("facebookUrl", event.target.value)}
+                      placeholder="https://facebook.com/..."
+                      style={styles.input}
+                      value={form.facebookUrl ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    TikTok
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("tiktokUrl", event.target.value)}
+                      placeholder="https://tiktok.com/..."
+                      style={styles.input}
+                      value={form.tiktokUrl ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    WhatsApp publico
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("whatsappUrl", event.target.value)}
+                      placeholder="https://wa.me/507..."
+                      style={styles.input}
+                      value={form.whatsappUrl ?? ""}
+                    />
+                  </label>
+                </div>
+                <p style={styles.itemMeta}>
+                  No publiques telefonos o cuentas privadas. La solicitud formal de adopcion sigue ocurriendo dentro de Pet Ecosystem.
+                </p>
+              </section>
               <div style={styles.heroActions}>
                 <button disabled={disabled} style={styles.primaryButton} type="submit">
                   {disabled ? "Guardando..." : "Guardar perfil"}

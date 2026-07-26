@@ -89,6 +89,11 @@ export interface ProtectivePublicProfile extends TimestampedEntity {
   publicContactLabel: string | null;
   publicContactValue: string | null;
   needsSummary: string | null;
+  websiteUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+  tiktokUrl: string | null;
+  whatsappUrl: string | null;
   logoUrl: string | null;
   logoStorageBucket: string | null;
   logoStoragePath: string | null;
@@ -112,6 +117,11 @@ export interface ProtectivePublicProfileInput {
   publicContactLabel?: string | null;
   publicContactValue?: string | null;
   needsSummary?: string | null;
+  websiteUrl?: string | null;
+  instagramUrl?: string | null;
+  facebookUrl?: string | null;
+  tiktokUrl?: string | null;
+  whatsappUrl?: string | null;
 }
 
 export interface ProtectivePublicProfileReviewInput {
@@ -233,6 +243,11 @@ export interface PetAdoptionListing {
   petBirthDate: string | null;
   petIsSterilized: boolean | null;
   householdName: string;
+  protectiveWebsiteUrl: string | null;
+  protectiveInstagramUrl: string | null;
+  protectiveFacebookUrl: string | null;
+  protectiveTiktokUrl: string | null;
+  protectiveWhatsappUrl: string | null;
   media: PetAdoptionListingMedia[];
 }
 
@@ -261,6 +276,11 @@ export interface PublicProtectiveHouseholdSummary {
   publicContactLabel: string | null;
   publicContactValue: string | null;
   needsSummary: string | null;
+  websiteUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
+  tiktokUrl: string | null;
+  whatsappUrl: string | null;
 }
 
 export interface PublicPetAdoptionProfile {

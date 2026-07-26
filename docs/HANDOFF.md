@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster redes sociales en perfil publico
+
+- Web `/foster > Perfil` agrega campos opcionales de redes sociales publicas para la Familia Protectora: sitio web, Instagram, Facebook, TikTok y WhatsApp publico.
+- Nueva migracion local `20260726170000_foster_protective_public_social_links.sql` agrega campos nullable en `protective_household_public_profiles`, valida URLs `https://` y extiende RPCs publicos Foster.
+- Owner mobile `Mascotas que buscan hogar` mantiene la lista limpia; las redes no se muestran en cards.
+- Owner mobile `Ver perfil` muestra botones compactos de redes solo dentro del bloque de confianza de la Familia Protectora y solo cuando hay enlaces reales.
+- No se exponen emails privados, telefonos privados, direcciones exactas ni IDs internos. La solicitud formal de adopcion sigue ocurriendo dentro de la app.
+- Pendiente: aplicar la migracion remoto con dry-run controlado antes de probar redes contra Supabase remoto.
+
 # Handoff 2026-07-26 - Foster discovery confianza de familia protectora
 
 - Owner mobile `Mascotas que buscan hogar` muestra discretamente la Familia Protectora que publica cada mascota.

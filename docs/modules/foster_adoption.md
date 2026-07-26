@@ -16,6 +16,8 @@ Nota operativa 2026-07-07: se aplican hotfixes remotos `20260707173000_foster_ad
 
 Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. Las Familias Protectoras aprobadas pueden publicar y actualizar la ficha publica de una mascota bajo su propia responsabilidad, sin revision admin previa por cada ficha. La plataforma conserva moderacion posterior, pausa/rechazo y auditoria. La ficha debe mostrar claramente historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion antes de recibir solicitudes.
 
+Nota operativa 2026-07-26: se prepara redes sociales publicas para el perfil de Familia Protectora. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
@@ -2082,6 +2084,7 @@ Estado: implementado sin migraciones nuevas.
 ## Foster discovery owner - confianza de Familia Protectora
 
 - Owner mobile `Mascotas que buscan hogar` muestra discretamente que Familia Protectora publica cada mascota usando el dato real `householdName`.
+- Owner mobile `Ver perfil` puede mostrar redes sociales declaradas por la Familia Protectora dentro del bloque de confianza: sitio web, Instagram, Facebook, TikTok y WhatsApp publico. La lista de publicaciones no muestra redes.
 - En la lista se muestra una linea secundaria `Publica: [Familia Protectora]`.
 - En el detalle se muestra un bloque compacto de confianza con iniciales, nombre de la Familia Protectora aprobada y ciudad/pais.
 - No se exponen direcciones exactas, documentos privados ni datos internos de la Familia Protectora.
