@@ -1,5 +1,20 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster publicacion responsable directa
+
+- Web `/foster` ahora expone los datos publicos de la mascota en acogida como ficha visible: historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion.
+- Una Familia Protectora aprobada puede publicar o actualizar contenido de adopcion bajo su propia responsabilidad; ya no requiere una aprobacion admin por cada publicacion para quedar visible.
+- Nueva migracion local `20260726123000_foster_responsible_direct_publication.sql` agrega sello de responsabilidad en `pet_adoption_listings` y redefine `submit_pet_adoption_listing(..., responsibility_acknowledged)` para publicar directo con `share_status = enabled`.
+- Admin conserva capacidad de auditoria/pausa/rechazo posterior; el flujo no mueve custodia, no crea solicitudes y no toca transferencias.
+- Pendiente: aplicar la migracion remoto con dry-run controlado antes de probar en `https://petecosyst.com/foster`.
+
+# Handoff 2026-07-26 - Foster mobile visor de fotos de adopcion
+
+- Owner mobile `Mascotas que buscan hogar` mejora la galeria publica: la foto principal usa encuadre no destructivo para evitar recortes agresivos.
+- Al tocar foto principal o thumbnails se abre visor modal con la imagen grande, contador y navegacion anterior/siguiente.
+- No se tocaron backend, Supabase, Storage, RLS, contratos API, solicitudes, transferencias ni moderacion Foster.
+- Validaciones ejecutadas: `corepack pnpm --filter @pet/mobile lint`, `corepack pnpm --filter @pet/mobile typecheck`, `corepack pnpm --filter @pet/mobile build`, `git diff --check`.
+
 # Handoff 2026-07-26 - Foster web consola con menu lateral
 
 - Web `/foster` reorganiza la consola de Familias Protectoras con sidebar izquierdo similar al owner web.

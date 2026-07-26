@@ -20,7 +20,7 @@ Operaciones tipadas en `packages/api-client/src/foster.ts`.
 
 - `createPetAdoptionListing(petId, householdId)`
 - `updatePetAdoptionListing(input)`
-- `submitPetAdoptionListing(listingId)`
+- `submitPetAdoptionListing(listingId)` -> RPC `submit_pet_adoption_listing(target_listing_id, responsibility_acknowledged)`; el cliente envia la aceptacion de responsabilidad para publicar directo.
 - `pausePetAdoptionListing(listingId)`
 - `closePetAdoptionListing(listingId)`
 - `reviewPetAdoptionListing(listingId, input)`
@@ -33,7 +33,7 @@ Operaciones tipadas en `packages/api-client/src/foster.ts`.
 - `reviewPetAdoptionListingMedia(mediaId, input)`
 - `removePetAdoptionMedia(mediaId)`
 
-Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas quedan `pending`. Los listados publicos devuelven solo media aprobada; listados propios/admin conservan estados por foto. Foster-3A/3B no crea solicitudes formales ni transfiere mascotas desde la vitrina. El CTA de interes queda informativo hasta un slice posterior.
+Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas quedan `pending`. Los listados publicos devuelven solo media aprobada; listados propios/admin conservan estados por foto. El modelo vigente permite que una Familia Protectora aprobada publique/actualice la ficha bajo responsabilidad propia; admin conserva moderacion posterior. Foster-3A/3B no transfiere mascotas desde la vitrina.
 
 ### Auth
 
@@ -248,7 +248,7 @@ Contratos QR propuestos:
 - `PATCH /foster/pets/{fosterPetId}`
 - `POST /foster/pets/{fosterPetId}/listings`
 - `PATCH /foster/adoption-listings/{listingId}`
-- `POST /foster/adoption-listings/{listingId}/submit-review`
+- `POST /foster/adoption-listings/{listingId}/publish-responsibly`
 - `GET /foster/adoption-listings/{listingId}/applications`
 - `GET /foster/adoption-applications/{applicationId}`
 - `POST /foster/adoption-applications/{applicationId}/approve`

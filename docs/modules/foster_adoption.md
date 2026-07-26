@@ -14,6 +14,8 @@ Nota operativa 2026-06-24: se agrega hotfix remoto para `create_pet_adoption_lis
 
 Nota operativa 2026-07-07: se aplican hotfixes remotos `20260707173000_foster_adoption_detail_ambiguous_id_fix.sql` y `20260707184500_foster_transfer_invitations_ambiguous_id_fix.sql`. `get_pet_adoption_listing_detail` ahora filtra resultados derivados con alias explicitos (`published_listing.id`, `owned_listing.id`) y `list_incoming_pet_transfer_invitations` califica `profile.id`; ambos evitan el error `column reference "id" is ambiguous` al cargar publicaciones en mobile `Mascotas que buscan hogar`.
 
+Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. Las Familias Protectoras aprobadas pueden publicar y actualizar la ficha publica de una mascota bajo su propia responsabilidad, sin revision admin previa por cada ficha. La plataforma conserva moderacion posterior, pausa/rechazo y auditoria. La ficha debe mostrar claramente historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion antes de recibir solicitudes.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
@@ -85,6 +87,7 @@ Alcance implementado:
 - La vista `Mascotas que buscan hogar` lista publicaciones `published` ya aprobadas por admin usando `listPublishedPetAdoptionListings`.
 - Cada card muestra foto de portada cuando existe, nombre de mascota, especie/raza, edad estimada, ciudad/pais, esterilizacion, resumen publico y badge `Busca hogar`.
 - El detalle usa `getPetAdoptionListingDetail` y muestra galeria, historia publica, personalidad, salud publica, compatibilidad con ninos/perros/gatos, requisitos y ubicacion publica por ciudad/pais.
+- La galeria mobile prioriza ver la mascota completa: la imagen principal evita recortes agresivos y las fotos aprobadas se pueden abrir en un visor modal con navegacion anterior/siguiente.
 - El CTA `Me interesa` es informativo en piloto: no crea solicitud, transferencia, reserva, chat ni notificacion automatica.
 
 Fuera de alcance:
@@ -746,6 +749,40 @@ Reglas:
 - Owner/familia protectora ve todas sus fotos con estado `Pendiente`, `Aprobada` o `Rechazada`.
 - Adoptantes solo ven fotos `approved` de publicaciones `published`.
 - Admin puede aprobar o rechazar fotos individuales sin reaprobar toda la publicacion.
+
+## Foster publicacion responsable directa
+
+Objetivo:
+
+- reducir friccion operativa para Familias Protectoras aprobadas.
+- evitar que cada cambio de historia, fotos o contenido publico dependa de una aprobacion previa de plataforma.
+- mantener trazabilidad y capacidad de pausa ante contenido sensible, reportado o inadecuado.
+
+Modelo:
+
+- `pet_adoption_listings` agrega:
+  - `responsibility_acknowledged_at timestamptz`.
+  - `responsibility_acknowledged_by_user_id uuid`.
+- `submit_pet_adoption_listing(target_listing_id, responsibility_acknowledged)` exige confirmacion explicita y cambia la publicacion a:
+  - `status = published`.
+  - `share_status = enabled`.
+  - `published_at` / `share_published_at` conservando primera fecha si ya existia.
+- `update_pet_adoption_listing` permite actualizar fichas `published` sin despublicarlas.
+- fotos pendientes de una publicacion publicada pueden quedar aprobadas bajo responsabilidad de la familia en este slice; la plataforma conserva revision posterior y pausa global si hay abuso.
+
+Reglas:
+
+- solo hogares `protective` con perfil protector aprobado pueden publicar.
+- hogares `owner` no pueden publicar ni transferir mascotas Foster.
+- publicar no crea solicitud, no reserva mascota y no mueve custodia.
+- cerrar adopcion sigue dependiendo de Foster-2A/Foster-5E y transferencia privada aceptada.
+
+UX web `/foster`:
+
+- cada mascota bajo acogida muestra la ficha publica con historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion.
+- CTA `Editar ficha publica` abre el formulario compacto.
+- CTA `Publicar bajo responsabilidad` sustituye `Enviar a revision` para publicaciones no visibles.
+- el copy debe aclarar que la Familia Protectora asume responsabilidad por el contenido y que la plataforma puede pausar contenido reportado.
 - Si se aprueba una foto y no existe portada aprobada, puede quedar como portada publica.
 - Si una portada se rechaza, se reasigna una portada aprobada disponible o se muestra placeholder.
 - El limite de 8 fotos se valida con funcion `security definer` para evitar recursion RLS sobre `pet_adoption_listing_media` durante el insert.

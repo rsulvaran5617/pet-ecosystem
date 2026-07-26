@@ -1,7 +1,7 @@
 import { colorTokens, visualTokens } from "@pet/ui";
 import type { PetAdoptionApplication, PetAdoptionApplicationInput, PetAdoptionListing, PetTransferRecord } from "@pet/types";
 import { useEffect, useState } from "react";
-import { Image, Pressable, Share, Text, TextInput, View } from "react-native";
+import { Image, Modal, Pressable, Share, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileCoreApiClient, getMobileFosterApiClient } from "../../core/services/supabase-mobile";
@@ -194,6 +194,12 @@ type AdoptionDiscoveryWorkspaceProps = {
   onOpenPetInvitations?: () => void;
 };
 
+type AdoptionPhotoViewerState = {
+  index: number;
+  photos: Array<{ id: string; signedUrl: string }>;
+  title: string;
+};
+
 export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvitations }: AdoptionDiscoveryWorkspaceProps) {
   const [adoptionListings, setAdoptionListings] = useState<PetAdoptionListing[]>([]);
   const [myApplications, setMyApplications] = useState<PetAdoptionApplication[]>([]);
@@ -206,6 +212,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
   const [applicantDefaults, setApplicantDefaults] = useState<AdoptionApplicantDefaults>(emptyApplicantDefaults);
+  const [photoViewer, setPhotoViewer] = useState<AdoptionPhotoViewerState | null>(null);
   const [applicationInput, setApplicationInput] = useState<Omit<PetAdoptionApplicationInput, "listingId">>({
     applicantHouseholdId: null,
     applicantName: "",
@@ -293,6 +300,31 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
 
   function updateApplicationInput(nextInput: Partial<Omit<PetAdoptionApplicationInput, "listingId">>) {
     setApplicationInput((current) => ({ ...current, ...nextInput }));
+  }
+
+  function openPhotoViewer(listing: PetAdoptionListing, mediaId?: string) {
+    const photos = getApprovedAdoptionMedia(listing)
+      .filter((media): media is typeof media & { signedUrl: string } => Boolean(media.signedUrl))
+      .map((media) => ({ id: media.id, signedUrl: media.signedUrl }));
+
+    if (!photos.length) {
+      return;
+    }
+
+    const selectedIndex = mediaId ? Math.max(photos.findIndex((photo) => photo.id === mediaId), 0) : 0;
+    setPhotoViewer({ index: selectedIndex, photos, title: listing.petName });
+  }
+
+  function movePhotoViewer(direction: "next" | "previous") {
+    setPhotoViewer((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const delta = direction === "next" ? 1 : -1;
+      const nextIndex = (current.index + delta + current.photos.length) % current.photos.length;
+      return { ...current, index: nextIndex };
+    });
   }
 
   function toggleApplicationForm() {
@@ -433,7 +465,14 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                 }}
               >
                 {cover?.signedUrl ? (
-                  <Image source={{ uri: cover.signedUrl }} style={{ height: 132, width: "100%" }} />
+                  <Pressable
+                    accessibilityLabel={`Ver foto de ${listing.petName}`}
+                    accessibilityRole="imagebutton"
+                    onPress={() => openPhotoViewer(listing, cover.id)}
+                    style={{ backgroundColor: "#f8fafc" }}
+                  >
+                    <Image resizeMode="contain" source={{ uri: cover.signedUrl }} style={{ height: 150, width: "100%" }} />
+                  </Pressable>
                 ) : (
                   <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.1)", height: 132, justifyContent: "center" }}>
                     <Text style={{ color: colorTokens.accentDark, fontSize: 28, fontWeight: "900" }}>{getAdoptionPetInitial(listing.petName)}</Text>
@@ -498,7 +537,14 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
             const cover = getAdoptionListingCover(selectedAdoptionListing);
 
             return cover?.signedUrl ? (
-              <Image source={{ uri: cover.signedUrl }} style={{ borderRadius: 18, height: 190, width: "100%" }} />
+              <Pressable
+                accessibilityLabel={`Ver foto grande de ${selectedAdoptionListing.petName}`}
+                accessibilityRole="imagebutton"
+                onPress={() => openPhotoViewer(selectedAdoptionListing, cover.id)}
+                style={{ backgroundColor: "#f8fafc", borderRadius: 18, overflow: "hidden" }}
+              >
+                <Image resizeMode="contain" source={{ uri: cover.signedUrl }} style={{ height: 220, width: "100%" }} />
+              </Pressable>
             ) : (
               <View style={{ alignItems: "center", backgroundColor: "rgba(20,184,166,0.1)", borderRadius: 18, height: 190, justifyContent: "center" }}>
                 <Text style={{ color: colorTokens.accentDark, fontSize: 34, fontWeight: "900" }}>{getAdoptionPetInitial(selectedAdoptionListing.petName)}</Text>
@@ -510,7 +556,15 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {getApprovedAdoptionMedia(selectedAdoptionListing).slice(0, 5).map((media) =>
                 media.signedUrl ? (
-                  <Image key={media.id} source={{ uri: media.signedUrl }} style={{ borderRadius: 12, height: 56, width: 70 }} />
+                  <Pressable
+                    accessibilityLabel={`Ver foto de ${selectedAdoptionListing.petName}`}
+                    accessibilityRole="imagebutton"
+                    key={media.id}
+                    onPress={() => openPhotoViewer(selectedAdoptionListing, media.id)}
+                    style={{ backgroundColor: "#f8fafc", borderRadius: 12, overflow: "hidden" }}
+                  >
+                    <Image resizeMode="cover" source={{ uri: media.signedUrl }} style={{ height: 56, width: 70 }} />
+                  </Pressable>
                 ) : null
               )}
             </View>
@@ -759,6 +813,55 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
           })()}
         </View>
       ) : null}
+
+      <Modal animationType="fade" transparent visible={Boolean(photoViewer)} onRequestClose={() => setPhotoViewer(null)}>
+        <View style={{ backgroundColor: "rgba(15,23,42,0.88)", flex: 1, justifyContent: "center", padding: 18 }}>
+          {photoViewer ? (
+            <View style={{ gap: 14 }}>
+              <View style={{ alignItems: "center", flexDirection: "row", gap: 12, justifyContent: "space-between" }}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text numberOfLines={1} style={{ color: "#ffffff", fontSize: 17, fontWeight: "900" }}>
+                    {photoViewer.title}
+                  </Text>
+                  <Text style={{ color: "rgba(255,255,255,0.72)", fontSize: 12, fontWeight: "700", marginTop: 2 }}>
+                    Foto {photoViewer.index + 1} de {photoViewer.photos.length}
+                  </Text>
+                </View>
+                <Pressable
+                  accessibilityLabel="Cerrar visor de fotos"
+                  accessibilityRole="button"
+                  onPress={() => setPhotoViewer(null)}
+                  style={{
+                    alignItems: "center",
+                    backgroundColor: "rgba(255,255,255,0.14)",
+                    borderRadius: 999,
+                    height: 38,
+                    justifyContent: "center",
+                    width: 38
+                  }}
+                >
+                  <Text style={{ color: "#ffffff", fontSize: 18, fontWeight: "900" }}>X</Text>
+                </Pressable>
+              </View>
+
+              <View style={{ backgroundColor: "#020617", borderRadius: 22, overflow: "hidden" }}>
+                <Image
+                  resizeMode="contain"
+                  source={{ uri: photoViewer.photos[photoViewer.index]?.signedUrl }}
+                  style={{ height: 430, width: "100%" }}
+                />
+              </View>
+
+              {photoViewer.photos.length > 1 ? (
+                <View style={{ flexDirection: "row", gap: 10, justifyContent: "center" }}>
+                  <Button label="Anterior" onPress={() => movePhotoViewer("previous")} tone="secondary" />
+                  <Button label="Siguiente" onPress={() => movePhotoViewer("next")} tone="secondary" />
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      </Modal>
     </View>
   );
 }

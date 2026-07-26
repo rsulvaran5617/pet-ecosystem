@@ -421,6 +421,8 @@ function mapPetAdoptionListing(
     reviewedByUserId: row.reviewed_by_user_id,
     reviewedAt: row.reviewed_at,
     reviewNotes: row.review_notes,
+    responsibilityAcknowledgedAt: row.responsibility_acknowledged_at,
+    responsibilityAcknowledgedByUserId: row.responsibility_acknowledged_by_user_id,
     createdByUserId: row.created_by_user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -1104,6 +1106,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
     },
     async submitPetAdoptionListing(listingId) {
       const { data, error } = await supabase.rpc("submit_pet_adoption_listing", {
+        responsibility_acknowledged: true,
         target_listing_id: listingId
       });
 

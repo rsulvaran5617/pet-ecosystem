@@ -221,6 +221,8 @@ export interface PetAdoptionListing {
   reviewedByUserId: Uuid | null;
   reviewedAt: string | null;
   reviewNotes: string | null;
+  responsibilityAcknowledgedAt: string | null;
+  responsibilityAcknowledgedByUserId: Uuid | null;
   createdByUserId: Uuid;
   createdAt: string;
   updatedAt: string;

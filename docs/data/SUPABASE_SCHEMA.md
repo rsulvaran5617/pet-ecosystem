@@ -54,10 +54,11 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 ## Foster-3A/3B adopcion controlada
 
 - `pet_adoption_listings`
-  - publicacion moderada para una mascota existente.
+  - publicacion responsable para una mascota existente.
   - referencia `pet_id` a `pets(id)` y `household_id` a `households(id)`.
-  - estados: `draft`, `pending_review`, `published`, `paused`, `closed`, `rejected`.
+  - estados: `draft`, `pending_review` legacy, `published`, `paused`, `closed`, `rejected`, `adopted`.
   - campos publicos seguros: historia, personalidad, resumen de salud publico, requisitos, compatibilidades, necesidades especiales, ciudad y pais.
+  - `responsibility_acknowledged_at` / `responsibility_acknowledged_by_user_id` registran la aceptacion de responsabilidad al publicar sin revision previa por ficha.
 - `pet_adoption_listing_media`
   - galeria de la publicacion.
   - bucket privado `pet-adoption-media`, path privado, portada, orden y estado de moderacion.
@@ -68,6 +69,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 RPCs Foster-3B:
 - `set_pet_adoption_listing_cover(target_media_id)`
 - `review_pet_adoption_listing_media(target_media_id, decision, notes)`
+- `submit_pet_adoption_listing(target_listing_id, responsibility_acknowledged)` publica directo bajo responsabilidad de la Familia Protectora aprobada y habilita `share_status`.
 
 No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A/3B.
 

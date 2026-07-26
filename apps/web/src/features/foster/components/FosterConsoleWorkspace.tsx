@@ -200,38 +200,37 @@ function buildAdoptionSteps(listing: PetAdoptionListing | null) {
   const status = listing?.status ?? null;
   const prepared = Boolean(listing);
   const hasMedia = Boolean(listing?.media.length);
-  const sentToReview = Boolean(status && status !== "draft");
   const visible = status === "published";
 
   return [
     { label: "Mascota", order: 1, state: "done" },
     { label: "Publicacion", order: 2, state: prepared ? "done" : "active" },
-    { label: "Contenido", order: 3, state: prepared && status === "draft" ? "active" : sentToReview ? "done" : "pending" },
+    { label: "Contenido", order: 3, state: prepared ? "done" : "pending" },
     { label: "Fotos", order: 4, state: hasMedia ? "done" : prepared ? "active" : "pending" },
-    { label: "Revision", order: 5, state: status === "pending_review" ? "active" : visible ? "done" : "pending" },
+    { label: "Responsabilidad", order: 5, state: visible ? "done" : prepared ? "active" : "pending" },
     { label: "Visible", order: 6, state: visible ? "done" : "pending" }
   ] as Array<{ label: string; order: number; state: "active" | "done" | "pending" }>;
 }
 
 function publicationGuidance(listing: PetAdoptionListing | null) {
   if (!listing) {
-    return "Prepara una publicacion para iniciar el proceso de adopcion. No se hara visible todavia.";
+    return "Prepara la ficha publica de la mascota antes de abrir solicitudes de adopcion.";
   }
 
   if (listing.status === "draft") {
-    return "Completa historia, salud, compatibilidad y requisitos. Luego envia a revision admin.";
+    return "Completa historia, salud, compatibilidad y requisitos. Luego publica bajo responsabilidad de tu Familia Protectora.";
   }
 
   if (listing.status === "pending_review") {
-    return "La publicacion esta en revision admin. Aun no aparece en Mascotas que buscan hogar.";
+    return "Esta publicacion fue creada con el flujo anterior. Puedes publicarla bajo responsabilidad sin esperar una revision adicional.";
   }
 
   if (listing.status === "published") {
-    return "La publicacion esta visible para familias interesadas.";
+    return "La publicacion esta visible para familias interesadas y puedes mantener su contenido actualizado.";
   }
 
   if (listing.status === "rejected") {
-    return "Admin rechazo la publicacion. Corrige el contenido y enviala nuevamente a revision.";
+    return "La publicacion fue pausada o rechazada. Corrige el contenido y publica bajo responsabilidad cuando este lista.";
   }
 
   if (listing.status === "adopted") {
@@ -239,6 +238,17 @@ function publicationGuidance(listing: PetAdoptionListing | null) {
   }
 
   return "Revisa el estado de esta publicacion antes de continuar.";
+}
+
+function ContentSummaryTile({ label, value }: { label: string; value: string | null | undefined }) {
+  const cleanValue = value?.trim();
+
+  return (
+    <div style={styles.publicContentTile}>
+      <span style={styles.tileLabel}>{label}</span>
+      <strong style={cleanValue ? styles.tileValue : styles.tileEmptyValue}>{cleanValue || "Pendiente de completar"}</strong>
+    </div>
+  );
 }
 
 export function FosterConsoleWorkspace() {
@@ -915,8 +925,8 @@ function AdoptionPublicationFlow({
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [form, setForm] = useState<PetAdoptionListingInput>(() => buildAdoptionListingForm(listing, pet));
   const steps = buildAdoptionSteps(listing);
-  const canEdit = !listing || ["draft", "rejected", "paused"].includes(listing.status);
-  const canSubmit = listing ? ["draft", "rejected", "paused"].includes(listing.status) : false;
+  const canEdit = !listing || !["adopted", "closed"].includes(listing.status);
+  const canPublish = listing ? ["draft", "rejected", "paused", "pending_review"].includes(listing.status) : false;
   const canManageMedia = Boolean(listing && !["adopted", "closed"].includes(listing.status));
 
   useEffect(() => {
@@ -944,11 +954,40 @@ function AdoptionPublicationFlow({
       <p style={styles.itemMeta}>{publicationGuidance(listing)}</p>
 
       {listing ? (
+        <section style={styles.publicContentBox}>
+          <div style={styles.sectionHeaderCompact}>
+            <div>
+              <strong style={styles.itemTitle}>Ficha publica de adopcion</strong>
+              <p style={styles.itemMeta}>Estos datos son los que vera una familia interesada antes de solicitar la adopcion.</p>
+            </div>
+            <StatusBadge
+              label={listing.status === "published" ? "Visible" : listing.status === "paused" ? "Pausada" : "Pendiente"}
+              tone={listing.status === "published" ? "success" : listing.status === "paused" ? "warning" : "neutral"}
+            />
+          </div>
+          <div style={styles.publicContentGrid}>
+            <ContentSummaryTile label="Historia" value={listing.publicStory} />
+            <ContentSummaryTile label="Personalidad" value={listing.personalityNotes} />
+            <ContentSummaryTile label="Salud publica" value={listing.publicHealthSummary} />
+            <ContentSummaryTile label="Requisitos" value={listing.adoptionRequirements} />
+            <ContentSummaryTile label="Ninos" value={listing.compatibilityChildren} />
+            <ContentSummaryTile label="Perros" value={listing.compatibilityDogs} />
+            <ContentSummaryTile label="Gatos" value={listing.compatibilityCats} />
+            <ContentSummaryTile label="Ubicacion" value={`${listing.city}${listing.stateRegion ? `, ${listing.stateRegion}` : ""}, ${listing.countryCode}`} />
+          </div>
+          <div style={styles.responsibilityNotice}>
+            <strong>Publicacion bajo responsabilidad de la Familia Protectora.</strong>
+            <span>La plataforma podra pausar contenido sensible o reportado, pero no requiere aprobacion previa de cada ficha.</span>
+          </div>
+        </section>
+      ) : null}
+
+      {listing ? (
         <section style={styles.mediaGalleryBox}>
           <div style={styles.sectionHeaderCompact}>
             <div>
               <strong style={styles.itemTitle}>Fotos publicas</strong>
-              <p style={styles.itemMeta}>Estas fotos seran visibles para familias interesadas cuando admin las apruebe.</p>
+              <p style={styles.itemMeta}>Estas fotos seran visibles para familias interesadas bajo responsabilidad de la Familia Protectora.</p>
             </div>
             <span style={styles.countPill}>{listing.media.length}/8 fotos</span>
           </div>
@@ -1030,12 +1069,12 @@ function AdoptionPublicationFlow({
         ) : null}
         {listing && canEdit ? (
           <button disabled={disabled} onClick={() => setIsEditing((current) => !current)} style={styles.secondaryButton} type="button">
-            {isEditing ? "Ocultar formulario" : "Completar publicacion"}
+            {isEditing ? "Ocultar formulario" : "Editar ficha publica"}
           </button>
         ) : null}
-        {listing && canSubmit ? (
+        {listing && canPublish ? (
           <button disabled={disabled} onClick={() => void onSubmit(listing.id)} style={styles.primaryButton} type="button">
-            Enviar a revision
+            Publicar bajo responsabilidad
           </button>
         ) : null}
         {applicationCount ? (
@@ -1113,7 +1152,9 @@ function AdoptionPublicationFlow({
             <textarea disabled={disabled} onChange={(event) => updateField("specialNeedsNotes", event.target.value)} style={styles.textarea} value={form.specialNeedsNotes ?? ""} />
           </label>
           <div style={styles.heroActions}>
-            <button disabled={disabled} style={styles.primaryButton} type="submit">Guardar borrador</button>
+            <button disabled={disabled} style={styles.primaryButton} type="submit">
+              {listing.status === "published" ? "Guardar cambios publicados" : "Guardar contenido"}
+            </button>
             <button
               disabled={disabled}
               onClick={() => {
@@ -1847,8 +1888,12 @@ const styles: Record<string, React.CSSProperties> = {
   processStepActive: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.24)", color: "#c2410c" },
   processStepDone: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.22)", color: "#0f766e" },
   publicationFlowBox: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
+  publicContentBox: { background: "rgba(255, 253, 248, 0.82)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
+  publicContentGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
+  publicContentTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "4px", minHeight: "74px", padding: "10px" },
   publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   rejectBox: { display: "grid", gap: "8px" },
+  responsibilityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "3px", lineHeight: 1.4, padding: "10px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },
   sectionHeaderCompact: { alignItems: "flex-start", display: "flex", gap: "12px", justifyContent: "space-between" },
@@ -1871,8 +1916,9 @@ const styles: Record<string, React.CSSProperties> = {
   successMetric: { background: "linear-gradient(135deg, #f0fdfa, #ffffff)" },
   textarea: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "16px", color: "#0f172a", fontSize: "14px", minHeight: "84px", padding: "12px", resize: "vertical" },
   textBlock: { display: "grid", gap: "4px" },
+  tileEmptyValue: { color: "#94a3b8", fontSize: "13px", fontWeight: 800, lineHeight: 1.35 },
   tileLabel: { color: "#64748b", fontSize: "11px", fontWeight: 900, textTransform: "uppercase" },
-  tileValue: { color: "#0f172a", fontSize: "15px" },
+  tileValue: { color: "#0f172a", fontSize: "15px", lineHeight: 1.25 },
   transferCard: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "18px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "13px" },
   transferNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "18px", color: "#0f766e", display: "grid", gap: "4px", padding: "12px" },
   twoColumnGrid: { display: "grid", gap: "18px", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" },

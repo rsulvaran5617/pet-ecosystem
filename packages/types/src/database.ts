@@ -1116,6 +1116,8 @@ export interface Database {
           reviewed_by_user_id: string | null;
           reviewed_at: string | null;
           review_notes: string | null;
+          responsibility_acknowledged_at: string | null;
+          responsibility_acknowledged_by_user_id: string | null;
           created_by_user_id: string;
           created_at: string;
           updated_at: string;
@@ -1146,6 +1148,8 @@ export interface Database {
           reviewed_by_user_id?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          responsibility_acknowledged_at?: string | null;
+          responsibility_acknowledged_by_user_id?: string | null;
           created_by_user_id: string;
           created_at?: string;
           updated_at?: string;
@@ -1176,6 +1180,8 @@ export interface Database {
           reviewed_by_user_id?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          responsibility_acknowledged_at?: string | null;
+          responsibility_acknowledged_by_user_id?: string | null;
           created_by_user_id?: string;
           created_at?: string;
           updated_at?: string;
@@ -2337,6 +2343,7 @@ export interface Database {
       };
       submit_pet_adoption_listing: {
         Args: {
+          responsibility_acknowledged?: boolean;
           target_listing_id: string;
         };
         Returns: Database["public"]["Tables"]["pet_adoption_listings"]["Row"];
