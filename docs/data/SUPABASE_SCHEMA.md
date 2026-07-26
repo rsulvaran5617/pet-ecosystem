@@ -124,6 +124,15 @@ Foster-5E aplicado remoto:
 - extiende `accept_pet_transfer` para que, al aceptar una transferencia vinculada a adopcion, mueva custodia por Foster-2A, marque la solicitud `converted_to_transfer` y cierre la publicacion como `adopted`.
 - agrega RPC `get_pet_adoption_closure_detail`.
 - discovery publico sigue mostrando solo publicaciones `published`; la ficha por slug puede mostrar `adopted` en modo lectura.
+
+Foster-6A/6B compromiso documental:
+- migracion local `20260726143000_foster_adoption_commitment_documents.sql`.
+- bucket privado `foster-adoption-documents`, maximo 10 MB, PDF/JPEG/PNG/WEBP.
+- tabla `protective_household_adoption_commitment_templates`: plantilla activa de compromiso por household `protective`.
+- tabla `pet_adoption_application_commitment_documents`: documento completado por solicitud, con estados `pending`, `received`, `reviewed`, `needs_correction`.
+- RPCs: `get_protective_adoption_commitment_template`, `upsert_protective_adoption_commitment_template`, `get_pet_adoption_application_commitment_document`, `register_pet_adoption_application_commitment_document`, `review_pet_adoption_application_commitment_document`.
+- no bloquea automaticamente aprobacion/transferencia y no cambia custodia.
+
 - `chat_messages`
 - `reviews`
 - `support_cases`

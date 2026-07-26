@@ -17,6 +17,8 @@ import type {
   PetAdoptionMediaModerationStatus,
   PetAdoptionMediaType,
   PetTransferStatus,
+  AdoptionCommitmentDocumentStatus,
+  AdoptionCommitmentRequirementPolicy,
   ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfileStatus,
@@ -1311,6 +1313,114 @@ export interface Database {
         };
         Relationships: [];
       };
+      protective_household_adoption_commitment_templates: {
+        Row: {
+          id: string;
+          protective_household_id: string;
+          title: string;
+          description: string | null;
+          requirement_policy: AdoptionCommitmentRequirementPolicy;
+          storage_bucket: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          file_size_bytes: number | null;
+          is_active: boolean;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          protective_household_id: string;
+          title?: string;
+          description?: string | null;
+          requirement_policy?: AdoptionCommitmentRequirementPolicy;
+          storage_bucket?: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          file_size_bytes?: number | null;
+          is_active?: boolean;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          protective_household_id?: string;
+          title?: string;
+          description?: string | null;
+          requirement_policy?: AdoptionCommitmentRequirementPolicy;
+          storage_bucket?: string;
+          storage_path?: string;
+          file_name?: string;
+          mime_type?: string;
+          file_size_bytes?: number | null;
+          is_active?: boolean;
+          created_by_user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      pet_adoption_application_commitment_documents: {
+        Row: {
+          id: string;
+          application_id: string;
+          template_id: string | null;
+          status: AdoptionCommitmentDocumentStatus;
+          storage_bucket: string | null;
+          storage_path: string | null;
+          file_name: string | null;
+          mime_type: string | null;
+          file_size_bytes: number | null;
+          submitted_by_user_id: string | null;
+          reviewed_by_user_id: string | null;
+          review_notes: string | null;
+          submitted_at: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          application_id: string;
+          template_id?: string | null;
+          status?: AdoptionCommitmentDocumentStatus;
+          storage_bucket?: string | null;
+          storage_path?: string | null;
+          file_name?: string | null;
+          mime_type?: string | null;
+          file_size_bytes?: number | null;
+          submitted_by_user_id?: string | null;
+          reviewed_by_user_id?: string | null;
+          review_notes?: string | null;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          application_id?: string;
+          template_id?: string | null;
+          status?: AdoptionCommitmentDocumentStatus;
+          storage_bucket?: string | null;
+          storage_path?: string | null;
+          file_name?: string | null;
+          mime_type?: string | null;
+          file_size_bytes?: number | null;
+          submitted_by_user_id?: string | null;
+          reviewed_by_user_id?: string | null;
+          review_notes?: string | null;
+          submitted_at?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       pet_adoption_application_status_history: {
         Row: {
           id: string;
@@ -2580,6 +2690,52 @@ export interface Database {
             changed_by_email: string | null;
           }
         >;
+      };
+      get_protective_adoption_commitment_template: {
+        Args: {
+          target_household_id: string;
+        };
+        Returns: Array<Database["public"]["Tables"]["protective_household_adoption_commitment_templates"]["Row"]>;
+      };
+      upsert_protective_adoption_commitment_template: {
+        Args: {
+          target_household_id: string;
+          next_title: string;
+          next_description: string | null;
+          next_requirement_policy: AdoptionCommitmentRequirementPolicy;
+          next_storage_bucket: string;
+          next_storage_path: string;
+          next_file_name: string;
+          next_mime_type: string;
+          next_file_size_bytes?: number | null;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_adoption_commitment_templates"]["Row"];
+      };
+      get_pet_adoption_application_commitment_document: {
+        Args: {
+          target_application_id: string;
+        };
+        Returns: Array<Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"]>;
+      };
+      register_pet_adoption_application_commitment_document: {
+        Args: {
+          target_application_id: string;
+          target_template_id?: string | null;
+          next_storage_bucket?: string | null;
+          next_storage_path?: string | null;
+          next_file_name?: string | null;
+          next_mime_type?: string | null;
+          next_file_size_bytes?: number | null;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"];
+      };
+      review_pet_adoption_application_commitment_document: {
+        Args: {
+          target_application_id: string;
+          next_status: Exclude<AdoptionCommitmentDocumentStatus, "pending" | "received">;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"];
       };
       get_household_member_profiles: {
         Args: {

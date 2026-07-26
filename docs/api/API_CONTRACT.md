@@ -273,10 +273,15 @@ Contratos QR propuestos:
 - `PATCH /foster/adoption-applications/{applicationId}/status` (Foster-5D.1 aplicado remoto via RPC `update_pet_adoption_application_status`)
 - `GET /foster/adoption-applications/{applicationId}/history` (Foster-5D.1 aplicado remoto via RPC `list_pet_adoption_application_status_history`)
 - `POST /foster/adoption-applications/{applicationId}/start-transfer` (Foster-5E aplicado remoto via RPC `start_pet_adoption_transfer`)
+- `GET /foster/commitment-template/{householdId}` (Foster-6A local via RPC `get_protective_adoption_commitment_template`)
+- `POST /foster/commitment-template` (Foster-6A local via Storage privado + RPC `upsert_protective_adoption_commitment_template`)
+- `GET /foster/adoption-applications/{applicationId}/commitment-document` (Foster-6B local via RPC `get_pet_adoption_application_commitment_document`)
+- `POST /foster/adoption-applications/{applicationId}/commitment-document` (Foster-6B local via Storage privado + RPC `register_pet_adoption_application_commitment_document`)
+- `PATCH /foster/adoption-applications/{applicationId}/commitment-document/review` (Foster-6B local via RPC `review_pet_adoption_application_commitment_document`)
 
 Notas:
 
-- Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile`, Foster-5B `getPublicPetAdoptionListingBySlug`, Foster-5C solicitudes estructuradas, Foster-5D.1 historial/cambio de estado y Foster-5E cierre adoptivo conectado a transferencia cuentan con API client local tipado en `packages/api-client/src/foster.ts`; la UI completa de bandeja Foster-5D.2 sigue pendiente.
+- Foster-1A `protective-households/profile`, Foster-5A `protective-public-profile`, Foster-5B `getPublicPetAdoptionListingBySlug`, Foster-5C solicitudes estructuradas, Foster-5D.1 historial/cambio de estado, Foster-5E cierre adoptivo conectado a transferencia y Foster-6A/6B compromiso documental cuentan con API client local tipado en `packages/api-client/src/foster.ts`.
 - `protective-households` y `pet-transfers` corresponden al primer slice privado de familia protectora y transferencia, antes de marketplace publico.
 - Foster-1A solo cubre `protective-households/profile` y revision admin; no crea `pet-transfers` todavia.
 - estados Foster-1A: `draft`, `pending_review`, `approved`, `rejected`, `suspended`.

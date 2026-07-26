@@ -1,7 +1,15 @@
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { PetAdoptionApplication, PetAdoptionApplicationInput, PetAdoptionListing, PetTransferRecord } from "@pet/types";
+import type {
+  ApplicationCommitmentDocument,
+  PetAdoptionApplication,
+  PetAdoptionApplicationInput,
+  PetAdoptionListing,
+  PetTransferRecord,
+  ProtectiveAdoptionCommitmentTemplate
+} from "@pet/types";
+import * as DocumentPicker from "expo-document-picker";
 import { useEffect, useState } from "react";
-import { Image, Modal, Pressable, Share, Text, TextInput, View } from "react-native";
+import { Image, Linking, Modal, Pressable, Share, Text, TextInput, View } from "react-native";
 
 import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileCoreApiClient, getMobileFosterApiClient } from "../../core/services/supabase-mobile";
@@ -128,6 +136,22 @@ const adoptionApplicationStatusLabels: Record<PetAdoptionApplication["status"], 
   withdrawn: "Retirada"
 };
 
+const commitmentStatusLabels: Record<ApplicationCommitmentDocument["status"], string> = {
+  needs_correction: "Requiere correccion",
+  pending: "Pendiente",
+  received: "Recibido",
+  reviewed: "Revisado"
+};
+
+const commitmentRequirementLabels: Record<ProtectiveAdoptionCommitmentTemplate["requirementPolicy"], string> = {
+  informational: "Informativo",
+  required_before_approval: "Requerido antes de aprobar",
+  required_before_transfer: "Requerido antes de transferir"
+};
+
+const commitmentAllowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+const commitmentMaxFileSizeBytes = 10 * 1024 * 1024;
+
 function getApprovedAdoptionMedia(listing: PetAdoptionListing) {
   return listing.media.filter((media) => media.moderationStatus === "approved" && media.signedUrl);
 }
@@ -211,7 +235,10 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isApplicationFormOpen, setIsApplicationFormOpen] = useState(false);
+  const [isUploadingCommitmentDocument, setIsUploadingCommitmentDocument] = useState(false);
   const [applicantDefaults, setApplicantDefaults] = useState<AdoptionApplicantDefaults>(emptyApplicantDefaults);
+  const [commitmentDocument, setCommitmentDocument] = useState<ApplicationCommitmentDocument | null>(null);
+  const [commitmentTemplate, setCommitmentTemplate] = useState<ProtectiveAdoptionCommitmentTemplate | null>(null);
   const [photoViewer, setPhotoViewer] = useState<AdoptionPhotoViewerState | null>(null);
   const [applicationInput, setApplicationInput] = useState<Omit<PetAdoptionApplicationInput, "listingId">>({
     applicantHouseholdId: null,
@@ -271,8 +298,13 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
 
     try {
       const detail = await getMobileFosterApiClient().getPetAdoptionListingDetail(listingId, "public");
-      setSelectedAdoptionListing(detail ?? adoptionListings.find((listing) => listing.id === listingId) ?? null);
+      const nextListing = detail ?? adoptionListings.find((listing) => listing.id === listingId) ?? null;
+      setSelectedAdoptionListing(nextListing);
       setCurrentView("detail");
+      if (nextListing) {
+        const application = myApplications.find((item) => item.listingId === nextListing.id);
+        await loadCommitmentContext(nextListing, application);
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir el perfil de adopcion.");
     } finally {
@@ -300,6 +332,87 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
 
   function updateApplicationInput(nextInput: Partial<Omit<PetAdoptionApplicationInput, "listingId">>) {
     setApplicationInput((current) => ({ ...current, ...nextInput }));
+  }
+
+  async function loadCommitmentContext(listing: PetAdoptionListing, application?: PetAdoptionApplication) {
+    try {
+      const fosterApi = getMobileFosterApiClient();
+      const [template, document] = await Promise.all([
+        fosterApi.getProtectiveAdoptionCommitmentTemplate(listing.householdId),
+        application ? fosterApi.getApplicationCommitmentDocument(application.id) : Promise.resolve(null)
+      ]);
+
+      setCommitmentTemplate(template);
+      setCommitmentDocument(document);
+    } catch {
+      setCommitmentTemplate(null);
+      setCommitmentDocument(null);
+    }
+  }
+
+  async function openCommitmentTemplate() {
+    if (!commitmentTemplate?.signedUrl) {
+      setErrorMessage("El compromiso de adopcion aun no esta disponible para descarga.");
+      return;
+    }
+
+    await Linking.openURL(commitmentTemplate.signedUrl);
+  }
+
+  async function openCommitmentDocument() {
+    if (!commitmentDocument?.signedUrl) {
+      setErrorMessage("El documento firmado aun no esta disponible.");
+      return;
+    }
+
+    await Linking.openURL(commitmentDocument.signedUrl);
+  }
+
+  async function uploadCommitmentDocument(application: PetAdoptionApplication) {
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+        type: commitmentAllowedMimeTypes
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType ?? "application/octet-stream";
+      const fileSize = asset.size ?? null;
+
+      if (!commitmentAllowedMimeTypes.includes(mimeType)) {
+        setErrorMessage("El compromiso firmado debe ser PDF o imagen JPG, PNG o WEBP.");
+        return;
+      }
+
+      if (fileSize && fileSize > commitmentMaxFileSizeBytes) {
+        setErrorMessage("El compromiso firmado no puede superar 10 MB.");
+        return;
+      }
+
+      setIsUploadingCommitmentDocument(true);
+      const document = await getMobileFosterApiClient().uploadApplicationCommitmentDocument({
+        applicationId: application.id,
+        fileName: asset.name ?? "compromiso-adopcion",
+        fileSizeBytes: fileSize,
+        fileUri: asset.uri,
+        mimeType,
+        templateId: commitmentTemplate?.id ?? null
+      });
+
+      setCommitmentDocument(document);
+      setInfoMessage("Compromiso firmado recibido. La familia protectora podra revisarlo desde su bandeja.");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "No fue posible subir el compromiso firmado.");
+    } finally {
+      setIsUploadingCommitmentDocument(false);
+    }
   }
 
   function openPhotoViewer(listing: PetAdoptionListing, mediaId?: string) {
@@ -348,6 +461,8 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
       });
       const applications = await getMobileFosterApiClient().listMyPetAdoptionApplications();
       setMyApplications(applications);
+      const nextApplication = applications.find((application) => application.listingId === selectedAdoptionListing.id);
+      await loadCommitmentContext(selectedAdoptionListing, nextApplication);
       setIsApplicationFormOpen(false);
       setInfoMessage("Solicitud enviada. La familia protectora podra revisar tus datos y contactarte por el siguiente paso.");
     } catch (error) {
@@ -366,6 +481,10 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
       await getMobileFosterApiClient().withdrawPetAdoptionApplication(applicationId);
       const applications = await getMobileFosterApiClient().listMyPetAdoptionApplications();
       setMyApplications(applications);
+      if (selectedAdoptionListing) {
+        const nextApplication = applications.find((application) => application.listingId === selectedAdoptionListing.id);
+        await loadCommitmentContext(selectedAdoptionListing, nextApplication);
+      }
       setInfoMessage("Solicitud retirada. Puedes volver a enviar una solicitud si la publicacion sigue disponible.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible retirar la solicitud.");
@@ -382,6 +501,15 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
     void loadApplicantDefaults();
     void loadAdoptionListings();
   }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled || !selectedAdoptionListing) {
+      return;
+    }
+
+    const application = myApplications.find((item) => item.listingId === selectedAdoptionListing.id);
+    void loadCommitmentContext(selectedAdoptionListing, application);
+  }, [enabled, myApplications, selectedAdoptionListing]);
 
   if (!enabled) {
     return null;
@@ -617,6 +745,61 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                 {selectedAdoptionListing.city}, {selectedAdoptionListing.countryCode}
               </Text>
             </View>
+          </View>
+
+          <View style={[inputStyle, { gap: 10 }]}>
+            <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, justifyContent: "space-between" }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>Compromiso de adopcion</Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16, marginTop: 4 }}>
+                  Este documento es proporcionado por la familia protectora. Pet Ecosystem facilita el intercambio documental, pero no valida el contenido legal.
+                </Text>
+              </View>
+              {commitmentTemplate ? (
+                <StatusChip label={commitmentRequirementLabels[commitmentTemplate.requirementPolicy]} tone="active" />
+              ) : (
+                <StatusChip label="Sin compromiso" tone="neutral" />
+              )}
+            </View>
+            {commitmentTemplate ? (
+              <View style={{ gap: 8 }}>
+                <Text style={{ color: colorTokens.accentDark, fontSize: 11, fontWeight: "900", lineHeight: 16 }}>
+                  {commitmentTemplate.title}
+                </Text>
+                {commitmentTemplate.description ? (
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                    {commitmentTemplate.description}
+                  </Text>
+                ) : null}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <Button label="Ver compromiso" onPress={() => void openCommitmentTemplate()} tone="secondary" />
+                  {currentApplication ? (
+                    <Button
+                      disabled={isUploadingCommitmentDocument}
+                      label={commitmentDocument ? "Reemplazar firmado" : "Subir firmado"}
+                      onPress={() => void uploadCommitmentDocument(currentApplication)}
+                    />
+                  ) : null}
+                  {commitmentDocument?.signedUrl ? (
+                    <Button label="Ver firmado" onPress={() => void openCommitmentDocument()} tone="secondary" />
+                  ) : null}
+                </View>
+                {currentApplication ? (
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                    Estado documental: {commitmentDocument ? commitmentStatusLabels[commitmentDocument.status] : "Pendiente de envio"}.
+                    {commitmentDocument?.reviewNotes ? ` Nota: ${commitmentDocument.reviewNotes}` : ""}
+                  </Text>
+                ) : (
+                  <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                    Envia tu solicitud para poder devolver el documento completado.
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                Esta familia protectora no ha configurado un documento de compromiso para esta publicacion.
+              </Text>
+            )}
           </View>
 
           <View style={[inputStyle, { gap: 10 }]}>

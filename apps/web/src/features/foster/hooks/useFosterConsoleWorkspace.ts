@@ -1,6 +1,8 @@
 ﻿"use client";
 
 import type {
+  ApplicationCommitmentDocument,
+  AdoptionCommitmentDocumentStatus,
   HouseholdSummary,
   PetAdoptionApplication,
   PetAdoptionListingInput,
@@ -11,6 +13,8 @@ import type {
   CreatePetInput,
   PetTransferRecord,
   PetSummary,
+  ProtectiveAdoptionCommitmentTemplate,
+  ProtectiveAdoptionCommitmentTemplateUploadInput,
   ProtectivePublicProfileInput,
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfile,
@@ -30,6 +34,7 @@ type AuthState = "checking" | "signed_out" | "signed_in";
 
 export type FosterConsoleApplicationDetail = {
   application: PetAdoptionApplication;
+  commitmentDocument: ApplicationCommitmentDocument | null;
   history: PetAdoptionApplicationStatusHistory[];
 };
 
@@ -39,6 +44,7 @@ export type FosterConsoleHouseholdContext = {
   pets: PetSummary[];
   profile: ProtectiveHouseholdProfile | null;
   publicProfile: ProtectivePublicProfile | null;
+  commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
   transfers: PetTransferRecord[];
 };
 
@@ -128,6 +134,38 @@ function normalizeProtectiveLogoFile(file: File) {
   return normalized;
 }
 
+function normalizeAdoptionCommitmentFile(file: File) {
+  const extension = file.name.split(".").pop()?.trim().toLowerCase() ?? "";
+  const mimeByExtension: Record<string, string> = {
+    jpeg: "image/jpeg",
+    jpe: "image/jpeg",
+    jpg: "image/jpeg",
+    pdf: "application/pdf",
+    png: "image/png",
+    webp: "image/webp"
+  };
+  const normalizedMimeType = file.type === "image/jpg" ? "image/jpeg" : file.type || mimeByExtension[extension] || "";
+
+  if (!["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(normalizedMimeType)) {
+    return {
+      error: "Formato no compatible. Sube PDF, JPG, PNG o WebP.",
+      mimeType: null
+    };
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    return {
+      error: "El archivo no puede superar 10 MB.",
+      mimeType: null
+    };
+  }
+
+  return {
+    error: null,
+    mimeType: normalizedMimeType
+  };
+}
+
 export function useFosterConsoleWorkspace() {
   const mountedRef = useRef(true);
   const [authState, setAuthState] = useState<AuthState>("checking");
@@ -152,17 +190,19 @@ export function useFosterConsoleWorkspace() {
   );
 
   const loadHouseholdContext = useCallback(async (household: HouseholdSummary): Promise<FosterConsoleHouseholdContext> => {
-    const [profile, publicProfile, listings, applications, transfers, pets] = await Promise.all([
+    const [profile, publicProfile, listings, applications, transfers, pets, commitmentTemplate] = await Promise.all([
       getBrowserFosterApiClient().getProtectiveHouseholdProfile(household.id),
       getBrowserFosterApiClient().getProtectivePublicProfile(household.id),
       getBrowserFosterApiClient().listMyPetAdoptionListings(household.id),
       getBrowserFosterApiClient().listReceivedPetAdoptionApplications(household.id),
       getBrowserFosterApiClient().listOutgoingPetTransfers(household.id),
-      getBrowserPetsApiClient().listHouseholdPets(household.id)
+      getBrowserPetsApiClient().listHouseholdPets(household.id),
+      getBrowserFosterApiClient().getProtectiveAdoptionCommitmentTemplate(household.id)
     ]);
 
     return {
       applications,
+      commitmentTemplate,
       listings,
       pets,
       profile,
@@ -245,13 +285,14 @@ export function useFosterConsoleWorkspace() {
     setInfoMessage(null);
 
     try {
-      const [detail, history] = await Promise.all([
+      const [detail, history, commitmentDocument] = await Promise.all([
         getBrowserFosterApiClient().getPetAdoptionApplicationDetail(application.id),
-        getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id)
+        getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id),
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id)
       ]);
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: detail ?? application, history });
+        setSelectedApplicationDetail({ application: detail ?? application, commitmentDocument, history });
       }
     } catch (error) {
       if (mountedRef.current) {
@@ -279,11 +320,14 @@ export function useFosterConsoleWorkspace() {
         notes: notes?.trim() || null,
         status
       });
-      const history = await getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(updated.id);
+      const [history, commitmentDocument] = await Promise.all([
+        getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(updated.id),
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(updated.id)
+      ]);
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: updated, history });
+        setSelectedApplicationDetail({ application: updated, commitmentDocument, history });
         setInfoMessage("Estado de solicitud actualizado.");
       }
     } catch (error) {
@@ -304,12 +348,15 @@ export function useFosterConsoleWorkspace() {
 
     try {
       await getBrowserFosterApiClient().startPetAdoptionTransfer(application.id);
-      const detail = await getBrowserFosterApiClient().getPetAdoptionApplicationDetail(application.id);
-      const history = await getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id);
+      const [detail, history, commitmentDocument] = await Promise.all([
+        getBrowserFosterApiClient().getPetAdoptionApplicationDetail(application.id),
+        getBrowserFosterApiClient().listPetAdoptionApplicationStatusHistory(application.id),
+        getBrowserFosterApiClient().getApplicationCommitmentDocument(application.id)
+      ]);
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setSelectedApplicationDetail({ application: detail ?? application, history });
+        setSelectedApplicationDetail({ application: detail ?? application, commitmentDocument, history });
         setInfoMessage("Transferencia privada iniciada. La familia receptora debe aceptarla.");
       }
     } catch (error) {
@@ -480,6 +527,89 @@ export function useFosterConsoleWorkspace() {
     } catch (error) {
       if (mountedRef.current) {
         setErrorMessage(toHumanFosterError(error, "No fue posible subir el logo de la Familia Protectora."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function uploadAdoptionCommitmentTemplate(
+    input: Omit<ProtectiveAdoptionCommitmentTemplateUploadInput, "fileBody" | "fileName" | "fileSizeBytes" | "mimeType"> & { file: File }
+  ) {
+    const normalizedFile = normalizeAdoptionCommitmentFile(input.file);
+
+    if (normalizedFile.error || !normalizedFile.mimeType) {
+      setErrorMessage(normalizedFile.error ?? "El compromiso no tiene un formato compatible.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const template = await getBrowserFosterApiClient().uploadProtectiveAdoptionCommitmentTemplate({
+        description: input.description ?? null,
+        fileBody: input.file,
+        fileName: input.file.name,
+        fileSizeBytes: input.file.size,
+        householdId: input.householdId,
+        mimeType: normalizedFile.mimeType,
+        requirementPolicy: input.requirementPolicy,
+        title: input.title
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Compromiso de adopcion actualizado.");
+      }
+
+      return template;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible subir el compromiso de adopcion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function reviewApplicationCommitmentDocument(
+    applicationId: Uuid,
+    status: Exclude<AdoptionCommitmentDocumentStatus, "pending" | "received">,
+    notes?: string | null
+  ) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const commitmentDocument = await getBrowserFosterApiClient().reviewApplicationCommitmentDocument({
+        applicationId,
+        notes: notes?.trim() || null,
+        status
+      });
+
+      if (mountedRef.current && selectedApplicationDetail?.application.id === applicationId) {
+        setSelectedApplicationDetail({
+          ...selectedApplicationDetail,
+          commitmentDocument
+        });
+        setInfoMessage(status === "reviewed" ? "Compromiso revisado." : "Se solicito correccion del compromiso.");
+      }
+
+      return commitmentDocument;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible revisar el compromiso."));
       }
 
       return null;
@@ -734,6 +864,7 @@ export function useFosterConsoleWorkspace() {
     },
     createFosterPet,
     createProtectiveHousehold,
+    commitmentTemplate: selectedContext?.commitmentTemplate ?? null,
     errorMessage,
     infoMessage,
     isLoading,
@@ -746,6 +877,7 @@ export function useFosterConsoleWorkspace() {
     protectiveHouseholds,
     publicProfile: selectedContext?.publicProfile ?? null,
     refresh,
+    reviewApplicationCommitmentDocument,
     selectedApplicationDetail,
     selectedHousehold,
     selectedHouseholdId,
@@ -761,6 +893,7 @@ export function useFosterConsoleWorkspace() {
     startTransfer,
     submitAdoptionListing,
     submitPublicProfile,
+    uploadAdoptionCommitmentTemplate,
     uploadPublicProfileLogo,
     removeAdoptionListingPhoto,
     setAdoptionListingCover,

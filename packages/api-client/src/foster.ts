@@ -1,6 +1,9 @@
 import type {
   AdminPetAdoptionApplication,
   AdminProtectiveHouseholdProfile,
+  ApplicationCommitmentDocument,
+  ApplicationCommitmentDocumentReviewInput,
+  ApplicationCommitmentDocumentUploadInput,
   CreatePetTransferInvitationInput,
   Database,
   PetAdoptionApplication,
@@ -22,6 +25,8 @@ import type {
   ProtectiveHouseholdProfile,
   ProtectiveHouseholdProfileInput,
   ProtectiveHouseholdProfileReviewInput,
+  ProtectiveAdoptionCommitmentTemplate,
+  ProtectiveAdoptionCommitmentTemplateUploadInput,
   ProtectivePublicProfile,
   ProtectivePublicProfileInput,
   ProtectivePublicProfileLogoUploadInput,
@@ -59,8 +64,13 @@ type PetAdoptionApplicationFunctionRow =
 type PetAdoptionApplicationStatusHistoryRow =
   Database["public"]["Functions"]["list_pet_adoption_application_status_history"]["Returns"][number];
 type PetAdoptionClosureDetailRow = Database["public"]["Functions"]["get_pet_adoption_closure_detail"]["Returns"][number];
+type ProtectiveAdoptionCommitmentTemplateRow =
+  Database["public"]["Tables"]["protective_household_adoption_commitment_templates"]["Row"];
+type ApplicationCommitmentDocumentRow =
+  Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"];
 
 const protectiveHouseholdLogosBucketId = "protective-household-logos";
+const fosterAdoptionDocumentsBucketId = "foster-adoption-documents";
 
 export interface FosterApiClient {
   getProtectiveHouseholdProfile(householdId: Uuid): Promise<ProtectiveHouseholdProfile | null>;
@@ -107,6 +117,13 @@ export interface FosterApiClient {
   updatePetAdoptionApplicationStatus(input: PetAdoptionApplicationStatusUpdateInput): Promise<PetAdoptionApplication>;
   listPetAdoptionApplicationStatusHistory(applicationId: Uuid): Promise<PetAdoptionApplicationStatusHistory[]>;
   getPetAdoptionClosureDetail(applicationId: Uuid): Promise<PetAdoptionClosureDetail | null>;
+  getProtectiveAdoptionCommitmentTemplate(householdId: Uuid): Promise<ProtectiveAdoptionCommitmentTemplate | null>;
+  uploadProtectiveAdoptionCommitmentTemplate(
+    input: ProtectiveAdoptionCommitmentTemplateUploadInput
+  ): Promise<ProtectiveAdoptionCommitmentTemplate>;
+  getApplicationCommitmentDocument(applicationId: Uuid): Promise<ApplicationCommitmentDocument | null>;
+  uploadApplicationCommitmentDocument(input: ApplicationCommitmentDocumentUploadInput): Promise<ApplicationCommitmentDocument>;
+  reviewApplicationCommitmentDocument(input: ApplicationCommitmentDocumentReviewInput): Promise<ApplicationCommitmentDocument>;
   uploadPetAdoptionMedia(input: PetAdoptionMediaUploadInput): Promise<PetAdoptionListingMedia>;
   setPetAdoptionListingCover(mediaId: Uuid): Promise<PetAdoptionListingMedia>;
   reviewPetAdoptionListingMedia(mediaId: Uuid, input: PetAdoptionMediaReviewInput): Promise<PetAdoptionListingMedia>;
@@ -168,6 +185,13 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("get_pet_adoption_application_detail") ||
     message.includes("update_pet_adoption_application_status") ||
     message.includes("list_pet_adoption_application_status_history") ||
+    message.includes("protective_household_adoption_commitment_templates") ||
+    message.includes("pet_adoption_application_commitment_documents") ||
+    message.includes("get_protective_adoption_commitment_template") ||
+    message.includes("upsert_protective_adoption_commitment_template") ||
+    message.includes("get_pet_adoption_application_commitment_document") ||
+    message.includes("register_pet_adoption_application_commitment_document") ||
+    message.includes("review_pet_adoption_application_commitment_document") ||
     message.includes("get_pet_adoption_closure_detail")
   ) && (message.includes("schema cache") || message.includes("could not find") || message.includes("does not exist"));
 }
@@ -501,6 +525,67 @@ function mapPetAdoptionClosureDetail(row: PetAdoptionClosureDetailRow): PetAdopt
     transferAcceptedAt: row.transfer_accepted_at,
     toHouseholdId: row.to_household_id,
     toHouseholdName: row.to_household_name
+  };
+}
+
+async function createFosterDocumentSignedUrl(
+  supabase: FosterSupabaseClient,
+  bucket: string | null,
+  path: string | null
+) {
+  if (bucket !== fosterAdoptionDocumentsBucketId || !path) {
+    return null;
+  }
+
+  const { data } = await supabase.storage.from(fosterAdoptionDocumentsBucketId).createSignedUrl(path, 60 * 60);
+  return data?.signedUrl ?? null;
+}
+
+async function mapProtectiveAdoptionCommitmentTemplate(
+  supabase: FosterSupabaseClient,
+  row: ProtectiveAdoptionCommitmentTemplateRow
+): Promise<ProtectiveAdoptionCommitmentTemplate> {
+  return {
+    id: row.id,
+    protectiveHouseholdId: row.protective_household_id,
+    title: row.title,
+    description: row.description,
+    requirementPolicy: row.requirement_policy,
+    storageBucket: row.storage_bucket,
+    storagePath: row.storage_path,
+    fileName: row.file_name,
+    mimeType: row.mime_type,
+    fileSizeBytes: row.file_size_bytes,
+    isActive: row.is_active,
+    createdByUserId: row.created_by_user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    signedUrl: await createFosterDocumentSignedUrl(supabase, row.storage_bucket, row.storage_path)
+  };
+}
+
+async function mapApplicationCommitmentDocument(
+  supabase: FosterSupabaseClient,
+  row: ApplicationCommitmentDocumentRow
+): Promise<ApplicationCommitmentDocument> {
+  return {
+    id: row.id,
+    applicationId: row.application_id,
+    templateId: row.template_id,
+    status: row.status,
+    storageBucket: row.storage_bucket,
+    storagePath: row.storage_path,
+    fileName: row.file_name,
+    mimeType: row.mime_type,
+    fileSizeBytes: row.file_size_bytes,
+    submittedByUserId: row.submitted_by_user_id,
+    reviewedByUserId: row.reviewed_by_user_id,
+    reviewNotes: row.review_notes,
+    submittedAt: row.submitted_at,
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    signedUrl: await createFosterDocumentSignedUrl(supabase, row.storage_bucket, row.storage_path)
   };
 }
 
@@ -1374,6 +1459,121 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return data?.[0] ? mapPetAdoptionClosureDetail(data[0]) : null;
+    },
+    async getProtectiveAdoptionCommitmentTemplate(householdId) {
+      const { data, error } = await supabase.rpc("get_protective_adoption_commitment_template", {
+        target_household_id: householdId
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return null;
+        }
+
+        fail(error, "Unable to load adoption commitment template.");
+      }
+
+      return data?.[0] ? mapProtectiveAdoptionCommitmentTemplate(supabase, data[0]) : null;
+    },
+    async uploadProtectiveAdoptionCommitmentTemplate(input) {
+      const extension = input.fileName.split(".").pop()?.toLowerCase() || "pdf";
+      const storagePath = `templates/${input.householdId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const fileBlob = input.fileBody ?? (input.fileUri ? await fetch(input.fileUri).then((response) => response.blob()) : null);
+
+      if (!fileBlob) {
+        throw new Error("Adoption commitment template file is required.");
+      }
+
+      const { error: uploadError } = await supabase.storage.from(fosterAdoptionDocumentsBucketId).upload(storagePath, fileBlob, {
+        contentType: input.mimeType,
+        upsert: false
+      });
+
+      if (uploadError) {
+        throw new Error(`adoption_commitment_template_upload_failed: ${uploadError.message}`);
+      }
+
+      const { data, error } = await supabase.rpc("upsert_protective_adoption_commitment_template", {
+        target_household_id: input.householdId,
+        next_title: input.title,
+        next_description: input.description ?? null,
+        next_requirement_policy: input.requirementPolicy,
+        next_storage_bucket: fosterAdoptionDocumentsBucketId,
+        next_storage_path: storagePath,
+        next_file_name: input.fileName,
+        next_mime_type: input.mimeType,
+        next_file_size_bytes: input.fileSizeBytes ?? null
+      });
+
+      if (error) {
+        await supabase.storage.from(fosterAdoptionDocumentsBucketId).remove([storagePath]);
+        failMissingFosterSchema(error);
+      }
+
+      return mapProtectiveAdoptionCommitmentTemplate(supabase, data);
+    },
+    async getApplicationCommitmentDocument(applicationId) {
+      const { data, error } = await supabase.rpc("get_pet_adoption_application_commitment_document", {
+        target_application_id: applicationId
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return null;
+        }
+
+        fail(error, "Unable to load adoption commitment document.");
+      }
+
+      return data?.[0] ? mapApplicationCommitmentDocument(supabase, data[0]) : null;
+    },
+    async uploadApplicationCommitmentDocument(input) {
+      const extension = input.fileName.split(".").pop()?.toLowerCase() || "pdf";
+      const storagePath = `applications/${input.applicationId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const fileBlob = input.fileBody ?? (input.fileUri ? await fetch(input.fileUri).then((response) => response.blob()) : null);
+
+      if (!fileBlob) {
+        throw new Error("Adoption commitment document file is required.");
+      }
+
+      const { error: uploadError } = await supabase.storage.from(fosterAdoptionDocumentsBucketId).upload(storagePath, fileBlob, {
+        contentType: input.mimeType,
+        upsert: false
+      });
+
+      if (uploadError) {
+        throw new Error(`adoption_commitment_document_upload_failed: ${uploadError.message}`);
+      }
+
+      const { data, error } = await supabase.rpc("register_pet_adoption_application_commitment_document", {
+        target_application_id: input.applicationId,
+        target_template_id: input.templateId ?? null,
+        next_storage_bucket: fosterAdoptionDocumentsBucketId,
+        next_storage_path: storagePath,
+        next_file_name: input.fileName,
+        next_mime_type: input.mimeType,
+        next_file_size_bytes: input.fileSizeBytes ?? null
+      });
+
+      if (error) {
+        await supabase.storage.from(fosterAdoptionDocumentsBucketId).remove([storagePath]);
+        failMissingFosterSchema(error);
+      }
+
+      return mapApplicationCommitmentDocument(supabase, data);
+    },
+    async reviewApplicationCommitmentDocument(input) {
+      const { data, error } = await supabase.rpc("review_pet_adoption_application_commitment_document", {
+        target_application_id: input.applicationId,
+        next_status: input.status,
+        notes: input.notes ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapApplicationCommitmentDocument(supabase, data);
     },
     async uploadPetAdoptionMedia(input) {
       const currentUserId = await requireCurrentUserId(supabase);

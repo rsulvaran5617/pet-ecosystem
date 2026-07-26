@@ -388,6 +388,76 @@ export interface PetAdoptionApplicationStatusUpdateInput {
   notes?: string | null;
 }
 
+export type AdoptionCommitmentRequirementPolicy = "informational" | "required_before_approval" | "required_before_transfer";
+
+export type AdoptionCommitmentDocumentStatus = "pending" | "received" | "reviewed" | "needs_correction";
+
+export interface ProtectiveAdoptionCommitmentTemplate {
+  id: Uuid;
+  protectiveHouseholdId: Uuid;
+  title: string;
+  description: string | null;
+  requirementPolicy: AdoptionCommitmentRequirementPolicy;
+  storageBucket: string;
+  storagePath: string;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number | null;
+  isActive: boolean;
+  createdByUserId: Uuid;
+  createdAt: string;
+  updatedAt: string;
+  signedUrl?: string | null;
+}
+
+export interface ProtectiveAdoptionCommitmentTemplateUploadInput {
+  householdId: Uuid;
+  title: string;
+  description?: string | null;
+  requirementPolicy: AdoptionCommitmentRequirementPolicy;
+  fileUri?: string;
+  fileBody?: Blob;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes?: number | null;
+}
+
+export interface ApplicationCommitmentDocument {
+  id: Uuid;
+  applicationId: Uuid;
+  templateId: Uuid | null;
+  status: AdoptionCommitmentDocumentStatus;
+  storageBucket: string | null;
+  storagePath: string | null;
+  fileName: string | null;
+  mimeType: string | null;
+  fileSizeBytes: number | null;
+  submittedByUserId: Uuid | null;
+  reviewedByUserId: Uuid | null;
+  reviewNotes: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  signedUrl?: string | null;
+}
+
+export interface ApplicationCommitmentDocumentUploadInput {
+  applicationId: Uuid;
+  templateId?: Uuid | null;
+  fileUri?: string;
+  fileBody?: Blob;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes?: number | null;
+}
+
+export interface ApplicationCommitmentDocumentReviewInput {
+  applicationId: Uuid;
+  status: Exclude<AdoptionCommitmentDocumentStatus, "pending" | "received">;
+  notes?: string | null;
+}
+
 export interface PetAdoptionClosureDetail {
   applicationId: Uuid;
   applicationStatus: PetAdoptionApplicationStatus;

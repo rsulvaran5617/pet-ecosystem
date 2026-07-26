@@ -2022,3 +2022,29 @@ Admin web:
 - aceptar mueve `pets.household_id` y conserva `pets.id`.
 - reservas, chats, pagos y soporte no cambian de hogar.
 - admin puede auditar transferencias.
+
+## Foster-6A/6B compromiso documental de adopcion
+
+Foster-6A/6B agrega un flujo documental simple para adopcion responsable, sin firma digital ni contrato legal rigido dentro de la app.
+
+### Alcance implementado
+
+- La Familia Protectora aprobada puede cargar desde Web Foster una plantilla PDF/imagen de `Compromiso de adopcion`.
+- La plantilla pertenece a un household `protective` y puede marcarse como `informational`, `required_before_approval` o `required_before_transfer`.
+- El adoptante autenticado puede ver/descargar la plantilla desde el detalle de adopcion y subir el documento completado en su solicitud.
+- La Familia Protectora puede ver el documento retornado desde la bandeja de solicitudes y marcarlo como `reviewed` o `needs_correction`.
+- La app muestra disclaimer: Pet Ecosystem facilita el intercambio documental, pero no valida el contenido legal ni sustituye asesoria legal.
+
+### Fuera de alcance
+
+- firma digital avanzada.
+- bloqueo automatico de aprobacion o transferencia por documento faltante.
+- OCR, biometria, notaria, pagos, bookings, QR, evidencia operacional o chat nuevo.
+
+### Reglas funcionales
+
+- El bucket `foster-adoption-documents` es privado y usa URLs firmadas temporales.
+- Solo la familia protectora propietaria puede gestionar su plantilla.
+- Solo el solicitante de una solicitud puede subir/reemplazar su compromiso firmado.
+- Solo la familia protectora de la publicacion puede revisar el documento retornado.
+- El documento no mueve custodia ni cierra adopcion; Foster-5E sigue siendo el unico camino para iniciar transferencia privada.

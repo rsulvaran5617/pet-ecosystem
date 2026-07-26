@@ -1,6 +1,9 @@
 ﻿"use client";
 
 import type {
+  AdoptionCommitmentDocumentStatus,
+  AdoptionCommitmentRequirementPolicy,
+  ApplicationCommitmentDocument,
   CreatePetInput,
   ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
@@ -15,11 +18,12 @@ import type {
   PetSex,
   PetSummary,
   PetTransferRecord,
+  ProtectiveAdoptionCommitmentTemplate,
   Uuid
 } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
 
-import type { CreateProtectiveHouseholdInput } from "../hooks/useFosterConsoleWorkspace";
+import type { CreateProtectiveHouseholdInput, FosterConsoleApplicationDetail } from "../hooks/useFosterConsoleWorkspace";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
@@ -66,6 +70,19 @@ const contactPolicyLabels: Record<ProtectiveContactPolicy, string> = {
   platform_only: "Solo por la plataforma",
   public_email: "Email publico",
   public_phone: "Telefono publico"
+};
+
+const commitmentRequirementLabels: Record<AdoptionCommitmentRequirementPolicy, string> = {
+  informational: "Informativo",
+  required_before_approval: "Requerido antes de aprobar",
+  required_before_transfer: "Requerido antes de transferir"
+};
+
+const commitmentStatusLabels: Record<AdoptionCommitmentDocumentStatus, string> = {
+  needs_correction: "Requiere correccion",
+  pending: "Pendiente",
+  received: "Recibido",
+  reviewed: "Revisado"
 };
 
 const petSexLabels: Record<PetSex, string> = {
@@ -255,6 +272,7 @@ export function FosterConsoleWorkspace() {
   const {
     applications,
     authState,
+    commitmentTemplate,
     createProtectiveHousehold,
     createFosterPet,
     errorMessage,
@@ -269,6 +287,7 @@ export function FosterConsoleWorkspace() {
     protectiveHouseholds,
     publicProfile,
     refresh,
+    reviewApplicationCommitmentDocument,
     removeAdoptionListingPhoto,
     savePublicProfile,
     saveAdoptionListing,
@@ -282,6 +301,7 @@ export function FosterConsoleWorkspace() {
     submitPublicProfile,
     setAdoptionListingCover,
     transfers,
+    uploadAdoptionCommitmentTemplate,
     uploadAdoptionListingPhoto,
     uploadPublicProfileLogo,
     updateApplicationStatus
@@ -392,6 +412,11 @@ export function FosterConsoleWorkspace() {
   const selectedTransfer = selectedApplicationDetail
     ? transfers.find((transfer) => transfer.adoptionApplicationId === selectedApplicationDetail.application.id)
     : undefined;
+  const selectedApplicationIsVisible = selectedApplicationDetail
+    ? filteredApplications.some((application) => application.id === selectedApplicationDetail.application.id)
+    : false;
+  const visibleApplicationDetail = selectedApplicationIsVisible ? selectedApplicationDetail : null;
+  const visibleSelectedTransfer = selectedApplicationIsVisible ? selectedTransfer : undefined;
   const selectedHouseholdPermissionLabel = selectedHousehold?.myPermissions.includes("admin")
     ? "admin"
     : selectedHousehold?.myPermissions.join(", ") || "sin permisos de gestion";
@@ -533,6 +558,7 @@ export function FosterConsoleWorkspace() {
 
           {activeSection === "profile" ? (
           <PublicProfilePanel
+            commitmentTemplate={commitmentTemplate}
             key={selectedHouseholdId ?? "public-profile"}
             disabled={isSubmitting}
             profileStatus={profile?.status ?? null}
@@ -541,6 +567,7 @@ export function FosterConsoleWorkspace() {
             selectedHouseholdName={selectedHousehold?.name ?? ""}
             onSave={savePublicProfile}
             onSubmit={submitPublicProfile}
+            onUploadCommitmentTemplate={uploadAdoptionCommitmentTemplate}
             onUploadLogo={uploadPublicProfileLogo}
           />
           ) : null}
@@ -648,9 +675,10 @@ export function FosterConsoleWorkspace() {
                 {petOptions.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
               </select>
             </div>
-            <div style={styles.applicationGrid}>
-              <div style={styles.listStack}>
-                {filteredApplications.length ? filteredApplications.map((application) => (
+            <div style={filteredApplications.length ? styles.applicationGrid : styles.applicationDetailOnlyGrid}>
+              {filteredApplications.length ? (
+                <div style={styles.listStack}>
+                  {filteredApplications.map((application) => (
                   <button
                     key={application.id}
                     onClick={() => {
@@ -661,24 +689,30 @@ export function FosterConsoleWorkspace() {
                     type="button"
                   >
                     <div style={styles.applicationCardHeader}>
-                      <div>
+                      <div style={styles.applicationCardTitle}>
                         <strong style={styles.itemTitle}>{application.petName}</strong>
-                        <p style={styles.itemMeta}>{application.applicantName} - {formatDate(application.submittedAt)}</p>
+                        <ApplicantIdentity application={application} compact />
+                        <p style={styles.itemMeta}>Recibida {formatDate(application.submittedAt)}</p>
                       </div>
                       <StatusBadge label={applicationStatusLabels[application.status]} tone={statusTone(application.status)} />
                     </div>
                     <p style={styles.applicationSnippet}>{application.motivation || "Sin motivacion registrada."}</p>
                   </button>
-                )) : <EmptyState text="No hay solicitudes con estos filtros." />}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="No hay solicitudes con estos filtros. Cambia el estado o la mascota para revisar otras solicitudes." />
+              )}
               <ApplicationDetailPanel
-                detail={selectedApplicationDetail}
+                commitmentTemplate={commitmentTemplate}
+                detail={visibleApplicationDetail}
                 disabled={isSubmitting}
                 onRejectNoteChange={setRejectNote}
+                onReviewCommitmentDocument={reviewApplicationCommitmentDocument}
                 onStartTransfer={startTransfer}
                 onUpdateStatus={updateApplicationStatus}
                 rejectNote={rejectNote}
-                transfer={selectedTransfer}
+                transfer={visibleSelectedTransfer}
               />
             </div>
           </section>
@@ -1219,18 +1253,28 @@ function AdoptionPublicationFlow({
 }
 
 function PublicProfilePanel({
+  commitmentTemplate,
   disabled,
   onSave,
   onSubmit,
+  onUploadCommitmentTemplate,
   onUploadLogo,
   profileStatus,
   publicProfile,
   selectedHouseholdId,
   selectedHouseholdName
 }: {
+  commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
   disabled: boolean;
   onSave: (input: ProtectivePublicProfileInput) => Promise<ProtectivePublicProfile | null>;
   onSubmit: (profileId: Uuid) => Promise<ProtectivePublicProfile | null>;
+  onUploadCommitmentTemplate: (input: {
+    description?: string | null;
+    file: File;
+    householdId: Uuid;
+    requirementPolicy: AdoptionCommitmentRequirementPolicy;
+    title: string;
+  }) => Promise<ProtectiveAdoptionCommitmentTemplate | null>;
   onUploadLogo: (profile: ProtectivePublicProfile, file: File) => Promise<ProtectivePublicProfile | null>;
   profileStatus: string | null;
   publicProfile: ProtectivePublicProfile | null;
@@ -1241,6 +1285,19 @@ function PublicProfilePanel({
   const [isEditing, setIsEditing] = useState(false);
   const [draftProfileId, setDraftProfileId] = useState<Uuid | null>(publicProfile?.id ?? null);
   const [form, setForm] = useState<ProtectivePublicProfileInput>(() => buildPublicProfileForm(publicProfile, selectedHouseholdId, selectedHouseholdName));
+  const [commitmentForm, setCommitmentForm] = useState({
+    description: commitmentTemplate?.description ?? "",
+    requirementPolicy: (commitmentTemplate?.requirementPolicy ?? "informational") as AdoptionCommitmentRequirementPolicy,
+    title: commitmentTemplate?.title ?? "Compromiso de adopcion"
+  });
+
+  useEffect(() => {
+    setCommitmentForm({
+      description: commitmentTemplate?.description ?? "",
+      requirementPolicy: (commitmentTemplate?.requirementPolicy ?? "informational") as AdoptionCommitmentRequirementPolicy,
+      title: commitmentTemplate?.title ?? "Compromiso de adopcion"
+    });
+  }, [commitmentTemplate]);
 
   function resetForm() {
     setForm(buildPublicProfileForm(publicProfile, selectedHouseholdId, selectedHouseholdName));
@@ -1322,6 +1379,85 @@ function PublicProfilePanel({
             <p style={styles.bodyText}>El perfil esta pendiente de revision. Admin debe aprobarlo antes de mostrarlo como perfil publico confiable.</p>
           ) : null}
           {publicProfile?.reviewNotes ? <Notice tone="info" message={`Nota de revision: ${publicProfile.reviewNotes}`} /> : null}
+
+          <section style={styles.subPanel}>
+            <div style={styles.sectionHeaderCompact}>
+              <div>
+                <p style={styles.eyebrow}>Compromiso de adopcion</p>
+                <h3 style={styles.itemTitle}>{commitmentTemplate ? commitmentTemplate.title : "Sin documento activo"}</h3>
+                <p style={styles.itemMeta}>
+                  Este documento lo proporciona la Familia Protectora. Pet Ecosystem facilita el intercambio documental, pero no sustituye asesoria legal ni valida el contenido del acuerdo.
+                </p>
+              </div>
+              {commitmentTemplate ? <StatusBadge label={commitmentRequirementLabels[commitmentTemplate.requirementPolicy]} tone="success" /> : <StatusBadge label="Opcional" tone="neutral" />}
+            </div>
+            {commitmentTemplate ? (
+              <div style={styles.documentSummaryRow}>
+                <div>
+                  <strong style={styles.itemTitle}>{commitmentTemplate.fileName}</strong>
+                  <p style={styles.itemMeta}>{commitmentTemplate.mimeType}{commitmentTemplate.fileSizeBytes ? ` - ${Math.round(commitmentTemplate.fileSizeBytes / 1024)} KB` : ""}</p>
+                </div>
+                {commitmentTemplate.signedUrl ? (
+                  <a href={commitmentTemplate.signedUrl} rel="noreferrer" style={styles.secondaryButtonCompact} target="_blank">Ver/descargar</a>
+                ) : null}
+              </div>
+            ) : (
+              <p style={styles.bodyText}>Sube una plantilla PDF o imagen para que las familias interesadas puedan revisarla y devolverla firmada cuando corresponda.</p>
+            )}
+            <div style={styles.formGrid}>
+              <label style={styles.fieldLabel}>
+                Titulo
+                <input
+                  disabled={disabled}
+                  onChange={(event) => setCommitmentForm((current) => ({ ...current, title: event.target.value }))}
+                  style={styles.input}
+                  value={commitmentForm.title}
+                />
+              </label>
+              <label style={styles.fieldLabel}>
+                Politica
+                <select
+                  disabled={disabled}
+                  onChange={(event) => setCommitmentForm((current) => ({ ...current, requirementPolicy: event.target.value as AdoptionCommitmentRequirementPolicy }))}
+                  style={styles.select}
+                  value={commitmentForm.requirementPolicy}
+                >
+                  {Object.entries(commitmentRequirementLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+            </div>
+            <label style={styles.fieldLabel}>
+              Descripcion breve
+              <textarea
+                disabled={disabled}
+                onChange={(event) => setCommitmentForm((current) => ({ ...current, description: event.target.value }))}
+                style={styles.textarea}
+                value={commitmentForm.description}
+              />
+            </label>
+            <label style={{ ...styles.secondaryButton, display: "inline-flex", justifyContent: "center", maxWidth: "220px" }}>
+              {commitmentTemplate ? "Reemplazar documento" : "Subir compromiso"}
+              <input
+                accept="application/pdf,image/jpeg,image/png,image/webp"
+                disabled={disabled || !selectedHouseholdId}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file && selectedHouseholdId) {
+                    void onUploadCommitmentTemplate({
+                      description: commitmentForm.description,
+                      file,
+                      householdId: selectedHouseholdId,
+                      requirementPolicy: commitmentForm.requirementPolicy,
+                      title: commitmentForm.title
+                    });
+                  }
+                }}
+                style={styles.fileInput}
+                type="file"
+              />
+            </label>
+          </section>
 
           <div style={styles.heroActions}>
             <button disabled={disabled || !canManage} onClick={() => setIsEditing((current) => !current)} style={styles.primaryButton} type="button">
@@ -1634,17 +1770,25 @@ function CreateProtectiveHouseholdPanel({
 }
 
 function ApplicationDetailPanel({
+  commitmentTemplate,
   detail,
   disabled,
   onRejectNoteChange,
+  onReviewCommitmentDocument,
   onStartTransfer,
   onUpdateStatus,
   rejectNote,
   transfer
 }: {
-  detail: { application: PetAdoptionApplication; history: PetAdoptionApplicationStatusHistory[] } | null;
+  commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
+  detail: FosterConsoleApplicationDetail | null;
   disabled: boolean;
   onRejectNoteChange: (value: string) => void;
+  onReviewCommitmentDocument: (
+    applicationId: Uuid,
+    status: Exclude<AdoptionCommitmentDocumentStatus, "pending" | "received">,
+    notes?: string | null
+  ) => Promise<ApplicationCommitmentDocument | null>;
   onStartTransfer: (application: PetAdoptionApplication) => Promise<void>;
   onUpdateStatus: (
     application: PetAdoptionApplication,
@@ -1658,17 +1802,13 @@ function ApplicationDetailPanel({
     return <EmptyState text="Selecciona una solicitud para revisar motivacion, datos y timeline." />;
   }
 
-  const { application, history } = detail;
+  const { application, commitmentDocument, history } = detail;
   const isApprovedWithoutTransfer = application.status === "approved" && !transfer;
 
   return (
     <aside style={styles.detailPanel}>
       <div style={styles.sectionHeader}>
-        <div>
-          <p style={styles.eyebrow}>Detalle</p>
-          <h3 style={styles.detailTitle}>{application.applicantName}</h3>
-          <p style={styles.itemMeta}>{application.applicantEmail}{application.applicantPhone ? ` - ${application.applicantPhone}` : ""}</p>
-        </div>
+        <ApplicantIdentity application={application} />
         <StatusBadge label={applicationStatusLabels[application.status]} tone={statusTone(application.status)} />
       </div>
 
@@ -1682,6 +1822,50 @@ function ApplicationDetailPanel({
       <TextBlock label="Motivacion" value={application.motivation} />
       <TextBlock label="Experiencia" value={application.petExperience} />
       <TextBlock label="Disponibilidad" value={application.availabilityNotes || "Sin notas adicionales."} />
+
+      <section style={styles.subPanel}>
+        <div style={styles.sectionHeaderCompact}>
+          <div>
+            <p style={styles.eyebrow}>Compromiso de adopcion</p>
+            <h4 style={styles.historyTitle}>
+              {commitmentDocument ? commitmentStatusLabels[commitmentDocument.status] : commitmentTemplate ? "Pendiente de recibir" : "Sin compromiso solicitado"}
+            </h4>
+            <p style={styles.itemMeta}>
+              {commitmentTemplate
+                ? `${commitmentTemplate.title} - ${commitmentRequirementLabels[commitmentTemplate.requirementPolicy]}`
+                : "La Familia Protectora aun no configuro una plantilla de compromiso."}
+            </p>
+          </div>
+          {commitmentDocument ? (
+            <StatusBadge
+              label={commitmentStatusLabels[commitmentDocument.status]}
+              tone={commitmentDocument.status === "reviewed" ? "success" : commitmentDocument.status === "needs_correction" ? "warning" : "neutral"}
+            />
+          ) : null}
+        </div>
+        {commitmentTemplate?.signedUrl ? (
+          <a href={commitmentTemplate.signedUrl} rel="noreferrer" style={styles.secondaryButtonCompact} target="_blank">Ver plantilla</a>
+        ) : null}
+        {commitmentDocument?.signedUrl ? (
+          <div style={styles.documentSummaryRow}>
+            <div>
+              <strong style={styles.itemTitle}>{commitmentDocument.fileName ?? "Compromiso firmado"}</strong>
+              <p style={styles.itemMeta}>
+                {commitmentDocument.mimeType ?? "Archivo"}{commitmentDocument.submittedAt ? ` - Recibido ${formatDate(commitmentDocument.submittedAt)}` : ""}
+              </p>
+            </div>
+            <a href={commitmentDocument.signedUrl} rel="noreferrer" style={styles.secondaryButtonCompact} target="_blank">Ver documento</a>
+          </div>
+        ) : (
+          <p style={styles.bodyText}>Cuando el solicitante suba el compromiso completado, aparecera aqui para revision.</p>
+        )}
+        {commitmentDocument?.signedUrl ? (
+          <div style={styles.heroActions}>
+            <button disabled={disabled} onClick={() => void onReviewCommitmentDocument(application.id, "reviewed")} style={styles.secondaryButtonCompact} type="button">Marcar revisado</button>
+            <button disabled={disabled} onClick={() => void onReviewCommitmentDocument(application.id, "needs_correction", "Requiere correccion por la Familia Protectora.")} style={styles.dangerPillButton} type="button">Solicitar correccion</button>
+          </div>
+        ) : null}
+      </section>
 
       {transfer ? (
         <div style={styles.transferNotice}>
@@ -1844,8 +2028,57 @@ function formatBoolean(value: boolean | null) {
   return "No indicado";
 }
 
+function getApplicantDisplayName(application: PetAdoptionApplication) {
+  const rawName = application.applicantName.trim();
+  const emailLocalPart = application.applicantEmail.split("@")[0]?.trim().toLowerCase();
+
+  if (emailLocalPart && rawName.toLowerCase().startsWith(emailLocalPart)) {
+    const cleanedName = rawName.slice(emailLocalPart.length).trim();
+
+    if (cleanedName) {
+      return cleanedName;
+    }
+  }
+
+  return rawName || "Solicitante sin nombre";
+}
+
+function getApplicantInitials(application: PetAdoptionApplication) {
+  const source = getApplicantDisplayName(application) || application.applicantEmail;
+  const parts = source
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return (parts[0]?.[0] ?? "S").concat(parts[1]?.[0] ?? "").toUpperCase();
+}
+
+function ApplicantIdentity({ application, compact = false }: { application: PetAdoptionApplication; compact?: boolean }) {
+  return (
+    <div style={compact ? styles.applicantIdentityCompact : styles.applicantIdentity}>
+      <span aria-hidden="true" style={compact ? styles.applicantAvatarCompact : styles.applicantAvatar}>
+        {getApplicantInitials(application)}
+      </span>
+      <div style={styles.applicantCopy}>
+        <span style={compact ? styles.applicantLabelCompact : styles.eyebrow}>Solicitante</span>
+        <strong style={compact ? styles.itemTitle : styles.detailTitle}>{getApplicantDisplayName(application)}</strong>
+        <span style={styles.itemMeta}>
+          {application.applicantEmail}
+          {application.applicantPhone ? ` - ${application.applicantPhone}` : ""}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 const styles: Record<string, React.CSSProperties> = {
   actionsBox: { display: "flex", flexDirection: "column", gap: "10px" },
+  applicantAvatar: { alignItems: "center", background: "#ccfbf1", borderRadius: "18px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "14px", fontWeight: 900, height: "44px", justifyContent: "center", width: "44px" },
+  applicantAvatarCompact: { alignItems: "center", background: "#ccfbf1", borderRadius: "14px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, height: "32px", justifyContent: "center", width: "32px" },
+  applicantCopy: { display: "grid", gap: "3px", minWidth: 0 },
+  applicantIdentity: { alignItems: "center", display: "flex", gap: "12px", minWidth: 0 },
+  applicantIdentityCompact: { alignItems: "center", display: "flex", gap: "8px", marginTop: "6px", minWidth: 0 },
+  applicantLabelCompact: { color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.06em", textTransform: "uppercase" },
   applicationCard: {
     background: "#fffdf8",
     border: "1px solid rgba(20, 184, 166, 0.18)",
@@ -1857,6 +2090,8 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: "left"
   },
   applicationCardHeader: { alignItems: "flex-start", display: "flex", gap: "10px", justifyContent: "space-between" },
+  applicationCardTitle: { display: "grid", gap: "2px", minWidth: 0 },
+  applicationDetailOnlyGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(0, 1fr)" },
   applicationGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(320px, 1.2fr)" },
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
   accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, justifyContent: "center", minHeight: "31px", padding: "6px 10px", whiteSpace: "nowrap" },
@@ -1871,6 +2106,7 @@ const styles: Record<string, React.CSSProperties> = {
   coverImage: { borderRadius: "16px", height: "66px", objectFit: "cover", width: "66px" },
   dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: 800, padding: "10px 14px" },
   dangerPillButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.18)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
+  documentSummaryRow: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "12px" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
   detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "22px", display: "grid", gap: "14px", padding: "18px" },
   detailTitle: { color: "#0f172a", fontSize: "20px", margin: 0 },
@@ -1954,6 +2190,7 @@ const styles: Record<string, React.CSSProperties> = {
   sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
   select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 800, padding: "10px 14px" },
   sessionHint: { color: "rgba(255,255,255,0.72)", fontSize: "11px", fontWeight: 700, margin: "10px 0 0" },
+  subPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
   sideNav: { background: "#111827", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)", color: "white", display: "grid", gap: "16px", padding: "18px", position: "sticky", top: "18px" },
   sideNavBrand: { alignItems: "center", display: "flex", gap: "10px", minWidth: 0 },
   sideNavCount: { background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", color: "white", fontSize: "11px", fontWeight: 900, padding: "4px 7px", position: "absolute", right: "10px", top: "10px" },
