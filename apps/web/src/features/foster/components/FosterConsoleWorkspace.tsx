@@ -1003,10 +1003,17 @@ function AdoptionPublicationFlow({
               <strong style={styles.itemTitle}>Ficha publica de adopcion</strong>
               <p style={styles.itemMeta}>Estos datos son los que vera una familia interesada antes de solicitar la adopcion.</p>
             </div>
-            <StatusBadge
-              label={listing.status === "published" ? "Visible" : listing.status === "paused" ? "Pausada" : "Pendiente"}
-              tone={listing.status === "published" ? "success" : listing.status === "paused" ? "warning" : "neutral"}
-            />
+            <div style={styles.inlineActions}>
+              <StatusBadge
+                label={listing.status === "published" ? "Visible" : listing.status === "paused" ? "Pausada" : "Pendiente"}
+                tone={listing.status === "published" ? "success" : listing.status === "paused" ? "warning" : "neutral"}
+              />
+              {canEdit ? (
+                <button disabled={disabled} onClick={() => setIsEditing((current) => !current)} style={styles.secondaryButtonCompact} type="button">
+                  {isEditing ? "Ocultar formulario" : "Editar ficha publica"}
+                </button>
+              ) : null}
+            </div>
           </div>
           <div style={styles.publicContentGrid}>
             <ContentSummaryTile label="Historia" value={listing.publicStory} />
@@ -1108,11 +1115,6 @@ function AdoptionPublicationFlow({
         {!listing ? (
           <button disabled={disabled} onClick={() => void onPrepare()} style={styles.secondaryButton} type="button">
             Preparar publicacion
-          </button>
-        ) : null}
-        {listing && canEdit ? (
-          <button disabled={disabled} onClick={() => setIsEditing((current) => !current)} style={styles.secondaryButton} type="button">
-            {isEditing ? "Ocultar formulario" : "Editar ficha publica"}
           </button>
         ) : null}
         {listing && canPublish ? (
@@ -1857,7 +1859,7 @@ const styles: Record<string, React.CSSProperties> = {
   applicationCardHeader: { alignItems: "flex-start", display: "flex", gap: "10px", justifyContent: "space-between" },
   applicationGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(320px, 1.2fr)" },
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
-  accordionChevron: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", flexShrink: 0, fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
+  accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, justifyContent: "center", minHeight: "31px", padding: "6px 10px", whiteSpace: "nowrap" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
   consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
@@ -1885,8 +1887,8 @@ const styles: Record<string, React.CSSProperties> = {
   fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
   fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
-  fosterPetHeaderMain: { alignItems: "flex-start", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
-  fosterPetHeaderMeta: { alignItems: "flex-end", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
+  fosterPetHeaderMain: { alignItems: "center", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
+  fosterPetHeaderMeta: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "28px", color: "white", display: "flex", gap: "24px", justifyContent: "space-between", padding: "30px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "10px" },
@@ -1897,6 +1899,7 @@ const styles: Record<string, React.CSSProperties> = {
   historyTitle: { color: "#0f172a", fontSize: "15px", margin: 0 },
   infoNotice: { background: "#ecfeff", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   infoTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "grid", gap: "4px", padding: "14px" },
+  inlineActions: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "8px", justifyContent: "flex-end" },
   input: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 700, padding: "12px 14px", textTransform: "none" },
   iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
   itemMeta: { color: "#64748b", fontSize: "12px", lineHeight: 1.4, margin: "4px 0 0" },
@@ -1945,6 +1948,7 @@ const styles: Record<string, React.CSSProperties> = {
   rejectBox: { display: "grid", gap: "8px" },
   responsibilityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "3px", lineHeight: 1.4, padding: "10px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
+  secondaryButtonCompact: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "12px", fontWeight: 900, padding: "8px 12px", textDecoration: "none", whiteSpace: "nowrap" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },
   sectionHeaderCompact: { alignItems: "flex-start", display: "flex", gap: "12px", justifyContent: "space-between" },
   sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
