@@ -112,6 +112,7 @@ Objetivo:
 - conservar `pets.id` y el expediente permitido de la mascota.
 - no duplicar mascotas ni mover `pets.household_id` fuera del flujo Foster-2A.
 - no exponer direcciones exactas, documentos privados, notas internas ni datos sensibles de salud.
+- La consola web `/foster` organiza la operacion por secciones laterales (`Panel`, `Perfil`, `Mascotas`, `Publicaciones`, `Solicitudes`, `Transferencias`) para que la familia protectora no vea todo el flujo mezclado en una sola pagina larga.
 
 ### Diagnostico actual
 

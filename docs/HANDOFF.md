@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster web consola con menu lateral
+
+- Web `/foster` reorganiza la consola de Familias Protectoras con sidebar izquierdo similar al owner web.
+- Las secciones quedan separadas en `Panel`, `Perfil`, `Mascotas`, `Publicaciones`, `Solicitudes` y `Transferencias`, manteniendo los mismos datos, RPCs y acciones existentes.
+- Los accesos desde metricas y mascotas llevan a la bandeja de solicitudes sin cambiar reglas Foster ni mover custodia.
+- Validaciones ejecutadas: `corepack pnpm --filter @pet/web typecheck`, `corepack pnpm --filter @pet/web build`, `git diff --check`.
+
 # Handoff 2026-07-26 - Foster logo de perfil publico
 
 - Foster suma logo controlado para el perfil publico moderado de Familia Protectora.

@@ -23,6 +23,7 @@ import type { CreateProtectiveHouseholdInput } from "../hooks/useFosterConsoleWo
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
+type FosterConsoleSection = "panel" | "profile" | "pets" | "publications" | "requests" | "transfers";
 
 type MetricCard = {
   label: string;
@@ -277,6 +278,7 @@ export function FosterConsoleWorkspace() {
   } = useFosterConsoleWorkspace();
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
   const [applicationPetFilter, setApplicationPetFilter] = useState("all");
+  const [activeSection, setActiveSection] = useState<FosterConsoleSection>("panel");
   const [rejectNote, setRejectNote] = useState("");
 
   const applicationCounts = useMemo(
@@ -319,20 +321,29 @@ export function FosterConsoleWorkspace() {
       value: applicationCounts.submitted,
       detail: "Requieren primera revision",
       tone: applicationCounts.submitted ? "warning" : "default",
-      onClick: () => setApplicationStatusFilter("submitted")
+      onClick: () => {
+        setApplicationStatusFilter("submitted");
+        setActiveSection("requests");
+      }
     },
     {
       label: "Entrevistas",
       value: applicationCounts.interview,
       detail: "Conversaciones en curso",
-      onClick: () => setApplicationStatusFilter("interview")
+      onClick: () => {
+        setApplicationStatusFilter("interview");
+        setActiveSection("requests");
+      }
     },
     {
       label: "Aprobadas pendientes",
       value: approvedPendingTransferCount,
       detail: "Listas para iniciar transferencia",
       tone: approvedPendingTransferCount ? "warning" : "default",
-      onClick: () => setApplicationStatusFilter("approved_without_transfer")
+      onClick: () => {
+        setApplicationStatusFilter("approved_without_transfer");
+        setActiveSection("requests");
+      }
     },
     {
       label: "Transferencias pendientes",
@@ -374,6 +385,14 @@ export function FosterConsoleWorkspace() {
   const selectedHouseholdPermissionLabel = selectedHousehold?.myPermissions.includes("admin")
     ? "admin"
     : selectedHousehold?.myPermissions.join(", ") || "sin permisos de gestion";
+  const fosterNavigationItems: Array<{ id: FosterConsoleSection; label: string; detail: string; count?: number }> = [
+    { id: "panel", label: "Panel", detail: "Resumen y estado" },
+    { id: "profile", label: "Perfil", detail: "Identidad publica" },
+    { id: "pets", label: "Mascotas", detail: "Bajo acogida", count: pets.length },
+    { id: "publications", label: "Publicaciones", detail: "Vitrina y fotos", count: listings.length },
+    { id: "requests", label: "Solicitudes", detail: "Pipeline adopcion", count: applications.length },
+    { id: "transfers", label: "Transferencias", detail: "Custodia privada", count: transfers.length }
+  ];
 
   return (
     <main style={styles.pageShell}>
@@ -417,7 +436,33 @@ export function FosterConsoleWorkspace() {
       ) : null}
 
       {authState === "signed_in" && protectiveHouseholds.length ? (
-        <>
+        <section style={styles.consoleShell}>
+          <aside style={styles.sideNav}>
+            <div style={styles.sideNavBrand}>
+              <span style={styles.sideNavMark}>FP</span>
+              <div>
+                <strong style={styles.sideNavTitle}>Familia Protectora</strong>
+                <span style={styles.sideNavSubtitle}>{selectedHousehold?.name ?? "Selecciona una familia"}</span>
+              </div>
+            </div>
+            <nav aria-label="Secciones Foster" style={styles.sideNavList}>
+              {fosterNavigationItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  style={{ ...styles.sideNavItem, ...(activeSection === item.id ? styles.sideNavItemActive : {}) }}
+                  type="button"
+                >
+                  <span style={styles.sideNavItemLabel}>{item.label}</span>
+                  <span style={styles.sideNavItemDetail}>{item.detail}</span>
+                  {typeof item.count === "number" ? <span style={styles.sideNavCount}>{item.count}</span> : null}
+                </button>
+              ))}
+            </nav>
+          </aside>
+          <div style={styles.consoleContent}>
+          {activeSection === "panel" ? (
+            <>
           <section style={styles.panel}>
             <div style={styles.sectionHeader}>
               <div>
@@ -442,38 +487,6 @@ export function FosterConsoleWorkspace() {
             </div>
           </section>
 
-          <PublicProfilePanel
-            key={selectedHouseholdId ?? "public-profile"}
-            disabled={isSubmitting}
-            profileStatus={profile?.status ?? null}
-            publicProfile={publicProfile}
-            selectedHouseholdId={selectedHouseholdId}
-            selectedHouseholdName={selectedHousehold?.name ?? ""}
-            onSave={savePublicProfile}
-            onSubmit={submitPublicProfile}
-            onUploadLogo={uploadPublicProfileLogo}
-          />
-
-          <FosterPetsPanel
-            applications={applications}
-            disabled={isSubmitting}
-            listings={listings}
-            pets={pets}
-            profileStatus={profile?.status ?? null}
-            publicProfileStatus={publicProfile?.moderationStatus ?? null}
-            onCreatePet={createFosterPet}
-            onPrepareListing={prepareAdoptionListing}
-            onRemoveListingPhoto={removeAdoptionListingPhoto}
-            onSaveListing={saveAdoptionListing}
-            onSetListingCover={setAdoptionListingCover}
-            onShowApplications={(petId) => {
-              setApplicationPetFilter(petId);
-              setApplicationStatusFilter("all");
-            }}
-            onSubmitListing={submitAdoptionListing}
-            onUploadListingPhoto={uploadAdoptionListingPhoto}
-          />
-
           {profile?.status !== "approved" ? (
             <InfoPanel
               title="Familia Protectora pendiente de aprobacion"
@@ -495,8 +508,47 @@ export function FosterConsoleWorkspace() {
               </button>
             ))}
           </section>
+            </>
+          ) : null}
 
-          <section style={styles.twoColumnGrid}>
+          {activeSection === "profile" ? (
+          <PublicProfilePanel
+            key={selectedHouseholdId ?? "public-profile"}
+            disabled={isSubmitting}
+            profileStatus={profile?.status ?? null}
+            publicProfile={publicProfile}
+            selectedHouseholdId={selectedHouseholdId}
+            selectedHouseholdName={selectedHousehold?.name ?? ""}
+            onSave={savePublicProfile}
+            onSubmit={submitPublicProfile}
+            onUploadLogo={uploadPublicProfileLogo}
+          />
+          ) : null}
+
+          {activeSection === "pets" ? (
+          <FosterPetsPanel
+            applications={applications}
+            disabled={isSubmitting}
+            listings={listings}
+            pets={pets}
+            profileStatus={profile?.status ?? null}
+            publicProfileStatus={publicProfile?.moderationStatus ?? null}
+            onCreatePet={createFosterPet}
+            onPrepareListing={prepareAdoptionListing}
+            onRemoveListingPhoto={removeAdoptionListingPhoto}
+            onSaveListing={saveAdoptionListing}
+            onSetListingCover={setAdoptionListingCover}
+            onShowApplications={(petId) => {
+              setApplicationPetFilter(petId);
+              setApplicationStatusFilter("all");
+              setActiveSection("requests");
+            }}
+            onSubmitListing={submitAdoptionListing}
+            onUploadListingPhoto={uploadAdoptionListingPhoto}
+          />
+          ) : null}
+
+          {activeSection === "publications" ? (
             <div style={styles.panel}>
               <div style={styles.sectionHeader}>
                 <div>
@@ -530,6 +582,9 @@ export function FosterConsoleWorkspace() {
               </div>
             </div>
 
+          ) : null}
+
+          {activeSection === "transfers" ? (
             <div style={styles.panel}>
               <div style={styles.sectionHeader}>
                 <div>
@@ -551,8 +606,9 @@ export function FosterConsoleWorkspace() {
                 )) : <EmptyState text="No hay transferencias privadas iniciadas." />}
               </div>
             </div>
-          </section>
+          ) : null}
 
+          {activeSection === "requests" ? (
           <section style={styles.panel}>
             <div style={styles.sectionHeader}>
               <div>
@@ -606,7 +662,9 @@ export function FosterConsoleWorkspace() {
               />
             </div>
           </section>
-        </>
+          ) : null}
+          </div>
+        </section>
       ) : null}
     </main>
   );
@@ -1717,6 +1775,8 @@ const styles: Record<string, React.CSSProperties> = {
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
+  consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
+  consoleShell: { alignItems: "start", display: "grid", gap: "18px", gridTemplateColumns: "260px minmax(0, 1fr)" },
   contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
   countPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", fontSize: "12px", fontWeight: 800, padding: "8px 12px" },
   coverFallback: { alignItems: "center", background: "#dff7f3", borderRadius: "16px", color: "#0f766e", display: "flex", fontSize: "22px", fontWeight: 900, height: "66px", justifyContent: "center", width: "66px" },
@@ -1795,6 +1855,17 @@ const styles: Record<string, React.CSSProperties> = {
   sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
   select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 800, padding: "10px 14px" },
   sessionHint: { color: "rgba(255,255,255,0.72)", fontSize: "11px", fontWeight: 700, margin: "10px 0 0" },
+  sideNav: { background: "#111827", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)", color: "white", display: "grid", gap: "16px", padding: "18px", position: "sticky", top: "18px" },
+  sideNavBrand: { alignItems: "center", display: "flex", gap: "10px", minWidth: 0 },
+  sideNavCount: { background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", color: "white", fontSize: "11px", fontWeight: 900, padding: "4px 7px", position: "absolute", right: "10px", top: "10px" },
+  sideNavItem: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", color: "white", cursor: "pointer", display: "grid", gap: "3px", padding: "12px 52px 12px 12px", position: "relative", textAlign: "left" },
+  sideNavItemActive: { background: "rgba(20,184,166,0.24)", borderColor: "rgba(45,212,191,0.38)" },
+  sideNavItemDetail: { color: "rgba(255,255,255,0.66)", fontSize: "11px" },
+  sideNavItemLabel: { fontSize: "13px", fontWeight: 900 },
+  sideNavList: { display: "grid", gap: "8px" },
+  sideNavMark: { alignItems: "center", background: "#dff7f3", borderRadius: "14px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "38px", justifyContent: "center", width: "38px" },
+  sideNavSubtitle: { color: "rgba(255,255,255,0.66)", display: "block", fontSize: "11px", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  sideNavTitle: { display: "block", fontSize: "13px" },
   statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
   successBadge: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   successMetric: { background: "linear-gradient(135deg, #f0fdfa, #ffffff)" },
