@@ -449,7 +449,17 @@ export function FosterConsoleWorkspace() {
         <section style={styles.consoleShell}>
           <aside style={styles.sideNav}>
             <div style={styles.sideNavBrand}>
-              <span style={styles.sideNavMark}>FP</span>
+              <span style={styles.sideNavMark}>
+                {publicProfile?.logoUrl ? (
+                  <img
+                    alt={`Logo de ${publicProfile.displayName}`}
+                    src={publicProfile.logoUrl}
+                    style={styles.sideNavLogoImage}
+                  />
+                ) : (
+                  (publicProfile?.displayName ?? selectedHousehold?.name ?? "FP").slice(0, 2).toUpperCase()
+                )}
+              </span>
               <div>
                 <strong style={styles.sideNavTitle}>Familia Protectora</strong>
                 <span style={styles.sideNavSubtitle}>{selectedHousehold?.name ?? "Selecciona una familia"}</span>
@@ -712,6 +722,7 @@ function FosterPetsPanel({
   publicProfileStatus: string | null;
 }) {
   const canCreatePet = profileStatus === "approved";
+  const [expandedPetId, setExpandedPetId] = useState<Uuid | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
     birthDate: "",
@@ -782,6 +793,7 @@ function FosterPetsPanel({
               if (pet) {
                 resetForm();
                 setIsCreating(false);
+                setExpandedPetId(pet.id);
               }
             });
           }}
@@ -856,35 +868,66 @@ function FosterPetsPanel({
       ) : null}
 
       {pets.length ? (
-        <div style={styles.fosterPetGrid}>
+        <div style={styles.fosterPetAccordion}>
           {pets.map((pet) => {
             const listing = listingByPetId.get(pet.id);
             const applicationCount = applicationCountByPetId.get(pet.id) ?? 0;
+            const isExpanded = expandedPetId === pet.id;
+            const listingSummary =
+              listing?.status === "published"
+                ? "Publicada"
+                : listing?.status === "draft"
+                  ? "Borrador"
+                  : listing?.status === "paused"
+                    ? "Pausada"
+                    : listing?.status === "adopted"
+                      ? "Adoptada"
+                      : listing
+                        ? listingStatusLabels[listing.status]
+                        : "Sin publicacion";
 
             return (
               <article key={pet.id} style={styles.fosterPetCard}>
-                <div style={styles.applicationCardHeader}>
-                  <div>
-                    <strong style={styles.itemTitle}>{pet.name}</strong>
-                    <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
-                    <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                <button
+                  aria-label={`${isExpanded ? "Ocultar" : "Abrir"} detalle de ${pet.name}`}
+                  aria-expanded={isExpanded}
+                  onClick={() => setExpandedPetId((current) => (current === pet.id ? null : pet.id))}
+                  style={styles.fosterPetAccordionHeader}
+                  type="button"
+                >
+                  <div style={styles.fosterPetHeaderMain}>
+                    <div>
+                      <strong style={styles.itemTitle}>{pet.name}</strong>
+                      <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
+                      <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                    </div>
+                    <div style={styles.fosterPetHeaderMeta}>
+                      <StatusBadge label="En acogida" tone="success" />
+                      <span style={styles.compactPill}>{listingSummary}</span>
+                      {applicationCount ? <span style={styles.compactPill}>{applicationCount} solicitud(es)</span> : null}
+                    </div>
                   </div>
-                  <StatusBadge label="En acogida" tone="success" />
-                </div>
-                <p style={styles.itemMeta}>{pet.notes || "Sin notas de acogida registradas."}</p>
-                <AdoptionPublicationFlow
-                  applicationCount={applicationCount}
-                  disabled={disabled}
-                  listing={listing ?? null}
-                  onPrepare={() => onPrepareListing(pet.id)}
-                  onRemovePhoto={onRemoveListingPhoto}
-                  onSave={onSaveListing}
-                  onSetCover={onSetListingCover}
-                  onShowApplications={() => onShowApplications(pet.id)}
-                  onSubmit={onSubmitListing}
-                  onUploadPhoto={onUploadListingPhoto}
-                  pet={pet}
-                />
+                  <span style={styles.accordionChevron}>{isExpanded ? "Ocultar" : "Abrir"}</span>
+                </button>
+
+                {isExpanded ? (
+                  <div style={styles.fosterPetAccordionBody}>
+                    <p style={styles.itemMeta}>{pet.notes || "Sin notas de acogida registradas."}</p>
+                    <AdoptionPublicationFlow
+                      applicationCount={applicationCount}
+                      disabled={disabled}
+                      listing={listing ?? null}
+                      onPrepare={() => onPrepareListing(pet.id)}
+                      onRemovePhoto={onRemoveListingPhoto}
+                      onSave={onSaveListing}
+                      onSetCover={onSetListingCover}
+                      onShowApplications={() => onShowApplications(pet.id)}
+                      onSubmit={onSubmitListing}
+                      onUploadPhoto={onUploadListingPhoto}
+                      pet={pet}
+                    />
+                  </div>
+                ) : null}
               </article>
             );
           })}
@@ -1814,12 +1857,14 @@ const styles: Record<string, React.CSSProperties> = {
   applicationCardHeader: { alignItems: "flex-start", display: "flex", gap: "10px", justifyContent: "space-between" },
   applicationGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(320px, 1.2fr)" },
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
+  accordionChevron: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", flexShrink: 0, fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
   consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
   consoleShell: { alignItems: "start", display: "grid", gap: "18px", gridTemplateColumns: "260px minmax(0, 1fr)" },
   contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
   countPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", fontSize: "12px", fontWeight: 800, padding: "8px 12px" },
+  compactPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "999px", color: "#0f766e", fontSize: "11px", fontWeight: 900, padding: "6px 8px", whiteSpace: "nowrap" },
   coverFallback: { alignItems: "center", background: "#dff7f3", borderRadius: "16px", color: "#0f766e", display: "flex", fontSize: "22px", fontWeight: 900, height: "66px", justifyContent: "center", width: "66px" },
   coverImage: { borderRadius: "16px", height: "66px", objectFit: "cover", width: "66px" },
   dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: 800, padding: "10px 14px" },
@@ -1835,8 +1880,13 @@ const styles: Record<string, React.CSSProperties> = {
   fileInput: { height: 1, opacity: 0, overflow: "hidden", position: "absolute", width: 1 },
   formGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
   formStack: { display: "grid", gap: "14px" },
-  fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", gap: "12px", padding: "14px" },
+  fosterPetAccordion: { display: "grid", gap: "10px" },
+  fosterPetAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.12)", display: "grid", gap: "12px", padding: "12px 14px 14px" },
+  fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
+  fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
+  fosterPetHeaderMain: { alignItems: "flex-start", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
+  fosterPetHeaderMeta: { alignItems: "flex-end", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "28px", color: "white", display: "flex", gap: "24px", justifyContent: "space-between", padding: "30px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "10px" },
@@ -1908,7 +1958,8 @@ const styles: Record<string, React.CSSProperties> = {
   sideNavItemDetail: { color: "rgba(255,255,255,0.66)", fontSize: "11px" },
   sideNavItemLabel: { fontSize: "13px", fontWeight: 900 },
   sideNavList: { display: "grid", gap: "8px" },
-  sideNavMark: { alignItems: "center", background: "#dff7f3", borderRadius: "14px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "38px", justifyContent: "center", width: "38px" },
+  sideNavLogoImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
+  sideNavMark: { alignItems: "center", background: "#dff7f3", borderRadius: "14px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "38px", justifyContent: "center", overflow: "hidden", width: "38px" },
   sideNavSubtitle: { color: "rgba(255,255,255,0.66)", display: "block", fontSize: "11px", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   sideNavTitle: { display: "block", fontSize: "13px" },
   statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
