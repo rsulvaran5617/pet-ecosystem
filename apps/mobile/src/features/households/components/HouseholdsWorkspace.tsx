@@ -10,7 +10,7 @@ import type {
   Uuid
 } from "@pet/types";
 import { useEffect, useState } from "react";
-import { Pressable, Switch, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -89,6 +89,28 @@ const householdTypeOptions: Array<{ description: string; label: string; value: H
 const householdTypeLabels: Record<HouseholdType, string> = {
   owner: "Hogar familiar",
   protective: "Familia protectora"
+};
+
+const protectiveProfileStepCopy: Record<
+  "identity" | "location" | "contact" | "review",
+  { description: string; title: string }
+> = {
+  identity: {
+    title: "Identifica tu familia",
+    description: "Indica como quieres que admin reconozca esta familia protectora y que tipo de acogida realizas."
+  },
+  location: {
+    title: "Ubicacion general",
+    description: "Agrega ciudad y pais. No se solicita direccion exacta para esta revision."
+  },
+  contact: {
+    title: "Contexto de revision",
+    description: "Explica brevemente tu canal de contacto y el contexto de acogida o rescate."
+  },
+  review: {
+    title: "Revisa y envia",
+    description: "Confirma que los datos estan correctos antes de pedir revision administrativa."
+  }
 };
 
 const inputStyle = {
@@ -451,12 +473,13 @@ export function HouseholdsWorkspace({
   const protectiveLocationIsComplete = Boolean(protectiveCity.trim()) && protectiveCountryCode.trim().length === 2;
   const protectiveContactIsComplete = Boolean(protectiveContactNotes.trim()) || Boolean(protectivePublicNotes.trim());
   const protectiveProfileSteps = [
-    { id: "identity", label: "Identidad", isComplete: protectiveIdentityIsComplete },
-    { id: "location", label: "Ubicacion", isComplete: protectiveLocationIsComplete },
-    { id: "contact", label: "Contacto", isComplete: protectiveContactIsComplete },
-    { id: "review", label: "Revision", isComplete: protectiveProfileIsSubmittable }
+    { id: "identity", label: "Identidad", isComplete: protectiveIdentityIsComplete, isReachable: true },
+    { id: "location", label: "Ubicacion", isComplete: protectiveLocationIsComplete, isReachable: protectiveIdentityIsComplete },
+    { id: "contact", label: "Contexto", isComplete: protectiveContactIsComplete, isReachable: protectiveIdentityIsComplete && protectiveLocationIsComplete },
+    { id: "review", label: "Enviar", isComplete: protectiveProfileIsSubmittable, isReachable: protectiveIdentityIsComplete && protectiveLocationIsComplete }
   ] as const;
   const currentProtectiveStepIndex = protectiveProfileSteps.findIndex((step) => step.id === protectiveProfileStep);
+  const activeProtectiveStepCopy = protectiveProfileStepCopy[protectiveProfileStep];
   const isApprovedProtectiveHousehold = selectedHouseholdIsProtective && protectiveProfile?.status === "approved";
   const canEditProtectivePublicProfile =
     isApprovedProtectiveHousehold &&
@@ -896,36 +919,99 @@ export function HouseholdsWorkspace({
                 ) : null}
                 {canEditProtectiveProfile ? (
                   <>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-                      {protectiveProfileSteps.map((step, index) => {
-                        const isActive = step.id === protectiveProfileStep;
+                    <View
+                      style={{
+                        backgroundColor: "rgba(240,253,250,0.62)",
+                        borderColor: "rgba(15,118,110,0.18)",
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        gap: 10,
+                        padding: 12
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                        <View style={{ flex: 1, gap: 2 }}>
+                          <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+                            Solicitud protectora
+                          </Text>
+                          <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900", lineHeight: 19 }}>
+                            Paso {Math.max(currentProtectiveStepIndex, 0) + 1} de {protectiveProfileSteps.length}: {activeProtectiveStepCopy.title}
+                          </Text>
+                        </View>
+                        <StatusChip
+                          label={protectiveProfile ? protectiveStatusLabels[protectiveProfile.status] : "Borrador"}
+                          tone={protectiveProfile?.status === "approved" ? "active" : protectiveProfile ? "pending" : "neutral"}
+                        />
+                      </View>
+                      <Text style={{ color: colorTokens.mutedStrong, fontSize: 12, lineHeight: 17 }}>
+                        {activeProtectiveStepCopy.description}
+                      </Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={{ flexDirection: "row", gap: 8, paddingRight: 4 }}>
+                          {protectiveProfileSteps.map((step, index) => {
+                            const isActive = step.id === protectiveProfileStep;
+                            const isLocked = !step.isReachable;
 
-                        return (
-                          <Pressable
-                            accessibilityRole="button"
-                            key={step.id}
-                            onPress={() => setProtectiveProfileStep(step.id)}
-                            style={{
-                              alignItems: "center",
-                              backgroundColor: isActive ? "rgba(15,118,110,0.14)" : step.isComplete ? "rgba(16,185,129,0.12)" : "rgba(255,255,255,0.86)",
-                              borderColor: isActive || step.isComplete ? "rgba(15,118,110,0.24)" : "rgba(28,25,23,0.12)",
-                              borderRadius: 999,
-                              borderWidth: 1,
-                              flexDirection: "row",
-                              gap: 6,
-                              paddingHorizontal: 10,
-                              paddingVertical: 7
-                            }}
-                          >
-                            <Text style={{ color: isActive || step.isComplete ? "#0f766e" : colorTokens.mutedStrong, fontSize: 10, fontWeight: "900" }}>
-                              {step.isComplete ? "OK" : index + 1}
-                            </Text>
-                            <Text style={{ color: isActive || step.isComplete ? "#0f766e" : colorTokens.mutedStrong, fontSize: 10, fontWeight: "900" }}>
-                              {step.label}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
+                            return (
+                              <Pressable
+                                accessibilityLabel={`${step.label}. ${isLocked ? "Bloqueado" : step.isComplete ? "Listo" : isActive ? "Paso activo" : "Pendiente"}`}
+                                accessibilityRole="button"
+                                disabled={isLocked}
+                                key={step.id}
+                                onPress={() => setProtectiveProfileStep(step.id)}
+                                style={{
+                                  alignItems: "center",
+                                  backgroundColor: isActive
+                                    ? "#0f766e"
+                                    : step.isComplete
+                                      ? "rgba(16,185,129,0.12)"
+                                      : isLocked
+                                        ? "rgba(28,25,23,0.04)"
+                                        : "rgba(255,255,255,0.9)",
+                                  borderColor: isActive || step.isComplete ? "rgba(15,118,110,0.28)" : "rgba(28,25,23,0.12)",
+                                  borderRadius: 999,
+                                  borderWidth: 1,
+                                  flexDirection: "row",
+                                  gap: 6,
+                                  opacity: isLocked ? 0.56 : 1,
+                                  paddingHorizontal: 11,
+                                  paddingVertical: 8
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    alignItems: "center",
+                                    backgroundColor: isActive ? "rgba(255,255,255,0.18)" : step.isComplete ? "#0f766e" : "rgba(255,255,255,0.9)",
+                                    borderRadius: 999,
+                                    height: 20,
+                                    justifyContent: "center",
+                                    width: 20
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      color: isActive ? "#ffffff" : step.isComplete ? "#ffffff" : colorTokens.mutedStrong,
+                                      fontSize: 9,
+                                      fontWeight: "900"
+                                    }}
+                                  >
+                                    {step.isComplete ? "OK" : index + 1}
+                                  </Text>
+                                </View>
+                                <Text
+                                  style={{
+                                    color: isActive ? "#ffffff" : step.isComplete ? "#0f766e" : colorTokens.mutedStrong,
+                                    fontSize: 10,
+                                    fontWeight: "900"
+                                  }}
+                                >
+                                  {step.label}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </ScrollView>
                     </View>
 
                     {protectiveProfileStep === "identity" ? (
@@ -934,6 +1020,7 @@ export function HouseholdsWorkspace({
                           label="Nombre visible"
                           onChange={setProtectiveDisplayName}
                           placeholder="Nombre de la familia o fundacion"
+                          helperText="Usa el nombre con el que el equipo podra identificar esta familia protectora."
                           value={protectiveDisplayName}
                         />
                         <View style={{ gap: 8 }}>
@@ -968,7 +1055,13 @@ export function HouseholdsWorkspace({
                     {protectiveProfileStep === "location" ? (
                       <View style={{ gap: 12 }}>
                         <Field label="Ciudad" onChange={setProtectiveCity} placeholder="Ciudad" value={protectiveCity} />
-                        <Field label="Region/provincia" onChange={setProtectiveStateRegion} placeholder="Provincia o zona" value={protectiveStateRegion} />
+                        <Field
+                          label="Region/provincia"
+                          onChange={setProtectiveStateRegion}
+                          placeholder="Provincia o zona"
+                          helperText="Solo se usa ubicacion general para revision. No coloques direccion privada."
+                          value={protectiveStateRegion}
+                        />
                         <Field
                           helperText="Usa codigo de pais ISO de dos letras. Para Panama: PA."
                           label="Pais"
@@ -984,14 +1077,14 @@ export function HouseholdsWorkspace({
                           label="Notas de contacto"
                           multiline
                           onChange={setProtectiveContactNotes}
-                          placeholder="Como puede evaluar admin la solicitud"
+                          placeholder="Como puede el equipo contactarte o validar tu solicitud"
                           value={protectiveContactNotes}
                         />
                         <Field
                           label="Descripcion corta"
                           multiline
                           onChange={setProtectivePublicNotes}
-                          placeholder="Contexto de acogida o rescate"
+                          placeholder="Cuenta brevemente tu experiencia, capacidad o motivacion"
                           value={protectivePublicNotes}
                         />
                         <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
@@ -1002,7 +1095,10 @@ export function HouseholdsWorkspace({
 
                     {protectiveProfileStep === "review" ? (
                       <View style={{ backgroundColor: "rgba(255,255,255,0.78)", borderRadius: 16, gap: 10, padding: 12 }}>
-                        <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>Revisa antes de enviar</Text>
+                        <Text style={{ color: "#1c1917", fontSize: 15, fontWeight: "900" }}>Resumen para revision</Text>
+                        <Text style={{ color: colorTokens.mutedStrong, fontSize: 12, lineHeight: 17 }}>
+                          Esta solicitud no publica mascotas ni activa transferencias por si sola. Admin debe aprobarla primero.
+                        </Text>
                         {[
                           { label: "Nombre", value: protectiveDisplayName.trim() || "Pendiente" },
                           {
@@ -1039,8 +1135,14 @@ export function HouseholdsWorkspace({
                       />
                       {protectiveProfileStep !== "review" ? (
                         <Button
-                          disabled={protectiveProfileStep === "identity" ? !protectiveIdentityIsComplete : protectiveProfileStep === "location" ? !protectiveLocationIsComplete : false}
-                          label="Continuar"
+                          disabled={
+                            protectiveProfileStep === "identity"
+                              ? !protectiveIdentityIsComplete
+                              : protectiveProfileStep === "location"
+                                ? !protectiveLocationIsComplete
+                                : false
+                          }
+                          label={protectiveProfileStep === "contact" ? "Revisar solicitud" : "Continuar"}
                           onPress={() => {
                             const nextStep = protectiveProfileSteps[Math.min(currentProtectiveStepIndex + 1, protectiveProfileSteps.length - 1)];
                             setProtectiveProfileStep(nextStep.id);
@@ -1113,24 +1215,37 @@ export function HouseholdsWorkspace({
                       </View>
                     ) : (
                       <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                        Completa los pasos y revisa el resumen antes de enviar a revision administrativa.
+                        Completa cada paso en orden. Podras volver atras antes de enviar la solicitud.
                       </Text>
                     )}
                   </>
                 ) : protectiveProfile ? (
                   <View style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", padding: 12, gap: 6 }}>
-                    <Text style={{ fontSize: 16, fontWeight: "800", color: "#1c1917" }}>{protectiveProfile.displayName}</Text>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>
+                          Resultado de solicitud
+                        </Text>
+                        <Text style={{ fontSize: 16, fontWeight: "800", color: "#1c1917" }}>{protectiveProfile.displayName}</Text>
+                      </View>
+                      <StatusChip
+                        label={protectiveStatusLabels[protectiveProfile.status]}
+                        tone={protectiveProfile.status === "approved" ? "active" : protectiveProfile.status === "rejected" || protectiveProfile.status === "suspended" ? "pending" : "neutral"}
+                      />
+                    </View>
                     <Text style={{ color: colorTokens.muted }}>
                       {protectiveProfile.city}, {protectiveProfile.countryCode}
                     </Text>
                     <Text style={{ color: colorTokens.muted, lineHeight: 19 }}>
                       {protectiveProfile.status === "pending_review"
-                        ? "Tu solicitud esta en revision. Admin debe aprobarla antes de habilitar capacidades futuras."
+                        ? "Tu solicitud esta en revision. El equipo debe aprobarla antes de publicar mascotas o gestionar adopciones."
                         : protectiveProfile.status === "approved"
-                          ? "Familia protectora aprobada. Las transferencias privadas se habilitaran en un slice posterior."
+                          ? "Familia protectora aprobada. Ya puedes gestionar mascotas bajo acogida, preparar publicaciones y atender solicitudes segun el flujo Foster."
                           : protectiveProfile.status === "suspended"
                             ? "La capacidad protectora esta suspendida. Contacta soporte para revision."
-                            : "El estado actual no permite edicion directa."}
+                            : protectiveProfile.status === "rejected"
+                              ? "La solicitud fue rechazada. Revisa la nota de admin y corrige los datos cuando vuelva a estar disponible."
+                              : "El estado actual no permite edicion directa."}
                     </Text>
                   </View>
                 ) : (

@@ -27,8 +27,9 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - pantalla de acceso mobile ordenada por pestañas: login por defecto, registro, OTP y recuperación ocultos hasta seleccionarlos
 - UX-MOBILE-FLOWS Slice 1A: pantalla sin sesion usa bienvenida guiada tipo referencia, ilustracion pet, CTAs claros `Iniciar sesion` / `Registrarse`, progreso visual de acceso y registro con confirmacion de contrasena antes de llamar al API.
 - UX-FOSTER-FLOWS Slice 1A/Role-Foster-A: registro mobile muestra la intencion `Familia protectora` junto a owner/provider; al elegirla crea rol tecnico `protective_family` y guia a crear un household `protective` separado despues de autenticarse.
+- Registro mobile exige seleccion explicita de intencion antes de crear cuenta. No queda `Cuidar mis mascotas` preseleccionado, para evitar que una familia protectora o proveedor se registre accidentalmente como owner.
 - UX-FOSTER-FLOWS Slice 1B: si el household activo es `protective`, Owner mobile `Inicio` se convierte en home Foster progresiva con estado de revision, tren de pasos y CTA contextual; los hogares `owner` conservan el Inicio owner normal.
-- UX-FOSTER-FLOWS Slice 1C: solicitud de Familia Protectora en mobile se organiza como wizard `Identidad -> Ubicacion -> Contacto -> Revision`, con resumen final antes de guardar o enviar a revision admin.
+- UX-FOSTER-FLOWS Slice 1C: solicitud de Familia Protectora en mobile se organiza como wizard `Identidad -> Ubicacion -> Contexto -> Enviar`, con trencito horizontal, pasos bloqueados hasta completar minimos, descripcion del paso activo y resumen final antes de guardar o enviar a revision admin.
 - UX-FOSTER-FLOWS Slice 1D: publicacion de mascota en adopcion dentro de `Mascotas > Detalle` se organiza como wizard `Mascota -> Historia -> Salud -> Fotos -> Revision/Visible`, separando guardar borrador, fotos y envio a revision.
 - pantalla sin sesion enfocada solo en autenticacion; marketplace, contexto de hogar y proveedores quedan ocultos hasta iniciar sesion
 - login exitoso sin aviso global persistente; los mensajes visibles quedan para errores, verificacion, recuperacion y cierre de sesion
@@ -38,7 +39,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - direcciones
 - metodos de pago
 - cambio de rol
-- owner mobile Cuenta muestra `Pasos de cuenta` como checklist accionable: cada fila abre el bloque correspondiente de acceso, perfil, preferencias, roles, direcciones o metodos guardados, con estados `Listo` / `Pendiente` y copy de pagos sin cobro real en piloto.
+- owner mobile Cuenta muestra `Pasos de cuenta` como checklist accionable: cada fila abre el bloque correspondiente de acceso, perfil, preferencias, roles, direcciones o metodos guardados, con estados `Listo` / `Pendiente` y copy de pagos sin cobro real en piloto. La vista organiza acceso, pasos, datos personales, roles, direcciones, pagos y hogares como acordeones para evitar una pantalla larga de formularios abiertos.
 - web autenticada respeta rol activo: `provider` muestra consola de proveedor, `pet_owner` muestra hogar/mascotas/marketplace/reservas y `protective_family` deriva a la consola `/foster`
 - owner web usa una consola con sidebar izquierdo y area de contenido derecha para `Panel`, `Hogar`, `Mascotas`, `Salud`, `Agenda`, `Buscar`, `Reservas`, `Mensajes` y `Cuenta`, manteniendo los workspaces existentes y sin cambiar contratos ni reglas
 - owner web `Panel` muestra dashboard interno de gestion de mascotas con saludo, KPIs de mascotas/reservas/recordatorios/documentos/mensajes, cards de mascotas, proximas actividades, salud y recordatorios, documentos, actividad reciente y accesos rapidos usando datos existentes y empty states visuales

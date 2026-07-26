@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-07-25 - UX registro y cuenta progresiva
+
+- Owner/protective/provider mobile `Crear cuenta` ya no preselecciona una intencion por defecto; el usuario debe elegir explicitamente entre propietario, proveedor o familia protectora antes de crear cuenta.
+- Mobile `Cuenta` reorganiza acceso, pasos, datos personales, roles, direcciones, pagos y hogares como acordeones para reducir ruido visual. Los pasos siguen funcionando como CTAs hacia la seccion correspondiente.
+- Mobile `Cuenta > Familia protectora` refuerza la solicitud protectora como trencito `Identidad -> Ubicacion -> Contexto -> Enviar`, con paso activo, estados bloqueados y resumen antes de enviar a revision admin.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, Payments, booking, QR, evidencia, provider/admin ni Foster transaccional.
+
 # Handoff 2026-07-24 - UX-FOSTER-FLOWS Slice 1D publicacion guiada
 
 - Owner mobile `Mascotas > Detalle` para hogares `protective` aprobados reorganiza `Vitrina de adopcion responsable` como tren `Mascota -> Historia -> Salud -> Fotos -> Revision/Visible`.
@@ -1277,6 +1284,13 @@ Validacion recomendada:
 - Owner con recordatorio pendiente y sin reserva proxima: debe ver `Ver recordatorios`.
 - Owner sin pendientes: debe ver `Buscar servicios`.
 - Verificar que los accesos secundarios a mascotas, adopcion, salud y servicios siguen funcionando.
+
+## Registro mobile con rol explicito 2026-07-25
+
+- Mobile `Crear cuenta` ya no preselecciona `Cuidar mis mascotas`.
+- El usuario debe elegir explicitamente entre propietario, proveedor o familia protectora antes de poder crear la cuenta.
+- La seleccion muestra copy breve para explicar el alcance de cada experiencia y reduce el riesgo de registrar una cuenta owner cuando se queria proveedor o familia protectora.
+- No se tocaron backend, Supabase, RLS, migraciones ni contratos API.
 
 ## Role-Foster-B mobile shell separado 2026-07-25
 

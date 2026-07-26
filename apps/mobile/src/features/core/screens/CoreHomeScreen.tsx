@@ -16,7 +16,7 @@ import type {
   Reminder,
   Uuid
 } from "@pet/types";
-import { useEffect, useRef, useState, type ElementRef } from "react";
+import { useEffect, useRef, useState, type ElementRef, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -93,6 +93,7 @@ type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type FosterSectionId = "inicio" | "acogida" | "publicaciones" | "solicitudes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
 type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "profile" | "roles";
+type AccountAccordionPanelId = AccountPanelId | "households" | "tasks";
 type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
@@ -249,6 +250,79 @@ function Button({
   );
 }
 
+function AccountAccordionSection({
+  badgeLabel,
+  children,
+  description,
+  isExpanded,
+  onToggle,
+  title
+}: {
+  badgeLabel?: string;
+  children: ReactNode;
+  description?: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+  title: string;
+}) {
+  return (
+    <View
+      style={{
+        backgroundColor: colorTokens.surface,
+        borderColor: isExpanded ? "rgba(0,151,143,0.26)" : colorTokens.line,
+        borderRadius: 18,
+        borderWidth: 1,
+        overflow: "hidden",
+        ...visualTokens.mobile.softShadow
+      }}
+    >
+      <Pressable
+        accessibilityLabel={`${title}. ${isExpanded ? "Contraer" : "Expandir"}`}
+        accessibilityRole="button"
+        onPress={onToggle}
+        style={{
+          alignItems: "center",
+          backgroundColor: isExpanded ? "rgba(240,253,250,0.72)" : colorTokens.surface,
+          flexDirection: "row",
+          gap: 10,
+          justifyContent: "space-between",
+          paddingHorizontal: 12,
+          paddingVertical: 11
+        }}
+      >
+        <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+          <Text numberOfLines={1} style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+            {title}
+          </Text>
+          {description ? (
+            <Text numberOfLines={2} style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>
+              {description}
+            </Text>
+          ) : null}
+        </View>
+        {badgeLabel ? <StatusChip label={badgeLabel} tone={isExpanded ? "active" : "neutral"} /> : null}
+        <View
+          style={{
+            alignItems: "center",
+            backgroundColor: isExpanded ? colorTokens.accentDark : "rgba(0,151,143,0.08)",
+            borderColor: "rgba(0,151,143,0.24)",
+            borderRadius: 999,
+            borderWidth: 1,
+            height: 28,
+            justifyContent: "center",
+            width: 28
+          }}
+        >
+          <Text style={{ color: isExpanded ? "#ffffff" : colorTokens.accentDark, fontSize: 17, fontWeight: "900", lineHeight: 20 }}>
+            {isExpanded ? "-" : "+"}
+          </Text>
+        </View>
+      </Pressable>
+      {isExpanded ? <View style={{ borderTopColor: colorTokens.line, borderTopWidth: 1, padding: 12 }}>{children}</View> : null}
+    </View>
+  );
+}
+
 function Field({
   helperText,
   keyboardType,
@@ -291,7 +365,7 @@ function ChoiceBar<TValue extends string>({
 }: {
   onChange: (value: TValue) => void;
   options: Array<{ label: string; value: TValue }>;
-  value: TValue;
+  value: TValue | null;
 }) {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
@@ -1503,7 +1577,7 @@ export function CoreHomeScreen() {
   const mainScrollViewRef = useRef<ElementRef<typeof ScrollView> | null>(null);
   const accountHouseholdsYRef = useRef(0);
   const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
-  const [registrationIntent, setRegistrationIntent] = useState<RegistrationIntent>("owner");
+  const [registrationIntent, setRegistrationIntent] = useState<RegistrationIntent | null>(null);
   const [postAuthOwnerIntent, setPostAuthOwnerIntent] = useState<"owner" | "foster" | null>(null);
   const [loginForm, setLoginForm] = useState(emptyLoginForm);
   const [verifyForm, setVerifyForm] = useState(emptyVerifyForm);
@@ -1512,6 +1586,16 @@ export function CoreHomeScreen() {
   const [authAccessPanel, setAuthAccessPanel] = useState<AuthAccessPanel>("login");
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
   const [activeAccountPanel, setActiveAccountPanel] = useState<AccountPanelId>("access");
+  const [expandedAccountPanels, setExpandedAccountPanels] = useState<Record<AccountAccordionPanelId, boolean>>({
+    access: false,
+    addresses: false,
+    households: false,
+    payments: false,
+    preferences: false,
+    profile: false,
+    roles: false,
+    tasks: true
+  });
   const [isProfileFormVisible, setIsProfileFormVisible] = useState(false);
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
@@ -1691,7 +1775,28 @@ export function CoreHomeScreen() {
     }
   }, [accountFocusSection, activeOwnerSection]);
 
-  const openAccountPanel = (panel: AccountPanelId) => {
+  const toggleAccountPanel = (panel: AccountAccordionPanelId) => {
+    setExpandedAccountPanels((currentPanels) => ({
+      ...currentPanels,
+      [panel]: !currentPanels[panel]
+    }));
+
+    if (panel !== "households" && panel !== "tasks") {
+      setActiveAccountPanel(panel);
+    }
+  };
+
+  const openAccountPanel = (panel: AccountAccordionPanelId) => {
+    setExpandedAccountPanels((currentPanels) => ({
+      ...currentPanels,
+      profile: panel === "preferences" ? true : currentPanels.profile,
+      [panel]: true
+    }));
+
+    if (panel === "households" || panel === "tasks") {
+      return;
+    }
+
     setActiveAccountPanel(panel);
 
     if (panel === "profile") {
@@ -1703,6 +1808,12 @@ export function CoreHomeScreen() {
       setIsAddressFormVisible(true);
     }
   };
+
+  useEffect(() => {
+    if (activeOwnerSection === "cuenta" && accountFocusSection === "petInvitations") {
+      openAccountPanel("households");
+    }
+  }, [accountFocusSection, activeOwnerSection]);
 
   const handleAccountTaskPress = (task: OnboardingTask) => {
     if (!snapshot) {
@@ -1979,6 +2090,58 @@ export function CoreHomeScreen() {
 
                 {authAccessPanel === "register" ? (
                   <>
+                    <View
+                      style={{
+                        borderRadius: 18,
+                        borderWidth: 1,
+                        borderColor: registrationIntent ? "rgba(0,151,143,0.22)" : "rgba(234,88,12,0.24)",
+                        backgroundColor: registrationIntent ? "rgba(240,253,250,0.78)" : "rgba(255,247,237,0.84)",
+                        padding: 12,
+                        gap: 9
+                      }}
+                    >
+                      <Text style={{ color: colorTokens.ink, fontSize: 14, fontWeight: "900", lineHeight: 18 }}>
+                        Antes de crear tu cuenta, elige como quieres entrar.
+                      </Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                        Esta eleccion define la experiencia inicial. Si tienes mas de un rol, podras cambiarlo despues desde Cuenta.
+                      </Text>
+                      <ChoiceBar<RegistrationIntent>
+                        onChange={(value) => {
+                          setRegistrationIntent(value);
+                          setRegisterForm((currentForm) => ({
+                            ...currentForm,
+                            role: value === "provider" ? "provider" : value === "foster" ? "protective_family" : "pet_owner"
+                          }));
+                        }}
+                        options={[
+                          { label: "Cuidar mis mascotas", value: "owner" },
+                          { label: coreRoleLabels.provider, value: "provider" },
+                          { label: "Familia protectora", value: "foster" }
+                        ]}
+                        value={registrationIntent}
+                      />
+                      {!registrationIntent ? (
+                        <Text style={{ color: "#c2410c", fontSize: 11, fontWeight: "800", lineHeight: 15 }}>
+                          Selecciona una opcion para continuar con el registro.
+                        </Text>
+                      ) : null}
+                      {registrationIntent === "owner" ? (
+                        <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                          Para familias que cuidan sus propias mascotas, crean expedientes y reservan servicios.
+                        </Text>
+                      ) : null}
+                      {registrationIntent === "provider" ? (
+                        <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                          Para negocios o profesionales que ofreceran servicios y gestionaran reservas.
+                        </Text>
+                      ) : null}
+                      {registrationIntent === "foster" ? (
+                        <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                          Para familias protectoras, rescatistas o fundaciones que gestionan acogida y adopcion responsable.
+                        </Text>
+                      ) : null}
+                    </View>
                     <Field
                       keyboardType="email-address"
                       label="Correo electronico"
@@ -2012,34 +2175,8 @@ export function CoreHomeScreen() {
                       placeholder="Tu apellido"
                       value={registerForm.lastName}
                     />
-                    <View style={{ gap: 8 }}>
-                      <Text style={{ color: colorTokens.muted, fontSize: 11, fontWeight: "900", textTransform: "uppercase" }}>
-                        Que quieres hacer primero?
-                      </Text>
-                      <ChoiceBar<RegistrationIntent>
-                        onChange={(value) => {
-                          setRegistrationIntent(value);
-                          setRegisterForm((currentForm) => ({
-                            ...currentForm,
-                            role: value === "provider" ? "provider" : value === "foster" ? "protective_family" : "pet_owner"
-                          }));
-                        }}
-                        options={[
-                          { label: "Cuidar mis mascotas", value: "owner" },
-                          { label: coreRoleLabels.provider, value: "provider" },
-                          { label: "Familia protectora", value: "foster" }
-                        ]}
-                        value={registrationIntent}
-                      />
-                      {registrationIntent === "foster" ? (
-                        <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
-                          Crearemos tu cuenta como Familia protectora y luego te guiaremos para crear una familia separada,
-                          solicitar revision admin y publicar mascotas en adopcion solo cuando corresponda.
-                        </Text>
-                      ) : null}
-                    </View>
                     <Button
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !registrationIntent}
                       label="Crear cuenta"
                       onPress={() => {
                         clearMessages();
@@ -2051,12 +2188,23 @@ export function CoreHomeScreen() {
                               throw new Error("Las contrasenas deben coincidir.");
                             }
 
+                            if (!registrationIntent) {
+                              throw new Error("Selecciona si entraras como propietario, proveedor o familia protectora.");
+                            }
+
+                            const requestedRole =
+                              registrationIntent === "provider"
+                                ? "provider"
+                                : registrationIntent === "foster"
+                                  ? "protective_family"
+                                  : "pet_owner";
+
                             await getMobileCoreApiClient().register({
                               email: registerForm.email,
                               password: registerForm.password,
                               firstName: registerForm.firstName,
                               lastName: registerForm.lastName,
-                              requestedRoles: [registerForm.role]
+                              requestedRoles: [requestedRole]
                             });
                             setPostAuthOwnerIntent(
                               registrationIntent === "foster" ? "foster" : registrationIntent === "owner" ? "owner" : null
@@ -2161,8 +2309,10 @@ export function CoreHomeScreen() {
               </Text>
             </View>
 
-            <CoreSectionCard
-              eyebrow="Acceso"
+            <AccountAccordionSection
+              badgeLabel={snapshot.verification.status === "verified" ? "Verificado" : "Pendiente"}
+              isExpanded={expandedAccountPanels.access}
+              onToggle={() => toggleAccountPanel("access")}
               title="Inicio de sesion"
               description="Correo, estado de cuenta y opciones de acceso."
             >
@@ -2187,10 +2337,12 @@ export function CoreHomeScreen() {
                   />
                 </View>
               </View>
-            </CoreSectionCard>
+            </AccountAccordionSection>
 
-            <CoreSectionCard
-              eyebrow="Pendientes"
+            <AccountAccordionSection
+              badgeLabel={`${accountOnboardingTasks.filter((task) => task.status !== "completed").length} pendiente(s)`}
+              isExpanded={expandedAccountPanels.tasks}
+              onToggle={() => toggleAccountPanel("tasks")}
               title="Pasos de cuenta"
               description={
                 isProviderMode
@@ -2251,10 +2403,12 @@ export function CoreHomeScreen() {
                   );
                 })}
               </View>
-            </CoreSectionCard>
+            </AccountAccordionSection>
 
-            <CoreSectionCard
-              eyebrow="Perfil"
+            <AccountAccordionSection
+              badgeLabel={profileForm.firstName || profileForm.lastName ? "Datos" : "Completar"}
+              isExpanded={expandedAccountPanels.profile}
+              onToggle={() => toggleAccountPanel("profile")}
               title="Datos personales"
               description="Informacion basica y preferencias de comunicacion."
             >
@@ -2432,10 +2586,12 @@ export function CoreHomeScreen() {
                   ) : null}
                 </View>
               </View>
-            </CoreSectionCard>
+            </AccountAccordionSection>
 
-            <CoreSectionCard
-              eyebrow="Roles"
+            <AccountAccordionSection
+              badgeLabel={coreRoleLabels[activeRole]}
+              isExpanded={expandedAccountPanels.roles}
+              onToggle={() => toggleAccountPanel("roles")}
               title="Modo de uso"
               description="Revisa tu rol activo y los modos disponibles para esta cuenta."
             >
@@ -2519,9 +2675,11 @@ export function CoreHomeScreen() {
                   </View>
                 ) : null}
               </View>
-            </CoreSectionCard>
-            <CoreSectionCard
-              eyebrow="Direcciones"
+            </AccountAccordionSection>
+            <AccountAccordionSection
+              badgeLabel={`${snapshot.addresses.length} guardada(s)`}
+              isExpanded={expandedAccountPanels.addresses}
+              onToggle={() => toggleAccountPanel("addresses")}
               title="Direcciones"
               description="Lugares guardados para reservas, visitas o entregas."
             >
@@ -2670,11 +2828,13 @@ export function CoreHomeScreen() {
                   </>
                 ) : null}
               </View>
-            </CoreSectionCard>
+            </AccountAccordionSection>
 
             {isOwnerMode ? (
-              <CoreSectionCard
-                eyebrow="Pagos"
+              <AccountAccordionSection
+                badgeLabel={`${snapshot.paymentMethods.length} metodo(s)`}
+                isExpanded={expandedAccountPanels.payments}
+                onToggle={() => toggleAccountPanel("payments")}
                 title="Tarjetas guardadas"
                 description="Guarda una tarjeta para usarla en futuras reservas."
               >
@@ -2771,23 +2931,31 @@ export function CoreHomeScreen() {
                     </View>
                   ))}
                 </View>
-              </CoreSectionCard>
+              </AccountAccordionSection>
             ) : null}
 
             {!isProviderMode ? (
-              <View
-                onLayout={(event) => {
-                  accountHouseholdsYRef.current = event.nativeEvent.layout.y;
-                }}
+              <AccountAccordionSection
+                badgeLabel={isProtectiveMode ? "Familia protectora" : "Hogar"}
+                isExpanded={expandedAccountPanels.households}
+                onToggle={() => toggleAccountPanel("households")}
+                title={isProtectiveMode ? "Familia protectora" : "Hogar y mascotas"}
+                description={isProtectiveMode ? "Gestiona el espacio de acogida y sus invitaciones." : "Gestiona hogar, miembros e invitaciones de mascota."}
               >
-                <HouseholdsWorkspace
-                  enabled
-                  focusSection={accountFocusSection}
-                  householdTypeScope={isProtectiveMode ? "protective" : "owner"}
-                  onHouseholdCreated={petsWorkspace.refresh}
-                  onPetTransferAccepted={handlePetTransferAccepted}
-                />
-              </View>
+                <View
+                  onLayout={(event) => {
+                    accountHouseholdsYRef.current = event.nativeEvent.layout.y;
+                  }}
+                >
+                  <HouseholdsWorkspace
+                    enabled
+                    focusSection={accountFocusSection}
+                    householdTypeScope={isProtectiveMode ? "protective" : "owner"}
+                    onHouseholdCreated={petsWorkspace.refresh}
+                    onPetTransferAccepted={handlePetTransferAccepted}
+                  />
+                </View>
+              </AccountAccordionSection>
             ) : null}
           </>
         ) : null}

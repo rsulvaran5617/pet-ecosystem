@@ -93,6 +93,13 @@ Role-Foster-B:
 - la separacion es de experiencia y scoping en cliente; las politicas RLS y RPCs Foster siguen siendo la barrera transaccional.
 - no se mueven mascotas ni se convierte ningun hogar existente.
 
+UX-FOSTER solicitud guiada:
+
+- mobile `Familia protectora` presenta la solicitud protectora como wizard guiado: `Identidad`, `Ubicacion`, `Contexto` y `Enviar`.
+- los pasos posteriores quedan bloqueados hasta completar los minimos de identidad y ubicacion.
+- el usuario ve `Paso N de 4`, una descripcion corta del paso activo, resumen antes de enviar y estados claros (`Borrador`, `En revision`, `Aprobada`, `Rechazada`, `Suspendida`).
+- el flujo no publica mascotas ni habilita transferencias por si solo; la aprobacion admin sigue siendo obligatoria.
+
 ## Dependencias minimas
 - core
 

@@ -44,6 +44,8 @@ Gestionar identidad, acceso, perfil base y configuracion personal del usuario de
 - verificacion y recuperacion se apoyan en Supabase Auth
 - la verificacion manual por OTP usa el codigo de email de Supabase Auth y `POST /auth/verify-otp` lo valida con `email + token`
 - el acceso mobile debe presentar login por defecto y mantener registro, verificacion OTP y recuperacion como paneles separados para evitar confusion y solicitudes repetidas de correo
+- el registro mobile no debe preseleccionar rol/intencion por defecto; el usuario debe elegir explicitamente entre propietario, proveedor o familia protectora antes de crear cuenta
+- mobile `Cuenta` debe organizar acceso, pasos, perfil, roles, direcciones, pagos y hogares como secciones colapsables para reducir carga cognitiva sin ocultar capacidades
 - el acceso web sin sesion debe presentar registro, login, verificacion OTP y recuperacion como paneles separados; no debe mostrar todos los formularios a la vez
 - la recuperacion de contrasena debe aparecer como accion secundaria del login con una pregunta clara para el usuario
 - la experiencia owner web debe usar navegacion lateral por seccion activa; al seleccionar una opcion, solo se muestra el modulo correspondiente para evitar sobrecarga visual
