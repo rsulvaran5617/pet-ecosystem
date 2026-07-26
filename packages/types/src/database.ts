@@ -921,6 +921,8 @@ export interface Database {
           public_contact_label: string | null;
           public_contact_value: string | null;
           needs_summary: string | null;
+          logo_storage_bucket: string | null;
+          logo_storage_path: string | null;
           is_public: boolean;
           moderation_status: ProtectivePublicProfileModerationStatus;
           review_notes: string | null;
@@ -944,6 +946,8 @@ export interface Database {
           public_contact_label?: string | null;
           public_contact_value?: string | null;
           needs_summary?: string | null;
+          logo_storage_bucket?: string | null;
+          logo_storage_path?: string | null;
           is_public?: boolean;
           moderation_status?: ProtectivePublicProfileModerationStatus;
           review_notes?: string | null;
@@ -967,6 +971,8 @@ export interface Database {
           public_contact_label?: string | null;
           public_contact_value?: string | null;
           needs_summary?: string | null;
+          logo_storage_bucket?: string | null;
+          logo_storage_path?: string | null;
           is_public?: boolean;
           moderation_status?: ProtectivePublicProfileModerationStatus;
           review_notes?: string | null;
@@ -2111,6 +2117,14 @@ export interface Database {
       submit_protective_public_profile: {
         Args: {
           target_profile_id: string;
+        };
+        Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
+      };
+      set_protective_public_profile_logo: {
+        Args: {
+          target_profile_id: string;
+          next_logo_storage_bucket: string;
+          next_logo_storage_path: string;
         };
         Returns: Database["public"]["Tables"]["protective_household_public_profiles"]["Row"];
       };

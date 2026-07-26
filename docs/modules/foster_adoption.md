@@ -634,6 +634,21 @@ Incluye:
 - Owner mobile `Hogares`: bloque `Perfil publico` solo para hogares `protective` aprobados.
 - Admin web `Familias protectoras`: cola independiente de perfiles publicos pendientes.
 
+### Foster logo de perfil publico
+
+Estado: implementacion local preparada. No aplicar remoto sin dry-run y aprobacion.
+
+Incluye:
+
+- columnas `logo_storage_bucket` y `logo_storage_path` en `protective_household_public_profiles`.
+- bucket privado `protective-household-logos`.
+- policies Storage para carga por admin de la familia protectora, lectura por admin/plataforma, miembros autorizados y lectura publica solo cuando el perfil este `approved` + `is_public`.
+- RPC `set_protective_public_profile_logo`.
+- API client `uploadProtectivePublicProfileLogo`.
+- Web `/foster` y mobile `Cuenta > Familia protectora` pueden subir/cambiar logo desde el perfil publico.
+- Admin puede visualizar el logo al revisar perfiles publicos.
+- Cambiar el logo devuelve el perfil a `draft` y `is_public = false` para exigir nueva moderacion.
+
 Fuera de alcance Foster-5A:
 
 - ficha publica de mascota por slug.

@@ -1,4 +1,5 @@
 import { colorTokens } from "@pet/ui";
+import * as ImagePicker from "expo-image-picker";
 import type {
   HouseholdPermission,
   HouseholdType,
@@ -10,7 +11,7 @@ import type {
   Uuid
 } from "@pet/types";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, Switch, Text, TextInput, View } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { CoreSectionCard } from "../../core/components/CoreSectionCard";
@@ -492,6 +493,41 @@ export function HouseholdsWorkspace({
     Boolean(publicCity.trim()) &&
     publicCountryCode.trim().length === 2 &&
     canEditProtectivePublicProfile;
+
+  async function pickProtectivePublicLogo() {
+    if (!selectedHouseholdId || !protectivePublicProfile) {
+      return protectivePublicProfile;
+    }
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      throw new Error("Necesitamos acceso a tus fotos para elegir el logo de la Familia Protectora.");
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.82
+    });
+
+    if (result.canceled || !result.assets[0]) {
+      return protectivePublicProfile;
+    }
+
+    const asset = result.assets[0];
+    const fileName = asset.fileName ?? `logo-${Date.now()}.jpg`;
+
+    return getMobileFosterApiClient().uploadProtectivePublicProfileLogo({
+      fileName,
+      fileSizeBytes: asset.fileSize ?? null,
+      fileUri: asset.uri,
+      householdId: selectedHouseholdId,
+      mimeType: asset.mimeType ?? "image/jpeg",
+      profileId: protectivePublicProfile.id
+    });
+  }
 
   const renderPetTransferInvitationsCard = () => (
     <CoreSectionCard
@@ -1290,6 +1326,61 @@ export function HouseholdsWorkspace({
                       tone={protectivePublicProfile.moderationStatus === "approved" ? "info" : "error"}
                     />
                   ) : null}
+                  <View
+                    style={{
+                      borderRadius: 16,
+                      backgroundColor: "rgba(255,255,255,0.78)",
+                      padding: 12,
+                      flexDirection: "row",
+                      gap: 12,
+                      alignItems: "center"
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 62,
+                        height: 62,
+                        borderRadius: 18,
+                        overflow: "hidden",
+                        backgroundColor: "rgba(15,118,110,0.12)",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      }}
+                    >
+                      {protectivePublicProfile?.logoUrl ? (
+                        <Image source={{ uri: protectivePublicProfile.logoUrl }} style={{ width: "100%", height: "100%" }} />
+                      ) : (
+                        <Text style={{ color: "#0f766e", fontSize: 18, fontWeight: "900" }}>
+                          {(protectivePublicProfile?.displayName || publicDisplayName || "FP").slice(0, 2).toUpperCase()}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={{ flex: 1, gap: 4 }}>
+                      <Text style={{ color: "#1c1917", fontSize: 14, fontWeight: "900" }}>Logo publico</Text>
+                      <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                        Visible solo cuando admin apruebe el perfil publico.
+                      </Text>
+                      {protectivePublicProfile ? (
+                        <Button
+                          disabled={isSubmitting || !canManageSelectedHousehold}
+                          label={protectivePublicProfile.logoUrl ? "Cambiar logo" : "Agregar logo"}
+                          onPress={() => {
+                            clearMessages();
+                            void runAction(
+                              pickProtectivePublicLogo,
+                              "Logo guardado como borrador. Envia el perfil a revision para publicarlo.",
+                              false
+                            ).then((nextProfile) => {
+                              setProtectivePublicProfile(nextProfile);
+                            });
+                          }}
+                          tone="secondary"
+                        />
+                      ) : (
+                        <Text style={{ color: colorTokens.muted, fontSize: 12 }}>Guarda el perfil antes de subir logo.</Text>
+                      )}
+                    </View>
+                  </View>
                   {canEditProtectivePublicProfile ? (
                     <>
                       <Field

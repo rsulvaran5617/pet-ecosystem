@@ -272,6 +272,7 @@ export function FosterConsoleWorkspace() {
     setAdoptionListingCover,
     transfers,
     uploadAdoptionListingPhoto,
+    uploadPublicProfileLogo,
     updateApplicationStatus
   } = useFosterConsoleWorkspace();
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
@@ -450,6 +451,7 @@ export function FosterConsoleWorkspace() {
             selectedHouseholdName={selectedHousehold?.name ?? ""}
             onSave={savePublicProfile}
             onSubmit={submitPublicProfile}
+            onUploadLogo={uploadPublicProfileLogo}
           />
 
           <FosterPetsPanel
@@ -1076,6 +1078,7 @@ function PublicProfilePanel({
   disabled,
   onSave,
   onSubmit,
+  onUploadLogo,
   profileStatus,
   publicProfile,
   selectedHouseholdId,
@@ -1084,6 +1087,7 @@ function PublicProfilePanel({
   disabled: boolean;
   onSave: (input: ProtectivePublicProfileInput) => Promise<ProtectivePublicProfile | null>;
   onSubmit: (profileId: Uuid) => Promise<ProtectivePublicProfile | null>;
+  onUploadLogo: (profile: ProtectivePublicProfile, file: File) => Promise<ProtectivePublicProfile | null>;
   profileStatus: string | null;
   publicProfile: ProtectivePublicProfile | null;
   selectedHouseholdId: Uuid | null;
@@ -1124,6 +1128,39 @@ function PublicProfilePanel({
       ) : (
         <>
           <div style={styles.publicProfileSummary}>
+            <div style={styles.logoSummaryTile}>
+              <div style={styles.logoPreview}>
+                {publicProfile?.logoUrl ? (
+                  <img alt="" src={publicProfile.logoUrl} style={styles.logoImage} />
+                ) : (
+                  <span>{(publicProfile?.displayName ?? selectedHouseholdName).slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              <div style={{ display: "grid", gap: "4px" }}>
+                <span style={styles.tileLabel}>Logo</span>
+                <strong style={styles.tileValue}>{publicProfile?.logoUrl ? "Configurado" : "Pendiente"}</strong>
+                {publicProfile ? (
+                  <label style={{ ...styles.secondaryButton, display: "inline-flex", justifyContent: "center", maxWidth: "150px" }}>
+                    Cambiar logo
+                    <input
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={disabled}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.currentTarget.value = "";
+                        if (file) {
+                          void onUploadLogo(publicProfile, file);
+                        }
+                      }}
+                      style={styles.fileInput}
+                      type="file"
+                    />
+                  </label>
+                ) : (
+                  <span style={styles.itemMeta}>Guarda el perfil antes de subir logo.</span>
+                )}
+              </div>
+            </div>
             <InfoTile label="Nombre publico" value={publicProfile?.displayName ?? "No configurado"} />
             <InfoTile label="Ciudad" value={publicProfile ? `${publicProfile.city}, ${publicProfile.countryCode}` : "Pendiente"} />
             <InfoTile label="Contacto" value={publicProfile ? contactPolicyLabels[publicProfile.contactPolicy] : "Solo plataforma"} />
@@ -1131,6 +1168,9 @@ function PublicProfilePanel({
           <p style={styles.bodyText}>
             Guardar el perfil no lo hace publico automaticamente. Despues de guardar, debes enviarlo a revision y admin debe aprobarlo.
           </p>
+          {publicProfile?.logoStoragePath && publicProfile.moderationStatus === "draft" ? (
+            <p style={styles.bodyText}>El logo esta guardado en borrador. Envia el perfil a revision para que admin lo apruebe.</p>
+          ) : null}
           {publicProfile?.moderationStatus === "approved" ? (
             <p style={styles.bodyText}>El perfil esta aprobado. Si editas datos publicos importantes, revisa si corresponde reenviarlo a revision.</p>
           ) : null}
@@ -1712,6 +1752,9 @@ const styles: Record<string, React.CSSProperties> = {
   itemTitle: { color: "#0f172a", fontSize: "15px" },
   listingCard: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
   listStack: { display: "grid", gap: "10px" },
+  logoImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
+  logoPreview: { alignItems: "center", background: "#dff7f3", borderRadius: "18px", color: "#0f766e", display: "flex", flexShrink: 0, fontSize: "18px", fontWeight: 900, height: "76px", justifyContent: "center", overflow: "hidden", width: "76px" },
+  logoSummaryTile: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "flex", gap: "12px", padding: "14px" },
   metricCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.15)", borderRadius: "22px", cursor: "pointer", display: "grid", gap: "6px", padding: "18px", textAlign: "left" },
   metricDetail: { color: "#64748b", fontSize: "13px" },
   metricGrid: { display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" },

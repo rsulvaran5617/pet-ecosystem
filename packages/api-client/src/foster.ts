@@ -24,6 +24,7 @@ import type {
   ProtectiveHouseholdProfileReviewInput,
   ProtectivePublicProfile,
   ProtectivePublicProfileInput,
+  ProtectivePublicProfileLogoUploadInput,
   ProtectivePublicProfileReviewInput,
   Uuid
 } from "@pet/types";
@@ -59,6 +60,8 @@ type PetAdoptionApplicationStatusHistoryRow =
   Database["public"]["Functions"]["list_pet_adoption_application_status_history"]["Returns"][number];
 type PetAdoptionClosureDetailRow = Database["public"]["Functions"]["get_pet_adoption_closure_detail"]["Returns"][number];
 
+const protectiveHouseholdLogosBucketId = "protective-household-logos";
+
 export interface FosterApiClient {
   getProtectiveHouseholdProfile(householdId: Uuid): Promise<ProtectiveHouseholdProfile | null>;
   upsertProtectiveHouseholdProfile(input: ProtectiveHouseholdProfileInput): Promise<ProtectiveHouseholdProfile>;
@@ -71,6 +74,7 @@ export interface FosterApiClient {
   getProtectivePublicProfile(householdId: Uuid): Promise<ProtectivePublicProfile | null>;
   upsertProtectivePublicProfile(input: ProtectivePublicProfileInput): Promise<ProtectivePublicProfile>;
   submitProtectivePublicProfile(profileId: Uuid): Promise<ProtectivePublicProfile>;
+  uploadProtectivePublicProfileLogo(input: ProtectivePublicProfileLogoUploadInput): Promise<ProtectivePublicProfile>;
   reviewProtectivePublicProfile(profileId: Uuid, input: ProtectivePublicProfileReviewInput): Promise<ProtectivePublicProfile>;
   getPublicProtectiveProfileBySlug(slug: string): Promise<ProtectivePublicProfile | null>;
   listPendingProtectivePublicProfilesForAdmin(): Promise<AdminProtectivePublicProfile[]>;
@@ -127,6 +131,7 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("review_protective_household_profile") ||
     message.includes("list_pending_protective_household_profiles") ||
     message.includes("upsert_protective_public_profile") ||
+    message.includes("set_protective_public_profile_logo") ||
     message.includes("submit_protective_public_profile") ||
     message.includes("review_protective_public_profile") ||
     message.includes("get_public_protective_profile_by_slug") ||
@@ -210,7 +215,22 @@ function mapProtectiveHouseholdProfile(row: ProtectiveHouseholdProfileRow): Prot
   };
 }
 
-function mapProtectivePublicProfile(row: ProtectivePublicProfileRow): ProtectivePublicProfile {
+async function getProtectivePublicProfileLogoSignedUrl(
+  supabase: FosterSupabaseClient,
+  row: ProtectivePublicProfileRow
+): Promise<string | null> {
+  if (row.logo_storage_bucket === protectiveHouseholdLogosBucketId && row.logo_storage_path) {
+    const { data } = await supabase.storage.from(protectiveHouseholdLogosBucketId).createSignedUrl(row.logo_storage_path, 60 * 60);
+    return data?.signedUrl ?? null;
+  }
+
+  return null;
+}
+
+async function mapProtectivePublicProfile(
+  supabase: FosterSupabaseClient,
+  row: ProtectivePublicProfileRow
+): Promise<ProtectivePublicProfile> {
   return {
     id: row.id,
     householdId: row.household_id,
@@ -225,6 +245,9 @@ function mapProtectivePublicProfile(row: ProtectivePublicProfileRow): Protective
     publicContactLabel: row.public_contact_label,
     publicContactValue: row.public_contact_value,
     needsSummary: row.needs_summary,
+    logoUrl: await getProtectivePublicProfileLogoSignedUrl(supabase, row),
+    logoStorageBucket: row.logo_storage_bucket,
+    logoStoragePath: row.logo_storage_path,
     isPublic: row.is_public,
     moderationStatus: row.moderation_status,
     reviewNotes: row.review_notes,
@@ -525,6 +548,7 @@ async function mapPublicPetAdoptionProfile(
       displayName: row.protective_display_name,
       mission: row.protective_mission,
       publicStory: row.protective_public_story,
+      logoUrl: null,
       city: row.protective_city,
       stateRegion: row.protective_state_region,
       countryCode: row.protective_country_code,
@@ -546,12 +570,21 @@ function mapAdminProtectiveHouseholdProfile(
   };
 }
 
-function mapAdminProtectivePublicProfile(row: AdminProtectivePublicProfileRow): AdminProtectivePublicProfile {
+async function mapAdminProtectivePublicProfile(
+  supabase: FosterSupabaseClient,
+  row: AdminProtectivePublicProfileRow
+): Promise<AdminProtectivePublicProfile> {
   return {
-    ...mapProtectivePublicProfile(row),
+    ...(await mapProtectivePublicProfile(supabase, row)),
     householdName: row.household_name,
     createdByEmail: row.created_by_email
   };
+}
+
+function assertProtectiveLogoMimeType(mimeType: string) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) {
+    throw new Error("El logo debe ser una imagen JPG, PNG o WebP.");
+  }
 }
 
 function mapPetTransferRecord(row: PetTransferFunctionRow): PetTransferRecord {
@@ -692,7 +725,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load the protective public profile.");
       }
 
-      return data ? mapProtectivePublicProfile(data) : null;
+      return data ? mapProtectivePublicProfile(supabase, data) : null;
     },
     async upsertProtectivePublicProfile(input) {
       const { data, error } = await supabase.rpc("upsert_protective_public_profile", {
@@ -713,7 +746,42 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         failMissingFosterSchema(error);
       }
 
-      return mapProtectivePublicProfile(data);
+      return mapProtectivePublicProfile(supabase, data);
+    },
+    async uploadProtectivePublicProfileLogo(input) {
+      assertProtectiveLogoMimeType(input.mimeType);
+
+      const extension = input.fileName.split(".").pop()?.toLowerCase() || "jpg";
+      const storagePath = `${input.householdId}/logo-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const fileBlob = input.fileBody ?? (input.fileUri ? await fetch(input.fileUri).then((response) => response.blob()) : null);
+
+      if (!fileBlob) {
+        throw new Error("El archivo del logo es obligatorio.");
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from(protectiveHouseholdLogosBucketId)
+        .upload(storagePath, fileBlob, {
+          contentType: input.mimeType,
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw new Error(`No fue posible guardar el logo en Storage. Detalle: ${uploadError.message}`);
+      }
+
+      const { data, error } = await supabase.rpc("set_protective_public_profile_logo", {
+        target_profile_id: input.profileId,
+        next_logo_storage_bucket: protectiveHouseholdLogosBucketId,
+        next_logo_storage_path: storagePath
+      });
+
+      if (error) {
+        await supabase.storage.from(protectiveHouseholdLogosBucketId).remove([storagePath]);
+        failMissingFosterSchema(error);
+      }
+
+      return mapProtectivePublicProfile(supabase, data);
     },
     async submitProtectivePublicProfile(profileId) {
       const { data, error } = await supabase.rpc("submit_protective_public_profile", {
@@ -724,7 +792,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         failMissingFosterSchema(error);
       }
 
-      return mapProtectivePublicProfile(data);
+      return mapProtectivePublicProfile(supabase, data);
     },
     async reviewProtectivePublicProfile(profileId, input) {
       const { data, error } = await supabase.rpc("review_protective_public_profile", {
@@ -737,7 +805,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         failMissingFosterSchema(error);
       }
 
-      return mapProtectivePublicProfile(data);
+      return mapProtectivePublicProfile(supabase, data);
     },
     async getPublicProtectiveProfileBySlug(slug) {
       const { data, error } = await supabase.rpc("get_public_protective_profile_by_slug", {
@@ -752,7 +820,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load public protective profile.");
       }
 
-      return data?.[0] ? mapProtectivePublicProfile(data[0]) : null;
+      return data?.[0] ? mapProtectivePublicProfile(supabase, data[0]) : null;
     },
     async listPendingProtectivePublicProfilesForAdmin() {
       const { data, error } = await supabase.rpc("list_pending_protective_public_profiles_for_admin", {});
@@ -765,7 +833,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         fail(error, "Unable to load pending protective public profiles.");
       }
 
-      return (data ?? []).map(mapAdminProtectivePublicProfile);
+      return Promise.all((data ?? []).map((row) => mapAdminProtectivePublicProfile(supabase, row)));
     },
     async createPetTransferInvitation(input) {
       const { data, error } = await supabase.rpc("create_pet_transfer_invitation", {

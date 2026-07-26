@@ -89,6 +89,9 @@ export interface ProtectivePublicProfile extends TimestampedEntity {
   publicContactLabel: string | null;
   publicContactValue: string | null;
   needsSummary: string | null;
+  logoUrl: string | null;
+  logoStorageBucket: string | null;
+  logoStoragePath: string | null;
   isPublic: boolean;
   moderationStatus: ProtectivePublicProfileModerationStatus;
   reviewNotes: string | null;
@@ -114,6 +117,16 @@ export interface ProtectivePublicProfileInput {
 export interface ProtectivePublicProfileReviewInput {
   decision: "approved" | "rejected" | "suspended";
   notes?: string | null;
+}
+
+export interface ProtectivePublicProfileLogoUploadInput {
+  profileId: Uuid;
+  householdId: Uuid;
+  fileUri?: string;
+  fileBody?: Blob;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes?: number | null;
 }
 
 export interface AdminProtectivePublicProfile extends ProtectivePublicProfile {
@@ -238,6 +251,7 @@ export interface PublicProtectiveHouseholdSummary {
   displayName: string;
   mission: string | null;
   publicStory: string | null;
+  logoUrl: string | null;
   city: string;
   stateRegion: string | null;
   countryCode: string;

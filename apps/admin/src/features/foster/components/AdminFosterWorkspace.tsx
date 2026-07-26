@@ -526,7 +526,26 @@ export function AdminFosterWorkspace({
                     borderColor: profile.id === selectedPublicProfile?.id ? "rgba(0,138,151,0.32)" : "rgba(24,24,27,0.14)"
                   }}
                 >
-                  <strong>{profile.displayName}</strong>
+                  <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
+                    <div
+                      style={{
+                        alignItems: "center",
+                        background: "rgba(0,138,151,0.12)",
+                        borderRadius: "12px",
+                        color: "#008a97",
+                        display: "flex",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        height: "36px",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        width: "36px"
+                      }}
+                    >
+                      {profile.logoUrl ? <img alt="" src={profile.logoUrl} style={{ height: "100%", objectFit: "cover", width: "100%" }} /> : profile.displayName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <strong>{profile.displayName}</strong>
+                  </div>
                   <span style={{ color: "#52525b" }}>{profile.householdName ?? "Hogar no disponible"}</span>
                   <span style={{ color: "#71717a" }}>{profile.city}, {profile.countryCode}</span>
                 </button>
@@ -559,6 +578,31 @@ export function AdminFosterWorkspace({
                   </span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "10px" }}>
+                  <div style={inputStyle}>
+                    <strong>Logo publico</strong>
+                    <div
+                      style={{
+                        alignItems: "center",
+                        background: "rgba(0,138,151,0.1)",
+                        borderRadius: "18px",
+                        color: "#008a97",
+                        display: "flex",
+                        fontSize: "22px",
+                        fontWeight: 900,
+                        height: "92px",
+                        justifyContent: "center",
+                        marginTop: "8px",
+                        overflow: "hidden",
+                        width: "92px"
+                      }}
+                    >
+                      {selectedPublicProfile.logoUrl ? (
+                        <img alt="" src={selectedPublicProfile.logoUrl} style={{ height: "100%", objectFit: "cover", width: "100%" }} />
+                      ) : (
+                        selectedPublicProfile.displayName.slice(0, 2).toUpperCase()
+                      )}
+                    </div>
+                  </div>
                   <div style={inputStyle}>
                     <strong>Ubicacion publica</strong>
                     <p style={{ margin: "6px 0 0", color: "#52525b" }}>

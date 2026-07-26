@@ -259,6 +259,7 @@ Contratos QR propuestos:
 - `POST /marketplace/adoptions/{listingId}/applications`
 - `GET /foster/protective-public-profiles/{slug}` (Foster-5A aplicado remoto via RPC `get_public_protective_profile_by_slug`)
 - `PATCH /foster/protective-public-profile` (Foster-5A aplicado remoto via RPC `upsert_protective_public_profile`)
+- `POST /foster/protective-public-profile/logo` (Foster logo via bucket `protective-household-logos` + RPC `set_protective_public_profile_logo`; deja el perfil en borrador para moderacion)
 - `POST /foster/protective-public-profile/submit-review` (Foster-5A aplicado remoto via RPC `submit_protective_public_profile`)
 - `POST /admin/foster/protective-public-profile/review` (Foster-5A aplicado remoto via RPC `review_protective_public_profile`)
 - `GET /foster/adoptions/{slug}` (Foster-5B aplicado remoto via RPC `get_public_pet_adoption_listing_by_slug`)

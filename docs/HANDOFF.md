@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-07-26 - Foster logo de perfil publico
+
+- Foster suma logo controlado para el perfil publico moderado de Familia Protectora.
+- Nueva migracion local `20260726110000_foster_protective_public_profile_logo.sql` agrega `logo_storage_bucket` / `logo_storage_path` en `protective_household_public_profiles`, bucket privado `protective-household-logos`, policies de Storage y RPC `set_protective_public_profile_logo`.
+- Web `/foster` permite subir/cambiar logo desde `Perfil publico`; admin puede verlo durante la revision de perfiles publicos.
+- Mobile `Cuenta > Familia protectora > Perfil publico` muestra preview y permite agregar/cambiar logo usando la galeria.
+- Cambiar el logo deja el perfil como borrador para moderacion; debe enviarse nuevamente a revision antes de quedar publico.
+- No se tocaron Payments, booking, QR, evidencia operacional, provider services ni geolocalizacion.
+
 # Handoff 2026-07-25 - UX registro y cuenta progresiva
 
 - Owner/protective/provider mobile `Crear cuenta` ya no preselecciona una intencion por defecto; el usuario debe elegir explicitamente entre propietario, proveedor o familia protectora antes de crear cuenta.

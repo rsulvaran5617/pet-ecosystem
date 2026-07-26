@@ -115,6 +115,19 @@ function normalizeAdoptionPhotoFile(file: File) {
   };
 }
 
+function normalizeProtectiveLogoFile(file: File) {
+  const normalized = normalizeAdoptionPhotoFile(file);
+
+  if (normalized.error) {
+    return {
+      error: "Formato no compatible. Sube el logo en JPG, JPEG, PNG o WebP.",
+      mimeType: null
+    };
+  }
+
+  return normalized;
+}
+
 export function useFosterConsoleWorkspace() {
   const mountedRef = useRef(true);
   const [authState, setAuthState] = useState<AuthState>("checking");
@@ -426,6 +439,57 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function uploadPublicProfileLogo(profile: ProtectivePublicProfile, file: File) {
+    if (!selectedHousehold) {
+      setErrorMessage("Selecciona una Familia Protectora antes de subir el logo.");
+      return null;
+    }
+
+    if (selectedContext?.profile?.status !== "approved") {
+      setErrorMessage("Primero espera la aprobacion de tu Familia Protectora.");
+      return null;
+    }
+
+    const normalizedFile = normalizeProtectiveLogoFile(file);
+
+    if (normalizedFile.error || !normalizedFile.mimeType) {
+      setErrorMessage(normalizedFile.error ?? "El logo no tiene un formato compatible.");
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const savedProfile = await getBrowserFosterApiClient().uploadProtectivePublicProfileLogo({
+        fileBody: file,
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        householdId: selectedHousehold.id,
+        mimeType: normalizedFile.mimeType,
+        profileId: profile.id
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Logo guardado como borrador. Envia el perfil a revision para publicarlo nuevamente.");
+      }
+
+      return savedProfile;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible subir el logo de la Familia Protectora."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   async function createFosterPet(input: Omit<CreatePetInput, "householdId">) {
     if (!selectedHousehold) {
       setErrorMessage("Selecciona una Familia Protectora antes de registrar una mascota.");
@@ -697,6 +761,7 @@ export function useFosterConsoleWorkspace() {
     startTransfer,
     submitAdoptionListing,
     submitPublicProfile,
+    uploadPublicProfileLogo,
     removeAdoptionListingPhoto,
     setAdoptionListingCover,
     transfers: selectedContext?.transfers ?? [],

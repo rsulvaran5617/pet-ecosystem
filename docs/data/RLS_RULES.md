@@ -88,6 +88,7 @@ Reglas esperadas:
 - Foster-1A actualizacion familia: solo sobre `draft` o `rejected`; no puede escribir campos de revision.
 - Foster-1A submit: `submit_protective_household_profile` valida campos minimos y pasa a `pending_review`.
 - Foster-1A revision admin: `review_protective_household_profile` aprueba, rechaza o suspende y registra `reviewed_by_user_id`, `reviewed_at` y `review_notes`.
+- Logo de perfil publico Foster: bucket privado `protective-household-logos`; los admins de la familia protectora pueden cargar/gestionar archivos bajo `household_id/*`; la lectura publica solo procede cuando `protective_household_public_profiles` esta `approved` + `is_public` y referencia ese archivo.
 - Foster-1A no permite borrado cliente; usar suspension/rechazo.
 - familia protectora aprobada puede gestionar mascotas bajo su custodia solo si el household asociado es tipo `protective`.
 - si un household tiene perfil protector aprobado pero `household_type = owner`, las mutaciones Foster deben fallar con mensaje de familia protectora requerida hasta que exista backfill o seleccion de hogar protector.

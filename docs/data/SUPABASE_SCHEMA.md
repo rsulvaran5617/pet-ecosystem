@@ -79,6 +79,7 @@ Tablas y cambios locales:
   - perfil publico moderado de la familia protectora.
   - separado de `protective_household_profiles`, que conserva revision interna/admin.
   - debe usar `public_slug`, ciudad/pais, historia/mision, necesidades y politica de contacto controlada.
+  - puede usar logo controlado con `logo_storage_bucket` / `logo_storage_path` en bucket privado `protective-household-logos`; cambiarlo requiere nueva moderacion.
 - `pet_adoption_applications`
   - solicitud formal de adopcion para una publicacion aprobada.
   - no cambia custodia ni mueve `pets.household_id`.
