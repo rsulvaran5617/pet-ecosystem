@@ -16,7 +16,7 @@ Nota operativa 2026-07-07: se aplican hotfixes remotos `20260707173000_foster_ad
 
 Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. Las Familias Protectoras aprobadas pueden publicar y actualizar la ficha publica de una mascota bajo su propia responsabilidad, sin revision admin previa por cada ficha. La plataforma conserva moderacion posterior, pausa/rechazo y auditoria. La ficha debe mostrar claramente historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion antes de recibir solicitudes.
 
-Nota operativa 2026-07-26: se prepara redes sociales publicas para el perfil de Familia Protectora. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
+Nota operativa 2026-07-26: redes sociales publicas para el perfil de Familia Protectora quedan aplicadas remoto. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
 
 Nota operativa 2026-07-26: Web Foster `Publicaciones` agrega historia read-only para adopciones cerradas. La Familia Protectora puede abrir `Ver historia` en publicaciones `adopted`/cerradas para revisar familia adoptante, solicitud vinculada, transferencia privada y eventos clave del cierre en formato acordeon. Esta vista no crea nuevas reglas, no mueve custodia y reutiliza publicaciones, solicitudes y transferencias existentes.
 
