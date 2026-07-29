@@ -48,6 +48,7 @@ export interface CoreApiClient {
   updateProfile(input: UpdateProfileInput): Promise<UserProfile>;
   updatePreferences(input: UpdatePreferencesInput): Promise<UserPreferences>;
   switchRole(input: SwitchRoleInput): Promise<UserRoleAssignment[]>;
+  requestAccountDeletion(): Promise<UserProfile>;
   upsertAddress(input: UpsertAddressInput): Promise<UserAddress[]>;
   addPaymentMethod(input: AddPaymentMethodInput): Promise<UserPaymentMethod[]>;
   setDefaultPaymentMethod(paymentMethodId: Uuid): Promise<UserPaymentMethod[]>;
@@ -167,6 +168,9 @@ function mapProfile(row: ProfileRow): UserProfile {
     phone: row.phone,
     avatarUrl: row.avatar_url,
     locale: row.locale,
+    accountStatus: row.account_status,
+    deletionRequestedAt: row.deletion_requested_at,
+    deletedAt: row.deleted_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -642,6 +646,17 @@ export function createCoreApiClient(supabase: CoreSupabaseClient): CoreApiClient
       }
 
       return data.map(mapRole);
+    },
+    async requestAccountDeletion() {
+      await requireCurrentUser(supabase);
+
+      const { data, error } = await supabase.rpc("request_account_deletion", {});
+
+      if (error) {
+        fail(error, "Unable to request account deletion.");
+      }
+
+      return mapProfile(data);
     },
     async upsertAddress(input) {
       const user = await requireCurrentUser(supabase);

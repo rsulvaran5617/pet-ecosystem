@@ -14,6 +14,7 @@ Definir las reglas canonicas de acceso por fila para el baseline MVP en Supabase
 
 ### profiles
 Un usuario solo ve y modifica su propio perfil.
+La solicitud de eliminacion de cuenta ocurre por RPC `request_account_deletion()` y no por update directo de cliente. La RPC marca `profiles.account_status = deletion_requested`, anonimiza datos personales, bloquea acceso futuro en `auth.users`, desactiva roles/metodos guardados y registra auditoria. No elimina reservas, chats, soporte, resenas ni auditoria para evitar perdida de historial operacional.
 
 ### user_roles
 Un usuario solo ve y modifica sus propios roles.

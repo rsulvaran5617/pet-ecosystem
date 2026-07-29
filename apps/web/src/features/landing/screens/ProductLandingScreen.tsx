@@ -1032,6 +1032,7 @@ export function ProductLandingScreen() {
             <h4>Contacto</h4>
             <span>hola@pet-ecosystem.com</span>
             <span>Panama</span>
+            <a href="/account-deletion">Eliminar cuenta</a>
           </div>
         </footer>
       </div>

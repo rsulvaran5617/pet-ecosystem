@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-07-28 - Google Play readiness STORE-DEL-2
+
+- Web publica agrega `/account-deletion` para cumplir el requisito de Google Play de URL externa de eliminacion de cuenta. La pagina explica solicitud desde mobile (`Cuenta > Eliminar cuenta`), solicitud manual por correo, datos anonimizados y datos transaccionales retenidos por operacion/soporte/auditoria.
+- Landing publica enlaza `Eliminar cuenta` desde el footer.
+- STORE-DEL-1 ya fue aplicado remoto en Supabase con la migracion `20260727120000_core_account_deletion_request.sql`; `supabase db push --dry-run --linked --yes` confirmo `Remote database is up to date`.
+- Documentacion nueva: `docs/deployment/GOOGLE_PLAY_READINESS.md`; `docs/deployment/STORE_READINESS.md` queda actualizado con STORE-DEL-1 aplicado y STORE-DEL-2 pendiente de desplegar en `https://petecosyst.com/account-deletion`.
+- No se tocaron Supabase, migraciones, pagos, booking, RLS ni reglas de negocio en STORE-DEL-2.
+- Pendientes Play Store: desplegar web, definir politica de privacidad publica, completar Data Safety, generar AAB production con EAS, configurar Play App Signing/closed testing y planificar upgrade `targetSdkVersion` hacia API 36 antes de produccion publica.
+
 # Handoff 2026-07-26 - Foster historia de adopcion cerrada web
 
 - Web `/foster > Publicaciones` agrega `Ver historia` para publicaciones con adopcion cerrada/adoptada.

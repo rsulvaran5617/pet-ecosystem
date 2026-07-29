@@ -12,7 +12,6 @@ import type {
   PetAdoptionApplication,
   PetAdoptionClosureDetail,
   PetAdoptionApplicationStatus,
-  PetAdoptionApplicationStatusHistory,
   PetAdoptionListingInput,
   PetAdoptionListing,
   PetAdoptionListingMedia,

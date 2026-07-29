@@ -9,6 +9,7 @@ Cerrar una primera version funcional del ecosistema pet que permita operar el fl
 ### Para duenios
 
 - registro, login, verificacion y recovery
+- solicitud de eliminacion de cuenta desde mobile para Store Readiness, con desactivacion/anonimizacion y retencion de historial transaccional
 - perfil, preferencias, direcciones y metodos guardados
 - households y permisos basicos
 - pets, documentos y salud base

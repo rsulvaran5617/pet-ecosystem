@@ -63,6 +63,9 @@ Notas Role-Foster-A:
 - `GET /me/payment-methods`
 - `POST /me/payment-methods`
 - `PATCH /me/payment-methods/{paymentMethodId}/default`
+- `POST /me/account-deletion-requests` -> RPC `request_account_deletion()`
+
+`POST /me/account-deletion-requests` es el flujo mobile de Store Readiness para eliminacion de cuenta. No borra fisicamente `auth.users` ni datos transaccionales en el primer slice; anonimiza el perfil personal, desactiva roles/metodos guardados, bloquea acceso futuro y conserva reservas, chats, soporte, resenas y auditoria por razones operativas y de trazabilidad.
 
 `POST /me/roles/switch` acepta `pet_owner`, `provider` y `protective_family` para usuarios autenticados; `admin` debe permanecer provisionado administrativamente.
 

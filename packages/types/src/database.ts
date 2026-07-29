@@ -1,5 +1,6 @@
 import type {
   AddressLabel,
+  AccountStatus,
   CoreRole,
   PaymentMethodBrand,
   PaymentMethodStatus,
@@ -62,6 +63,9 @@ export interface Database {
           marketing_opt_in: boolean;
           reminder_email_opt_in: boolean;
           reminder_push_opt_in: boolean;
+          account_status: AccountStatus;
+          deletion_requested_at: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -76,6 +80,9 @@ export interface Database {
           marketing_opt_in?: boolean;
           reminder_email_opt_in?: boolean;
           reminder_push_opt_in?: boolean;
+          account_status?: AccountStatus;
+          deletion_requested_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -90,6 +97,9 @@ export interface Database {
           marketing_opt_in?: boolean;
           reminder_email_opt_in?: boolean;
           reminder_push_opt_in?: boolean;
+          account_status?: AccountStatus;
+          deletion_requested_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -2164,6 +2174,10 @@ export interface Database {
           next_role: CoreRole;
         };
         Returns: Array<Database["public"]["Tables"]["user_roles"]["Row"]>;
+      };
+      request_account_deletion: {
+        Args: Record<string, never>;
+        Returns: Database["public"]["Tables"]["profiles"]["Row"];
       };
       is_platform_admin: {
         Args: {

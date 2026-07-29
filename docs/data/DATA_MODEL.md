@@ -188,6 +188,8 @@ Foster-5 diseno propuesto:
 ## Reglas estructurales
 - `auth.users` es la fuente de identidad autenticada y sincroniza el perfil base en `profiles`
 - `profiles` concentra perfil base y preferencias
+- `profiles.account_status` controla el ciclo de vida Store Readiness de la cuenta. `active` permite operacion normal; `deletion_requested` indica que el usuario solicito eliminacion desde mobile, sus datos personales fueron anonimizados y su acceso futuro queda bloqueado sin borrar historial transaccional.
+- `profiles.deletion_requested_at` y `profiles.deleted_at` guardan trazabilidad de la solicitud de eliminacion/anonimizacion. Reservas, chats, soporte, resenas, auditoria y operaciones asociadas se conservan por continuidad operativa, soporte y cumplimiento.
 - `user_roles` resuelve el cambio de rol basico del MVP; valores vigentes: `pet_owner`, `provider`, `protective_family`, `admin`
 - `protective_family` separa la experiencia de familias protectoras desde la cuenta; los permisos Foster reales dependen de un household `protective` aprobado
 - `admin` existe como rol global y requiere provision explicita

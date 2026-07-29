@@ -93,7 +93,7 @@ type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type FosterSectionId = "inicio" | "acogida" | "publicaciones" | "solicitudes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";
 type AccountPanelId = "access" | "addresses" | "payments" | "preferences" | "profile" | "roles";
-type AccountAccordionPanelId = AccountPanelId | "households" | "tasks";
+type AccountAccordionPanelId = AccountPanelId | "deletion" | "households" | "tasks";
 type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
@@ -1589,6 +1589,7 @@ export function CoreHomeScreen() {
   const [expandedAccountPanels, setExpandedAccountPanels] = useState<Record<AccountAccordionPanelId, boolean>>({
     access: false,
     addresses: false,
+    deletion: false,
     households: false,
     payments: false,
     preferences: false,
@@ -1601,6 +1602,7 @@ export function CoreHomeScreen() {
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
   const [isAddressFormVisible, setIsAddressFormVisible] = useState(false);
   const [paymentForm, setPaymentForm] = useState(emptyPaymentForm);
+  const [accountDeletionConfirmation, setAccountDeletionConfirmation] = useState("");
   const [marketplaceSelection, setMarketplaceSelection] = useState<MarketplaceServiceSelection | null>(null);
   const [chatFocusVersion, setChatFocusVersion] = useState(0);
   const [focusedReviewBookingId, setFocusedReviewBookingId] = useState<Uuid | null>(null);
@@ -1781,7 +1783,7 @@ export function CoreHomeScreen() {
       [panel]: !currentPanels[panel]
     }));
 
-    if (panel !== "households" && panel !== "tasks") {
+    if (panel !== "deletion" && panel !== "households" && panel !== "tasks") {
       setActiveAccountPanel(panel);
     }
   };
@@ -1793,7 +1795,7 @@ export function CoreHomeScreen() {
       [panel]: true
     }));
 
-    if (panel === "households" || panel === "tasks") {
+    if (panel === "deletion" || panel === "households" || panel === "tasks") {
       return;
     }
 
@@ -2957,6 +2959,72 @@ export function CoreHomeScreen() {
                 </View>
               </AccountAccordionSection>
             ) : null}
+
+            <AccountAccordionSection
+              badgeLabel="Store readiness"
+              isExpanded={expandedAccountPanels.deletion}
+              onToggle={() => toggleAccountPanel("deletion")}
+              title="Eliminar cuenta"
+              description="Solicitud irreversible para desactivar acceso y anonimizar datos personales."
+            >
+              <View style={{ gap: 10 }}>
+                <View
+                  style={{
+                    backgroundColor: "rgba(254,243,199,0.58)",
+                    borderColor: "rgba(217,119,6,0.24)",
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    padding: 11,
+                    gap: 6
+                  }}
+                >
+                  <Text style={{ color: "#92400e", fontSize: 11, fontWeight: "900", letterSpacing: 0.6, textTransform: "uppercase" }}>
+                    Accion irreversible
+                  </Text>
+                  <Text style={{ color: "#44403c", fontSize: 10, lineHeight: 15 }}>
+                    Al confirmar, tu perfil personal, preferencias, direcciones y metodos guardados se anonimizaran o desactivaran. Reservas,
+                    mensajes, soporte, reseÃ±as y auditoria se conservan como historial operacional de la plataforma.
+                  </Text>
+                </View>
+                <Field
+                  label='Escribe "ELIMINAR" para confirmar'
+                  onChange={setAccountDeletionConfirmation}
+                  value={accountDeletionConfirmation}
+                />
+                <Button
+                  disabled={isSubmitting || accountDeletionConfirmation.trim().toUpperCase() !== "ELIMINAR"}
+                  label="Solicitar eliminacion de cuenta"
+                  onPress={() => {
+                    Alert.alert(
+                      "Eliminar cuenta",
+                      "Esta accion desactiva tu acceso y anonimiza tus datos personales. El historial transaccional se conserva por soporte, auditoria y operacion. No podras deshacerlo desde la app.",
+                      [
+                        { text: "Cancelar", style: "cancel" },
+                        {
+                          text: "Eliminar cuenta",
+                          style: "destructive",
+                          onPress: () => {
+                            clearMessages();
+                            void runAction(
+                              async () => {
+                                await getMobileCoreApiClient().requestAccountDeletion();
+                                await getMobileCoreApiClient().logout();
+                              },
+                              "Cuenta desactivada. Tus datos personales fueron anonimizados.",
+                              false
+                            ).then(() => {
+                              setAccountDeletionConfirmation("");
+                              setAuthAccessPanel("login");
+                            });
+                          }
+                        }
+                      ]
+                    );
+                  }}
+                  tone="secondary"
+                />
+              </View>
+            </AccountAccordionSection>
           </>
         ) : null}
 

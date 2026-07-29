@@ -7,6 +7,7 @@ export type AddressLabel = "home" | "work" | "other";
 export type PaymentMethodType = "card";
 export type PaymentMethodBrand = "visa" | "mastercard" | "amex";
 export type PaymentMethodStatus = "active" | "disabled";
+export type AccountStatus = "active" | "deletion_requested";
 export type OnboardingTaskId =
   | "create_account"
   | "verify_contact"
@@ -25,6 +26,9 @@ export interface UserProfile extends TimestampedEntity {
   phone?: string | null;
   avatarUrl?: string | null;
   locale: string;
+  accountStatus: AccountStatus;
+  deletionRequestedAt?: IsoDateString | null;
+  deletedAt?: IsoDateString | null;
 }
 
 export interface UserPreferences {
