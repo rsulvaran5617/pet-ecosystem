@@ -3137,6 +3137,13 @@ export function CoreHomeScreen() {
               activePanel={activePetHubPanel}
               contextPetId={activeOwnerPetContextId}
               enabled
+              fosterFlowScope={
+                activeFosterSection === "acogida"
+                  ? "care"
+                  : activeFosterSection === "publicaciones"
+                    ? "publications"
+                    : "applications"
+              }
               ownerReminders={[]}
               onContextChange={(context) => {
                 setActiveOwnerPetFromSelection(context);

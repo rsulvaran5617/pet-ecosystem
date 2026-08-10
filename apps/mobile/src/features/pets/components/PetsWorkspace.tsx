@@ -159,6 +159,7 @@ const emptyAdoptionListingForm: AdoptionListingFormState = {
 
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
 type PetWorkspaceView = "lista" | "crear" | "editar" | "detalle";
+type FosterFlowScope = "all" | "care" | "publications" | "applications";
 type PetsWorkspacePresentation = "standard" | "firstPetOnboarding";
 type AdoptionListingStep = "pet" | "story" | "health" | "photos" | "review";
 
@@ -900,6 +901,7 @@ export function PetsWorkspace({
   activePanel = "detalle",
   contextPetId,
   enabled,
+  fosterFlowScope = "all",
   presentation = "standard",
   ownerReminders = [],
   onContextChange,
@@ -910,6 +912,7 @@ export function PetsWorkspace({
   activePanel?: PetHubPanel;
   contextPetId?: Uuid | null;
   enabled: boolean;
+  fosterFlowScope?: FosterFlowScope;
   presentation?: PetsWorkspacePresentation;
   ownerReminders?: Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">[];
   onContextChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
@@ -964,6 +967,8 @@ export function PetsWorkspace({
   const lastReportedContextRef = useRef<{ householdId: Uuid | null; petId: Uuid | null }>({ householdId: null, petId: null });
   const manualContextChangeRef = useRef(false);
   const isFirstPetOnboarding = presentation === "firstPetOnboarding";
+  const showFosterApplicationsFlow = fosterFlowScope === "all" || fosterFlowScope === "applications";
+  const showFosterPublicationFlow = fosterFlowScope === "all" || fosterFlowScope === "publications";
 
   const selectedHousehold = householdSnapshot?.households.find((household) => household.id === selectedHouseholdId) ?? null;
   const canEditSelectedHousehold =
@@ -1851,7 +1856,7 @@ export function PetsWorkspace({
           <Text style={{ color: colorTokens.muted }}>Primero crea un hogar para empezar a registrar mascotas.</Text>
         ) : null}
 
-        {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+        {isApprovedProtectiveHousehold && canManageSelectedHousehold && showFosterPublicationFlow ? (
           <Pressable
             accessibilityLabel="Gestionar mis publicaciones de adopcion"
             accessibilityRole="button"
@@ -2489,7 +2494,7 @@ export function PetsWorkspace({
                   {isProtectiveProfileLoading ? (
                     <Text style={{ color: colorTokens.muted, fontSize: 11 }}>Validando permisos de familia protectora...</Text>
                   ) : null}
-                  {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+                  {isApprovedProtectiveHousehold && canManageSelectedHousehold && showFosterApplicationsFlow ? (
                     <AdoptionApplicationsInbox
                       applications={receivedAdoptionApplications}
                       disabled={isSubmitting}
@@ -2514,7 +2519,7 @@ export function PetsWorkspace({
                       transfers={outgoingTransfers}
                     />
                   ) : null}
-                  {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+                  {isApprovedProtectiveHousehold && canManageSelectedHousehold && showFosterApplicationsFlow ? (
                     <View
                       style={{
                         borderColor: "rgba(15,118,110,0.18)",
@@ -2621,7 +2626,7 @@ export function PetsWorkspace({
                       ) : null}
                     </View>
                   ) : null}
-                  {isApprovedProtectiveHousehold && canManageSelectedHousehold ? (
+                  {isApprovedProtectiveHousehold && canManageSelectedHousehold && showFosterPublicationFlow ? (
                     <View
                       style={{
                         borderColor: "rgba(20,184,166,0.18)",

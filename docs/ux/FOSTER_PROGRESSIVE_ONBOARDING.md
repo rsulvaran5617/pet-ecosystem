@@ -258,6 +258,14 @@ Recomendacion para slices futuros:
 - Solicitudes: bandeja/pipeline.
 - Cuenta: familia, perfil publico, invitaciones.
 
+Actualizacion UX mobile 2026-08-10:
+
+- El shell Foster separa el alcance visual por opcion de navegacion.
+- `Acogida` debe mostrar solo expediente y cuidado de mascotas bajo custodia temporal: detalle, salud, documentos y recordatorios.
+- `Publicaciones` concentra la vitrina de adopcion: historia, fotos, revision y visibilidad.
+- `Solicitudes` concentra familias interesadas, cambios de estado y transferencia privada.
+- No mezclar solicitudes, transferencia ni publicacion dentro de `Acogida`, porque confunde el orden mental del usuario protector.
+
 Si no se agrega nuevo bottom nav en el primer slice, usar un panel superior progresivo dentro de Inicio/Cuenta que lleve al flujo correcto.
 
 Reglas:
