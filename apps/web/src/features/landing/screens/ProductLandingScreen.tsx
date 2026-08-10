@@ -40,7 +40,15 @@ const secondaryLinkStyle = {
   textDecoration: "none"
 };
 
-const navItems = ["Inicio", "Para dueños", "Para proveedores", "Clinica/servicios", "Piloto", "Contacto"];
+const navItems = [
+  { href: "/", label: "Inicio" },
+  { href: "#para-duenos", label: "Para dueños" },
+  { href: "#para-proveedores", label: "Para proveedores" },
+  { href: "#para-proveedores", label: "Clinica/servicios" },
+  { href: "#para-protectores", label: "Para protectores" },
+  { href: "#piloto", label: "Piloto" },
+  { href: "#contacto", label: "Contacto" }
+];
 
 const serviceChips = [
   { icon: "VC", label: "Veterinaria" },
@@ -83,6 +91,14 @@ const providerItems = [
   "Recibe y aprueba reservas",
   "Check-in y check-out con QR",
   "Mide citas cerradas y pendientes"
+];
+
+const protectiveItems = [
+  "Crea una Familia Protectora separada",
+  "Registra mascotas bajo acogida",
+  "Publica fichas de adopcion responsable",
+  "Gestiona solicitudes y seguimiento",
+  "Transfiere custodia con consentimiento"
 ];
 
 function FeatureCheck({ children }: { children: string }) {
@@ -607,7 +623,7 @@ export function ProductLandingScreen() {
 
         .audience-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 18px;
         }
 
@@ -627,6 +643,10 @@ export function ProductLandingScreen() {
 
         .audience-card:nth-child(2) {
           background: #fffaf0;
+        }
+
+        .audience-card:nth-child(3) {
+          background: #f7fbf8;
         }
 
         .audience-card h3 {
@@ -677,6 +697,14 @@ export function ProductLandingScreen() {
           height: 132px;
           border-radius: 80px 80px 24px 24px;
           background: linear-gradient(180deg, #f6d19b, #c98f52);
+        }
+
+        .mini-pet-small {
+          bottom: 54px;
+          right: 96px;
+          width: 72px;
+          height: 92px;
+          opacity: 0.82;
         }
 
         .pilot-cta {
@@ -852,8 +880,8 @@ export function ProductLandingScreen() {
           </a>
           <div className="nav-items">
             {navItems.map((item) => (
-              <a href={item === "Inicio" ? "/" : `#${item.toLowerCase().replace(/\s+/g, "-")}`} key={item}>
-                {item}
+              <a href={item.href} key={item.label}>
+                {item.label}
               </a>
             ))}
           </div>
@@ -878,6 +906,9 @@ export function ProductLandingScreen() {
               </a>
               <a href="/app" style={secondaryLinkStyle}>
                 Soy proveedor de servicios
+              </a>
+              <a href="/foster" style={secondaryLinkStyle}>
+                Soy familia protectora
               </a>
             </div>
             <div className="hero-mini-stats">
@@ -973,6 +1004,32 @@ export function ProductLandingScreen() {
                 <PhoneMock compact />
               </div>
             </article>
+
+            <article className="audience-card" id="para-protectores">
+              <div>
+                <h3>Para familias protectoras</h3>
+                <p>
+                  Organiza mascotas bajo acogida, publica adopciones responsables y da seguimiento a cada solicitud.
+                </p>
+                <ul>
+                  {protectiveItems.map((item) => (
+                    <FeatureCheck key={item}>{item}</FeatureCheck>
+                  ))}
+                </ul>
+                <div className="hero-actions" style={{ marginTop: "16px" }}>
+                  <a href="/foster" style={primaryLinkStyle}>
+                    Abrir consola protectora
+                  </a>
+                  <a href="/app" style={secondaryLinkStyle}>
+                    Crear cuenta
+                  </a>
+                </div>
+              </div>
+              <div className="audience-visual" aria-hidden="true">
+                <span className="mini-pet" />
+                <span className="mini-pet mini-pet-small" />
+              </div>
+            </article>
           </div>
         </section>
 
@@ -991,6 +1048,9 @@ export function ProductLandingScreen() {
                 </a>
                 <a href="/app" style={secondaryLinkStyle}>
                   Quiero registrarme como proveedor
+                </a>
+                <a href="/foster" style={secondaryLinkStyle}>
+                  Quiero participar como familia protectora
                 </a>
               </div>
             </div>
@@ -1014,6 +1074,7 @@ export function ProductLandingScreen() {
             <h4>Producto</h4>
             <a href="#para-duenos">Para dueños</a>
             <a href="#para-proveedores">Para proveedores</a>
+            <a href="#para-protectores">Para protectores</a>
             <a href="/app">Consola</a>
           </div>
           <div>
