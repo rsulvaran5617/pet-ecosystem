@@ -1660,7 +1660,13 @@ function PublicProfilePanel({
   }
 
   const statusLabel = publicProfile ? publicStatusLabel(publicProfile.moderationStatus) : "No configurado";
-  const actionLabel = !publicProfile ? "Crear perfil publico" : publicProfile.moderationStatus === "rejected" ? "Corregir perfil" : "Editar perfil";
+  const actionLabel = !publicProfile
+    ? "Crear perfil publico"
+    : publicProfile.moderationStatus === "approved"
+      ? "Editar y reenviar"
+      : publicProfile.moderationStatus === "rejected"
+        ? "Corregir perfil"
+        : "Editar perfil";
   const canSubmit = Boolean(draftProfileId ?? publicProfile?.id) && publicProfile?.moderationStatus !== "pending_review" && publicProfile?.moderationStatus !== "approved";
 
   return (
@@ -1725,7 +1731,9 @@ function PublicProfilePanel({
             <p style={styles.bodyText}>El logo esta guardado en borrador. Envia el perfil a revision para que admin lo apruebe.</p>
           ) : null}
           {publicProfile?.moderationStatus === "approved" ? (
-            <p style={styles.bodyText}>El perfil esta aprobado. Si editas datos publicos importantes, revisa si corresponde reenviarlo a revision.</p>
+            <p style={styles.bodyText}>
+              El perfil esta aprobado. Si guardas cambios, pasara a borrador y deberas enviarlo nuevamente a revision antes de mostrarlo como publico.
+            </p>
           ) : null}
           {publicProfile?.moderationStatus === "pending_review" ? (
             <p style={styles.bodyText}>El perfil esta pendiente de revision. Admin debe aprobarlo antes de mostrarlo como perfil publico confiable.</p>
