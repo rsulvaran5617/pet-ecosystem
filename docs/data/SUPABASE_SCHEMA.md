@@ -83,6 +83,9 @@ Tablas y cambios locales:
   - debe usar `public_slug`, ciudad/pais, historia/mision, necesidades y politica de contacto controlada.
   - puede usar logo controlado con `logo_storage_bucket` / `logo_storage_path` en bucket privado `protective-household-logos`; cambiarlo requiere nueva moderacion.
   - puede declarar redes sociales publicas opcionales (`website_url`, `instagram_url`, `facebook_url`, `tiktok_url`, `whatsapp_url`) para mostrarlas solo en el detalle de adopcion.
+  - FOSTER-DONATIONS-1 agrega informacion opcional de apoyo declarada por la familia protectora: `donations_enabled`, `donation_title`, `donation_description`, `donation_ach_details`, `donation_yappy_details`, `donation_paypal_details`, `donation_external_url`, `donation_other_details` y `donation_disclaimer`.
+  - `donation_external_url` debe ser `https://` cuando existe.
+  - editar datos de apoyo usa el mismo RPC de perfil publico y vuelve el perfil a `draft`, `is_public = false`, con nueva revision admin requerida.
 - `pet_adoption_applications`
   - solicitud formal de adopcion para una publicacion aprobada.
   - no cambia custodia ni mueve `pets.household_id`.

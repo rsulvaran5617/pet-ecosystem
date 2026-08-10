@@ -189,6 +189,24 @@ function getProtectiveSocialLinks(listing: PetAdoptionListing) {
   ].filter((link): link is { label: string; url: string } => Boolean(link.url?.trim()));
 }
 
+function getProtectiveDonationMethods(listing: PetAdoptionListing) {
+  return [
+    { label: "ACH", value: listing.protectiveDonationAchDetails, url: null },
+    { label: "Yappy", value: listing.protectiveDonationYappyDetails, url: null },
+    { label: "PayPal", value: listing.protectiveDonationPaypalDetails, url: null },
+    { label: "Sitio", value: listing.protectiveDonationExternalUrl, url: listing.protectiveDonationExternalUrl },
+    { label: "Otro", value: listing.protectiveDonationOtherDetails, url: null }
+  ].filter((method): method is { label: string; value: string; url: string | null } => Boolean(method.value?.trim()));
+}
+
+function shouldShowProtectiveDonationBlock(listing: PetAdoptionListing) {
+  if (!listing.protectiveDonationsEnabled) {
+    return false;
+  }
+
+  return Boolean(listing.protectiveDonationDescription?.trim() || getProtectiveDonationMethods(listing).length);
+}
+
 async function openProtectiveSocialLink(url: string) {
   if (!/^https:\/\//i.test(url)) {
     return;
@@ -692,6 +710,7 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
             const canOpenPetInvitations = currentTransfer?.status === "pending" && Boolean(onOpenPetInvitations);
             const protectiveHouseholdName = getProtectiveHouseholdDisplayName(selectedAdoptionListing);
             const protectiveSocialLinks = getProtectiveSocialLinks(selectedAdoptionListing);
+            const protectiveDonationMethods = getProtectiveDonationMethods(selectedAdoptionListing);
 
             return (
               <>
@@ -770,6 +789,60 @@ export function AdoptionDiscoveryWorkspace({ enabled, onBackHome, onOpenPetInvit
                   </View>
                 ) : null}
               </View>
+            </View>
+          ) : null}
+
+          {shouldShowProtectiveDonationBlock(selectedAdoptionListing) ? (
+            <View
+              style={{
+                backgroundColor: "rgba(255,247,237,0.82)",
+                borderColor: "rgba(245,158,11,0.22)",
+                borderRadius: 18,
+                borderWidth: 1,
+                gap: 10,
+                padding: 12
+              }}
+            >
+              <View style={{ gap: 4 }}>
+                <Text style={{ color: "#b45309", fontSize: 10, fontWeight: "900", letterSpacing: 0.6 }}>
+                  APOYO OPCIONAL
+                </Text>
+                <Text style={{ color: "#1c1917", fontSize: 13, fontWeight: "900", lineHeight: 17 }}>
+                  {selectedAdoptionListing.protectiveDonationTitle?.trim() || "Apoya a esta Familia Protectora"}
+                </Text>
+                <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                  {selectedAdoptionListing.protectiveDonationDescription ||
+                    "Esta Familia Protectora declaro informacion de apoyo para sostener su labor de cuidado."}
+                </Text>
+              </View>
+              {protectiveDonationMethods.length ? (
+                <View style={{ gap: 8 }}>
+                  {protectiveDonationMethods.map((method) => (
+                    <Pressable
+                      accessibilityRole={method.url ? "link" : "text"}
+                      disabled={!method.url}
+                      key={method.label}
+                      onPress={() => (method.url ? void openProtectiveSocialLink(method.url) : undefined)}
+                      style={{
+                        backgroundColor: "#ffffff",
+                        borderColor: "rgba(15,23,42,0.08)",
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        padding: 10
+                      }}
+                    >
+                      <Text style={{ color: "#1c1917", fontSize: 11, fontWeight: "900" }}>{method.label}</Text>
+                      <Text style={{ color: method.url ? colorTokens.accentDark : colorTokens.muted, fontSize: 10, lineHeight: 15, marginTop: 3 }}>
+                        {method.value}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+              <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 15 }}>
+                {selectedAdoptionListing.protectiveDonationDisclaimer ||
+                  "Donar es opcional, no garantiza aprobacion de adopcion y la informacion fue declarada por la Familia Protectora. Pet Ecosystem no procesa ni valida donaciones."}
+              </Text>
             </View>
           ) : null}
 

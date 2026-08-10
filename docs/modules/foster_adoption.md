@@ -18,6 +18,8 @@ Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. La
 
 Nota operativa 2026-07-26: redes sociales publicas para el perfil de Familia Protectora quedan aplicadas remoto. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
 
+Nota FOSTER-DONATIONS-1 2026-08-10: se agrega alcance implementado localmente para informacion publica opcional de apoyo/donaciones dentro del perfil publico de la Familia Protectora. No implementa pagos, checkout, Stripe, PayPal API ni Yappy API. La informacion es declarada por la organizacion, donar es opcional, no garantiza aprobacion de adopcion y Pet Ecosystem no procesa ni valida aportes. Editar estos datos hereda la misma moderacion del perfil publico: si estaba aprobado, vuelve a `draft`, `is_public = false` y requiere nueva revision admin.
+
 Nota operativa 2026-07-26: Web Foster `Publicaciones` agrega historia read-only para adopciones cerradas. La Familia Protectora puede abrir `Ver historia` en publicaciones `adopted`/cerradas para revisar familia adoptante, solicitud vinculada, transferencia privada y eventos clave del cierre en formato acordeon. Esta vista no crea nuevas reglas, no mueve custodia y reutiliza publicaciones, solicitudes y transferencias existentes.
 
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
@@ -91,6 +93,7 @@ Alcance implementado:
 - La vista `Mascotas que buscan hogar` lista publicaciones `published` ya aprobadas por admin usando `listPublishedPetAdoptionListings`.
 - Cada card muestra foto de portada cuando existe, nombre de mascota, especie/raza, edad estimada, ciudad/pais, esterilizacion, resumen publico y badge `Busca hogar`.
 - El detalle usa `getPetAdoptionListingDetail` y muestra galeria, historia publica, personalidad, salud publica, compatibilidad con ninos/perros/gatos, requisitos y ubicacion publica por ciudad/pais.
+- Si el perfil publico protector aprobado tiene apoyo habilitado, el detalle `Ver perfil` puede mostrar `Apoya a esta Familia Protectora` con ACH, Yappy, PayPal, sitio externo u otro metodo textual declarados por la organizacion.
 - La galeria mobile prioriza ver la mascota completa: la imagen principal evita recortes agresivos y las fotos aprobadas se pueden abrir en un visor modal con navegacion anterior/siguiente.
 - El CTA `Me interesa` es informativo en piloto: no crea solicitud, transferencia, reserva, chat ni notificacion automatica.
 
@@ -101,12 +104,14 @@ Fuera de alcance:
 - marketplace publico anonimo.
 - videos.
 - pagos, bookings, QR, evidencia operacional, provider services y geolocalizacion avanzada.
+- procesamiento de donaciones o validacion fiscal/legal de aportes.
 
 Decision de privacidad:
 
 - solo se muestran campos publicos moderados.
 - no se exponen documentos privados, direcciones exactas ni datos internos de la familia protectora.
 - la familia receptora puede conocer el perfil antes de coordinar una transferencia privada futura.
+- la informacion de donaciones solo aparece en detalle de perfil, nunca en cards/listas, y depende de perfil publico `approved` + `is_public`.
 
 ## Foster-5 - Adopcion responsable operativa
 

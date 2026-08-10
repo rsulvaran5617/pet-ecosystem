@@ -94,6 +94,15 @@ export interface ProtectivePublicProfile extends TimestampedEntity {
   facebookUrl: string | null;
   tiktokUrl: string | null;
   whatsappUrl: string | null;
+  donationsEnabled: boolean;
+  donationTitle: string | null;
+  donationDescription: string | null;
+  donationAchDetails: string | null;
+  donationYappyDetails: string | null;
+  donationPaypalDetails: string | null;
+  donationExternalUrl: string | null;
+  donationOtherDetails: string | null;
+  donationDisclaimer: string | null;
   logoUrl: string | null;
   logoStorageBucket: string | null;
   logoStoragePath: string | null;
@@ -122,6 +131,15 @@ export interface ProtectivePublicProfileInput {
   facebookUrl?: string | null;
   tiktokUrl?: string | null;
   whatsappUrl?: string | null;
+  donationsEnabled?: boolean;
+  donationTitle?: string | null;
+  donationDescription?: string | null;
+  donationAchDetails?: string | null;
+  donationYappyDetails?: string | null;
+  donationPaypalDetails?: string | null;
+  donationExternalUrl?: string | null;
+  donationOtherDetails?: string | null;
+  donationDisclaimer?: string | null;
 }
 
 export interface ProtectivePublicProfileReviewInput {
@@ -248,6 +266,15 @@ export interface PetAdoptionListing {
   protectiveFacebookUrl: string | null;
   protectiveTiktokUrl: string | null;
   protectiveWhatsappUrl: string | null;
+  protectiveDonationsEnabled: boolean;
+  protectiveDonationTitle: string | null;
+  protectiveDonationDescription: string | null;
+  protectiveDonationAchDetails: string | null;
+  protectiveDonationYappyDetails: string | null;
+  protectiveDonationPaypalDetails: string | null;
+  protectiveDonationExternalUrl: string | null;
+  protectiveDonationOtherDetails: string | null;
+  protectiveDonationDisclaimer: string | null;
   media: PetAdoptionListingMedia[];
 }
 
@@ -281,6 +308,15 @@ export interface PublicProtectiveHouseholdSummary {
   facebookUrl: string | null;
   tiktokUrl: string | null;
   whatsappUrl: string | null;
+  donationsEnabled: boolean;
+  donationTitle: string | null;
+  donationDescription: string | null;
+  donationAchDetails: string | null;
+  donationYappyDetails: string | null;
+  donationPaypalDetails: string | null;
+  donationExternalUrl: string | null;
+  donationOtherDetails: string | null;
+  donationDisclaimer: string | null;
 }
 
 export interface PublicPetAdoptionProfile {

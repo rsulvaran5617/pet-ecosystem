@@ -321,6 +321,15 @@ export function HouseholdsWorkspace({
   const [publicContactPolicy, setPublicContactPolicy] = useState<ProtectiveContactPolicy>("platform_only");
   const [publicContactLabel, setPublicContactLabel] = useState("");
   const [publicContactValue, setPublicContactValue] = useState("");
+  const [publicDonationsEnabled, setPublicDonationsEnabled] = useState(false);
+  const [publicDonationTitle, setPublicDonationTitle] = useState("Apoya a esta Familia Protectora");
+  const [publicDonationDescription, setPublicDonationDescription] = useState("");
+  const [publicDonationAchDetails, setPublicDonationAchDetails] = useState("");
+  const [publicDonationYappyDetails, setPublicDonationYappyDetails] = useState("");
+  const [publicDonationPaypalDetails, setPublicDonationPaypalDetails] = useState("");
+  const [publicDonationExternalUrl, setPublicDonationExternalUrl] = useState("");
+  const [publicDonationOtherDetails, setPublicDonationOtherDetails] = useState("");
+  const [publicDonationDisclaimer, setPublicDonationDisclaimer] = useState("");
   const [incomingPetTransfers, setIncomingPetTransfers] = useState<PetTransferRecord[]>([]);
   const [isTransfersLoading, setIsTransfersLoading] = useState(false);
   const [protectiveProfileStep, setProtectiveProfileStep] =
@@ -439,6 +448,15 @@ export function HouseholdsWorkspace({
       setPublicContactPolicy(protectivePublicProfile.contactPolicy);
       setPublicContactLabel(protectivePublicProfile.publicContactLabel ?? "");
       setPublicContactValue(protectivePublicProfile.publicContactValue ?? "");
+      setPublicDonationsEnabled(protectivePublicProfile.donationsEnabled);
+      setPublicDonationTitle(protectivePublicProfile.donationTitle ?? "Apoya a esta Familia Protectora");
+      setPublicDonationDescription(protectivePublicProfile.donationDescription ?? "");
+      setPublicDonationAchDetails(protectivePublicProfile.donationAchDetails ?? "");
+      setPublicDonationYappyDetails(protectivePublicProfile.donationYappyDetails ?? "");
+      setPublicDonationPaypalDetails(protectivePublicProfile.donationPaypalDetails ?? "");
+      setPublicDonationExternalUrl(protectivePublicProfile.donationExternalUrl ?? "");
+      setPublicDonationOtherDetails(protectivePublicProfile.donationOtherDetails ?? "");
+      setPublicDonationDisclaimer(protectivePublicProfile.donationDisclaimer ?? "");
       return;
     }
 
@@ -452,6 +470,15 @@ export function HouseholdsWorkspace({
     setPublicContactPolicy("platform_only");
     setPublicContactLabel("");
     setPublicContactValue("");
+    setPublicDonationsEnabled(false);
+    setPublicDonationTitle("Apoya a esta Familia Protectora");
+    setPublicDonationDescription("");
+    setPublicDonationAchDetails("");
+    setPublicDonationYappyDetails("");
+    setPublicDonationPaypalDetails("");
+    setPublicDonationExternalUrl("");
+    setPublicDonationOtherDetails("");
+    setPublicDonationDisclaimer("");
   }, [protectiveProfile, protectivePublicProfile, selectedHouseholdDetail?.household.name]);
 
   if (!enabled) {
@@ -1461,6 +1488,81 @@ export function HouseholdsWorkspace({
                           />
                         </>
                       ) : null}
+                      <View style={{ borderRadius: 16, backgroundColor: "rgba(255,247,237,0.82)", padding: 12, gap: 10 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ color: "#1c1917", fontSize: 14, fontWeight: "900" }}>
+                              Apoyo opcional
+                            </Text>
+                            <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                              Donar es opcional y no garantiza aprobacion de adopcion. Pet Ecosystem no procesa ni valida donaciones.
+                            </Text>
+                          </View>
+                          <Switch
+                            disabled={isSubmitting}
+                            onValueChange={setPublicDonationsEnabled}
+                            value={publicDonationsEnabled}
+                          />
+                        </View>
+                        {publicDonationsEnabled ? (
+                          <>
+                            <Field
+                              label="Titulo"
+                              onChange={setPublicDonationTitle}
+                              placeholder="Apoya a esta Familia Protectora"
+                              value={publicDonationTitle}
+                            />
+                            <Field
+                              label="Descripcion"
+                              multiline
+                              onChange={setPublicDonationDescription}
+                              placeholder="Explica como ayudan los aportes sin promesas fiscales."
+                              value={publicDonationDescription}
+                            />
+                            <Field
+                              label="ACH / transferencia"
+                              multiline
+                              onChange={setPublicDonationAchDetails}
+                              placeholder="Banco, tipo de cuenta o referencia publica declarada"
+                              value={publicDonationAchDetails}
+                            />
+                            <Field
+                              label="Yappy"
+                              multiline
+                              onChange={setPublicDonationYappyDetails}
+                              placeholder="Alias o instrucciones publicas declaradas"
+                              value={publicDonationYappyDetails}
+                            />
+                            <Field
+                              label="PayPal"
+                              multiline
+                              onChange={setPublicDonationPaypalDetails}
+                              placeholder="Correo o enlace declarado"
+                              value={publicDonationPaypalDetails}
+                            />
+                            <Field
+                              label="Sitio externo"
+                              onChange={setPublicDonationExternalUrl}
+                              placeholder="https://..."
+                              value={publicDonationExternalUrl}
+                            />
+                            <Field
+                              label="Otro metodo"
+                              multiline
+                              onChange={setPublicDonationOtherDetails}
+                              placeholder="Instrucciones adicionales"
+                              value={publicDonationOtherDetails}
+                            />
+                            <Field
+                              label="Aclaratoria"
+                              multiline
+                              onChange={setPublicDonationDisclaimer}
+                              placeholder="Informacion declarada por la organizacion."
+                              value={publicDonationDisclaimer}
+                            />
+                          </>
+                        ) : null}
+                      </View>
                       <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                         <Button
                           disabled={isSubmitting || !protectivePublicProfileIsSubmittable}
@@ -1484,7 +1586,16 @@ export function HouseholdsWorkspace({
                                   contactPolicy: publicContactPolicy,
                                   publicContactLabel: publicContactLabel.trim() || null,
                                   publicContactValue: publicContactValue.trim() || null,
-                                  needsSummary: publicNeedsSummary.trim() || null
+                                  needsSummary: publicNeedsSummary.trim() || null,
+                                  donationsEnabled: publicDonationsEnabled,
+                                  donationTitle: publicDonationTitle.trim() || null,
+                                  donationDescription: publicDonationDescription.trim() || null,
+                                  donationAchDetails: publicDonationAchDetails.trim() || null,
+                                  donationYappyDetails: publicDonationYappyDetails.trim() || null,
+                                  donationPaypalDetails: publicDonationPaypalDetails.trim() || null,
+                                  donationExternalUrl: publicDonationExternalUrl.trim() || null,
+                                  donationOtherDetails: publicDonationOtherDetails.trim() || null,
+                                  donationDisclaimer: publicDonationDisclaimer.trim() || null
                                 }),
                               "Perfil publico guardado como borrador.",
                               false
@@ -1516,7 +1627,16 @@ export function HouseholdsWorkspace({
                                   contactPolicy: publicContactPolicy,
                                   publicContactLabel: publicContactLabel.trim() || null,
                                   publicContactValue: publicContactValue.trim() || null,
-                                  needsSummary: publicNeedsSummary.trim() || null
+                                  needsSummary: publicNeedsSummary.trim() || null,
+                                  donationsEnabled: publicDonationsEnabled,
+                                  donationTitle: publicDonationTitle.trim() || null,
+                                  donationDescription: publicDonationDescription.trim() || null,
+                                  donationAchDetails: publicDonationAchDetails.trim() || null,
+                                  donationYappyDetails: publicDonationYappyDetails.trim() || null,
+                                  donationPaypalDetails: publicDonationPaypalDetails.trim() || null,
+                                  donationExternalUrl: publicDonationExternalUrl.trim() || null,
+                                  donationOtherDetails: publicDonationOtherDetails.trim() || null,
+                                  donationDisclaimer: publicDonationDisclaimer.trim() || null
                                 });
                                 return getMobileFosterApiClient().submitProtectivePublicProfile(savedProfile.id);
                               },

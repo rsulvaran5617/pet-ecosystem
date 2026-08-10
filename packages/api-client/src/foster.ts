@@ -274,6 +274,15 @@ async function mapProtectivePublicProfile(
     facebookUrl: row.facebook_url,
     tiktokUrl: row.tiktok_url,
     whatsappUrl: row.whatsapp_url,
+    donationsEnabled: row.donations_enabled ?? false,
+    donationTitle: row.donation_title,
+    donationDescription: row.donation_description,
+    donationAchDetails: row.donation_ach_details,
+    donationYappyDetails: row.donation_yappy_details,
+    donationPaypalDetails: row.donation_paypal_details,
+    donationExternalUrl: row.donation_external_url,
+    donationOtherDetails: row.donation_other_details,
+    donationDisclaimer: row.donation_disclaimer,
     logoUrl: await getProtectivePublicProfileLogoSignedUrl(supabase, row),
     logoStorageBucket: row.logo_storage_bucket,
     logoStoragePath: row.logo_storage_path,
@@ -467,6 +476,15 @@ function mapPetAdoptionListing(
     protectiveFacebookUrl: "protective_facebook_url" in row ? row.protective_facebook_url : null,
     protectiveTiktokUrl: "protective_tiktok_url" in row ? row.protective_tiktok_url : null,
     protectiveWhatsappUrl: "protective_whatsapp_url" in row ? row.protective_whatsapp_url : null,
+    protectiveDonationsEnabled: "protective_donations_enabled" in row ? row.protective_donations_enabled : false,
+    protectiveDonationTitle: "protective_donation_title" in row ? row.protective_donation_title : null,
+    protectiveDonationDescription: "protective_donation_description" in row ? row.protective_donation_description : null,
+    protectiveDonationAchDetails: "protective_donation_ach_details" in row ? row.protective_donation_ach_details : null,
+    protectiveDonationYappyDetails: "protective_donation_yappy_details" in row ? row.protective_donation_yappy_details : null,
+    protectiveDonationPaypalDetails: "protective_donation_paypal_details" in row ? row.protective_donation_paypal_details : null,
+    protectiveDonationExternalUrl: "protective_donation_external_url" in row ? row.protective_donation_external_url : null,
+    protectiveDonationOtherDetails: "protective_donation_other_details" in row ? row.protective_donation_other_details : null,
+    protectiveDonationDisclaimer: "protective_donation_disclaimer" in row ? row.protective_donation_disclaimer : null,
     media
   };
 }
@@ -657,7 +675,16 @@ async function mapPublicPetAdoptionProfile(
       instagramUrl: row.protective_instagram_url,
       facebookUrl: row.protective_facebook_url,
       tiktokUrl: row.protective_tiktok_url,
-      whatsappUrl: row.protective_whatsapp_url
+      whatsappUrl: row.protective_whatsapp_url,
+      donationsEnabled: row.protective_donations_enabled,
+      donationTitle: row.protective_donation_title,
+      donationDescription: row.protective_donation_description,
+      donationAchDetails: row.protective_donation_ach_details,
+      donationYappyDetails: row.protective_donation_yappy_details,
+      donationPaypalDetails: row.protective_donation_paypal_details,
+      donationExternalUrl: row.protective_donation_external_url,
+      donationOtherDetails: row.protective_donation_other_details,
+      donationDisclaimer: row.protective_donation_disclaimer
     }
   };
 }
@@ -846,7 +873,16 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         next_instagram_url: input.instagramUrl ?? null,
         next_facebook_url: input.facebookUrl ?? null,
         next_tiktok_url: input.tiktokUrl ?? null,
-        next_whatsapp_url: input.whatsappUrl ?? null
+        next_whatsapp_url: input.whatsappUrl ?? null,
+        next_donations_enabled: input.donationsEnabled ?? false,
+        next_donation_title: input.donationTitle ?? null,
+        next_donation_description: input.donationDescription ?? null,
+        next_donation_ach_details: input.donationAchDetails ?? null,
+        next_donation_yappy_details: input.donationYappyDetails ?? null,
+        next_donation_paypal_details: input.donationPaypalDetails ?? null,
+        next_donation_external_url: input.donationExternalUrl ?? null,
+        next_donation_other_details: input.donationOtherDetails ?? null,
+        next_donation_disclaimer: input.donationDisclaimer ?? null
       });
 
       if (error) {

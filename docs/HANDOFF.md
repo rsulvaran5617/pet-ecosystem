@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+# Handoff 2026-08-10 - FOSTER-DONATIONS-1 informacion publica de apoyo
+
+- Slice implementado localmente para informacion opcional de apoyo/donaciones en el perfil publico de Familias Protectoras.
+- Nueva migracion local `supabase/migrations/20260810173000_foster_public_profile_donations.sql` agrega campos declarativos en `protective_household_public_profiles`, valida `donation_external_url` con `https://`, extiende RPC de guardado, cola admin y lecturas publicas de adopcion.
+- Web `/foster > Perfil` y mobile Foster `Cuenta/Perfil publico` permiten capturar el bloque; guardar un perfil aprobado conserva la regla existente de volver a `draft` + `is_public = false`.
+- Web publica `/adopciones/[slug]` y mobile owner `Mascotas que buscan hogar > Ver perfil` muestran `Apoya a esta Familia Protectora` solo si el perfil publico esta aprobado/publico, el bloque esta habilitado y hay contenido real.
+- Admin ve la informacion como parte de la revision normal del perfil publico; no hay flujo admin separado.
+- No se implementan pagos, Stripe, PayPal API, Yappy API, checkout, venta de mascotas ni obligacion de donar para adoptar.
+- Pendiente: validar, revisar migracion y aplicar remoto solo con aprobacion explicita.
+
 # Handoff 2026-07-28 - Google Play readiness STORE-DEL-2
 
 - Web publica agrega `/account-deletion` para cumplir el requisito de Google Play de URL externa de eliminacion de cuenta. La pagina explica solicitud desde mobile (`Cuenta > Eliminar cuenta`), solicitud manual por correo, datos anonimizados y datos transaccionales retenidos por operacion/soporte/auditoria.

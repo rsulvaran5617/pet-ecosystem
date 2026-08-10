@@ -630,6 +630,32 @@ export function AdminFosterWorkspace({
                     <p style={{ margin: "6px 0 0", color: "#52525b", lineHeight: 1.55 }}>{value || "Sin informacion cargada."}</p>
                   </div>
                 ))}
+                <div style={inputStyle}>
+                  <strong>Apoyo y donaciones declaradas</strong>
+                  {selectedPublicProfile.donationsEnabled ? (
+                    <div style={{ display: "grid", gap: "8px", marginTop: "8px" }}>
+                      {[
+                        ["Titulo", selectedPublicProfile.donationTitle],
+                        ["Descripcion", selectedPublicProfile.donationDescription],
+                        ["ACH / transferencia", selectedPublicProfile.donationAchDetails],
+                        ["Yappy", selectedPublicProfile.donationYappyDetails],
+                        ["PayPal", selectedPublicProfile.donationPaypalDetails],
+                        ["Sitio externo", selectedPublicProfile.donationExternalUrl],
+                        ["Otro metodo", selectedPublicProfile.donationOtherDetails],
+                        ["Aclaratoria", selectedPublicProfile.donationDisclaimer]
+                      ].map(([label, value]) => (
+                        <p key={label} style={{ margin: 0, color: "#52525b", lineHeight: 1.55 }}>
+                          <strong style={{ color: "#18181b" }}>{label}:</strong> {value || "Sin informacion cargada."}
+                        </p>
+                      ))}
+                      <p style={{ margin: 0, color: "#71717a", fontSize: "12px", lineHeight: 1.5 }}>
+                        La aprobacion del perfil publico incluye esta informacion declarada. Pet Ecosystem no procesa ni valida donaciones.
+                      </p>
+                    </div>
+                  ) : (
+                    <p style={{ margin: "6px 0 0", color: "#52525b", lineHeight: 1.55 }}>No habilitado por la Familia Protectora.</p>
+                  )}
+                </div>
                 <label style={{ display: "grid", gap: "6px" }}>
                   <span style={{ color: "#71717a", fontSize: "12px", textTransform: "uppercase" }}>Nota de revision</span>
                   <textarea

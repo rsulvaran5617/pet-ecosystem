@@ -70,6 +70,26 @@ function getCover(profile: PublicPetAdoptionProfile) {
   return profile.media.find((media) => media.isCover && media.signedUrl) ?? profile.media.find((media) => media.signedUrl);
 }
 
+function getDonationMethods(profile: PublicPetAdoptionProfile) {
+  const household = profile.protectiveHousehold;
+
+  return [
+    { label: "ACH / transferencia", value: household.donationAchDetails },
+    { label: "Yappy", value: household.donationYappyDetails },
+    { label: "PayPal", value: household.donationPaypalDetails },
+    { label: "Sitio externo", value: household.donationExternalUrl },
+    { label: "Otro metodo", value: household.donationOtherDetails }
+  ].filter((method): method is { label: string; value: string } => Boolean(method.value?.trim()));
+}
+
+function shouldShowDonationBlock(profile: PublicPetAdoptionProfile) {
+  if (!profile.protectiveHousehold.donationsEnabled) {
+    return false;
+  }
+
+  return Boolean(profile.protectiveHousehold.donationDescription?.trim() || getDonationMethods(profile).length);
+}
+
 function InfoCard({ children, title }: { children: ReactNode; title: string }) {
   return (
     <section
@@ -124,6 +144,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
   }, [slug]);
 
   const cover = useMemo(() => (profile ? getCover(profile) : null), [profile]);
+  const donationMethods = useMemo(() => (profile ? getDonationMethods(profile) : []), [profile]);
   const isAdopted = profile?.listingStatus === "adopted";
 
   if (isLoading) {
@@ -347,6 +368,68 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
             </span>
           </div>
         </section>
+
+        {shouldShowDonationBlock(profile) ? (
+          <section
+            style={{
+              background: colors.surface,
+              border: `1px solid ${colors.line}`,
+              borderRadius: 22,
+              boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
+              display: "grid",
+              gap: 14,
+              padding: 20
+            }}
+          >
+            <div>
+              <p style={{ color: colors.accentDark, fontSize: 12, fontWeight: 900, letterSpacing: 1, margin: 0 }}>
+                APOYO OPCIONAL
+              </p>
+              <h2 style={{ color: colors.ink, fontSize: 22, lineHeight: 1.2, margin: "8px 0 6px" }}>
+                {profile.protectiveHousehold.donationTitle?.trim() || "Apoya a esta Familia Protectora"}
+              </h2>
+              <p style={{ color: colors.muted, fontSize: 14, lineHeight: 1.65, margin: 0 }}>
+                {profile.protectiveHousehold.donationDescription ??
+                  "Esta Familia Protectora declaro informacion de apoyo para sostener su labor de cuidado."}
+              </p>
+            </div>
+            {donationMethods.length ? (
+              <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+                {donationMethods.map((method) => (
+                  <div
+                    key={method.label}
+                    style={{
+                      background: colors.warm,
+                      border: "1px solid rgba(15, 23, 42, 0.08)",
+                      borderRadius: 14,
+                      padding: 14
+                    }}
+                  >
+                    <strong style={{ color: colors.ink, display: "block", fontSize: 13 }}>{method.label}</strong>
+                    {method.label === "Sitio externo" ? (
+                      <a
+                        href={method.value}
+                        rel="noreferrer"
+                        style={{ color: colors.accentDark, display: "block", fontSize: 13, fontWeight: 800, marginTop: 6, wordBreak: "break-word" }}
+                        target="_blank"
+                      >
+                        {method.value}
+                      </a>
+                    ) : (
+                      <p style={{ color: colors.muted, fontSize: 13, lineHeight: 1.55, margin: "6px 0 0", whiteSpace: "pre-wrap" }}>
+                        {method.value}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <p style={{ color: colors.muted, fontSize: 12, lineHeight: 1.55, margin: 0 }}>
+              {profile.protectiveHousehold.donationDisclaimer?.trim() ||
+                "Donar es opcional, no garantiza aprobacion de adopcion y la informacion fue declarada por la Familia Protectora. Pet Ecosystem no procesa ni valida donaciones."}
+            </p>
+          </section>
+        ) : null}
       </div>
     </main>
   );

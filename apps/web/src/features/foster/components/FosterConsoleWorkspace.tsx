@@ -413,7 +413,16 @@ function buildPublicProfileForm(
     instagramUrl: publicProfile?.instagramUrl ?? "",
     facebookUrl: publicProfile?.facebookUrl ?? "",
     tiktokUrl: publicProfile?.tiktokUrl ?? "",
-    whatsappUrl: publicProfile?.whatsappUrl ?? ""
+    whatsappUrl: publicProfile?.whatsappUrl ?? "",
+    donationsEnabled: publicProfile?.donationsEnabled ?? false,
+    donationTitle: publicProfile?.donationTitle ?? "Apoya a esta Familia Protectora",
+    donationDescription: publicProfile?.donationDescription ?? "",
+    donationAchDetails: publicProfile?.donationAchDetails ?? "",
+    donationYappyDetails: publicProfile?.donationYappyDetails ?? "",
+    donationPaypalDetails: publicProfile?.donationPaypalDetails ?? "",
+    donationExternalUrl: publicProfile?.donationExternalUrl ?? "",
+    donationOtherDetails: publicProfile?.donationOtherDetails ?? "",
+    donationDisclaimer: publicProfile?.donationDisclaimer ?? ""
   };
 }
 
@@ -449,7 +458,8 @@ function validateProtectiveSocialLinks(form: ProtectivePublicProfileInput) {
     ["instagramUrl", "Instagram debe ser un enlace https://instagram.com/..."],
     ["facebookUrl", "Facebook debe ser un enlace https://facebook.com/..."],
     ["tiktokUrl", "TikTok debe ser un enlace https://tiktok.com/..."],
-    ["whatsappUrl", "WhatsApp debe ser un enlace https://wa.me/... o https://api.whatsapp.com/..."]
+    ["whatsappUrl", "WhatsApp debe ser un enlace https://wa.me/... o https://api.whatsapp.com/..."],
+    ["donationExternalUrl", "El enlace externo de apoyo debe iniciar con https://."]
   ];
 
   return checks.find(([field]) => !isValidProtectiveSocialUrl(field, form[field] as string | null | undefined))?.[1] ?? null;
@@ -1723,6 +1733,10 @@ function PublicProfilePanel({
             <InfoTile label="Nombre publico" value={publicProfile?.displayName ?? "No configurado"} />
             <InfoTile label="Ciudad" value={publicProfile ? `${publicProfile.city}, ${publicProfile.countryCode}` : "Pendiente"} />
             <InfoTile label="Contacto" value={publicProfile ? contactPolicyLabels[publicProfile.contactPolicy] : "Solo plataforma"} />
+            <InfoTile
+              label="Apoyo"
+              value={publicProfile?.donationsEnabled ? "Informacion declarada" : "No publicado"}
+            />
           </div>
           <p style={styles.bodyText}>
             Guardar el perfil no lo hace publico automaticamente. Despues de guardar, debes enviarlo a revision y admin debe aprobarlo.
@@ -2027,6 +2041,116 @@ function PublicProfilePanel({
                 </div>
                 <p style={styles.itemMeta}>
                   No publiques telefonos o cuentas privadas. La solicitud formal de adopcion sigue ocurriendo dentro de Pet Ecosystem.
+                </p>
+              </section>
+              <section style={styles.subPanel}>
+                <div style={styles.sectionHeaderCompact}>
+                  <div>
+                    <p style={styles.eyebrow}>Apoyo opcional</p>
+                    <h3 style={styles.itemTitle}>Informacion publica de donaciones</h3>
+                    <p style={styles.itemMeta}>
+                      Este bloque se muestra solo en el perfil de la Familia Protectora dentro de una mascota publicada. Donar es opcional y no garantiza aprobacion de adopcion.
+                    </p>
+                  </div>
+                  <StatusBadge label={form.donationsEnabled ? "Activo" : "Oculto"} tone={form.donationsEnabled ? "success" : "neutral"} />
+                </div>
+                <label style={{ alignItems: "flex-start", display: "flex", gap: "10px", lineHeight: 1.5 }}>
+                  <input
+                    checked={Boolean(form.donationsEnabled)}
+                    disabled={disabled}
+                    onChange={(event) => updateField("donationsEnabled", event.target.checked)}
+                    type="checkbox"
+                  />
+                  <span>
+                    Mostrar informacion de apoyo declarada por la Familia Protectora cuando el perfil publico este aprobado.
+                  </span>
+                </label>
+                <div style={styles.formGrid}>
+                  <label style={styles.fieldLabel}>
+                    Titulo
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationTitle", event.target.value)}
+                      placeholder="Apoya a esta Familia Protectora"
+                      style={styles.input}
+                      value={form.donationTitle ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    Sitio externo
+                    <input
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationExternalUrl", event.target.value)}
+                      placeholder="https://..."
+                      style={styles.input}
+                      value={form.donationExternalUrl ?? ""}
+                    />
+                  </label>
+                </div>
+                <label style={styles.fieldLabel}>
+                  Descripcion
+                  <textarea
+                    disabled={disabled}
+                    onChange={(event) => updateField("donationDescription", event.target.value)}
+                    placeholder="Explica como se usan los aportes sin prometer beneficios fiscales o aprobacion de adopcion."
+                    style={styles.textarea}
+                    value={form.donationDescription ?? ""}
+                  />
+                </label>
+                <div style={styles.formGrid}>
+                  <label style={styles.fieldLabel}>
+                    ACH / transferencia
+                    <textarea
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationAchDetails", event.target.value)}
+                      placeholder="Banco, tipo de cuenta o referencia publica declarada"
+                      style={styles.textarea}
+                      value={form.donationAchDetails ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    Yappy
+                    <textarea
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationYappyDetails", event.target.value)}
+                      placeholder="Alias o instrucciones publicas declaradas"
+                      style={styles.textarea}
+                      value={form.donationYappyDetails ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    PayPal
+                    <textarea
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationPaypalDetails", event.target.value)}
+                      placeholder="Correo o enlace declarado por la organizacion"
+                      style={styles.textarea}
+                      value={form.donationPaypalDetails ?? ""}
+                    />
+                  </label>
+                  <label style={styles.fieldLabel}>
+                    Otro metodo
+                    <textarea
+                      disabled={disabled}
+                      onChange={(event) => updateField("donationOtherDetails", event.target.value)}
+                      placeholder="Instrucciones adicionales de apoyo"
+                      style={styles.textarea}
+                      value={form.donationOtherDetails ?? ""}
+                    />
+                  </label>
+                </div>
+                <label style={styles.fieldLabel}>
+                  Aclaratoria publica
+                  <textarea
+                    disabled={disabled}
+                    onChange={(event) => updateField("donationDisclaimer", event.target.value)}
+                    placeholder="Ej. Informacion declarada por la organizacion. Pet Ecosystem no procesa ni valida donaciones."
+                    style={styles.textarea}
+                    value={form.donationDisclaimer ?? ""}
+                  />
+                </label>
+                <p style={styles.itemMeta}>
+                  Pet Ecosystem no procesa pagos, no valida aportes y no condiciona solicitudes de adopcion a donaciones.
                 </p>
               </section>
               <div style={styles.heroActions}>

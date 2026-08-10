@@ -43,6 +43,7 @@ Principio central:
 - Mobile owner muestra `Mascotas que buscan hogar` como pantalla separada de Buscar.
 - Web `/foster` funciona como consola separada para familias protectoras.
 - Admin revisa familias protectoras, perfiles publicos, publicaciones, fotos y solicitudes.
+- FOSTER-DONATIONS-1 agrega informacion opcional de apoyo dentro del perfil publico moderado; se muestra solo en detalle de mascota/perfil, no en listas.
 
 ### Flujo actual funcional
 
@@ -52,18 +53,19 @@ Principio central:
 4. Completa y envia el perfil protector.
 5. Admin aprueba o rechaza la familia protectora.
 6. La familia protectora aprobada crea su perfil publico.
-7. Admin aprueba el perfil publico.
-8. La familia protectora registra una mascota bajo acogida.
-9. Prepara una publicacion de adopcion.
-10. Carga fotos publicas.
-11. Envia la publicacion a revision.
-12. Admin aprueba la publicacion y modera fotos.
-13. Adoptantes ven la mascota en `Mascotas que buscan hogar` o `/adopciones/{slug}`.
-14. Adoptante envia solicitud estructurada.
-15. Familia protectora revisa solicitud y puede avanzar a revision, entrevista, aprobacion o rechazo.
-16. Una solicitud aprobada puede iniciar transferencia privada.
-17. La familia receptora acepta la transferencia.
-18. Solo al aceptar la transferencia cambia `pets.household_id`, la solicitud pasa a `converted_to_transfer` y la publicacion pasa a `adopted`.
+7. Opcionalmente declara informacion de apoyo/donaciones sin activar pagos ni condicionar adopciones.
+8. Admin aprueba el perfil publico, incluyendo la informacion publica de apoyo si fue declarada.
+9. La familia protectora registra una mascota bajo acogida.
+10. Prepara una publicacion de adopcion.
+11. Carga fotos publicas.
+12. Envia la publicacion a revision.
+13. Admin aprueba la publicacion y modera fotos.
+14. Adoptantes ven la mascota en `Mascotas que buscan hogar` o `/adopciones/{slug}`.
+15. Adoptante envia solicitud estructurada.
+16. Familia protectora revisa solicitud y puede avanzar a revision, entrevista, aprobacion o rechazo.
+17. Una solicitud aprobada puede iniciar transferencia privada.
+18. La familia receptora acepta la transferencia.
+19. Solo al aceptar la transferencia cambia `pets.household_id`, la solicitud pasa a `converted_to_transfer` y la publicacion pasa a `adopted`.
 
 ### Donde se puede confundir el usuario
 
@@ -116,6 +118,7 @@ Razon:
 
 5. No mezclar adopcion con servicios comerciales.
    - Foster no usa pagos, booking, QR, capacidad, marketplace de servicios ni provider operations.
+   - El bloque `Apoya a esta Familia Protectora` es informativo y opcional; no es checkout, no garantiza adopcion y no debe aparecer en cards/listas.
 
 6. Privacidad y confianza.
    - Publicar solo ciudad/pais, historia segura, fotos moderadas y contacto controlado.
