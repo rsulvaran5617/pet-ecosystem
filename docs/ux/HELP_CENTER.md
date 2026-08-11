@@ -24,11 +24,12 @@ La primera version queda publicada como contenido estatico en `/ayuda`. No intro
 La pagina usa una estructura por rol:
 
 1. Hero publico con descripcion del manual y estado de piloto.
-2. Indice rapido por rol y privacidad.
-3. Cards resumen por grupo de usuario.
-4. Navegacion lateral con anclas.
-5. Guias detalladas por flujo.
-6. Bloque final de privacidad, limites y alcance.
+2. Metricas compactas de roles, guias y flujos piloto.
+3. Indice rapido por rol y privacidad.
+4. Cards resumen por grupo de usuario.
+5. Navegacion lateral con anclas.
+6. Guias detalladas por flujo.
+7. Bloque final de privacidad, limites y alcance.
 
 Cada guia contiene:
 
@@ -96,3 +97,15 @@ Cada guia contiene:
 ## Manual interno admin
 
 El contenido operativo de admin y soporte no se muestra en `/ayuda`. Queda disponible dentro del backoffice `admin.petecosyst.com`, bajo la seccion `Manual admin`, despues de la autenticacion y validacion del rol `admin`.
+
+## SKIN-2
+
+`SKIN-2` aplica el skin profesional al centro de ayuda publico:
+
+- hero mas ejecutivo;
+- resumen numerico del manual;
+- cards por rol con icono textual consistente;
+- sidebar de exploracion mas claro;
+- guias mas compactas y escaneables;
+- responsive mobile con grid de una columna;
+- separacion explicita de contenido publico vs admin.

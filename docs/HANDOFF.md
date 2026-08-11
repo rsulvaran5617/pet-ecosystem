@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-2
+
+- Web publica `/ayuda` aplica el skin profesional del centro de ayuda: hero ejecutivo, metricas del manual, cards por rol, sidebar de exploracion y guias mas escaneables.
+- Se mantiene la separacion: propietarios, proveedores, familias protectoras y adoptantes en el manual publico; admin/soporte permanece en `admin.petecosyst.com > Manual admin`.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, pagos, mobile, admin web funcional ni reglas de negocio.
+- Documentacion actualizada: `docs/ux/HELP_CENTER.md`.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-0
 
 - Se crea `docs/ux/PROFESSIONAL_WEBSITE_SKIN.md` como guia documental para el nuevo skin profesional web.

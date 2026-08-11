@@ -20,6 +20,7 @@ type GuideGroup = {
   id: string;
   role: string;
   description: string;
+  icon: string;
   status: StatusTone;
   guides: Guide[];
 };
@@ -35,6 +36,7 @@ const guideGroups: GuideGroup[] = [
     id: "owner",
     role: "Propietarios de mascotas",
     description: "Gestiona hogar, mascotas, salud, recordatorios, busqueda de servicios, reservas y cuenta.",
+    icon: "PM",
     status: "pilot",
     guides: [
       {
@@ -124,6 +126,7 @@ const guideGroups: GuideGroup[] = [
     id: "provider",
     role: "Proveedores de servicios",
     description: "Opera negocios, servicios, agenda, cupos, reservas, conversaciones, publicacion y documentos.",
+    icon: "PV",
     status: "pilot",
     guides: [
       {
@@ -214,6 +217,7 @@ const guideGroups: GuideGroup[] = [
     id: "foster",
     role: "Familias protectoras",
     description: "Gestiona hogares protectores, mascotas bajo acogida, publicaciones, solicitudes, donaciones informativas y transferencias.",
+    icon: "FP",
     status: "pilot",
     guides: [
       {
@@ -303,6 +307,7 @@ const guideGroups: GuideGroup[] = [
     id: "adopter",
     role: "Adoptantes interesados",
     description: "Explora mascotas que buscan hogar, revisa perfiles publicos, solicita adopcion y sigue el estado.",
+    icon: "AD",
     status: "pilot",
     guides: [
       {
@@ -381,6 +386,18 @@ const quickTopics = [
   { href: "#privacidad", label: "Privacidad" }
 ];
 
+const totalGuides = guideGroups.reduce((total, group) => total + group.guides.length, 0);
+const totalPilotGuides = guideGroups.reduce(
+  (total, group) => total + group.guides.filter((guide) => guide.status === "pilot").length,
+  0
+);
+
+const helpStats = [
+  { label: "Roles publicos", value: guideGroups.length.toString() },
+  { label: "Guias disponibles", value: totalGuides.toString() },
+  { label: "Flujos piloto", value: totalPilotGuides.toString() }
+];
+
 export function HelpCenterPage() {
   return (
     <main style={surfaceStyle}>
@@ -388,7 +405,7 @@ export function HelpCenterPage() {
         .help-shell {
           width: min(1180px, calc(100% - 32px));
           margin: 0 auto;
-          padding: 28px 0 54px;
+          padding: 28px 0 58px;
         }
 
         .help-nav {
@@ -408,18 +425,24 @@ export function HelpCenterPage() {
         }
 
         .help-brand img {
-          border-radius: 10px;
-          height: 36px;
-          object-fit: cover;
-          width: 36px;
+          background: #ffffff;
+          border: 1px solid rgba(0,143,137,0.18);
+          border-radius: 12px;
+          box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+          height: 38px;
+          object-fit: contain;
+          padding: 5px;
+          width: 38px;
         }
 
         .help-hero {
-          background: #2a2723;
-          border-radius: 20px;
+          background: #111827;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 24px;
+          box-shadow: 0 24px 70px rgba(15,23,42,0.16);
           color: #ffffff;
           display: grid;
-          gap: 16px;
+          gap: 22px;
           overflow: hidden;
           padding: 34px;
           position: relative;
@@ -442,7 +465,7 @@ export function HelpCenterPage() {
         }
 
         .help-hero h1 {
-          font-size: 42px;
+          font-size: 44px;
           line-height: 1.05;
           margin: 0;
           max-width: 820px;
@@ -454,6 +477,47 @@ export function HelpCenterPage() {
           line-height: 1.65;
           margin: 0;
           max-width: 760px;
+        }
+
+        .hero-content {
+          display: grid;
+          gap: 14px;
+          max-width: 820px;
+        }
+
+        .hero-row {
+          align-items: end;
+          display: flex;
+          gap: 20px;
+          justify-content: space-between;
+        }
+
+        .help-stats {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          min-width: min(100%, 420px);
+        }
+
+        .help-stat {
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 16px;
+          display: grid;
+          gap: 4px;
+          padding: 13px;
+        }
+
+        .help-stat strong {
+          color: #5eead4;
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .help-stat span {
+          color: rgba(255,255,255,0.76);
+          font-size: 11px;
+          font-weight: 800;
         }
 
         .topic-grid {
@@ -474,29 +538,40 @@ export function HelpCenterPage() {
           text-decoration: none;
         }
 
+        .topic-grid a:hover {
+          background: rgba(255,255,255,0.18);
+        }
+
         .role-overview {
           display: grid;
-          gap: 14px;
-          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+          gap: 12px;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
           margin: 18px 0;
         }
 
         .guide-layout {
           display: grid;
-          gap: 18px;
-          grid-template-columns: 250px minmax(0, 1fr);
-          margin-top: 20px;
+          gap: 20px;
+          grid-template-columns: 230px minmax(0, 1fr);
+          margin-top: 22px;
         }
 
         .guide-sidebar {
           align-self: start;
           background: #111827;
-          border-radius: 18px;
+          border-radius: 20px;
           display: grid;
-          gap: 8px;
-          padding: 14px;
+          gap: 10px;
+          padding: 16px;
           position: sticky;
           top: 18px;
+        }
+
+        .guide-sidebar strong {
+          color: #ffffff;
+          font-size: 13px;
+          line-height: 1.25;
+          margin-bottom: 2px;
         }
 
         .guide-sidebar a {
@@ -505,7 +580,7 @@ export function HelpCenterPage() {
           color: #d7e2e1;
           font-size: 12px;
           font-weight: 850;
-          padding: 10px 12px;
+          padding: 10px 11px;
           text-decoration: none;
         }
 
@@ -516,16 +591,16 @@ export function HelpCenterPage() {
 
         .guide-stack {
           display: grid;
-          gap: 18px;
+          gap: 20px;
         }
 
         .role-section {
           background: rgba(255,255,255,0.88);
           border: 1px solid rgba(18,49,58,0.12);
           border-radius: 20px;
-          box-shadow: 0 16px 42px rgba(16, 24, 40, 0.06);
+          box-shadow: 0 14px 40px rgba(15,23,42,0.07);
           display: grid;
-          gap: 16px;
+          gap: 18px;
           padding: 22px;
         }
 
@@ -542,8 +617,14 @@ export function HelpCenterPage() {
           margin: 0;
         }
 
+        .role-title {
+          align-items: center;
+          display: flex;
+          gap: 12px;
+        }
+
         .role-heading h2 {
-          font-size: 25px;
+          font-size: 24px;
           line-height: 1.15;
         }
 
@@ -559,20 +640,21 @@ export function HelpCenterPage() {
         .guide-grid {
           display: grid;
           gap: 14px;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         }
 
         .guide-card {
           background: #ffffff;
           border: 1px solid rgba(18,49,58,0.1);
-          border-radius: 14px;
+          border-radius: 16px;
+          box-shadow: 0 8px 24px rgba(15,23,42,0.04);
           display: grid;
           gap: 12px;
           padding: 16px;
         }
 
         .guide-card h3 {
-          font-size: 18px;
+          font-size: 17px;
           line-height: 1.18;
         }
 
@@ -606,6 +688,55 @@ export function HelpCenterPage() {
           padding: 18px;
         }
 
+        .role-card {
+          background: #ffffff;
+          border: 1px solid rgba(18,49,58,0.12);
+          border-radius: 18px;
+          box-shadow: 0 10px 28px rgba(15,23,42,0.05);
+          color: #12313a;
+          display: grid;
+          gap: 10px;
+          padding: 16px;
+          text-decoration: none;
+        }
+
+        .role-card:hover {
+          border-color: rgba(0,143,137,0.32);
+          box-shadow: 0 14px 34px rgba(15,23,42,0.08);
+        }
+
+        .role-card-header {
+          align-items: center;
+          display: flex;
+          gap: 10px;
+          justify-content: space-between;
+        }
+
+        .role-icon {
+          align-items: center;
+          background: #e6f7f5;
+          border-radius: 13px;
+          color: #00847d;
+          display: inline-flex;
+          font-size: 12px;
+          font-weight: 900;
+          height: 40px;
+          justify-content: center;
+          width: 40px;
+        }
+
+        .role-card strong {
+          color: #102f3a;
+          font-size: 15px;
+          line-height: 1.2;
+        }
+
+        .role-card span:not(.role-icon) {
+          color: #52666d;
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
         @media (max-width: 860px) {
           .help-nav,
           .role-heading {
@@ -628,6 +759,34 @@ export function HelpCenterPage() {
           .guide-sidebar {
             position: static;
           }
+
+          .hero-row {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .help-stats {
+            width: 100%;
+          }
+        }
+
+        @media (max-width: 560px) {
+          .help-shell {
+            width: min(100% - 24px, 1180px);
+          }
+
+          .help-hero h1 {
+            font-size: 32px;
+          }
+
+          .help-stats,
+          .guide-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .role-section {
+            padding: 18px;
+          }
         }
       `}</style>
 
@@ -648,13 +807,24 @@ export function HelpCenterPage() {
         </nav>
 
         <header className="help-hero">
-          <StatusChip status="pilot" />
-          <h1>Centro de ayuda y manual de usuario</h1>
-          <p>
-            Guias publicas para usar Pet Ecosystem durante el piloto: propietarios, proveedores, familias protectoras,
-            adoptantes. Este manual explica los flujos disponibles y separa claramente lo que esta en piloto de
-            lo que esta planificado.
-          </p>
+          <div className="hero-row">
+            <div className="hero-content">
+              <StatusChip status="pilot" />
+              <h1>Centro de ayuda y manual de usuario</h1>
+              <p>
+                Guias publicas para usar Pet Ecosystem durante el piloto: propietarios, proveedores, familias
+                protectoras y adoptantes. El contenido interno de admin y soporte queda separado en el backoffice.
+              </p>
+            </div>
+            <div className="help-stats" aria-label="Resumen del manual">
+              {helpStats.map((stat) => (
+                <div className="help-stat" key={stat.label}>
+                  <strong>{stat.value}</strong>
+                  <span>{stat.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="topic-grid" aria-label="Indice rapido">
             {quickTopics.map((topic) => (
               <a href={topic.href} key={topic.href}>
@@ -672,6 +842,7 @@ export function HelpCenterPage() {
 
         <section className="guide-layout">
           <aside className="guide-sidebar" aria-label="Roles del manual">
+            <strong>Explorar manual</strong>
             {guideGroups.map((group) => (
               <a href={`#${group.id}`} key={group.id}>
                 {group.role}
@@ -731,11 +902,13 @@ export function HelpCenterPage() {
 
 function RoleCard({ group }: { group: GuideGroup }) {
   return (
-    <a href={`#${group.id}`} style={roleCardStyle}>
-      <span style={roleIconStyle}>{group.role.slice(0, 2).toUpperCase()}</span>
+    <a className="role-card" href={`#${group.id}`}>
+      <span className="role-card-header">
+        <span className="role-icon">{group.icon}</span>
+        <StatusChip status={group.status} />
+      </span>
       <strong>{group.role}</strong>
       <span>{group.description}</span>
-      <StatusChip status={group.status} />
     </a>
   );
 }
@@ -745,7 +918,10 @@ function GuideGroupSection({ group }: { group: GuideGroup }) {
     <section className="role-section" id={group.id}>
       <div className="role-heading">
         <div>
-          <h2>{group.role}</h2>
+          <div className="role-title">
+            <span className="role-icon">{group.icon}</span>
+            <h2>{group.role}</h2>
+          </div>
           <p>{group.description}</p>
         </div>
         <StatusChip status={group.status} />
@@ -870,31 +1046,6 @@ const platformChipStyle: CSSProperties = {
   background: "#ffffff",
   borderColor: "rgba(18,49,58,0.12)",
   color: "#344b55"
-};
-
-const roleCardStyle: CSSProperties = {
-  background: "#ffffff",
-  border: "1px solid rgba(18,49,58,0.12)",
-  borderRadius: 16,
-  boxShadow: "0 12px 28px rgba(16,24,40,0.05)",
-  color: "#12313a",
-  display: "grid",
-  gap: 9,
-  padding: 16,
-  textDecoration: "none"
-};
-
-const roleIconStyle: CSSProperties = {
-  alignItems: "center",
-  background: "#e7f7f5",
-  borderRadius: 12,
-  color: "#008f89",
-  display: "inline-flex",
-  fontSize: 12,
-  fontWeight: 900,
-  height: 40,
-  justifyContent: "center",
-  width: 40
 };
 
 const smallTitleStyle: CSSProperties = {
