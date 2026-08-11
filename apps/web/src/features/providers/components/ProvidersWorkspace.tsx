@@ -1307,16 +1307,16 @@ function ProviderShell({
         border: "1px solid rgba(15, 118, 110, 0.08)",
         borderRadius: "24px",
         display: "grid",
-        columnGap: "18px",
+        columnGap: "28px",
         rowGap: "16px",
-        gridTemplateColumns: "minmax(138px, 164px) minmax(0, 1fr)",
-        padding: "14px"
+        gridTemplateColumns: "minmax(156px, 174px) minmax(0, 1fr)",
+        padding: "16px"
       }}
     >
       <style>
         {`
           .provider-web-shell {
-            grid-template-columns: minmax(138px, 164px) minmax(0, 1fr);
+            grid-template-columns: minmax(156px, 174px) minmax(0, 1fr);
           }
 
           .provider-web-main {
@@ -1351,7 +1351,7 @@ function ProviderShell({
             }
           }
 
-          @media (max-width: 980px) {
+          @media (max-width: 1120px) {
             .provider-web-shell {
               grid-template-columns: minmax(0, 1fr) !important;
             }
