@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-7
+
+- Se completa cierre tecnico documental de `SKIN-7: QA visual responsive`.
+- Nuevo documento `docs/ux/PROFESSIONAL_SKIN_QA.md` consolida superficies cubiertas, validaciones ejecutadas, matriz de QA por superficie y pendientes no bloqueantes de capturas manuales por viewport.
+- Validaciones tecnicas ejecutadas: `@pet/web` lint/typecheck/build y `@pet/admin` lint/typecheck/build.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, pagos, mobile ni reglas de negocio.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-6
 
 - Admin web (`admin.petecosyst.com`) aplica la base visual SKIN-6 en el shell principal: header mas operativo, sidebar azul noche compacta, item activo con marca teal, botones/cards mas densos y layout responsive para tablet/mobile.

@@ -502,3 +502,4 @@ Checklist:
 - Revisar capturas manuales.
 - Documentar checklist final y pendientes no bloqueantes.
 
+Documento de cierre: `docs/ux/PROFESSIONAL_SKIN_QA.md`.
