@@ -761,6 +761,16 @@ export function ProductLandingScreen() {
           line-height: 1.55;
         }
 
+        .pilot-aside-cta {
+          align-self: start;
+          box-sizing: border-box;
+          height: 36px;
+          line-height: 1;
+          max-height: 36px;
+          min-height: 36px;
+          width: fit-content;
+        }
+
         .footer {
           border-top: 1px solid rgba(16, 24, 40, 0.1);
           display: grid;
@@ -1065,7 +1075,7 @@ export function ProductLandingScreen() {
               <span>
                 Cuidado, servicios y adopcion responsable con una experiencia separada para cada rol.
               </span>
-              <a href="/foster" style={{ ...compactSecondaryLinkStyle, justifySelf: "start" }}>
+              <a className="pilot-aside-cta" href="/foster" style={{ ...compactSecondaryLinkStyle, justifySelf: "start" }}>
                 Familias protectoras
               </a>
             </aside>
