@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-4
+
+- Web provider (`/app` con rol proveedor) aplica la base visual SKIN-4 sobre componentes locales: shell mas compacto, sidebar azul noche mas angosta, item activo real con marca teal, topbar mas fina, cards/KPIs/chips/botones mas densos y reglas responsive del dashboard ejecutivo.
+- Se ajustan los grids del panel multi-negocio para que metricas y analiticas bajen de columnas en pantallas medianas sin invadir la navegacion.
+- El cambio es visual y de presentacion: no toca backend, Supabase, migraciones, RLS, contratos API, pagos, booking logic, mobile, foster ni admin.
+- Pendiente recomendado: continuar SKIN-5 sobre web foster o hacer QA visual de provider en 1440/1280/768/390 px antes del despliegue publico.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-3
 
 - Web owner (`/app` con rol propietario) aplica la base visual SKIN-3: sidebar mas angosta, item activo real con marca teal, cards/metrica compactas y contenedor responsive para evitar solapes.

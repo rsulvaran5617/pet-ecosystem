@@ -41,6 +41,8 @@ import { type ProviderBusinessOverview, type ProviderMoneyIndicator, type Provid
 
 const fieldLabelStyle = {
   fontSize: "10px",
+  fontWeight: 800,
+  letterSpacing: "0.06em",
   textTransform: "uppercase" as const,
   color: "#78716c"
 };
@@ -820,14 +822,14 @@ function ProviderActionButton({
         color: palette.color,
         cursor: disabled ? "not-allowed" : "pointer",
         display: "inline-flex",
-        fontSize: "9px",
+        fontSize: "8.5px",
         fontWeight: 800,
         gap: "5px",
         justifyContent: "center",
         lineHeight: 1,
-        minHeight: "26px",
+        minHeight: "25px",
         opacity: disabled ? 0.62 : 1,
-        padding: "6px 10px",
+        padding: "6px 9px",
         whiteSpace: "nowrap"
       }}
     >
@@ -848,12 +850,12 @@ function ProviderStatusChip({ label, tone = "neutral" }: { label: string; tone?:
         borderRadius: "999px",
         color: palette.color,
         display: "inline-flex",
-        fontSize: "8px",
+        fontSize: "7.5px",
         fontWeight: 900,
         letterSpacing: "0.06em",
         lineHeight: 1,
-        minHeight: "24px",
-        padding: "6px 9px",
+        minHeight: "22px",
+        padding: "5px 8px",
         textTransform: "uppercase",
         whiteSpace: "nowrap"
       }}
@@ -1045,11 +1047,11 @@ function ProviderCard({
       style={{
         background: "rgba(255, 255, 255, 0.9)",
         border: "1px solid rgba(15, 118, 110, 0.12)",
-        borderRadius: "20px",
-        boxShadow: "0 16px 34px rgba(15, 23, 42, 0.07)",
+        borderRadius: "16px",
+        boxShadow: "0 10px 26px rgba(15, 23, 42, 0.06)",
         display: "grid",
-        gap: "14px",
-        padding: "18px",
+        gap: "12px",
+        padding: "14px",
         ...style
       }}
     >
@@ -1079,17 +1081,17 @@ function ProviderMetricCard({
       style={{
         background: isDark ? "rgba(255,255,255,0.13)" : palette.background,
         border: `1px solid ${isDark ? "rgba(255,255,255,0.16)" : palette.border}`,
-        borderRadius: "16px",
+        borderRadius: "14px",
         display: "grid",
-        gap: "5px",
-        minHeight: "92px",
-        padding: "12px"
+        gap: "4px",
+        minHeight: "78px",
+        padding: "10px"
       }}
     >
       <span
         style={{
           color: isDark ? "#ccfbf1" : palette.color,
-          fontSize: "10px",
+          fontSize: "8.5px",
           fontWeight: 900,
           letterSpacing: "0.08em",
           textTransform: "uppercase"
@@ -1097,8 +1099,8 @@ function ProviderMetricCard({
       >
         {label}
       </span>
-      <strong style={{ color: isDark ? "#f8fafc" : "#111827", fontSize: "22px", lineHeight: 1 }}>{value}</strong>
-      <span style={{ color: isDark ? "rgba(248,250,252,0.76)" : "#667085", fontSize: "12px", lineHeight: 1.35 }}>{note}</span>
+      <strong style={{ color: isDark ? "#f8fafc" : "#111827", fontSize: "19px", lineHeight: 1 }}>{value}</strong>
+      <span style={{ color: isDark ? "rgba(248,250,252,0.76)" : "#667085", fontSize: "10px", lineHeight: 1.3 }}>{note}</span>
     </div>
   );
 }
@@ -1114,15 +1116,16 @@ function ProviderSidebar({
 }) {
   return (
     <aside
+      className="provider-web-sidebar"
       style={{
         alignSelf: "start",
         background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
-        borderRadius: "20px",
+        borderRadius: "18px",
         boxShadow: "0 18px 40px rgba(15, 23, 42, 0.18)",
         display: "grid",
-        gap: "13px",
-        padding: "14px",
+        gap: "12px",
+        padding: "12px",
         position: "sticky",
         top: "16px",
         width: "100%"
@@ -1137,38 +1140,40 @@ function ProviderSidebar({
             borderRadius: "14px",
             display: "inline-flex",
             flexShrink: 0,
-            height: "36px",
+            height: "34px",
             justifyContent: "center",
             overflow: "hidden",
-            width: "36px"
+            width: "34px"
           }}
         >
-          <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "29px", objectFit: "contain", width: "29px" }} />
+          <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "27px", objectFit: "contain", width: "27px" }} />
         </span>
         <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
-          <strong style={{ color: "#f8fafc", fontSize: "11px", lineHeight: 1.12 }}>Pet Ecosystem</strong>
-          <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "8.5px" }}>Consola proveedor</span>
+          <strong style={{ color: "#f8fafc", fontSize: "10.5px", lineHeight: 1.12 }}>Pet Ecosystem</strong>
+          <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "8px" }}>Consola proveedor</span>
         </div>
       </div>
 
-      <nav aria-label="Secciones de consola proveedor" style={{ display: "grid", gap: "7px" }}>
+      <nav aria-label="Secciones de consola proveedor" className="provider-web-nav" style={{ display: "grid", gap: "6px" }}>
         {sections.map((section) => {
           const isActive = section.id === activeSectionId;
 
           return (
           <button
+            className="provider-web-nav-button"
             key={section.id}
             onClick={() => onNavigate(section.id)}
             style={{
               background: isActive ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
-              border: isActive ? "1px solid rgba(45, 212, 191, 0.3)" : "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "12px",
+              border: isActive ? "1px solid rgba(45, 212, 191, 0.42)" : "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: "11px",
+              boxShadow: isActive ? "inset 3px 0 0 rgba(45, 212, 191, 0.85)" : "none",
               color: "#f8fafc",
               cursor: "pointer",
               display: "grid",
               gap: "3px",
               gridTemplateColumns: "18px minmax(0, 1fr)",
-              padding: "8px 9px",
+              padding: "8px 8px",
               textAlign: "left"
             }}
             type="button"
@@ -1219,25 +1224,26 @@ function ProviderTopbar({
 }) {
   return (
     <header
+      className="provider-web-topbar"
       style={{
         alignItems: "center",
         background: "rgba(255, 255, 255, 0.88)",
         border: "1px solid rgba(15, 118, 110, 0.12)",
-        borderRadius: "20px",
-        boxShadow: "0 12px 30px rgba(15, 23, 42, 0.06)",
+        borderRadius: "18px",
+        boxShadow: "0 10px 26px rgba(15, 23, 42, 0.055)",
         display: "flex",
-        gap: "10px",
+        gap: "8px",
         justifyContent: "space-between",
-        padding: "10px 12px",
+        padding: "9px 10px",
         position: "relative",
         zIndex: 3
       }}
     >
-      <div style={{ display: "grid", gap: "3px", minWidth: "120px" }}>
+      <div style={{ display: "grid", gap: "3px", minWidth: "106px" }}>
         <span style={{ color: "#0f766e", fontSize: "6px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
           Negocio activo
         </span>
-        <strong style={{ color: "#101828", fontSize: "11px", lineHeight: 1.05, maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <strong style={{ color: "#101828", fontSize: "10px", lineHeight: 1.05, maxWidth: "136px", overflow: "hidden", textOverflow: "ellipsis" }}>
           {selectedName}
         </strong>
       </div>
@@ -1252,9 +1258,9 @@ function ProviderTopbar({
             color: "#101828",
             fontSize: "9px",
             fontWeight: 800,
-            minHeight: "28px",
+            minHeight: "26px",
             minWidth: "142px",
-            padding: "5px 9px"
+            padding: "4px 8px"
           }}
           value={selectedOrganizationId ?? ""}
         >
@@ -1295,19 +1301,104 @@ function ProviderShell({
 }) {
   return (
     <div
+      className="provider-web-shell"
       style={{
         background: "linear-gradient(180deg, #fbfaf7 0%, #f7f2e7 100%)",
         border: "1px solid rgba(15, 118, 110, 0.08)",
-        borderRadius: "28px",
+        borderRadius: "24px",
         display: "grid",
-        columnGap: "28px",
-        rowGap: "18px",
-        gridTemplateColumns: "minmax(148px, 174px) minmax(0, 1fr)",
-        padding: "16px"
+        columnGap: "18px",
+        rowGap: "16px",
+        gridTemplateColumns: "minmax(138px, 164px) minmax(0, 1fr)",
+        padding: "14px"
       }}
     >
+      <style>
+        {`
+          .provider-web-shell {
+            grid-template-columns: minmax(138px, 164px) minmax(0, 1fr);
+          }
+
+          .provider-web-main {
+            min-width: 0;
+            overflow: hidden;
+          }
+
+          .provider-web-nav-button:focus-visible {
+            outline: 2px solid rgba(45, 212, 191, 0.72);
+            outline-offset: 2px;
+          }
+
+          .provider-web-dashboard-metrics {
+            grid-template-columns: repeat(5, minmax(118px, 1fr));
+          }
+
+          .provider-web-dashboard-analytics {
+            grid-template-columns: minmax(180px, 0.72fr) minmax(220px, 0.9fr) minmax(300px, 1.38fr);
+          }
+
+          @media (max-width: 1240px) {
+            .provider-web-dashboard-metrics {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+
+            .provider-web-dashboard-analytics {
+              grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+            }
+
+            .provider-web-dashboard-analytics > *:last-child {
+              grid-column: 1 / -1;
+            }
+          }
+
+          @media (max-width: 980px) {
+            .provider-web-shell {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .provider-web-sidebar {
+              position: static !important;
+            }
+
+            .provider-web-nav {
+              display: grid !important;
+              grid-auto-flow: column;
+              grid-auto-columns: minmax(118px, 1fr);
+              overflow-x: auto;
+              padding-bottom: 4px;
+            }
+
+            .provider-web-topbar {
+              align-items: flex-start !important;
+              flex-direction: column;
+            }
+          }
+
+          @media (max-width: 720px) {
+            .provider-web-dashboard-metrics,
+            .provider-web-dashboard-analytics {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .provider-web-dashboard-analytics > *:last-child {
+              grid-column: auto;
+            }
+          }
+
+          @media (max-width: 560px) {
+            .provider-web-shell {
+              border-radius: 18px !important;
+              padding: 8px !important;
+            }
+
+            .provider-web-nav {
+              grid-auto-columns: minmax(108px, 1fr);
+            }
+          }
+        `}
+      </style>
       {sidebar}
-      <main style={{ display: "grid", gap: "16px", minWidth: 0 }}>
+      <main className="provider-web-main" style={{ display: "grid", gap: "14px", minWidth: 0 }}>
         {topbar}
         {children}
       </main>
@@ -2341,7 +2432,7 @@ export function ProvidersWorkspace({
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(130px, 1fr))", gap: "12px" }}>
+                <div className="provider-web-dashboard-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(118px, 1fr))", gap: "10px" }}>
                   {[
                     { label: "Reservas totales", value: totalProviderBookingCount, note: "datos consolidados", icon: "booking" as const, tone: "primary" as const },
                     { label: "Ingresos estimados", value: formatMoneyIndicatorValue(completedMoneyIndicator), note: "citas cerradas", icon: "money" as const, tone: "success" as const },
@@ -2354,12 +2445,12 @@ export function ProvidersWorkspace({
                       style={{
                         background: "#ffffff",
                         border: "1px solid rgba(15, 23, 42, 0.08)",
-                        borderRadius: "14px",
-                        boxShadow: "0 12px 26px rgba(15, 23, 42, 0.06)",
+                        borderRadius: "12px",
+                        boxShadow: "0 10px 22px rgba(15, 23, 42, 0.055)",
                         display: "grid",
-                        gap: "9px",
-                        minHeight: "108px",
-                        padding: "14px"
+                        gap: "7px",
+                        minHeight: "94px",
+                        padding: "12px"
                       }}
                     >
                       <div style={{ alignItems: "center", display: "flex", gap: "10px" }}>
@@ -2367,27 +2458,27 @@ export function ProvidersWorkspace({
                           style={{
                             alignItems: "center",
                             background: providerVisualPalette[metric.tone].soft,
-                            borderRadius: "12px",
+                            borderRadius: "11px",
                             color: providerVisualPalette[metric.tone].color,
                             display: "inline-flex",
                             fontSize: "13px",
                             fontWeight: 900,
-                            height: "34px",
+                            height: "31px",
                             justifyContent: "center",
-                            width: "34px"
+                            width: "31px"
                           }}
                         >
                           <ProviderIcon name={metric.icon} size={17} />
                         </span>
-                        <span style={{ color: "#344054", fontSize: "9px", fontWeight: 800 }}>{metric.label}</span>
+                        <span style={{ color: "#344054", fontSize: "8.5px", fontWeight: 800 }}>{metric.label}</span>
                       </div>
-                      <strong style={{ color: "#0b163f", fontSize: "21px", lineHeight: 1 }}>{metric.value}</strong>
-                      <span style={{ color: "#667085", fontSize: "10px" }}>{metric.note}</span>
+                      <strong style={{ color: "#0b163f", fontSize: "19px", lineHeight: 1 }}>{metric.value}</strong>
+                      <span style={{ color: "#667085", fontSize: "9.5px" }}>{metric.note}</span>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "0.72fr 0.9fr 1.38fr", gap: "12px" }}>
+                <div className="provider-web-dashboard-analytics" style={{ display: "grid", gridTemplateColumns: "minmax(180px, 0.72fr) minmax(220px, 0.9fr) minmax(300px, 1.38fr)", gap: "10px" }}>
                   <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "8px", display: "grid", gap: "8px", padding: "10px" }}>
                     <div style={{ display: "grid", gap: "3px" }}>
                       <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "7px", gap: "4px" }}>
