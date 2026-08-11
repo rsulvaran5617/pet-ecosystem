@@ -18,6 +18,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 
 ### Core
 - landing web publica en `/` con identidad de Pet Ecosystem, header de marca, hero con mock mobile con saludo a Valeria, visual pet, bloques de confianza, pasos `Asi funciona`, cards para dueños/proveedores y CTA hacia `/app`
+- centro de ayuda publico en `/ayuda` con manual por rol y plataforma para propietarios, proveedores, familias protectoras, adoptantes y admin/soporte; contenido estatico enlazado desde la landing
 - experiencia web autenticada vive en `/app`
 - onboarding
 - registro

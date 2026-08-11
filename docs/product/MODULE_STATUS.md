@@ -40,6 +40,7 @@
 - `pet_travel_passport_v2` -> `documented_on_hold`
 - `foster_adoption_v2_5` -> `partial`
 - `lost_pet_alerts_v2` -> `documented_on_hold`
+- `public_help_center` -> `closed_with_notes`
 - `pilot_mobile_qa_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
 - `commerce` -> `not_started`
@@ -108,6 +109,7 @@
 - Role-Foster-A queda publicado: se agrega rol global `protective_family` para diferenciar Familias Protectoras desde registro/cambio de modo, manteniendo permisos Foster reales en `household_type = protective` y perfil protector aprobado. No hay backfill ni conversion de hogares owner.
 - Role-Foster-B queda implementado localmente en mobile: `protective_family` usa shell Foster separado con Inicio, Acogida, Publicaciones, Solicitudes y Cuenta; `pet_owner` queda enfocado en hogares/mascotas propias, marketplace de servicios, reservas, mensajes y cuenta. Los workspaces mobile de hogares/mascotas se filtran por `household_type` segun rol activo. No requiere migracion.
 - Lost Pet Alerts queda en `documented_on_hold`: `docs/modules/lost_pet_alerts.md` define una futura alerta comunitaria para mascotas extraviadas con privacidad, opt-in, expiracion, moderacion y alcance geografico controlado. No esta implementado y no cambia mobile, web, admin, Supabase, RLS, RPCs ni notificaciones push.
+- Public Help Center queda implementado como pagina estatica `/ayuda` enlazada desde la landing publica. Cubre manuales por rol para propietarios, proveedores, familias protectoras, adoptantes y admin/soporte, sin tocar backend, Supabase, migraciones, RLS ni reglas de negocio. Capturas reales/PDF quedan como mejora posterior.
 - Health vaccine summary UX: ficha owner mobile/web deja de marcar vacunas `Al dia` solo por conteo y deriva el estado desde `next_due_on` como `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`; sin cambios DB/API.
 - Health vaccine sticker evidence: owner mobile puede cargar foto/PDF del sticker desde una vacuna; se guarda como documento existente tipo `vaccination_record`, se muestra como soporte asociado y ahora se puede visualizar con ojo/editar vigencia documental con calendario desde Salud, sin migracion ni cambio de contrato.
 - Pet document viewer: owner mobile permite abrir documentos de mascotas desde Docs con acciones compactas por icono. Las imagenes se previsualizan en modal interno y PDFs/otros formatos se abren con el visor del dispositivo usando URL firmada temporal del bucket privado; sin migracion ni bucket publico.

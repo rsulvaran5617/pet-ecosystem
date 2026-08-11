@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - Centro de ayuda publico
+
+- Web publica agrega `/ayuda` como Centro de ayuda / Manual de usuario para Pet Ecosystem.
+- El manual se organiza por roles: propietarios, proveedores, familias protectoras, adoptantes y admin/soporte.
+- Cada guia documenta objetivo, requisitos previos, pasos, resultado esperado, errores comunes y notas de privacidad.
+- Landing publica enlaza el manual desde navegacion principal y footer.
+- No se tocaron backend, Supabase, migraciones, RLS, pagos, reservas, adopcion, QR, evidencia ni reglas de negocio.
+- Documentacion nueva: `docs/ux/HELP_CENTER.md`.
+- Pendiente recomendado: agregar capturas reales QA y version PDF cuando los flujos queden congelados.
+
 # Handoff 2026-08-10 - FOSTER-DONATIONS-1 informacion publica de apoyo
 
 - Slice implementado localmente para informacion opcional de apoyo/donaciones en el perfil publico de Familias Protectoras.

@@ -47,6 +47,7 @@ const navItems = [
   { href: "#para-proveedores", label: "Clinica/servicios" },
   { href: "#para-protectores", label: "Para protectores" },
   { href: "#piloto", label: "Piloto" },
+  { href: "/ayuda", label: "Ayuda" },
   { href: "#contacto", label: "Contacto" }
 ];
 
@@ -1075,6 +1076,7 @@ export function ProductLandingScreen() {
             <a href="#para-duenos">Para dueños</a>
             <a href="#para-proveedores">Para proveedores</a>
             <a href="#para-protectores">Para protectores</a>
+            <a href="/ayuda">Centro de ayuda</a>
             <a href="/app">Consola</a>
           </div>
           <div>
@@ -1093,6 +1095,7 @@ export function ProductLandingScreen() {
             <h4>Contacto</h4>
             <span>hola@pet-ecosystem.com</span>
             <span>Panama</span>
+            <a href="/ayuda">Manual de usuario</a>
             <a href="/account-deletion">Eliminar cuenta</a>
           </div>
         </footer>
