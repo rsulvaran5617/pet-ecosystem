@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - Provider booking chat inline
+
+- Web provider simplifica `Reservas`: se retira la bandeja global de conversaciones del slice y el chat queda dentro del acordeon de cada reserva.
+- El proveedor abre `Ver detalle`, presiona `Chatear` y responde el hilo asociado exclusivamente a esa cita; se conservan APIs, Realtime/polling y reglas existentes de mensajeria.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile, pagos ni reglas de negocio.
+
 # Handoff 2026-08-11 - Admin button polish
 
 - Admin web ajusta los CTAs internos de colas (`Proveedores`, `Familias protectoras`, `Soporte`) para que usen ancho natural, altura compacta, fuente consistente y alineacion estable dentro de cards.

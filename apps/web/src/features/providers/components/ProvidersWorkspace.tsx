@@ -1798,7 +1798,6 @@ export function ProvidersWorkspace({
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
   const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
   const filteredProviderBookings = providerBookings.filter((booking) => booking.status === bookingStatusFilter);
-  const selectedOrganizationMessageThreads = providerMessageThreads.filter((thread) => thread.providerOrganizationId === selectedOrganizationId);
   const selectedOrganizationHasBookings = providerBookings.length > 0;
   const hasPublishedService = selectedServices.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
@@ -4056,6 +4055,9 @@ export function ProvidersWorkspace({
                           const expandedDetail =
                             isExpanded && selectedProviderBookingDetail?.booking.id === booking.id ? selectedProviderBookingDetail : null;
                           const bookingThread = providerMessageThreads.find((thread) => thread.bookingId === booking.id) ?? null;
+                          const isBookingChatOpen = Boolean(
+                            bookingThread && selectedProviderMessageThreadDetail?.thread.id === bookingThread.id
+                          );
                           const operationTimeline = providerBookingOperationsById[booking.id] ?? null;
                           const operationError = providerBookingOperationsErrorById[booking.id] ?? null;
                           const isLoadingOperations = loadingProviderBookingOperationId === booking.id;
@@ -4379,7 +4381,7 @@ export function ProvidersWorkspace({
                                       }}
                                       tone="secondary"
                                     >
-                                      Chatear
+                                      {isBookingChatOpen ? "Chat abierto" : "Chatear"}
                                     </ProviderActionButton>
                                     {booking.status === "pending_approval" ? (
                                       <>
@@ -4401,6 +4403,83 @@ export function ProvidersWorkspace({
                                       </Button>
                                     ) : null}
                                   </div>
+                                  {isBookingChatOpen && selectedProviderMessageThreadDetail ? (
+                                    <section
+                                      style={{
+                                        background: "rgba(255,255,255,0.78)",
+                                        border: "1px solid rgba(15, 118, 110, 0.16)",
+                                        borderRadius: "14px",
+                                        display: "grid",
+                                        gap: "10px",
+                                        padding: "10px"
+                                      }}
+                                    >
+                                      <div style={{ display: "grid", gap: "3px" }}>
+                                        <span style={{ color: "#0f766e", fontSize: "7px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                                          Conversacion de esta reserva
+                                        </span>
+                                        <strong style={{ color: "#101828", fontSize: "10px" }}>
+                                          {selectedProviderMessageThreadDetail.thread.customerDisplayName}
+                                        </strong>
+                                        <span style={{ color: "#57534e", fontSize: "8px" }}>
+                                          {selectedProviderMessageThreadDetail.thread.petName} - {selectedProviderMessageThreadDetail.thread.serviceName}
+                                        </span>
+                                      </div>
+                                      <div style={{ display: "grid", gap: "7px", maxHeight: "220px", overflowY: "auto", paddingRight: "2px" }}>
+                                        {selectedProviderMessageThreadDetail.messages.length ? (
+                                          selectedProviderMessageThreadDetail.messages.map((message) => (
+                                            <div
+                                              key={message.id}
+                                              style={{
+                                                justifySelf: message.senderRole === "provider" ? "end" : "start",
+                                                maxWidth: "82%",
+                                                background: message.senderRole === "provider" ? "rgba(15, 118, 110, 0.12)" : "rgba(247, 242, 231, 0.92)",
+                                                border: "1px solid rgba(28, 25, 23, 0.08)",
+                                                borderRadius: "12px",
+                                                display: "grid",
+                                                gap: "4px",
+                                                padding: "8px"
+                                              }}
+                                            >
+                                              <span style={{ color: "#0f766e", fontSize: "7px", fontWeight: 900, textTransform: "uppercase" }}>
+                                                {message.senderRole === "provider" ? "Proveedor" : message.senderDisplayName}
+                                              </span>
+                                              <span style={{ color: "#1c1917", fontSize: "9px", lineHeight: 1.35 }}>{message.messageText}</span>
+                                              <span style={{ color: "#78716c", fontSize: "7px" }}>{formatDateTime(message.createdAt)}</span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span style={{ color: "#57534e", fontSize: "9px" }}>
+                                            Aun no hay mensajes en esta reserva.
+                                          </span>
+                                        )}
+                                      </div>
+                                      <form
+                                        onSubmit={(event) => {
+                                          event.preventDefault();
+                                          void sendProviderMessage();
+                                        }}
+                                        style={{ display: "grid", gap: "8px" }}
+                                      >
+                                        <textarea
+                                          onChange={(event) => setProviderMessageDraft(event.target.value)}
+                                          placeholder="Responder al propietario..."
+                                          style={{
+                                            ...controlStyle,
+                                            fontSize: "9px",
+                                            minHeight: "58px",
+                                            resize: "vertical"
+                                          }}
+                                          value={providerMessageDraft}
+                                        />
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                          <ProviderActionButton disabled={isSubmitting || !providerMessageDraft.trim()} type="submit">
+                                            Enviar respuesta
+                                          </ProviderActionButton>
+                                        </div>
+                                      </form>
+                                    </section>
+                                  ) : null}
                                 </div>
                               ) : null}
                             </article>
@@ -4433,153 +4512,6 @@ export function ProvidersWorkspace({
                   </>
                 ) : (
                   <p style={{ margin: 0, color: "#57534e" }}>Selecciona primero una organizacion.</p>
-                )}
-              </article>
-
-              <article
-                style={{
-                  background: "rgba(247, 242, 231, 0.72)",
-                  borderRadius: "22px",
-                  display: activeProviderSectionId === "provider-web-bookings" ? "grid" : "none",
-                  gap: "12px",
-                  padding: "20px"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
-                  <div style={{ display: "grid", gap: "4px" }}>
-                    <h3 style={{ margin: 0, fontSize: "15px" }}>Conversaciones de reservas</h3>
-                    <span style={{ color: "#57534e", fontSize: "10px" }}>Chats vinculados a reservas del negocio activo.</span>
-                  </div>
-                  <span
-                    style={{
-                      background: "rgba(255, 255, 255, 0.72)",
-                      border: "1px solid rgba(28, 25, 23, 0.12)",
-                      borderRadius: "999px",
-                      color: "#44403c",
-                      fontSize: "8px",
-                      fontWeight: 900,
-                      letterSpacing: "0.06em",
-                      padding: "5px 9px",
-                      textTransform: "uppercase"
-                    }}
-                  >
-                    {selectedOrganizationMessageThreads.length} vinculada(s)
-                  </span>
-                </div>
-                {selectedOrganization ? (
-                  selectedOrganizationMessageThreads.length ? (
-                    <div style={{ display: "grid", gap: "12px", gridTemplateColumns: "minmax(220px, 0.82fr) minmax(0, 1.18fr)" }}>
-                      <div style={{ display: "grid", gap: "8px", alignContent: "start" }}>
-                        {selectedOrganizationMessageThreads.map((thread) => {
-                          const isSelected = selectedProviderMessageThreadDetail?.thread.id === thread.id;
-
-                          return (
-                            <button
-                              key={thread.id}
-                              onClick={() => void openProviderMessageThread(thread.id)}
-                              style={{
-                                background: isSelected ? "rgba(15, 118, 110, 0.1)" : "rgba(255,255,255,0.72)",
-                                border: isSelected ? "1px solid rgba(15, 118, 110, 0.22)" : "1px solid rgba(28, 25, 23, 0.08)",
-                                borderRadius: "14px",
-                                color: "#1c1917",
-                                cursor: "pointer",
-                                display: "grid",
-                                gap: "5px",
-                                padding: "10px",
-                                textAlign: "left"
-                              }}
-                              type="button"
-                            >
-                              <strong style={{ fontSize: "9px", lineHeight: 1.2 }}>{thread.customerDisplayName}</strong>
-                              <span style={{ color: "#57534e", fontSize: "8px" }}>
-                                {thread.petName} - {thread.serviceName}
-                              </span>
-                              <span style={{ color: "#0f766e", fontSize: "8px", fontWeight: 800 }}>
-                                {thread.lastMessagePreview ?? "Sin mensajes todavia"}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div
-                        style={{
-                          background: "rgba(255,255,255,0.78)",
-                          border: "1px solid rgba(28, 25, 23, 0.08)",
-                          borderRadius: "16px",
-                          display: "grid",
-                          gap: "10px",
-                          padding: "12px"
-                        }}
-                      >
-                        {selectedProviderMessageThreadDetail ? (
-                          <>
-                            <div style={{ display: "grid", gap: "3px" }}>
-                              <strong style={{ color: "#101828", fontSize: "10px" }}>
-                                {selectedProviderMessageThreadDetail.thread.customerDisplayName}
-                              </strong>
-                              <span style={{ color: "#57534e", fontSize: "8px" }}>
-                                {selectedProviderMessageThreadDetail.thread.petName} - {selectedProviderMessageThreadDetail.thread.serviceName}
-                              </span>
-                            </div>
-                            <div style={{ display: "grid", gap: "7px", maxHeight: "240px", overflowY: "auto", paddingRight: "2px" }}>
-                              {selectedProviderMessageThreadDetail.messages.map((message) => (
-                                <div
-                                  key={message.id}
-                                  style={{
-                                    justifySelf: message.senderRole === "provider" ? "end" : "start",
-                                    maxWidth: "82%",
-                                    background: message.senderRole === "provider" ? "rgba(15, 118, 110, 0.12)" : "rgba(247, 242, 231, 0.92)",
-                                    border: "1px solid rgba(28, 25, 23, 0.08)",
-                                    borderRadius: "12px",
-                                    display: "grid",
-                                    gap: "4px",
-                                    padding: "8px"
-                                  }}
-                                >
-                                  <span style={{ color: "#0f766e", fontSize: "7px", fontWeight: 900, textTransform: "uppercase" }}>
-                                    {message.senderRole === "provider" ? "Proveedor" : message.senderDisplayName}
-                                  </span>
-                                  <span style={{ color: "#1c1917", fontSize: "9px", lineHeight: 1.35 }}>{message.messageText}</span>
-                                  <span style={{ color: "#78716c", fontSize: "7px" }}>{formatDateTime(message.createdAt)}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <form
-                              onSubmit={(event) => {
-                                event.preventDefault();
-                                void sendProviderMessage();
-                              }}
-                              style={{ display: "grid", gap: "8px" }}
-                            >
-                              <textarea
-                                onChange={(event) => setProviderMessageDraft(event.target.value)}
-                                placeholder="Responder al propietario..."
-                                style={{
-                                  ...controlStyle,
-                                  minHeight: "62px",
-                                  resize: "vertical"
-                                }}
-                                value={providerMessageDraft}
-                              />
-                              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                                <ProviderActionButton disabled={isSubmitting || !providerMessageDraft.trim()} type="submit">
-                                  Enviar respuesta
-                                </ProviderActionButton>
-                              </div>
-                            </form>
-                          </>
-                        ) : (
-                          <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona una conversacion para ver el hilo y responder.</p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>
-                      No hay conversaciones vinculadas para este negocio.
-                    </p>
-                  )
-                ) : (
-                  <p style={{ margin: 0, color: "#57534e", fontSize: "10px" }}>Selecciona primero una organizacion.</p>
                 )}
               </article>
 

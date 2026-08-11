@@ -205,7 +205,7 @@ const guideGroups: GuideGroup[] = [
           "El filtro inicia en Citas pendientes por aprobar.",
           "Cambia entre Confirmadas, Completadas o Canceladas si necesitas revisar otro estado.",
           "Usa Ver detalle para revisar contexto y acciones.",
-          "Usa Chatear o la seccion Conversaciones activas para solicitar informacion o explicar una decision."
+          "Usa Chatear dentro del detalle de la reserva para solicitar informacion o explicar una decision."
         ],
         expected: "El proveedor puede responder solicitudes y mantener trazabilidad de la comunicacion.",
         commonErrors: ["Reserva no pertenece al negocio activo.", "No hay conversacion creada aun.", "Conexion Realtime intermitente."],

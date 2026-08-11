@@ -117,6 +117,7 @@ Modelo recomendado CAP-0:
 - la operacion provider-side del MVP se limita a recibir, aprobar, rechazar y completar reservas
 - V2 provider operations extiende la consola para ejecutar el servicio entre `confirmed` y `completed`
 - la consola de reservas del proveedor inicia por defecto en `pending_approval` y permite filtrar la lista por `pending_approval`, `confirmed`, `completed` y `cancelled` desde los contadores visibles; el detalle operativo se despliega como acordeon bajo la reserva seleccionada, sin cambiar reglas ni mutaciones de booking
+- las conversaciones provider web se muestran solo dentro del acordeon de la reserva correspondiente; el proveedor abre `Ver detalle`, presiona `Chatear` y responde en el hilo asociado a esa cita, evitando una bandeja global dentro del slice de reservas
 - las cajas de publicacion (`Negocio`, `Servicios`, `Horarios`, `Documentos`) son accesos directos al area que resuelve cada pendiente; `Documentos` abre el expediente maestro dentro de la edicion del negocio, porque son datos de aprobacion del negocio y no operativa diaria
 - el panel de Inicio del proveedor puede mostrar un carrusel compacto de negocios para cambiar el negocio activo sin entrar a la lista vertical de `Negocio`
 - la consola web del proveedor vive en `apps/web`, no en `apps/admin`; usa los mismos contratos provider existentes y agrega shell/navegacion operativa para pantallas amplias sin crear reglas nuevas
