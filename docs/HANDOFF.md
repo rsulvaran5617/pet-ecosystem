@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-0
+
+- Se crea `docs/ux/PROFESSIONAL_WEBSITE_SKIN.md` como guia documental para el nuevo skin profesional web.
+- El alcance queda limitado a criterios visuales, tokens propuestos, estilo por rol, riesgos, criterios de aceptacion y checklist QA responsive.
+- `docs/ux/VISUAL_STYLE_GUIDE.md` queda enlazado con la nueva fase `VISUAL-BRAND-2` y mantiene el canon visual existente.
+- No se tocaron codigo funcional, backend, Supabase, migraciones, RLS, contratos API, pagos, mobile ni reglas de negocio.
+- Siguiente paso recomendado: aprobar `SKIN-0` y ejecutar `SKIN-1` sobre landing publica.
+
 # Handoff 2026-08-11 - Centro de ayuda publico
 
 - Web publica agrega `/ayuda` como Centro de ayuda / Manual de usuario para Pet Ecosystem.

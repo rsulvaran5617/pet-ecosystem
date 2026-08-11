@@ -6,6 +6,19 @@ Fase: `visual_alignment_reference_canon`
 
 Esta guia deriva el sistema visual minimo desde las referencias en `docs/ux/reference/`. Las imagenes son canon visual para esta fase. La implementacion debe preservar la funcionalidad existente y no cambiar backend, Supabase, RLS, RPCs, pagos, permisos ni reglas de negocio.
 
+## Evolucion VISUAL-BRAND-2
+
+La fase `VISUAL-BRAND-2: Professional Website Skin` se documenta en `docs/ux/PROFESSIONAL_WEBSITE_SKIN.md`.
+
+`VISUAL_STYLE_GUIDE.md` conserva el canon visual base y tokens existentes. `PROFESSIONAL_WEBSITE_SKIN.md` define la direccion profesional para evolucionar landing, centro de ayuda, owner web, provider web, foster web y admin web por slices controlados.
+
+Regla de aplicacion:
+
+- `SKIN-0` es solo documental.
+- Los slices `SKIN-1` a `SKIN-7` deben implementar cambios visuales graduales.
+- No se deben mezclar cambios visuales con backend, Supabase, migraciones, RLS, pagos, mobile ni reglas de negocio.
+- El contenido admin/soporte permanece fuera del centro de ayuda publico y dentro del backoffice admin.
+
 ## Referencias canon
 
 - `owner-home-reference.png`
