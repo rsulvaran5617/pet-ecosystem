@@ -178,16 +178,18 @@ const ownerWebSections: Array<{ id: OwnerWebSectionId; label: string; detail: st
 ];
 
 const fieldLabelStyle = {
-  fontSize: "12px",
+  fontSize: "10px",
+  fontWeight: 800,
+  letterSpacing: "0.08em",
   textTransform: "uppercase" as const,
   color: "#78716c"
 };
 
 const controlStyle = {
-  borderRadius: "14px",
+  borderRadius: "12px",
   border: "1px solid rgba(28, 25, 23, 0.14)",
-  padding: "12px 14px",
-  fontSize: "15px",
+  padding: "10px 12px",
+  fontSize: "13px",
   background: "#fffdf8"
 };
 
@@ -280,17 +282,17 @@ function OwnerWebShell({
       style={{
         background: "linear-gradient(180deg, #fbfaf7 0%, #f7f2e7 100%)",
         border: "1px solid rgba(15, 118, 110, 0.1)",
-        borderRadius: "28px",
+        borderRadius: "24px",
         display: "grid",
-        gap: "18px",
-        gridTemplateColumns: "minmax(190px, 230px) minmax(0, 1fr)",
-        padding: "16px"
+        gap: "16px",
+        gridTemplateColumns: "minmax(164px, 196px) minmax(0, 1fr)",
+        padding: "14px"
       }}
     >
       <style>
         {`
           .owner-web-shell {
-            grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+            grid-template-columns: minmax(164px, 196px) minmax(0, 1fr);
           }
 
           .owner-web-sidebar {
@@ -300,6 +302,34 @@ function OwnerWebShell({
 
           .owner-web-nav {
             grid-template-columns: 1fr;
+          }
+
+          .owner-web-nav-button:focus-visible {
+            outline: 2px solid rgba(45, 212, 191, 0.72);
+            outline-offset: 2px;
+          }
+
+          .owner-web-main {
+            min-width: 0;
+            overflow: hidden;
+          }
+
+          .owner-web-dashboard-metrics {
+            grid-template-columns: repeat(6, minmax(104px, 1fr));
+          }
+
+          .owner-web-dashboard-grid {
+            grid-template-columns: minmax(0, 1.16fr) minmax(260px, 0.84fr);
+          }
+
+          @media (max-width: 1180px) {
+            .owner-web-dashboard-metrics {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+
+            .owner-web-dashboard-grid {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
           }
 
           @media (max-width: 980px) {
@@ -314,20 +344,30 @@ function OwnerWebShell({
             .owner-web-nav {
               display: grid !important;
               grid-auto-flow: column;
-              grid-auto-columns: minmax(130px, 1fr);
+              grid-auto-columns: minmax(124px, 1fr);
               overflow-x: auto;
               padding-bottom: 4px;
             }
           }
 
+          @media (max-width: 720px) {
+            .owner-web-dashboard-metrics {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+          }
+
           @media (max-width: 560px) {
             .owner-web-shell {
-              border-radius: 20px !important;
-              padding: 10px !important;
+              border-radius: 18px !important;
+              padding: 8px !important;
             }
 
             .owner-web-nav {
-              grid-auto-columns: minmax(112px, 1fr);
+              grid-auto-columns: minmax(108px, 1fr);
+            }
+
+            .owner-web-dashboard-metrics {
+              grid-template-columns: minmax(0, 1fr) !important;
             }
           }
         `}
@@ -337,11 +377,11 @@ function OwnerWebShell({
         style={{
           alignSelf: "start",
           background: "linear-gradient(180deg, #101828 0%, #172033 100%)",
-          borderRadius: "22px",
+          borderRadius: "20px",
           boxShadow: "0 18px 40px rgba(15, 23, 42, 0.16)",
           display: "grid",
-          gap: "16px",
-          padding: "16px"
+          gap: "14px",
+          padding: "14px"
         }}
       >
         <div style={{ alignItems: "center", display: "flex", gap: "10px", minWidth: 0 }}>
@@ -354,36 +394,38 @@ function OwnerWebShell({
               color: "#0f766e",
               display: "inline-flex",
               flexShrink: 0,
-              height: "42px",
+              height: "38px",
               justifyContent: "center",
               overflow: "hidden",
-              width: "42px"
+              width: "38px"
             }}
           >
-            <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "34px", objectFit: "contain", width: "34px" }} />
+            <img alt="" src="/brand/pet-ecosystem-logo-mark.png" style={{ height: "30px", objectFit: "contain", width: "30px" }} />
           </span>
           <div style={{ display: "grid", gap: "2px", minWidth: 0 }}>
-            <strong style={{ color: "#f8fafc", fontSize: "14px", lineHeight: 1.15 }}>Pet Ecosystem</strong>
-            <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "11px" }}>{ownerName}</span>
+            <strong style={{ color: "#f8fafc", fontSize: "13px", lineHeight: 1.15 }}>Pet Ecosystem</strong>
+            <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "10px", lineHeight: 1.2 }}>{ownerName}</span>
           </div>
         </div>
-        <nav aria-label="Secciones owner web" className="owner-web-nav" style={{ display: "grid", gap: "8px" }}>
+        <nav aria-label="Secciones owner web" className="owner-web-nav" style={{ display: "grid", gap: "7px" }}>
           {ownerWebSections.map((section) => (
             <button
+              className="owner-web-nav-button"
               key={section.id}
               onClick={() => {
                 setActiveSectionId(section.id);
               }}
               style={{
                 background: section.id === activeSectionId ? "rgba(20, 184, 166, 0.18)" : "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "14px",
+                border: section.id === activeSectionId ? "1px solid rgba(45, 212, 191, 0.42)" : "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "12px",
+                boxShadow: section.id === activeSectionId ? "inset 3px 0 0 rgba(45, 212, 191, 0.85)" : "none",
                 color: "#f8fafc",
                 cursor: "pointer",
                 display: "grid",
                 gap: "3px",
-                gridTemplateColumns: "22px minmax(0, 1fr)",
-                padding: "10px 11px",
+                gridTemplateColumns: "20px minmax(0, 1fr)",
+                padding: "9px 10px",
                 textAlign: "left"
               }}
               type="button"
@@ -392,23 +434,23 @@ function OwnerWebShell({
                 <OwnerWebIcon name={section.icon} size={16} />
               </span>
               <span style={{ display: "grid", gap: "3px" }}>
-                <strong style={{ color: section.id === activeSectionId ? "#99f6e4" : "#f8fafc", fontSize: "12px" }}>
+                <strong style={{ color: section.id === activeSectionId ? "#99f6e4" : "#f8fafc", fontSize: "11px" }}>
                   {section.label}
                 </strong>
-                <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "10px", lineHeight: 1.25 }}>{section.detail}</span>
+                <span style={{ color: "rgba(248,250,252,0.64)", fontSize: "9.5px", lineHeight: 1.25 }}>{section.detail}</span>
               </span>
             </button>
           ))}
         </nav>
       </aside>
-      <div style={{ display: "grid", gap: "18px", minWidth: 0 }}>{children(activeSectionId, setActiveSectionId)}</div>
+      <div className="owner-web-main" style={{ display: "grid", gap: "16px", minWidth: 0 }}>{children(activeSectionId, setActiveSectionId)}</div>
     </div>
   );
 }
 
 function OwnerWebSection({ children, id }: { children: ReactNode; id: OwnerWebSectionId }) {
   return (
-    <section id={id} style={{ display: "grid", gap: "18px", scrollMarginTop: "18px" }}>
+    <section id={id} style={{ display: "grid", gap: "14px", scrollMarginTop: "18px" }}>
       {children}
     </section>
   );
@@ -478,11 +520,11 @@ function OwnerDashboardCard({ children }: { children: ReactNode }) {
       style={{
         background: "#ffffff",
         border: "1px solid rgba(15, 23, 42, 0.08)",
-        borderRadius: "16px",
-        boxShadow: "0 12px 28px rgba(15, 23, 42, 0.06)",
+        borderRadius: "14px",
+        boxShadow: "0 10px 24px rgba(15, 23, 42, 0.055)",
         display: "grid",
-        gap: "12px",
-        padding: "14px"
+        gap: "11px",
+        padding: "13px"
       }}
     >
       {children}
@@ -517,19 +559,19 @@ function OwnerDashboardMetric({
           style={{
             alignItems: "center",
             background: palette.background,
-            borderRadius: "12px",
+            borderRadius: "11px",
             color: palette.color,
             display: "inline-flex",
-            height: "34px",
+            height: "32px",
             justifyContent: "center",
-            width: "34px"
+            width: "32px"
           }}
         >
           <OwnerWebIcon name={icon} size={17} />
         </span>
-        <strong style={{ color: "#344054", fontSize: "11px" }}>{label}</strong>
+        <strong style={{ color: "#344054", fontSize: "10.5px" }}>{label}</strong>
       </div>
-      <strong style={{ color: "#0b163f", fontSize: "22px", lineHeight: 1 }}>{value}</strong>
+      <strong style={{ color: "#0b163f", fontSize: "20px", lineHeight: 1 }}>{value}</strong>
       <span style={{ color: "#667085", fontSize: "11px" }}>{note}</span>
     </OwnerDashboardCard>
   );
@@ -680,7 +722,7 @@ function OwnerDashboard({
             <span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase" }}>
               Panel owner
             </span>
-            <h2 style={{ color: "#0b163f", fontSize: "24px", lineHeight: 1.08, margin: 0 }}>Hola, {ownerName}</h2>
+            <h2 style={{ color: "#0b163f", fontSize: "21px", lineHeight: 1.08, margin: 0 }}>Hola, {ownerName}</h2>
             <span style={{ color: "#667085", fontSize: "13px" }}>
               Gestiona mascotas, salud, reservas, documentos y mensajes desde una vista consolidada.
             </span>
@@ -693,7 +735,7 @@ function OwnerDashboard({
         </div>
       </OwnerDashboardCard>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(118px, 1fr))", gap: "10px" }}>
+      <div className="owner-web-dashboard-metrics" style={{ display: "grid", gridTemplateColumns: "repeat(6, minmax(104px, 1fr))", gap: "10px" }}>
         <OwnerDashboardMetric icon="paw" label="Mascotas" note="registradas activas" value={activePets.length} />
         <OwnerDashboardMetric
           icon="calendar"
@@ -708,7 +750,7 @@ function OwnerDashboard({
         <OwnerDashboardMetric icon="chat" label="Mensajes" note="hilos con actividad" tone="rose" value={dashboardData.threads.filter((thread) => thread.lastMessageAt).length} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.9fr", gap: "14px" }}>
+      <div className="owner-web-dashboard-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.16fr) minmax(260px, 0.84fr)", gap: "14px" }}>
         <OwnerDashboardCard>
           <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", gap: "12px" }}>
             <div style={{ display: "grid", gap: "3px" }}>

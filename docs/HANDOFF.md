@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-3
+
+- Web owner (`/app` con rol propietario) aplica la base visual SKIN-3: sidebar mas angosta, item activo real con marca teal, cards/metrica compactas y contenedor responsive para evitar solapes.
+- Se mantiene la regla de mostrar solo el slice seleccionado: Panel, Hogar, Mascotas, Salud, Agenda, Buscar, Reservas, Mensajes o Cuenta.
+- El cambio es visual y de presentacion: no toca backend, Supabase, migraciones, RLS, contratos API, pagos, provider, foster, admin ni mobile.
+- Pendiente recomendado: continuar SKIN-4 sobre provider web o refinar visualmente cada workspace owner interno por prioridad.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-2
 
 - Web publica `/ayuda` aplica el skin profesional del centro de ayuda: hero ejecutivo, metricas del manual, cards por rol, sidebar de exploracion y guias mas escaneables.
