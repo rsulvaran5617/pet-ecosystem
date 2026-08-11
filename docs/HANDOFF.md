@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-6
+
+- Admin web (`admin.petecosyst.com`) aplica la base visual SKIN-6 en el shell principal: header mas operativo, sidebar azul noche compacta, item activo con marca teal, botones/cards mas densos y layout responsive para tablet/mobile.
+- Se conserva el alcance del backoffice: Inicio, Proveedores, Familias protectoras, Soporte y Manual admin protegido dentro del admin.
+- El cambio es visual y de presentacion: no toca backend, Supabase, migraciones, RLS, contratos API, pagos, owner, provider, foster publico ni mobile.
+- Pendiente recomendado: QA visual de admin en 1440/1280/768/390 px y, si se aprueba, un pase posterior por cada cola interna para densidad de tablas/detalles.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-5
 
 - Web Foster (`/foster`) aplica la base visual SKIN-5: hero mas sobrio, sidebar mas compacta, item activo con marca teal, paneles/cards mas ligeros, metricas reducidas, formularios y botones mas finos y reglas responsive para tablet/mobile.

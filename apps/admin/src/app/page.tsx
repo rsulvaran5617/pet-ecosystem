@@ -23,29 +23,29 @@ const adminSections: Array<{ description: string; id: AdminSection; label: strin
 
 const shellStyle = {
   minHeight: "100vh",
-  padding: "24px 32px",
+  padding: "24px",
   display: "grid",
-  gap: "24px",
+  gap: "18px",
   width: "100%",
-  background: visualTokens.web.shellBackground
+  background: "linear-gradient(180deg, #f8fafc 0%, #eef4f2 100%)"
 } as const;
 
 const cardStyle = {
-  borderRadius: "18px",
-  border: "1px solid rgba(24,24,27,0.12)",
-  background: "#ffffff",
-  padding: "24px",
+  borderRadius: "16px",
+  border: "1px solid rgba(15,23,42,0.1)",
+  background: "rgba(255,255,255,0.94)",
+  padding: "18px",
   display: "grid",
-  gap: "14px",
-  boxShadow: visualTokens.web.cardShadow
+  gap: "12px",
+  boxShadow: "0 10px 28px rgba(15,23,42,0.06)"
 } as const;
 
 const inputStyle = {
-  borderRadius: "14px",
+  borderRadius: "12px",
   border: "1px solid rgba(24,24,27,0.14)",
   background: "#ffffff",
-  padding: "12px 14px",
-  fontSize: "15px"
+  padding: "10px 12px",
+  fontSize: "13px"
 } as const;
 
 function Button({
@@ -71,8 +71,9 @@ function Button({
         border: tone === "primary" ? "none" : "1px solid rgba(24,24,27,0.14)",
         background: tone === "primary" ? colorTokens.adminAccent : "rgba(255,255,255,0.92)",
         color: tone === "primary" ? "#f8fafc" : colorTokens.adminAccent,
-        padding: "12px 18px",
-        fontWeight: 700,
+        padding: "9px 13px",
+        fontSize: "12px",
+        fontWeight: 800,
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
       }}
@@ -120,11 +121,69 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <main style={shellStyle}>
+    <main className="admin-web-shell" style={shellStyle}>
+      <style>
+        {`
+          .admin-web-shell,
+          .admin-web-layout,
+          .admin-web-content {
+            min-width: 0;
+          }
+
+          .admin-web-nav-button:focus-visible {
+            outline: 2px solid rgba(45, 212, 191, 0.72);
+            outline-offset: 2px;
+          }
+
+          @media (max-width: 1020px) {
+            .admin-web-layout {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .admin-web-sidebar {
+              min-height: 0 !important;
+              position: static !important;
+            }
+
+            .admin-web-nav {
+              display: grid !important;
+              grid-auto-flow: column;
+              grid-auto-columns: minmax(150px, 1fr);
+              overflow-x: auto;
+              padding-bottom: 4px;
+            }
+          }
+
+          @media (max-width: 720px) {
+            .admin-web-shell {
+              padding: 14px !important;
+            }
+
+            .admin-web-header {
+              padding: 18px !important;
+            }
+
+            .admin-web-home-grid {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+          }
+
+          @media (max-width: 520px) {
+            .admin-web-shell {
+              padding: 10px !important;
+            }
+
+            .admin-web-nav {
+              grid-auto-columns: minmax(132px, 1fr);
+            }
+          }
+        `}
+      </style>
       <header
+        className="admin-web-header"
         style={{
-          borderRadius: "18px",
-          padding: "28px 32px",
+          borderRadius: "16px",
+          padding: "22px",
           background: "#ffffff",
           border: "1px solid rgba(15,23,42,0.08)",
           boxShadow: visualTokens.web.softShadow,
@@ -137,8 +196,11 @@ export default function AdminPage() {
         }}
       >
         <div style={{ display: "grid", gap: "6px" }}>
-          <h1 style={{ margin: 0, fontSize: "30px", lineHeight: 1.12 }}>Centro de operaciones</h1>
-          <p style={{ margin: 0, maxWidth: "760px", lineHeight: 1.55, color: colorTokens.muted }}>
+          <span style={{ color: colorTokens.adminAccent, fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            Backoffice Pet Ecosystem
+          </span>
+          <h1 style={{ margin: 0, fontSize: "24px", lineHeight: 1.12 }}>Centro de operaciones</h1>
+          <p style={{ margin: 0, maxWidth: "760px", lineHeight: 1.5, color: colorTokens.muted, fontSize: "13px" }}>
             Resumen y gestion operativa de aprobaciones de proveedores y casos de soporte MVP.
           </p>
         </div>
@@ -149,10 +211,11 @@ export default function AdminPage() {
                 key={role.id}
                 style={{
                   borderRadius: "999px",
-                  padding: "8px 12px",
+                  padding: "7px 10px",
                   background: role.role === "admin" ? colorTokens.blueSoft : "rgba(95,102,117,0.08)",
                   color: role.role === "admin" ? colorTokens.admin : colorTokens.mutedStrong,
-                  fontWeight: 700
+                  fontSize: "11px",
+                  fontWeight: 800
                 }}
               >
                 {`${coreRoleLabels[role.role]}${role.isActive ? " activo" : ""}`}
@@ -261,11 +324,11 @@ export default function AdminPage() {
 
       {authChecked && snapshot && isAdmin ? (
         <>
-          <section style={{ ...cardStyle, marginBottom: "20px", padding: "18px 20px" }}>
+          <section style={{ ...cardStyle, padding: "14px 16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
               <div style={{ display: "grid", gap: "4px" }}>
-                <strong>{snapshot.profile.email}</strong>
-                <span style={{ color: "#52525b" }}>
+                <strong style={{ fontSize: "13px" }}>{snapshot.profile.email}</strong>
+                <span style={{ color: "#52525b", fontSize: "12px" }}>
                   {snapshot.profile.firstName} {snapshot.profile.lastName}
                 </span>
               </div>
@@ -308,32 +371,51 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
-          <div style={{ display: "grid", gridTemplateColumns: "240px minmax(0,1fr)", gap: "24px", alignItems: "start" }}>
-            <aside style={{ borderRadius: "18px", background: colorTokens.admin, color: "#f8fafc", position: "sticky", top: "24px", padding: "18px", display: "grid", gap: "22px", minHeight: "calc(100vh - 48px)", boxShadow: "0 24px 60px rgba(2,6,23,0.22)" }}>
-              <strong style={{ color: "#f8fafc", fontSize: "22px", lineHeight: 1.05 }}>Pet<br />Ecosystem</strong>
-              <nav style={{ display: "grid", gap: "8px" }}>
+          <div className="admin-web-layout" style={{ display: "grid", gridTemplateColumns: "210px minmax(0,1fr)", gap: "18px", alignItems: "start" }}>
+            <aside
+              className="admin-web-sidebar"
+              style={{
+                borderRadius: "18px",
+                background: "linear-gradient(180deg, #06264b 0%, #0f172a 100%)",
+                color: "#f8fafc",
+                position: "sticky",
+                top: "18px",
+                padding: "14px",
+                display: "grid",
+                gap: "16px",
+                minHeight: "calc(100vh - 48px)",
+                boxShadow: "0 22px 54px rgba(2,6,23,0.22)"
+              }}
+            >
+              <div style={{ display: "grid", gap: "4px" }}>
+                <strong style={{ color: "#f8fafc", fontSize: "17px", lineHeight: 1.05 }}>Pet Ecosystem</strong>
+                <span style={{ color: "rgba(248,250,252,0.66)", fontSize: "10px" }}>Backoffice admin</span>
+              </div>
+              <nav className="admin-web-nav" style={{ display: "grid", gap: "7px" }}>
                 {adminSections.map((section) => {
                   const isActive = activeSection === section.id;
 
                   return (
                     <button
+                      className="admin-web-nav-button"
                       key={section.id}
                       onClick={() => setActiveSection(section.id)}
                       type="button"
                       style={{
                         borderRadius: "12px",
-                        border: "1px solid transparent",
-                        background: isActive ? "linear-gradient(135deg,#00978f,#007f8a)" : "transparent",
-                        color: isActive ? "#f8fafc" : "#18181b",
+                        border: isActive ? "1px solid rgba(45,212,191,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                        background: isActive ? "rgba(20,184,166,0.2)" : "rgba(255,255,255,0.04)",
+                        boxShadow: isActive ? "inset 3px 0 0 rgba(45,212,191,0.85)" : "none",
+                        color: "#f8fafc",
                         cursor: "pointer",
                         display: "grid",
-                        gap: "4px",
-                        padding: "12px",
+                        gap: "3px",
+                        padding: "9px 10px",
                         textAlign: "left"
                       }}
                     >
-                      <strong style={{ color: "#f8fafc" }}>{section.label}</strong>
-                      <span style={{ color: isActive ? "rgba(248,250,252,0.78)" : "rgba(248,250,252,0.7)", fontSize: "13px", lineHeight: 1.4 }}>
+                      <strong style={{ color: isActive ? "#99f6e4" : "#f8fafc", fontSize: "11px" }}>{section.label}</strong>
+                      <span style={{ color: "rgba(248,250,252,0.68)", fontSize: "9.5px", lineHeight: 1.3 }}>
                         {section.description}
                       </span>
                     </button>
@@ -342,19 +424,19 @@ export default function AdminPage() {
               </nav>
             </aside>
 
-            <div style={{ display: "grid", gap: "20px", minWidth: 0 }}>
+            <div className="admin-web-content" style={{ display: "grid", gap: "16px", minWidth: 0 }}>
               {activeSection === "inicio" ? (
                 <>
-                  <section style={{ ...cardStyle, background: "#111827", color: "#f8fafc" }}>
-                    <p style={{ margin: 0, color: "#93c5fd", fontSize: "12px", fontWeight: 700, textTransform: "uppercase" }}>
+                  <section style={{ ...cardStyle, background: "#111827", color: "#f8fafc", borderRadius: "18px" }}>
+                    <p style={{ margin: 0, color: "#5eead4", fontSize: "10px", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                       Home admin
                     </p>
-                    <h2 style={{ margin: 0, fontSize: "32px", lineHeight: 1.15 }}>Colas de decision</h2>
-                    <p style={{ margin: 0, color: "rgba(248,250,252,0.78)", lineHeight: 1.7 }}>
+                    <h2 style={{ margin: 0, fontSize: "24px", lineHeight: 1.15 }}>Colas de decision</h2>
+                    <p style={{ margin: 0, color: "rgba(248,250,252,0.78)", fontSize: "13px", lineHeight: 1.55 }}>
                       Empieza por proveedores pendientes y soporte abierto. Esta vista no agrega analitica nueva: solo ordena las decisiones MVP existentes.
                     </p>
                   </section>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: "20px" }}>
+                  <div className="admin-web-home-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "14px" }}>
                     <AdminProvidersWorkspace onOpenQueue={() => setActiveSection("proveedores")} variant="home" />
                     <AdminFosterWorkspace onOpenQueue={() => setActiveSection("protectora")} variant="home" />
                     <AdminSupportWorkspace onOpenQueue={() => setActiveSection("soporte")} variant="home" />
