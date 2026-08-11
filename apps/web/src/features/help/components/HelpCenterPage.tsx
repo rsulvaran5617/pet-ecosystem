@@ -370,62 +370,6 @@ const guideGroups: GuideGroup[] = [
         privacy: "La transferencia debe conservar trazabilidad y consentimiento explicito."
       }
     ]
-  },
-  {
-    id: "admin",
-    role: "Administracion y soporte",
-    description: "Backoffice para aprobaciones, moderacion, soporte y trazabilidad operativa.",
-    status: "pilot",
-    guides: [
-      {
-        title: "Aprobar proveedores",
-        platform: "Admin web",
-        status: "available",
-        objective: "Revisar negocios, documentos y readiness antes de habilitar marketplace.",
-        before: ["Usa una cuenta admin.", "No modifiques reglas de negocio desde soporte manual."],
-        steps: [
-          "Abre admin web.",
-          "Revisa proveedor, documentos, servicios, agenda, perfil y visibilidad.",
-          "Aprueba, rechaza o solicita correccion segun checklist.",
-          "Documenta hallazgos relevantes para soporte."
-        ],
-        expected: "Solo proveedores aprobados y completos quedan visibles para owners.",
-        commonErrors: ["Aprobar sin documentos.", "Confundir perfil publico con datos maestros.", "No revisar agenda/cupos."],
-        privacy: "Documentos sensibles deben verse con URLs temporales y proposito justificado."
-      },
-      {
-        title: "Moderar familias protectoras",
-        platform: "Admin web",
-        status: "pilot",
-        objective: "Validar perfiles publicos, publicaciones de adopcion, fotos y solicitudes sensibles.",
-        before: ["La adopcion no es venta.", "La direccion exacta no debe publicarse."],
-        steps: [
-          "Revisa solicitud de familia protectora.",
-          "Valida perfil publico, logo, redes y bloque de apoyo si existe.",
-          "Modera publicaciones y fotos reportadas.",
-          "Observa solicitudes y transferencias solo cuando el soporte lo requiera."
-        ],
-        expected: "El entorno de adopcion mantiene confianza, privacidad y trazabilidad.",
-        commonErrors: ["Aprobar texto fiscal absoluto.", "Permitir venta encubierta.", "Exponer datos de contacto privado."],
-        privacy: "Admin no debe operar documentos medicos por defecto salvo soporte/moderacion justificada."
-      },
-      {
-        title: "Soporte operativo",
-        platform: "Admin web",
-        status: "pilot",
-        objective: "Ayudar sin romper trazabilidad de reservas, chats, adopciones o cuenta.",
-        before: ["No borres datos transaccionales sin criterio.", "No prometas eliminacion total inmediata."],
-        steps: [
-          "Identifica rol, correo y modulo afectado.",
-          "Revisa estado de cuenta, reserva, chat, proveedor o familia protectora.",
-          "Escala si el caso toca documentos sensibles, adopcion o baja de cuenta.",
-          "Registra decisiones y evita cambios fuera del flujo aprobado."
-        ],
-        expected: "El soporte resuelve dudas del piloto manteniendo auditoria y privacidad.",
-        commonErrors: ["Cambiar datos por fuera de UI sin runbook.", "Confundir solicitud de adopcion con transferencia.", "Exponer informacion sensible."],
-        privacy: "El acceso admin debe ser minimo, justificado y auditable."
-      }
-    ]
   }
 ];
 
@@ -434,7 +378,6 @@ const quickTopics = [
   { href: "#provider", label: "Proveedores" },
   { href: "#foster", label: "Familias protectoras" },
   { href: "#adopter", label: "Adoptantes" },
-  { href: "#admin", label: "Admin y soporte" },
   { href: "#privacidad", label: "Privacidad" }
 ];
 
@@ -709,7 +652,7 @@ export function HelpCenterPage() {
           <h1>Centro de ayuda y manual de usuario</h1>
           <p>
             Guias publicas para usar Pet Ecosystem durante el piloto: propietarios, proveedores, familias protectoras,
-            adoptantes y soporte. Este manual explica los flujos disponibles y separa claramente lo que esta en piloto de
+            adoptantes. Este manual explica los flujos disponibles y separa claramente lo que esta en piloto de
             lo que esta planificado.
           </p>
           <div className="topic-grid" aria-label="Indice rapido">

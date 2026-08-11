@@ -7,8 +7,7 @@ El Centro de ayuda publico de Pet Ecosystem centraliza manuales de uso para los 
 - propietarios de mascotas;
 - proveedores de servicios;
 - familias protectoras;
-- adoptantes interesados;
-- administracion y soporte.
+- adoptantes interesados.
 
 La primera version queda publicada como contenido estatico en `/ayuda`. No introduce backend nuevo, no crea migraciones, no toca Supabase, no cambia reglas de reservas, adopcion, pagos, QR, evidencia ni marketplace.
 
@@ -76,15 +75,10 @@ Cada guia contiene:
 - donaciones informativas;
 - seguimiento y transferencia.
 
-### Admin y soporte
-
-- aprobar proveedores;
-- moderar familias protectoras;
-- soporte operativo.
-
 ## Criterios de contenido
 
 - No mostrar UUIDs, nombres de tablas ni detalles tecnicos al usuario final.
+- No publicar criterios internos de admin/soporte dentro del manual publico; ese contenido vive en `admin.petecosyst.com`.
 - Separar claramente adopcion responsable de servicios comerciales.
 - Aclarar que pagos reales siguen fuera de la app durante piloto.
 - Aclarar que Pet Ecosystem no procesa ni valida donaciones.
@@ -98,3 +92,7 @@ Cada guia contiene:
 - Crear version descargable PDF cuando el manual se estabilice.
 - Agregar fecha de ultima actualizacion visible.
 - Preparar variante legalmente revisada antes de produccion publica masiva.
+
+## Manual interno admin
+
+El contenido operativo de admin y soporte no se muestra en `/ayuda`. Queda disponible dentro del backoffice `admin.petecosyst.com`, bajo la seccion `Manual admin`, despues de la autenticacion y validacion del rol `admin`.

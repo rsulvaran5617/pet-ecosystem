@@ -3,7 +3,8 @@
 # Handoff 2026-08-11 - Centro de ayuda publico
 
 - Web publica agrega `/ayuda` como Centro de ayuda / Manual de usuario para Pet Ecosystem.
-- El manual se organiza por roles: propietarios, proveedores, familias protectoras, adoptantes y admin/soporte.
+- El manual publico se organiza por roles de usuarios de la app publica: propietarios, proveedores, familias protectoras y adoptantes.
+- El contenido de admin/soporte queda separado dentro de `admin.petecosyst.com`, en la seccion protegida `Manual admin`.
 - Cada guia documenta objetivo, requisitos previos, pasos, resultado esperado, errores comunes y notas de privacidad.
 - Landing publica enlaza el manual desde navegacion principal y footer.
 - No se tocaron backend, Supabase, migraciones, RLS, pagos, reservas, adopcion, QR, evidencia ni reglas de negocio.

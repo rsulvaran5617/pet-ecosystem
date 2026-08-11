@@ -10,7 +10,7 @@ Estas pantallas siguen siendo el baseline funcional, pero ahora se presentan agr
 
 - owner mobile: Inicio, Mascotas, Buscar, Reservas, Mensajes y Cuenta
 - provider: Inicio, Negocio, Servicios, Horarios, Reservas, Mensajes, Estado y Cuenta
-- admin web: Inicio, Proveedores y Soporte
+- admin web: Inicio, Proveedores, Familias protectoras, Soporte y Manual admin
 
 Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidades V2/V3. Los bloques V2 documentados mas abajo pertenecen a frentes posteriores abiertos de forma separada.
 
@@ -18,7 +18,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 
 ### Core
 - landing web publica en `/` con identidad de Pet Ecosystem, header de marca, hero con mock mobile con saludo a Valeria, visual pet, bloques de confianza, pasos `Asi funciona`, cards para dueños/proveedores y CTA hacia `/app`
-- centro de ayuda publico en `/ayuda` con manual por rol y plataforma para propietarios, proveedores, familias protectoras, adoptantes y admin/soporte; contenido estatico enlazado desde la landing
+- centro de ayuda publico en `/ayuda` con manual por rol y plataforma para propietarios, proveedores, familias protectoras y adoptantes; contenido estatico enlazado desde la landing
 - experiencia web autenticada vive en `/app`
 - onboarding
 - registro
@@ -191,6 +191,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Foster Web Console usa navegacion lateral tipo consola para separar `Panel`, `Perfil`, `Mascotas`, `Publicaciones`, `Solicitudes` y `Transferencias`; cada seccion debe mostrar solo el contenido operativo relevante para reducir scroll y confusion.
 - Role-Foster-B mobile: cuando el rol activo es `protective_family`, la app debe usar shell Foster independiente con Inicio, Acogida, Publicaciones, Solicitudes y Cuenta. En ese modo no se muestran Buscar servicios, Reservas owner, payment-ready owner ni marketplace comercial como navegacion principal. Cuando el rol activo es `pet_owner`, el usuario ve solo experiencia owner y Foster operativo queda fuera de su navegacion principal.
 - Admin web: cola de solicitudes de familias protectoras, detalle de hogar solicitante, aprobar/rechazar/suspender, auditoria read-only de transferencias privadas y bloqueo por uso indebido.
+- Admin web: `Manual admin` aloja las guias internas de aprobacion de proveedores, moderacion de familias protectoras, soporte operativo y baja de cuenta; este contenido no se publica en `/ayuda`.
 - Foster mobile/web: Home foster, Mis mascotas en acogida, Crear mascota en acogida, Expediente, Publicar para adopcion, Solicitudes recibidas, Detalle de solicitud y Transferencia/adopcion.
 - Owner/adoptante: Marketplace de adopcion, Perfil de mascota, Solicitar adopcion, Mis solicitudes, Seguimiento y Mascota adoptada agregada a mi hogar.
 - Admin: Aprobar foster/institucion, Moderar publicaciones, Revisar reportes, Ver solicitudes sospechosas, Bloquear publicacion y Auditar transferencia.
