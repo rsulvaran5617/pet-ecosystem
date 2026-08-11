@@ -635,10 +635,24 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                               display: "grid",
                               placeItems: "center",
                               fontSize: "11px",
-                              fontWeight: 800
+                              fontWeight: 800,
+                              overflow: "hidden"
                             }}
                           >
-                            {pet.name.slice(0, 2).toUpperCase()}
+                            {pet.avatarUrl ? (
+                              <img
+                                alt=""
+                                src={pet.avatarUrl}
+                                style={{
+                                  display: "block",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  width: "100%"
+                                }}
+                              />
+                            ) : (
+                              pet.name.slice(0, 2).toUpperCase()
+                            )}
                           </span>
                           <span style={{ display: "grid", gap: "4px", minWidth: 0 }}>
                             <strong style={{ fontSize: "10px" }}>{pet.name}</strong>
