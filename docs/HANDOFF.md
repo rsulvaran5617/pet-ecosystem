@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - Owner marketplace provider card polish
+
+- Owner web `Buscar` ajusta las cards de proveedores destacados/resultados para evitar solapes: avatar mas compacto, nombre en multilinea, badge `Recomendado` en columna propia y chips internos reducidos.
+- El cambio es visual y mantiene el flujo existente de busqueda, seleccion de proveedor y preparacion de reserva.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile ni reglas de negocio.
+
+# Handoff 2026-08-11 - Owner pet profile compact view
+
+- Owner web `Mascotas` compacta la ficha de visualizacion de mascota: cabecera clara, datos maestros agrupados, metricas de documentos/salud y notas en bloque inferior.
+- La vista de edicion se mantiene como formulario bajo demanda; la vista de lectura queda como ficha informativa para reducir espacios vacios y lectura dispersa.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile ni reglas de negocio.
+
 # Handoff 2026-08-11 - Provider booking chat inline
 
 - Web provider simplifica `Reservas`: se retira la bandeja global de conversaciones del slice y el chat queda dentro del acordeon de cada reserva.

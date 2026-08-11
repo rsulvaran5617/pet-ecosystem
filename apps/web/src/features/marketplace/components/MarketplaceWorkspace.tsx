@@ -150,6 +150,32 @@ function Button({
   );
 }
 
+function MarketplaceMiniPill({ label, tone = "neutral" }: { label: string; tone?: "active" | "neutral" }) {
+  return (
+    <span
+      style={{
+        alignItems: "center",
+        background: tone === "active" ? "rgba(15, 118, 110, 0.1)" : "rgba(68, 64, 60, 0.06)",
+        border: tone === "active" ? "1px solid rgba(15, 118, 110, 0.2)" : "1px solid rgba(68, 64, 60, 0.12)",
+        borderRadius: "999px",
+        color: tone === "active" ? "#0f766e" : "#44403c",
+        display: "inline-flex",
+        fontSize: "8px",
+        fontWeight: 900,
+        letterSpacing: "0.06em",
+        lineHeight: 1,
+        minHeight: "20px",
+        padding: "5px 8px",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
+        width: "fit-content"
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function FilterChip({ isActive, label, onClick }: { isActive: boolean; label: string; onClick: () => void }) {
   return (
     <button
@@ -260,11 +286,14 @@ function ProviderVisualCard({
       style={{
         ...inputStyle,
         border: variant === "featured" ? "1px solid rgba(15,118,110,0.42)" : inputStyle.border,
-        borderRadius: "16px",
+        borderRadius: "14px",
         cursor: "pointer",
         display: "grid",
-        gridTemplateColumns: "58px minmax(0, 1fr)",
-        gap: "10px",
+        gridTemplateColumns: "50px minmax(0, 1fr)",
+        gap: "9px",
+        minWidth: 0,
+        overflow: "hidden",
+        padding: "10px",
         textAlign: "left",
         background: "#ffffff"
       }}
@@ -273,37 +302,46 @@ function ProviderVisualCard({
         style={{
           alignItems: "center",
           background: "rgba(20,184,166,0.12)",
-          borderRadius: "14px",
+          borderRadius: "12px",
           color: "#0f766e",
           display: "flex",
-          fontSize: "14px",
+          fontSize: "12px",
           fontWeight: 900,
-          height: "58px",
+          height: "50px",
           justifyContent: "center",
           overflow: "hidden",
-          width: "58px"
+          width: "50px"
         }}
       >
         {provider.avatarUrl ? (
-          <img alt="" src={provider.avatarUrl} style={{ height: "58px", objectFit: "cover", width: "58px" }} />
+          <img alt="" src={provider.avatarUrl} style={{ height: "50px", objectFit: "cover", width: "50px" }} />
         ) : (
           getProviderInitials(provider.name)
         )}
       </span>
       <span style={{ display: "grid", gap: "5px", minWidth: 0 }}>
-        <span style={{ display: "flex", gap: "8px", justifyContent: "space-between", alignItems: "center" }}>
-          <strong style={{ fontSize: "11px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{provider.name}</strong>
-          {variant === "featured" ? <StatusPill label="recomendado" tone="active" /> : null}
+        <span style={{ alignItems: "start", display: "grid", gap: "5px", gridTemplateColumns: "minmax(0, 1fr) auto" }}>
+          <strong
+            style={{
+              fontSize: "10px",
+              lineHeight: 1.2,
+              minWidth: 0,
+              overflowWrap: "anywhere"
+            }}
+          >
+            {provider.name}
+          </strong>
+          {variant === "featured" ? <MarketplaceMiniPill label="Recomendado" tone="active" /> : null}
         </span>
-        <span style={{ color: "#57534e", fontSize: "10px", fontWeight: 700 }}>{categoryLabel}</span>
-        <span style={{ color: "#57534e", fontSize: "10px" }}>
+        <span style={{ color: "#57534e", fontSize: "9px", fontWeight: 700, lineHeight: 1.25 }}>{categoryLabel}</span>
+        <span style={{ color: "#57534e", fontSize: "9px", lineHeight: 1.25 }}>
           {publicLocation ? `${publicLocation.city}, ${publicLocation.countryCode}` : provider.city}
           {distanceLabel ? ` - ${distanceLabel}` : ""}
         </span>
-        <span style={{ color: "#b45309", fontSize: "9px", fontWeight: 800 }}>Perfil publicado - reservas en piloto</span>
-        <span style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          <StatusPill label={`${provider.serviceCount} servicio(s)`} tone="neutral" />
-          {provider.availableDays.length ? <StatusPill label="disponibilidad" tone="active" /> : null}
+        <span style={{ color: "#b45309", fontSize: "8px", fontWeight: 800, lineHeight: 1.25 }}>Perfil publicado - reservas en piloto</span>
+        <span style={{ display: "flex", flexWrap: "wrap", gap: "5px", minWidth: 0 }}>
+          <MarketplaceMiniPill label={`${provider.serviceCount} servicio(s)`} />
+          {provider.availableDays.length ? <MarketplaceMiniPill label="Disponibilidad" tone="active" /> : null}
         </span>
         <span style={{ justifySelf: "start", marginTop: "2px" }}>
           <Button>{ctaLabel}</Button>

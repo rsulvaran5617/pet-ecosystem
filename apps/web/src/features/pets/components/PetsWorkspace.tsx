@@ -125,6 +125,7 @@ function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined)
   if (!summary || summary.vaccineCount === 0) {
     return {
       detail: "Sin vacunas registradas.",
+      tone: "neutral" as const,
       value: "Sin registro"
     };
   }
@@ -134,6 +135,7 @@ function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined)
       detail: summary.latestVaccineDate
         ? `Ultima vacuna: ${formatShortDate(summary.latestVaccineDate)}. Falta proxima dosis.`
         : "Falta proxima dosis.",
+      tone: "pending" as const,
       value: "Revisar"
     };
   }
@@ -143,6 +145,7 @@ function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined)
   if (daysUntilDue === null) {
     return {
       detail: `Proxima fecha: ${summary.nextVaccineDueDate}.`,
+      tone: "pending" as const,
       value: "Revisar"
     };
   }
@@ -150,6 +153,7 @@ function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined)
   if (daysUntilDue < 0) {
     return {
       detail: `Vencio: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+      tone: "pending" as const,
       value: "Vencida"
     };
   }
@@ -157,12 +161,14 @@ function getVaccineSummaryStatus(summary: PetHealthDashboard | null | undefined)
   if (daysUntilDue <= 30) {
     return {
       detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+      tone: "pending" as const,
       value: "Por vencer"
     };
   }
 
   return {
     detail: `Proxima: ${formatShortDate(summary.nextVaccineDueDate)}.`,
+    tone: "active" as const,
     value: "Al dia"
   };
 }
@@ -817,61 +823,93 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
 
               {selectedPetDetail ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "12px" }}>
-                  <article style={compactCardStyle}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                      <h3 style={{ margin: 0, fontSize: "12px" }}>{selectedPetDetail.pet.name}</h3>
+                  <article style={{ ...compactCardStyle, alignContent: "start", gap: "10px" }}>
+                    <div style={{ alignItems: "center", display: "flex", gap: "10px", justifyContent: "space-between" }}>
+                      <div style={{ display: "grid", gap: "3px" }}>
+                        <span style={fieldLabelStyle}>Ficha de mascota</span>
+                        <h3 style={{ margin: 0, fontSize: "13px", lineHeight: 1.1 }}>{selectedPetDetail.pet.name}</h3>
+                      </div>
                       <StatusPill label={selectedPetDetail.pet.species} tone="active" />
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "6px" }}>
-                      <div style={{ display: "grid", gap: "4px" }}>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))", gap: "7px" }}>
+                      <div style={{ ...controlStyle, display: "grid", gap: "3px", padding: "8px" }}>
                         <span style={fieldLabelStyle}>Breed</span>
                         <strong style={{ fontSize: "9px" }}>{selectedPetDetail.pet.breed ?? "No registrada"}</strong>
                       </div>
-                      <div style={{ display: "grid", gap: "4px" }}>
+                      <div style={{ ...controlStyle, display: "grid", gap: "3px", padding: "8px" }}>
                         <span style={fieldLabelStyle}>Sex</span>
                         <strong style={{ fontSize: "9px" }}>{petSexLabels[selectedPetDetail.pet.sex]}</strong>
                       </div>
-                      <div style={{ display: "grid", gap: "4px" }}>
+                      <div style={{ ...controlStyle, display: "grid", gap: "3px", padding: "8px" }}>
                         <span style={fieldLabelStyle}>Fecha de nacimiento</span>
-                        <strong style={{ fontSize: "9px" }}>{selectedPetDetail.pet.birthDate ?? "No registrada"}</strong>
+                        <strong style={{ fontSize: "9px" }}>{formatShortDate(selectedPetDetail.pet.birthDate)}</strong>
                       </div>
-                      <div style={{ display: "grid", gap: "4px" }}>
+                      <div style={{ ...controlStyle, display: "grid", gap: "3px", padding: "8px" }}>
                         <span style={fieldLabelStyle}>Esterilizacion</span>
                         <strong style={{ fontSize: "9px" }}>{formatSterilizedLabel(selectedPetDetail.pet.isSterilized)}</strong>
                       </div>
-                      <div style={{ display: "grid", gap: "4px" }}>
-                        <span style={fieldLabelStyle}>Documentos</span>
-                        <strong style={{ fontSize: "9px" }}>{selectedPetDetail.documents.length} total</strong>
+                    </div>
+
+                    <section style={{ display: "grid", gap: "7px" }}>
+                      <div style={{ alignItems: "center", display: "flex", gap: "8px", justifyContent: "space-between" }}>
+                        <span style={fieldLabelStyle}>Resumen operativo</span>
+                        <StatusPill label={selectedVaccineSummaryStatus.value} tone={selectedVaccineSummaryStatus.tone} />
                       </div>
-                    </div>
-                    <div style={{ display: "grid", gap: "4px" }}>
-                      <span style={fieldLabelStyle}>Notas</span>
-                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
-                        {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
-                      </p>
-                    </div>
-                    <div style={{ display: "grid", gap: "8px" }}>
-                      <span style={fieldLabelStyle}>Resumen de salud</span>
                       {isHealthSummaryLoading ? (
                         <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>Cargando resumen de salud...</p>
                       ) : selectedPetHealthSummary ? (
-                        <div style={{ display: "grid", gap: "8px" }}>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
-                            <strong style={{ fontSize: "9px" }}>Vacunas: {selectedVaccineSummaryStatus.value}</strong>
-                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.allergyCount} alergia(s)</strong>
-                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.conditionCount} condicion(es)</strong>
-                            <strong style={{ fontSize: "9px" }}>{selectedPetHealthSummary.criticalConditionCount} criticas</strong>
+                        <div style={{ display: "grid", gap: "7px" }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(86px, 1fr))", gap: "6px" }}>
+                            {[
+                              { label: "Documentos", value: selectedPetDetail.documents.length },
+                              { label: "Vacunas", value: selectedPetHealthSummary.vaccineCount },
+                              { label: "Alergias", value: selectedPetHealthSummary.allergyCount },
+                              { label: "Condiciones", value: selectedPetHealthSummary.conditionCount },
+                              { label: "Criticas", value: selectedPetHealthSummary.criticalConditionCount }
+                            ].map((item) => (
+                              <div
+                                key={item.label}
+                                style={{
+                                  background: "rgba(255,255,255,0.72)",
+                                  border: "1px solid rgba(28, 25, 23, 0.08)",
+                                  borderRadius: "10px",
+                                  display: "grid",
+                                  gap: "2px",
+                                  padding: "7px 8px"
+                                }}
+                              >
+                                <strong style={{ color: "#101828", fontSize: "11px", lineHeight: 1 }}>{item.value}</strong>
+                                <span style={{ color: "#57534e", fontSize: "7.5px", lineHeight: 1.1 }}>{item.label}</span>
+                              </div>
+                            ))}
                           </div>
                           <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                             {selectedVaccineSummaryStatus.detail}
                           </p>
-                          <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
+                          <p style={{ margin: 0, color: selectedPetHealthSummary.criticalConditionCount ? "#b45309" : "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
                             Alertas: {selectedPetHealthSummary.criticalConditionNames.join(", ") || "Sin condiciones criticas"}.
                           </p>
                         </div>
                       ) : (
                         <p style={{ margin: 0, color: "#57534e", fontSize: "9px" }}>Todavia no hay un resumen de salud.</p>
                       )}
+                    </section>
+
+                    <div
+                      style={{
+                        background: "rgba(255,255,255,0.58)",
+                        border: "1px solid rgba(28, 25, 23, 0.08)",
+                        borderRadius: "12px",
+                        display: "grid",
+                        gap: "4px",
+                        padding: "9px"
+                      }}
+                    >
+                      <span style={fieldLabelStyle}>Notas</span>
+                      <p style={{ margin: 0, color: "#57534e", lineHeight: 1.35, fontSize: "9px" }}>
+                        {selectedPetDetail.pet.notes ?? "Todavia no hay notas para esta mascota."}
+                      </p>
                     </div>
                   </article>
 
