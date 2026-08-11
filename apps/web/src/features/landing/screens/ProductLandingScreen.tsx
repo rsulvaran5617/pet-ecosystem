@@ -84,6 +84,13 @@ const linkButtonBase = {
   textDecoration: "none"
 } as const;
 
+const compactLinkButtonBase = {
+  ...linkButtonBase,
+  fontSize: "12px",
+  minHeight: "36px",
+  padding: "0 14px"
+} as const;
+
 const primaryLinkStyle = {
   ...linkButtonBase,
   background: "#008f89",
@@ -93,6 +100,20 @@ const primaryLinkStyle = {
 
 const secondaryLinkStyle = {
   ...linkButtonBase,
+  background: "#ffffff",
+  border: "1px solid rgba(0,143,137,0.28)",
+  color: "#007a6b"
+} as const;
+
+const compactPrimaryLinkStyle = {
+  ...compactLinkButtonBase,
+  background: "#008f89",
+  border: "1px solid #008f89",
+  color: "#ffffff"
+} as const;
+
+const compactSecondaryLinkStyle = {
+  ...compactLinkButtonBase,
   background: "#ffffff",
   border: "1px solid rgba(0,143,137,0.28)",
   color: "#007a6b"
@@ -1004,7 +1025,7 @@ export function ProductLandingScreen() {
                   ))}
                 </ul>
                 <div className="audience-footer">
-                  <a href={card.href} style={card.id === "para-duenos" ? primaryLinkStyle : secondaryLinkStyle}>
+                  <a href={card.href} style={card.id === "para-duenos" ? compactPrimaryLinkStyle : compactSecondaryLinkStyle}>
                     {card.cta}
                   </a>
                   <span className="audience-badge">Piloto</span>
@@ -1044,7 +1065,7 @@ export function ProductLandingScreen() {
               <span>
                 Cuidado, servicios y adopcion responsable con una experiencia separada para cada rol.
               </span>
-              <a href="/foster" style={{ ...secondaryLinkStyle, justifySelf: "start" }}>
+              <a href="/foster" style={{ ...compactSecondaryLinkStyle, justifySelf: "start" }}>
                 Familias protectoras
               </a>
             </aside>
