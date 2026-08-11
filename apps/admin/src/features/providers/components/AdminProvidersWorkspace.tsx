@@ -59,8 +59,18 @@ function Button({
         border: palette.border,
         background: palette.background,
         color: palette.color,
-        padding: "12px 18px",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        boxSizing: "border-box",
+        display: "inline-flex",
+        fontSize: "12px",
         fontWeight: 700,
+        justifyContent: "center",
+        lineHeight: 1,
+        minHeight: "32px",
+        padding: "8px 13px",
+        whiteSpace: "nowrap",
+        width: "fit-content",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.65 : 1
       }}
@@ -246,7 +256,7 @@ export function AdminProvidersWorkspace({
         ) : (
           <p style={{ margin: 0, color: "#52525b" }}>Cola despejada: no hay proveedores esperando revision ahora.</p>
         )}
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <div style={{ alignItems: "center", display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <Button disabled={isSubmitting} onClick={onOpenQueue} tone="secondary">
             Abrir cola
           </Button>

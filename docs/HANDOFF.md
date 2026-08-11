@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - Admin button polish
+
+- Admin web ajusta los CTAs internos de colas (`Proveedores`, `Familias protectoras`, `Soporte`) para que usen ancho natural, altura compacta, fuente consistente y alineacion estable dentro de cards.
+- El ajuste corrige botones ovalados/sobredimensionados observados en `admin.petecosyst.com` sin tocar datos, backend, Supabase, migraciones, RLS, contratos API, mobile ni reglas de negocio.
+- Pendiente recomendado: desplegar la gota y revisar visualmente `admin.petecosyst.com` en ancho desktop real.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-7
 
 - Se completa cierre tecnico documental de `SKIN-7: QA visual responsive`.
