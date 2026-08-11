@@ -702,11 +702,73 @@ export function FosterConsoleWorkspace() {
   ];
 
   return (
-    <main style={styles.pageShell}>
-      <section style={styles.hero}>
+    <main className="foster-web-page-shell" style={styles.pageShell}>
+      <style>
+        {`
+          .foster-web-hero,
+          .foster-web-console-shell,
+          .foster-web-content,
+          .foster-web-metrics {
+            min-width: 0;
+          }
+
+          .foster-web-nav-button:focus-visible {
+            outline: 2px solid rgba(45, 212, 191, 0.72);
+            outline-offset: 2px;
+          }
+
+          @media (max-width: 1120px) {
+            .foster-web-console-shell {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
+            .foster-web-sidebar {
+              position: static !important;
+            }
+
+            .foster-web-nav {
+              display: grid !important;
+              grid-auto-flow: column;
+              grid-auto-columns: minmax(132px, 1fr);
+              overflow-x: auto;
+              padding-bottom: 4px;
+            }
+          }
+
+          @media (max-width: 760px) {
+            .foster-web-page-shell {
+              padding: 14px !important;
+            }
+
+            .foster-web-hero {
+              flex-direction: column;
+              padding: 20px !important;
+            }
+
+            .foster-web-hero-title {
+              font-size: 24px !important;
+            }
+
+            .foster-web-section-header {
+              flex-direction: column;
+            }
+          }
+
+          @media (max-width: 520px) {
+            .foster-web-page-shell {
+              padding: 10px !important;
+            }
+
+            .foster-web-nav {
+              grid-auto-columns: minmax(116px, 1fr);
+            }
+          }
+        `}
+      </style>
+      <section className="foster-web-hero" style={styles.hero}>
         <div>
           <p style={styles.eyebrow}>Consola Foster</p>
-          <h1 style={styles.heroTitle}>Centro de gestion para Familias Protectoras</h1>
+          <h1 className="foster-web-hero-title" style={styles.heroTitle}>Centro de gestion para Familias Protectoras</h1>
           <p style={styles.heroCopy}>
             Gestiona publicaciones, solicitudes y transferencias privadas sin mezclar adopcion responsable con servicios comerciales.
           </p>
@@ -743,8 +805,8 @@ export function FosterConsoleWorkspace() {
       ) : null}
 
       {authState === "signed_in" && protectiveHouseholds.length ? (
-        <section style={styles.consoleShell}>
-          <aside style={styles.sideNav}>
+        <section className="foster-web-console-shell" style={styles.consoleShell}>
+          <aside className="foster-web-sidebar" style={styles.sideNav}>
             <div style={styles.sideNavBrand}>
               <span style={styles.sideNavMark}>
                 {publicProfile?.logoUrl ? (
@@ -762,9 +824,10 @@ export function FosterConsoleWorkspace() {
                 <span style={styles.sideNavSubtitle}>{selectedHousehold?.name ?? "Selecciona una familia"}</span>
               </div>
             </div>
-            <nav aria-label="Secciones Foster" style={styles.sideNavList}>
+            <nav aria-label="Secciones Foster" className="foster-web-nav" style={styles.sideNavList}>
               {fosterNavigationItems.map((item) => (
                 <button
+                  className="foster-web-nav-button"
                   key={item.id}
                   onClick={() => setActiveSection(item.id)}
                   style={{ ...styles.sideNavItem, ...(activeSection === item.id ? styles.sideNavItemActive : {}) }}
@@ -777,11 +840,11 @@ export function FosterConsoleWorkspace() {
               ))}
             </nav>
           </aside>
-          <div style={styles.consoleContent}>
+          <div className="foster-web-content" style={styles.consoleContent}>
           {activeSection === "panel" ? (
             <>
           <section style={styles.panel}>
-            <div style={styles.sectionHeader}>
+            <div className="foster-web-section-header" style={styles.sectionHeader}>
               <div>
                 <p style={styles.eyebrow}>Familia activa</p>
                 <h2 style={styles.sectionTitle}>{selectedHousehold?.name ?? "Selecciona una familia"}</h2>
@@ -811,7 +874,7 @@ export function FosterConsoleWorkspace() {
             />
           ) : null}
 
-          <section style={styles.metricGrid}>
+          <section className="foster-web-metrics" style={styles.metricGrid}>
             {metrics.map((metric) => (
               <button
                 key={metric.label}
@@ -2706,32 +2769,32 @@ const styles: Record<string, React.CSSProperties> = {
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
   accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, justifyContent: "center", minHeight: "31px", padding: "6px 10px", whiteSpace: "nowrap" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
-  bodyText: { color: "#475569", fontSize: "14px", lineHeight: 1.55, margin: 0 },
+  bodyText: { color: "#475569", fontSize: "12px", lineHeight: 1.5, margin: 0 },
   checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
   checklistItem: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "10px", padding: "10px" },
   closureSummaryGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   closureTimelineBox: { background: "#f8fffd", borderTop: "1px solid rgba(15, 118, 110, 0.12)", display: "grid", gap: "12px", padding: "14px" },
-  consoleContent: { display: "grid", gap: "18px", minWidth: 0 },
-  consoleShell: { alignItems: "start", display: "grid", gap: "18px", gridTemplateColumns: "260px minmax(0, 1fr)" },
-  contextGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" },
-  countPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", fontSize: "12px", fontWeight: 800, padding: "8px 12px" },
-  compactPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "999px", color: "#0f766e", fontSize: "11px", fontWeight: 900, padding: "6px 8px", whiteSpace: "nowrap" },
+  consoleContent: { display: "grid", gap: "14px", minWidth: 0 },
+  consoleShell: { alignItems: "start", display: "grid", gap: "16px", gridTemplateColumns: "210px minmax(0, 1fr)" },
+  contextGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))" },
+  countPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", fontSize: "10px", fontWeight: 800, padding: "6px 10px" },
+  compactPill: { background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "999px", color: "#0f766e", fontSize: "9.5px", fontWeight: 900, padding: "5px 7px", whiteSpace: "nowrap" },
   coverFallback: { alignItems: "center", background: "#dff7f3", borderRadius: "16px", color: "#0f766e", display: "flex", fontSize: "22px", fontWeight: 900, height: "66px", justifyContent: "center", width: "66px" },
   coverImage: { borderRadius: "16px", height: "66px", objectFit: "cover", width: "66px" },
-  dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "13px", fontWeight: 800, padding: "10px 14px" },
-  dangerPillButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.18)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
+  dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "11px", fontWeight: 800, padding: "8px 12px" },
+  dangerPillButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.18)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "9.5px", fontWeight: 900, padding: "6px 8px" },
   documentSummaryRow: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "12px" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
-  detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "22px", display: "grid", gap: "14px", padding: "18px" },
-  detailTitle: { color: "#0f172a", fontSize: "20px", margin: 0 },
-  emptyState: { background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.2)", borderRadius: "18px", color: "#64748b", fontSize: "14px", padding: "18px" },
+  detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
+  detailTitle: { color: "#0f172a", fontSize: "17px", margin: 0 },
+  emptyState: { background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.2)", borderRadius: "16px", color: "#64748b", fontSize: "12px", padding: "14px" },
   errorNotice: { background: "#fef2f2", borderColor: "rgba(185, 28, 28, 0.22)", color: "#991b1b" },
-  eyebrow: { color: "#0f766e", fontSize: "12px", fontWeight: 900, letterSpacing: "0.08em", margin: 0, textTransform: "uppercase" },
-  filtersRow: { display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" },
-  fieldLabel: { color: "#334155", display: "grid", fontSize: "12px", fontWeight: 900, gap: "7px", textTransform: "uppercase" },
+  eyebrow: { color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", margin: 0, textTransform: "uppercase" },
+  filtersRow: { display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" },
+  fieldLabel: { color: "#334155", display: "grid", fontSize: "10px", fontWeight: 900, gap: "6px", textTransform: "uppercase" },
   fileInput: { height: 1, opacity: 0, overflow: "hidden", position: "absolute", width: 1 },
-  formGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
-  formStack: { display: "grid", gap: "14px" },
+  formGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" },
+  formStack: { display: "grid", gap: "12px" },
   fosterPetAccordion: { display: "grid", gap: "10px" },
   fosterPetAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.12)", display: "grid", gap: "12px", padding: "12px 14px 14px" },
   fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
@@ -2740,31 +2803,31 @@ const styles: Record<string, React.CSSProperties> = {
   fosterPetHeaderMain: { alignItems: "center", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
   fosterPetHeaderMeta: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
-  hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "28px", color: "white", display: "flex", gap: "24px", justifyContent: "space-between", padding: "30px" },
-  heroActions: { display: "flex", flexWrap: "wrap", gap: "10px" },
-  heroCopy: { color: "rgba(255,255,255,0.86)", fontSize: "15px", lineHeight: 1.55, margin: "8px 0 0", maxWidth: "720px" },
-  heroTitle: { fontSize: "34px", lineHeight: 1.05, margin: "8px 0 0" },
+  hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "24px", color: "white", display: "flex", gap: "20px", justifyContent: "space-between", padding: "24px" },
+  heroActions: { display: "flex", flexWrap: "wrap", gap: "8px" },
+  heroCopy: { color: "rgba(255,255,255,0.86)", fontSize: "13px", lineHeight: 1.5, margin: "7px 0 0", maxWidth: "680px" },
+  heroTitle: { fontSize: "28px", lineHeight: 1.05, margin: "7px 0 0" },
   historyBox: { borderTop: "1px solid rgba(15, 118, 110, 0.16)", display: "grid", gap: "8px", paddingTop: "12px" },
   historyItem: { background: "#fffdf8", borderRadius: "14px", display: "grid", gap: "3px", padding: "10px" },
   historyTitle: { color: "#0f172a", fontSize: "15px", margin: 0 },
   infoNotice: { background: "#ecfeff", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
-  infoTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "grid", gap: "4px", padding: "14px" },
+  infoTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "3px", padding: "11px" },
   inlineActions: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "8px", justifyContent: "flex-end" },
-  input: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 700, padding: "12px 14px", textTransform: "none" },
-  iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "11px", fontWeight: 900, padding: "7px 9px" },
-  itemMeta: { color: "#64748b", fontSize: "12px", lineHeight: 1.4, margin: "4px 0 0" },
-  itemTitle: { color: "#0f172a", fontSize: "15px" },
+  input: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f172a", fontSize: "12px", fontWeight: 700, padding: "10px 12px", textTransform: "none" },
+  iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "9.5px", fontWeight: 900, padding: "6px 8px" },
+  itemMeta: { color: "#64748b", fontSize: "10.5px", lineHeight: 1.4, margin: "4px 0 0" },
+  itemTitle: { color: "#0f172a", fontSize: "13px" },
   listingCard: { alignItems: "center", background: "#fffdf8", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
   listingHistoryCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   listStack: { display: "grid", gap: "10px" },
   logoImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
   logoPreview: { alignItems: "center", background: "#dff7f3", borderRadius: "18px", color: "#0f766e", display: "flex", flexShrink: 0, fontSize: "18px", fontWeight: 900, height: "76px", justifyContent: "center", overflow: "hidden", width: "76px" },
   logoSummaryTile: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "flex", gap: "12px", padding: "14px" },
-  metricCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.15)", borderRadius: "22px", cursor: "pointer", display: "grid", gap: "6px", padding: "18px", textAlign: "left" },
-  metricDetail: { color: "#64748b", fontSize: "13px" },
-  metricGrid: { display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" },
-  metricLabel: { color: "#0f766e", fontSize: "12px", fontWeight: 900, textTransform: "uppercase" },
-  metricValue: { color: "#0f766e", fontSize: "30px", lineHeight: 1 },
+  metricCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.15)", borderRadius: "16px", cursor: "pointer", display: "grid", gap: "5px", minHeight: "84px", padding: "13px", textAlign: "left" },
+  metricDetail: { color: "#64748b", fontSize: "10.5px" },
+  metricGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
+  metricLabel: { color: "#0f766e", fontSize: "9.5px", fontWeight: 900, textTransform: "uppercase" },
+  metricValue: { color: "#0f766e", fontSize: "24px", lineHeight: 1 },
   mediaActions: { display: "flex", flexWrap: "wrap", gap: "5px", padding: "7px" },
   mediaEmptyState: { background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.18)", borderRadius: "16px", color: "#64748b", display: "grid", fontSize: "12px", gap: "4px", padding: "12px" },
   mediaFallback: { alignItems: "center", background: "#dff7f3", color: "#0f766e", display: "flex", fontSize: "18px", fontWeight: 900, height: "100%", justifyContent: "center", width: "100%" },
@@ -2779,18 +2842,18 @@ const styles: Record<string, React.CSSProperties> = {
   mediaUploadIcon: { alignItems: "center", background: "#dff7f3", borderRadius: "999px", color: "#0f766e", display: "inline-flex", fontSize: "18px", fontWeight: 900, height: "32px", justifyContent: "center", width: "32px" },
   mediaUploadNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "14px", color: "#0f766e", fontSize: "12px", fontWeight: 900, padding: "10px 12px" },
   mediaUploadTile: { alignItems: "center", aspectRatio: "1 / 1", background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.26)", borderRadius: "14px", color: "#0f766e", cursor: "pointer", display: "flex", flexDirection: "column", fontSize: "12px", fontWeight: 900, gap: "8px", justifyContent: "center", padding: "10px", textAlign: "center", width: "118px" },
-  notice: { border: "1px solid", borderRadius: "18px", fontSize: "14px", fontWeight: 800, padding: "14px 18px" },
+  notice: { border: "1px solid", borderRadius: "16px", fontSize: "12px", fontWeight: 800, padding: "12px 14px" },
   operationalStatusText: { color: "#c2410c", fontSize: "12px", fontWeight: 900, margin: "6px 0 0" },
-  pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "20px", minHeight: "100vh", padding: "28px" },
-  panel: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "26px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)", display: "grid", gap: "16px", padding: "22px" },
-  pendingTransferNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.22)", borderRadius: "18px", color: "#c2410c", display: "grid", gap: "5px", padding: "12px" },
-  petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "10px" },
-  primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
+  pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "16px", minHeight: "100vh", padding: "24px" },
+  panel: { background: "rgba(255,255,255,0.92)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "20px", boxShadow: "0 12px 30px rgba(15, 23, 42, 0.055)", display: "grid", gap: "14px", padding: "18px" },
+  pendingTransferNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.22)", borderRadius: "16px", color: "#c2410c", display: "grid", gap: "5px", padding: "11px" },
+  petActionsRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" },
+  primaryButton: { background: "#0f766e", border: "1px solid rgba(255,255,255,0.22)", borderRadius: "999px", color: "white", cursor: "pointer", fontSize: "12px", fontWeight: 900, padding: "9px 13px", textDecoration: "none" },
   processDot: { alignItems: "center", background: "rgba(15, 118, 110, 0.08)", borderRadius: "999px", display: "inline-flex", fontSize: "11px", fontWeight: 900, height: "22px", justifyContent: "center", width: "22px" },
   processDotDone: { background: "#ccfbf1", color: "#0f766e" },
   processDotPending: { background: "#ffedd5", color: "#c2410c" },
   processRail: { display: "flex", flexWrap: "wrap", gap: "8px" },
-  processStep: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#64748b", display: "inline-flex", fontSize: "12px", fontWeight: 900, gap: "6px", padding: "6px 9px" },
+  processStep: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#64748b", display: "inline-flex", fontSize: "10px", fontWeight: 900, gap: "5px", padding: "5px 8px" },
   processStepActive: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.24)", color: "#c2410c" },
   processStepDone: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.22)", color: "#0f766e" },
   publicationFlowBox: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
@@ -2798,37 +2861,37 @@ const styles: Record<string, React.CSSProperties> = {
   publicContentGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
   publicContentTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "4px", minHeight: "74px", padding: "10px" },
   publicProfileSummary: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
-  rejectionNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.2)", borderRadius: "18px", color: "#9a3412", display: "grid", gap: "6px", lineHeight: 1.45, padding: "12px" },
+  rejectionNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.2)", borderRadius: "16px", color: "#9a3412", display: "grid", gap: "6px", lineHeight: 1.45, padding: "11px" },
   rejectBox: { display: "grid", gap: "8px" },
   responsibilityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "3px", lineHeight: 1.4, padding: "10px" },
-  secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "14px", fontWeight: 900, padding: "11px 16px", textDecoration: "none" },
-  secondaryButtonCompact: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "12px", fontWeight: 900, padding: "8px 12px", textDecoration: "none", whiteSpace: "nowrap" },
+  secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "12px", fontWeight: 900, padding: "9px 13px", textDecoration: "none" },
+  secondaryButtonCompact: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "10px", fontWeight: 900, padding: "7px 10px", textDecoration: "none", whiteSpace: "nowrap" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },
   sectionHeaderCompact: { alignItems: "flex-start", display: "flex", gap: "12px", justifyContent: "space-between" },
-  sectionTitle: { color: "#0f172a", fontSize: "24px", margin: "3px 0 0" },
-  select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "14px", fontWeight: 800, padding: "10px 14px" },
-  sessionHint: { color: "rgba(255,255,255,0.72)", fontSize: "11px", fontWeight: 700, margin: "10px 0 0" },
-  subPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
-  sideNav: { background: "#111827", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)", color: "white", display: "grid", gap: "16px", padding: "18px", position: "sticky", top: "18px" },
-  sideNavBrand: { alignItems: "center", display: "flex", gap: "10px", minWidth: 0 },
-  sideNavCount: { background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", color: "white", fontSize: "11px", fontWeight: 900, padding: "4px 7px", position: "absolute", right: "10px", top: "10px" },
-  sideNavItem: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", color: "white", cursor: "pointer", display: "grid", gap: "3px", padding: "12px 52px 12px 12px", position: "relative", textAlign: "left" },
-  sideNavItemActive: { background: "rgba(20,184,166,0.24)", borderColor: "rgba(45,212,191,0.38)" },
-  sideNavItemDetail: { color: "rgba(255,255,255,0.66)", fontSize: "11px" },
-  sideNavItemLabel: { fontSize: "13px", fontWeight: 900 },
-  sideNavList: { display: "grid", gap: "8px" },
+  sectionTitle: { color: "#0f172a", fontSize: "19px", margin: "3px 0 0" },
+  select: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f172a", fontSize: "12px", fontWeight: 800, padding: "8px 12px" },
+  sessionHint: { color: "rgba(255,255,255,0.72)", fontSize: "10px", fontWeight: 700, margin: "9px 0 0" },
+  subPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "16px", display: "grid", gap: "10px", padding: "12px" },
+  sideNav: { background: "#111827", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", boxShadow: "0 18px 45px rgba(15, 23, 42, 0.18)", color: "white", display: "grid", gap: "13px", padding: "14px", position: "sticky", top: "18px" },
+  sideNavBrand: { alignItems: "center", display: "flex", gap: "9px", minWidth: 0 },
+  sideNavCount: { background: "rgba(255,255,255,0.13)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", color: "white", fontSize: "9px", fontWeight: 900, padding: "3px 6px", position: "absolute", right: "8px", top: "8px" },
+  sideNavItem: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", color: "white", cursor: "pointer", display: "grid", gap: "3px", padding: "9px 40px 9px 10px", position: "relative", textAlign: "left" },
+  sideNavItemActive: { background: "rgba(20,184,166,0.22)", borderColor: "rgba(45,212,191,0.42)", boxShadow: "inset 3px 0 0 rgba(45,212,191,0.85)" },
+  sideNavItemDetail: { color: "rgba(255,255,255,0.66)", fontSize: "9px" },
+  sideNavItemLabel: { fontSize: "11px", fontWeight: 900 },
+  sideNavList: { display: "grid", gap: "7px" },
   sideNavLogoImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
-  sideNavMark: { alignItems: "center", background: "#dff7f3", borderRadius: "14px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "38px", justifyContent: "center", overflow: "hidden", width: "38px" },
-  sideNavSubtitle: { color: "rgba(255,255,255,0.66)", display: "block", fontSize: "11px", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  sideNavTitle: { display: "block", fontSize: "13px" },
-  statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "11px", fontWeight: 900, padding: "7px 10px", whiteSpace: "nowrap" },
+  sideNavMark: { alignItems: "center", background: "#dff7f3", borderRadius: "13px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "12px", fontWeight: 900, height: "34px", justifyContent: "center", overflow: "hidden", width: "34px" },
+  sideNavSubtitle: { color: "rgba(255,255,255,0.66)", display: "block", fontSize: "9.5px", marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  sideNavTitle: { display: "block", fontSize: "11.5px" },
+  statusBadge: { alignSelf: "flex-start", background: "#f8fafc", border: "1px solid rgba(100, 116, 139, 0.16)", borderRadius: "999px", color: "#475569", fontSize: "9.5px", fontWeight: 900, padding: "6px 8px", whiteSpace: "nowrap" },
   successBadge: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.2)", color: "#0f766e" },
   successMetric: { background: "linear-gradient(135deg, #f0fdfa, #ffffff)" },
-  textarea: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "16px", color: "#0f172a", fontSize: "14px", minHeight: "84px", padding: "12px", resize: "vertical" },
+  textarea: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "14px", color: "#0f172a", fontSize: "12px", minHeight: "78px", padding: "10px", resize: "vertical" },
   textBlock: { display: "grid", gap: "4px" },
-  tileEmptyValue: { color: "#94a3b8", fontSize: "13px", fontWeight: 800, lineHeight: 1.35 },
-  tileLabel: { color: "#64748b", fontSize: "11px", fontWeight: 900, textTransform: "uppercase" },
-  tileValue: { color: "#0f172a", fontSize: "15px", lineHeight: 1.25 },
+  tileEmptyValue: { color: "#94a3b8", fontSize: "11px", fontWeight: 800, lineHeight: 1.35 },
+  tileLabel: { color: "#64748b", fontSize: "9.5px", fontWeight: 900, textTransform: "uppercase" },
+  tileValue: { color: "#0f172a", fontSize: "13px", lineHeight: 1.25 },
   timelineAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.1)", padding: "10px 12px 12px 42px" },
   timelineAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "10px", padding: "11px 12px", textAlign: "left", width: "100%" },
   timelineAccordionItem: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", overflow: "hidden" },
@@ -2838,7 +2901,7 @@ const styles: Record<string, React.CSSProperties> = {
   timelineText: { display: "grid", flex: 1, gap: "2px", minWidth: 0 },
   transferCard: { alignItems: "flex-start", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "18px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "13px" },
   transferNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "18px", color: "#0f766e", display: "grid", gap: "4px", padding: "12px" },
-  twoColumnGrid: { display: "grid", gap: "18px", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" },
+  twoColumnGrid: { display: "grid", gap: "14px", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" },
   warningBadge: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.22)", color: "#c2410c" },
   warningMetric: { background: "linear-gradient(135deg, #fff7ed, #ffffff)" }
 };

@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-5
+
+- Web Foster (`/foster`) aplica la base visual SKIN-5: hero mas sobrio, sidebar mas compacta, item activo con marca teal, paneles/cards mas ligeros, metricas reducidas, formularios y botones mas finos y reglas responsive para tablet/mobile.
+- Se conserva la separacion por secciones: Panel, Perfil, Mascotas, Publicaciones, Solicitudes y Transferencias; no se mezclan adopciones con marketplace comercial.
+- El cambio es visual y de presentacion: no toca backend, Supabase, migraciones, RLS, contratos API, pagos, booking, provider, owner, admin ni mobile.
+- Pendiente recomendado: continuar SKIN-6 sobre admin web o hacer QA visual de Foster en 1440/1280/768/390 px.
+
 # Handoff 2026-08-11 - VISUAL-BRAND-2 SKIN-4
 
 - Web provider (`/app` con rol proveedor) aplica la base visual SKIN-4 sobre componentes locales: shell mas compacto, sidebar azul noche mas angosta, item activo real con marca teal, topbar mas fina, cards/KPIs/chips/botones mas densos y reglas responsive del dashboard ejecutivo.
