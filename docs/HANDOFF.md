@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster application accordion
+
+- Web Foster `Solicitudes` cambia de panel maestro-detalle a lista tipo acordeon: cada solicitud muestra resumen, estado de revision y estado operativo de transferencia/adopcion; el detalle se abre inline con `Ver detalle`.
+- El estado visible se deriva de datos existentes: solicitud aprobada, transferencia pendiente, transferencia aceptada/adopcion cerrada, rechazada/cancelada o estado normal de revision.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile, pagos ni reglas de adopcion/transferencia.
+
+# Handoff 2026-08-13 - Foster accordion action polish
+
+- Web Foster compacta el boton `Abrir/Ocultar` de mascotas bajo acogida para igualar la altura visual de los chips cercanos (`En acogida`, `Sin publicacion`).
+- El ajuste es solo visual y mantiene el acordeon, publicaciones, solicitudes y transferencias sin cambios funcionales.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile ni reglas de negocio.
+
 # Handoff 2026-08-11 - Owner marketplace provider card polish
 
 - Owner web `Buscar` ajusta las cards de proveedores destacados/resultados para evitar solapes: avatar mas compacto, nombre en multilinea, badge `Recomendado` en columna propia y chips internos reducidos.

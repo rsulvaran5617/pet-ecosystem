@@ -22,6 +22,8 @@ Nota FOSTER-DONATIONS-1 2026-08-10: se agrega alcance implementado localmente pa
 
 Nota operativa 2026-07-26: Web Foster `Publicaciones` agrega historia read-only para adopciones cerradas. La Familia Protectora puede abrir `Ver historia` en publicaciones `adopted`/cerradas para revisar familia adoptante, solicitud vinculada, transferencia privada y eventos clave del cierre en formato acordeon. Esta vista no crea nuevas reglas, no mueve custodia y reutiliza publicaciones, solicitudes y transferencias existentes.
 
+Nota operativa 2026-08-13: Web Foster `Solicitudes` usa lista tipo acordeon en lugar de panel maestro-detalle. Cada solicitud muestra estado de revision y estado operativo derivado de la transferencia vinculada: aprobada pendiente de transferir, transferencia pendiente, mascota transferida/adopcion cerrada, transferencia rechazada/cancelada o estado normal de revision. El detalle se abre inline y mantiene historial, compromiso documental y acciones existentes sin crear datos nuevos.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

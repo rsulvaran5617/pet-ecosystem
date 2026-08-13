@@ -112,7 +112,7 @@ function formatDate(value: string | null | undefined) {
   }).format(date);
 }
 
-function statusTone(status: PetAdoptionApplicationStatus) {
+function statusTone(status: PetAdoptionApplicationStatus): "warning" | "success" | "neutral" {
   if (status === "approved" || status === "converted_to_transfer") {
     return "success";
   }
@@ -222,6 +222,56 @@ function getAdoptionClosureSummary(application: PetAdoptionApplication, transfer
   }
 
   return null;
+}
+
+function getApplicationJourneyStatus(application: PetAdoptionApplication, transfer: PetTransferRecord | undefined) {
+  if (application.status === "converted_to_transfer" || transfer?.status === "accepted") {
+    return {
+      detail: transfer?.acceptedAt
+        ? `Transferida el ${formatDate(transfer.acceptedAt)}.`
+        : "La custodia ya fue aceptada por el nuevo hogar.",
+      label: "Mascota transferida",
+      tone: "success" as const
+    };
+  }
+
+  if (transfer?.status === "pending") {
+    return {
+      detail: "La familia receptora debe aceptar la custodia.",
+      label: "Transferencia pendiente",
+      tone: "warning" as const
+    };
+  }
+
+  if (transfer?.status === "rejected") {
+    return {
+      detail: "La familia receptora rechazo la transferencia.",
+      label: "Transferencia rechazada",
+      tone: "neutral" as const
+    };
+  }
+
+  if (transfer?.status === "cancelled") {
+    return {
+      detail: "La transferencia fue cancelada.",
+      label: "Transferencia cancelada",
+      tone: "neutral" as const
+    };
+  }
+
+  if (application.status === "approved") {
+    return {
+      detail: "Aprobada por la Familia Protectora, falta iniciar transferencia.",
+      label: "Aprobada, falta transferir",
+      tone: "warning" as const
+    };
+  }
+
+  return {
+    detail: "Estado actual de revision de esta solicitud.",
+    label: applicationStatusLabels[application.status],
+    tone: statusTone(application.status)
+  };
 }
 
 function getListingOperationalStatus(
@@ -579,6 +629,7 @@ export function FosterConsoleWorkspace() {
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
   const [applicationPetFilter, setApplicationPetFilter] = useState("all");
   const [activeSection, setActiveSection] = useState<FosterConsoleSection>("panel");
+  const [expandedApplicationId, setExpandedApplicationId] = useState<Uuid | null>(null);
   const [expandedListingId, setExpandedListingId] = useState<Uuid | null>(null);
   const [expandedTimelineItemId, setExpandedTimelineItemId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
@@ -681,14 +732,10 @@ export function FosterConsoleWorkspace() {
     [applicationPetFilter, applicationStatusFilter, applications, transfers]
   );
 
-  const selectedTransfer = selectedApplicationDetail
-    ? transfers.find((transfer) => transfer.adoptionApplicationId === selectedApplicationDetail.application.id)
-    : undefined;
   const selectedApplicationIsVisible = selectedApplicationDetail
     ? filteredApplications.some((application) => application.id === selectedApplicationDetail.application.id)
     : false;
   const visibleApplicationDetail = selectedApplicationIsVisible ? selectedApplicationDetail : null;
-  const visibleSelectedTransfer = selectedApplicationIsVisible ? selectedTransfer : undefined;
   const selectedHouseholdPermissionLabel = selectedHousehold?.myPermissions.includes("admin")
     ? "admin"
     : selectedHousehold?.myPermissions.join(", ") || "sin permisos de gestion";
@@ -1034,45 +1081,65 @@ export function FosterConsoleWorkspace() {
                 {petOptions.map((pet) => <option key={pet.id} value={pet.id}>{pet.name}</option>)}
               </select>
             </div>
-            <div style={filteredApplications.length ? styles.applicationGrid : styles.applicationDetailOnlyGrid}>
+            <div style={styles.applicationAccordionList}>
               {filteredApplications.length ? (
-                <div style={styles.listStack}>
-                  {filteredApplications.map((application) => (
-                  <button
-                    key={application.id}
-                    onClick={() => {
-                      setRejectNote(defaultAdoptionRejectionMessage);
-                      void openApplication(application);
-                    }}
-                    style={styles.applicationCard}
-                    type="button"
-                  >
-                    <div style={styles.applicationCardHeader}>
-                      <div style={styles.applicationCardTitle}>
-                        <strong style={styles.itemTitle}>{application.petName}</strong>
-                        <ApplicantIdentity application={application} compact />
-                        <p style={styles.itemMeta}>Recibida {formatDate(application.submittedAt)}</p>
-                      </div>
-                      <StatusBadge label={applicationStatusLabels[application.status]} tone={statusTone(application.status)} />
-                    </div>
-                    <p style={styles.applicationSnippet}>{application.motivation || "Sin motivacion registrada."}</p>
-                  </button>
-                  ))}
-                </div>
+                filteredApplications.map((application) => {
+                  const transfer = getApplicationTransfer(application, transfers);
+                  const journeyStatus = getApplicationJourneyStatus(application, transfer);
+                  const isExpanded = expandedApplicationId === application.id;
+                  const detailForApplication = isExpanded && visibleApplicationDetail?.application.id === application.id ? visibleApplicationDetail : null;
+
+                  return (
+                    <article key={application.id} style={isExpanded ? { ...styles.applicationAccordionCard, ...styles.applicationAccordionCardOpen } : styles.applicationAccordionCard}>
+                      <button
+                        onClick={() => {
+                          setRejectNote(defaultAdoptionRejectionMessage);
+                          if (isExpanded) {
+                            setExpandedApplicationId(null);
+                            return;
+                          }
+                          setExpandedApplicationId(application.id);
+                          void openApplication(application);
+                        }}
+                        style={styles.applicationAccordionHeader}
+                        type="button"
+                      >
+                        <div style={styles.applicationCardTitle}>
+                          <div style={styles.applicationTitleRow}>
+                            <strong style={styles.itemTitle}>{application.petName}</strong>
+                            <StatusBadge label={applicationStatusLabels[application.status]} tone={statusTone(application.status)} />
+                          </div>
+                          <ApplicantIdentity application={application} compact />
+                          <p style={styles.itemMeta}>Recibida {formatDate(application.submittedAt)}</p>
+                          <p style={styles.applicationSnippet}>{application.motivation || "Sin motivacion registrada."}</p>
+                        </div>
+                        <div style={styles.applicationStatusStack}>
+                          <StatusBadge label={journeyStatus.label} tone={journeyStatus.tone} />
+                          <span style={styles.itemMeta}>{journeyStatus.detail}</span>
+                          <span style={styles.accordionChevron}>{isExpanded ? "Ocultar" : "Ver detalle"}</span>
+                        </div>
+                      </button>
+                      {isExpanded ? (
+                        <div style={styles.applicationAccordionBody}>
+                          <ApplicationDetailPanel
+                            commitmentTemplate={commitmentTemplate}
+                            detail={detailForApplication}
+                            disabled={isSubmitting}
+                            onRejectNoteChange={setRejectNote}
+                            onReviewCommitmentDocument={reviewApplicationCommitmentDocument}
+                            onStartTransfer={startTransfer}
+                            onUpdateStatus={updateApplicationStatus}
+                            rejectNote={rejectNote}
+                            transfer={transfer}
+                          />
+                        </div>
+                      ) : null}
+                    </article>
+                  );
+                })
               ) : (
                 <EmptyState text="No hay solicitudes con estos filtros. Cambia el estado o la mascota para revisar otras solicitudes." />
               )}
-              <ApplicationDetailPanel
-                commitmentTemplate={commitmentTemplate}
-                detail={visibleApplicationDetail}
-                disabled={isSubmitting}
-                onRejectNoteChange={setRejectNote}
-                onReviewCommitmentDocument={reviewApplicationCommitmentDocument}
-                onStartTransfer={startTransfer}
-                onUpdateStatus={updateApplicationStatus}
-                rejectNote={rejectNote}
-                transfer={visibleSelectedTransfer}
-              />
             </div>
           </section>
           ) : null}
@@ -2764,10 +2831,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   applicationCardHeader: { alignItems: "flex-start", display: "flex", gap: "10px", justifyContent: "space-between" },
   applicationCardTitle: { display: "grid", gap: "2px", minWidth: 0 },
-  applicationDetailOnlyGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(0, 1fr)" },
-  applicationGrid: { display: "grid", gap: "18px", gridTemplateColumns: "minmax(260px, 0.8fr) minmax(320px, 1.2fr)" },
+  applicationAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.12)", padding: "0 12px 12px" },
+  applicationAccordionCard: { background: "#fffdf8", border: "1px solid rgba(20, 184, 166, 0.18)", borderRadius: "18px", display: "grid", overflow: "hidden" },
+  applicationAccordionCardOpen: { background: "#f8fffd", borderColor: "rgba(15, 118, 110, 0.28)", boxShadow: "0 14px 30px rgba(15, 118, 110, 0.08)" },
+  applicationAccordionHeader: { alignItems: "flex-start", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
+  applicationAccordionList: { display: "grid", gap: "10px" },
   applicationSnippet: { color: "#475569", fontSize: "13px", lineHeight: 1.45, margin: 0 },
-  accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "11px", fontWeight: 900, justifyContent: "center", minHeight: "31px", padding: "6px 10px", whiteSpace: "nowrap" },
+  applicationStatusStack: { alignItems: "flex-end", display: "grid", flexShrink: 0, gap: "5px", justifyItems: "end", maxWidth: "260px", textAlign: "right" },
+  applicationTitleRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" },
+  accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "9.5px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "24px", padding: "5px 8px", whiteSpace: "nowrap" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "12px", lineHeight: 1.5, margin: 0 },
   checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
