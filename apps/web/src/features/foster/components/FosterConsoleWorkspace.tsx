@@ -1300,6 +1300,7 @@ function FosterPetsPanel({
   const [createAvatarFile, setCreateAvatarFile] = useState<File | null>(null);
   const [expandedPetId, setExpandedPetId] = useState<Uuid | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [previewAvatarPetId, setPreviewAvatarPetId] = useState<Uuid | null>(null);
   const [uploadingAvatarPetId, setUploadingAvatarPetId] = useState<Uuid | null>(null);
   const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
     birthDate: "",
@@ -1495,54 +1496,80 @@ function FosterPetsPanel({
 
             return (
               <article key={pet.id} style={styles.fosterPetCard}>
-                <button
-                  aria-label={`${isExpanded ? "Ocultar" : "Abrir"} detalle de ${pet.name}`}
-                  aria-expanded={isExpanded}
-                  onClick={() => setExpandedPetId((current) => (current === pet.id ? null : pet.id))}
-                  style={styles.fosterPetAccordionHeader}
-                  type="button"
-                >
+                <div style={styles.fosterPetAccordionHeader}>
                   <div style={styles.fosterPetHeaderMain}>
                     <div style={styles.fosterPetIdentity}>
-                      <span style={styles.fosterPetAvatar}>
-                        {pet.avatarUrl ? (
-                          <img alt={`Foto de ${pet.name}`} src={pet.avatarUrl} style={styles.fosterPetAvatarImage} />
-                        ) : (
-                          getPetInitials(pet)
-                        )}
+                      <span
+                        onBlur={() => setPreviewAvatarPetId(null)}
+                        onFocus={() => {
+                          if (pet.avatarUrl) {
+                            setPreviewAvatarPetId(pet.id);
+                          }
+                        }}
+                        onMouseEnter={() => {
+                          if (pet.avatarUrl) {
+                            setPreviewAvatarPetId(pet.id);
+                          }
+                        }}
+                        onMouseLeave={() => setPreviewAvatarPetId(null)}
+                        style={styles.fosterPetAvatarFrame}
+                        tabIndex={pet.avatarUrl ? 0 : undefined}
+                        title={pet.avatarUrl ? `Ver foto ampliada de ${pet.name}` : undefined}
+                      >
+                        <span style={{ ...styles.fosterPetAvatar, ...(pet.avatarUrl ? styles.fosterPetAvatarInspectable : {}) }}>
+                          {pet.avatarUrl ? (
+                            <img alt={`Foto de ${pet.name}`} src={pet.avatarUrl} style={styles.fosterPetAvatarImage} />
+                          ) : (
+                            getPetInitials(pet)
+                          )}
+                        </span>
+                        {pet.avatarUrl && previewAvatarPetId === pet.id ? (
+                          <span aria-hidden="true" style={styles.avatarZoomPreview}>
+                            <img alt="" src={pet.avatarUrl} style={styles.avatarZoomImage} />
+                            <span style={styles.avatarZoomCaption}>{pet.name}</span>
+                          </span>
+                        ) : null}
                       </span>
                       <div style={styles.fosterPetIdentityCopy}>
                         <strong style={styles.itemTitle}>{pet.name}</strong>
                         <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
                         <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
-                        <label style={styles.avatarInlineUpload}>
-                          {uploadingAvatarPetId === pet.id ? "Subiendo foto..." : pet.avatarUrl ? "Cambiar foto" : "Agregar foto"}
-                          <input
-                            accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
-                            disabled={disabled || uploadingAvatarPetId === pet.id}
-                            onChange={(event) => {
-                              const file = event.target.files?.[0];
-                              event.target.value = "";
-
-                              if (file) {
-                                setUploadingAvatarPetId(pet.id);
-                                void onUploadPetAvatar(pet.id, file).finally(() => setUploadingAvatarPetId(null));
-                              }
-                            }}
-                            style={styles.fileInput}
-                            type="file"
-                          />
-                        </label>
                       </div>
                     </div>
                     <div style={styles.fosterPetHeaderMeta}>
                       <StatusBadge label="En acogida" tone="success" />
                       <span style={styles.compactPill}>{listingSummary}</span>
                       {applicationCount ? <span style={styles.compactPill}>{applicationCount} solicitud(es)</span> : null}
+                      <label style={styles.avatarInlineUpload}>
+                        {uploadingAvatarPetId === pet.id ? "Subiendo..." : pet.avatarUrl ? "Cambiar foto" : "+ Foto"}
+                        <input
+                          accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
+                          disabled={disabled || uploadingAvatarPetId === pet.id}
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            event.target.value = "";
+
+                            if (file) {
+                              setUploadingAvatarPetId(pet.id);
+                              void onUploadPetAvatar(pet.id, file).finally(() => setUploadingAvatarPetId(null));
+                            }
+                          }}
+                          style={styles.fileInput}
+                          type="file"
+                        />
+                      </label>
                     </div>
                   </div>
-                  <span style={styles.accordionChevron}>{isExpanded ? "Ocultar" : "Abrir"}</span>
-                </button>
+                  <button
+                    aria-label={`${isExpanded ? "Ocultar" : "Abrir"} detalle de ${pet.name}`}
+                    aria-expanded={isExpanded}
+                    onClick={() => setExpandedPetId((current) => (current === pet.id ? null : pet.id))}
+                    style={styles.accordionChevronButton}
+                    type="button"
+                  >
+                    {isExpanded ? "Ocultar" : "Abrir"}
+                  </button>
+                </div>
 
                 {isExpanded ? (
                   <div style={styles.fosterPetAccordionBody}>
@@ -3023,10 +3050,14 @@ const styles: Record<string, React.CSSProperties> = {
   applicationStatusStack: { alignItems: "flex-end", display: "grid", flexShrink: 0, gap: "5px", justifyItems: "end", maxWidth: "260px", textAlign: "right" },
   applicationTitleRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" },
   accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "9.5px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "24px", padding: "5px 8px", whiteSpace: "nowrap" },
-  avatarInlineUpload: { color: "#00796f", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 900, marginTop: "6px", textDecoration: "underline", textUnderlineOffset: "2px" },
+  accordionChevronButton: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", display: "inline-flex", flexShrink: 0, fontSize: "9.5px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "28px", padding: "6px 10px", whiteSpace: "nowrap" },
+  avatarInlineUpload: { alignItems: "center", background: "#f0fdfa", border: "1px solid rgba(15, 118, 110, 0.22)", borderRadius: "999px", color: "#00796f", cursor: "pointer", display: "inline-flex", flexShrink: 0, fontSize: "9.5px", fontWeight: 900, justifyContent: "center", minHeight: "28px", padding: "6px 10px", whiteSpace: "nowrap" },
   avatarPickerCopy: { display: "flex", flex: 1, flexDirection: "column", gap: "3px", minWidth: 0 },
   avatarPickerRow: { alignItems: "center", background: "#ffffff", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "18px", cursor: "pointer", display: "flex", gap: "12px", padding: "10px" },
   avatarPreview: { alignItems: "center", background: "#dff7f3", border: "1px solid rgba(15, 118, 110, 0.22)", borderRadius: "999px", color: "#00796f", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "44px", justifyContent: "center", width: "44px" },
+  avatarZoomCaption: { background: "rgba(15, 23, 42, 0.82)", borderRadius: "999px", bottom: "10px", color: "#ffffff", fontSize: "11px", fontWeight: 900, left: "12px", maxWidth: "156px", overflow: "hidden", padding: "5px 8px", position: "absolute", right: "12px", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  avatarZoomImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
+  avatarZoomPreview: { background: "#ffffff", border: "1px solid rgba(15, 118, 110, 0.22)", borderRadius: "20px", boxShadow: "0 22px 50px rgba(15, 23, 42, 0.22)", height: "190px", left: "58px", overflow: "hidden", padding: "6px", pointerEvents: "none", position: "absolute", top: "-24px", width: "190px", zIndex: 20 },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "12px", lineHeight: 1.5, margin: 0 },
   checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
@@ -3056,11 +3087,13 @@ const styles: Record<string, React.CSSProperties> = {
   formStack: { display: "grid", gap: "12px" },
   fosterPetAccordion: { display: "grid", gap: "10px" },
   fosterPetAccordionBody: { borderTop: "1px solid rgba(15, 118, 110, 0.12)", display: "grid", gap: "12px", padding: "12px 14px 14px" },
-  fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
+  fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
   fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
   fosterPetAvatar: { alignItems: "center", background: "#dff7f3", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "46px", justifyContent: "center", overflow: "hidden", width: "46px" },
+  fosterPetAvatarFrame: { borderRadius: "999px", display: "inline-flex", flexShrink: 0, position: "relative" },
   fosterPetAvatarImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
+  fosterPetAvatarInspectable: { boxShadow: "0 0 0 3px rgba(15, 118, 110, 0.08)", cursor: "zoom-in" },
   fosterPetHeaderMain: { alignItems: "center", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
   fosterPetHeaderMeta: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
   fosterPetIdentity: { alignItems: "center", display: "flex", gap: "11px", minWidth: 0 },
