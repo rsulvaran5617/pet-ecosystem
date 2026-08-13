@@ -63,8 +63,8 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
   - galeria de la publicacion.
   - bucket privado `pet-adoption-media`, path privado, portada, orden y estado de moderacion.
   - Foster-3B permite hasta 8 fotos por publicacion.
-  - fotos nuevas en publicaciones `published` quedan `pending` y no cambian el estado de la publicacion.
-  - solo media `approved` es visible para adoptantes; owner/admin ven todos los estados.
+  - desde FOSTER-MEDIA-DIRECT-1, fotos nuevas de Familias Protectoras aprobadas quedan `approved` bajo responsabilidad directa y no cambian el estado de la publicacion.
+  - solo media `approved` es visible para adoptantes; owner/admin conservan trazabilidad de estados historicos o moderados.
 
 RPCs Foster-3B:
 - `set_pet_adoption_listing_cover(target_media_id)`

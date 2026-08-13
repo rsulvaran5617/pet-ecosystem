@@ -16,6 +16,8 @@ Nota operativa 2026-07-07: se aplican hotfixes remotos `20260707173000_foster_ad
 
 Nota operativa 2026-07-26: se prepara Foster publicacion responsable directa. Las Familias Protectoras aprobadas pueden publicar y actualizar la ficha publica de una mascota bajo su propia responsabilidad, sin revision admin previa por cada ficha. La plataforma conserva moderacion posterior, pausa/rechazo y auditoria. La ficha debe mostrar claramente historia, personalidad, salud publica, requisitos, compatibilidad y ubicacion antes de recibir solicitudes.
 
+Nota operativa 2026-08-13: las fotos de adopcion cargadas por una Familia Protectora aprobada tambien siguen el modelo de publicacion responsable directa. La carga queda publicable sin revision previa de admin, con limite de galeria y bucket privado mediante URLs firmadas. La plataforma conserva moderacion posterior, retiro/pausa de contenido reportado y auditoria; donar, adoptar o publicar fotos no elimina la responsabilidad de la familia sobre la veracidad y sensibilidad del contenido.
+
 Nota operativa 2026-07-26: redes sociales publicas para el perfil de Familia Protectora quedan aplicadas remoto. Los enlaces son opcionales, validados como `https://` y se muestran solo en el detalle `Ver perfil` de una mascota en adopcion; no aparecen en la lista de publicaciones para mantener discovery limpio. La solicitud formal de adopcion se mantiene dentro de Pet Ecosystem.
 
 Nota FOSTER-DONATIONS-1 2026-08-10: se agrega alcance implementado localmente para informacion publica opcional de apoyo/donaciones dentro del perfil publico de la Familia Protectora. No implementa pagos, checkout, Stripe, PayPal API ni Yappy API. La informacion es declarada por la organizacion, donar es opcional, no garantiza aprobacion de adopcion y Pet Ecosystem no procesa ni valida aportes. Editar estos datos hereda la misma moderacion del perfil publico: si estaba aprobado, vuelve a `draft`, `is_public = false` y requiere nueva revision admin.
@@ -759,15 +761,21 @@ Objetivo:
 
 - Corregir el flujo donde una publicacion `published` podia quedar inconsistente al intentar agregar una foto despues de aprobacion admin.
 - Permitir varias fotos por publicacion, con limite inicial de 8 imagenes.
-- Mantener visible una publicacion aprobada mientras nuevas fotos quedan en `pending`.
+- Mantener visible una publicacion aprobada mientras se agregan nuevas fotos.
+
+Nota vigente FOSTER-MEDIA-DIRECT-1:
+
+- Este slice queda historicamente documentado como base tecnica de galeria y moderacion posterior.
+- La operativa actual ya no exige revision previa de admin para fotos cargadas por una Familia Protectora aprobada.
+- Las fotos nuevas quedan publicables bajo responsabilidad directa de la Familia Protectora, mientras admin conserva facultad de moderacion posterior.
 
 Reglas:
 
 - Agregar una foto a una publicacion `published` no cambia `pet_adoption_listings.status`.
-- Las fotos nuevas se insertan como `moderation_status = pending`.
-- Owner/familia protectora ve todas sus fotos con estado `Pendiente`, `Aprobada` o `Rechazada`.
+- Las fotos nuevas se insertan como `moderation_status = approved` bajo responsabilidad de la Familia Protectora aprobada.
+- Owner/familia protectora ve sus fotos con estado `Publica`, `Pendiente` historico o `Rechazada` cuando aplique por moderacion.
 - Adoptantes solo ven fotos `approved` de publicaciones `published`.
-- Admin puede aprobar o rechazar fotos individuales sin reaprobar toda la publicacion.
+- Admin puede retirar/rechazar fotos individuales por moderacion posterior sin reaprobar toda la publicacion.
 
 ## Foster publicacion responsable directa
 

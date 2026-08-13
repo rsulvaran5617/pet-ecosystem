@@ -91,7 +91,7 @@ function formatSterilizedLabel(value: boolean | null) {
 
 function getAdoptionMediaStatusLabel(status: PetAdoptionListingMedia["moderationStatus"]) {
   if (status === "approved") {
-    return "Aprobada";
+    return "Publica";
   }
 
   if (status === "rejected") {
@@ -1397,7 +1397,7 @@ export function PetsWorkspace({
           (await getMobileFosterApiClient().createPetAdoptionListing(pet.id, selectedHouseholdId));
 
         if (currentListing.status === "published") {
-          throw new Error("La publicacion aprobada sigue visible. Pausala si necesitas cambiar textos; las fotos nuevas se revisan aparte.");
+          throw new Error("La publicacion aprobada sigue visible. Pausala si necesitas cambiar textos principales; puedes gestionar fotos sin enviarlas a revision.");
         }
 
         await getMobileFosterApiClient().updatePetAdoptionListing({
@@ -1478,7 +1478,7 @@ export function PetsWorkspace({
         await refreshAdoptionListings();
       },
       listing.status === "published"
-        ? "Foto enviada a revision. La publicacion no se despublica."
+        ? "Foto publicada bajo responsabilidad de la Familia Protectora."
         : "Foto agregada a la vitrina de adopcion.",
       false
     );
@@ -1492,7 +1492,7 @@ export function PetsWorkspace({
         await refreshAdoptionListings();
       },
       media.moderationStatus === "pending"
-        ? "Portada marcada. Sera publica cuando admin apruebe la foto."
+        ? "Portada marcada. Sera publica cuando la foto este disponible."
         : "Portada actualizada.",
       false
     );
@@ -1501,7 +1501,7 @@ export function PetsWorkspace({
   const removeAdoptionPhoto = (media: PetAdoptionListingMedia) => {
     Alert.alert(
       "Quitar foto",
-      "Solo se pueden quitar fotos pendientes o rechazadas desde la app. Las fotos aprobadas conservan trazabilidad de la publicacion.",
+      "La foto se retirara de la vitrina publica. La Familia Protectora conserva la responsabilidad sobre el contenido publicado.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -2753,7 +2753,7 @@ export function PetsWorkspace({
                             <View style={{ gap: 8 }}>
                               <Text style={{ color: "#115e59", fontSize: 11, fontWeight: "800", lineHeight: 16 }}>
                                 {selectedPetAdoptionListing
-                                  ? `${selectedPetAdoptionListing.media.length}/${adoptionMediaLimit} fotos cargadas. Las fotos nuevas pasan por revision individual.`
+                                  ? `${selectedPetAdoptionListing.media.length}/${adoptionMediaLimit} fotos cargadas. Las fotos se publican bajo responsabilidad de la Familia Protectora.`
                                   : "Guarda la publicacion como borrador antes de agregar fotos."}
                               </Text>
                               {selectedPetAdoptionListing?.media.length ? (
@@ -2787,7 +2787,7 @@ export function PetsWorkspace({
                                 {adoptionListingForm.city.trim() || "Ciudad pendiente"}, {adoptionListingForm.countryCode.trim().toUpperCase() || "PA"}
                               </Text>
                               <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
-                                Fotos: {adoptionListingPhotoCount}/{adoptionMediaLimit}. Guardar no publica automaticamente; enviar a revision solicita aprobacion admin.
+                                Fotos: {adoptionListingPhotoCount}/{adoptionMediaLimit}. Guardar conserva el borrador; las fotos cargadas quedan disponibles para la vitrina responsable.
                               </Text>
                             </View>
                           ) : null}
@@ -2861,8 +2861,8 @@ export function PetsWorkspace({
                               </Text>
                               <Text style={{ color: "#115e59", fontSize: 10, fontWeight: "800", lineHeight: 15 }}>
                                 {selectedPetAdoptionListing.status === "published"
-                                  ? "La publicacion sigue visible. Las fotos nuevas se publican cuando admin las apruebe."
-                                  : "Las fotos se muestran publicamente despues de la revision admin."}
+                                  ? "La publicacion sigue visible. Las fotos nuevas se muestran bajo responsabilidad de la Familia Protectora."
+                                  : "Las fotos quedan listas para mostrarse cuando la publicacion este visible."}
                               </Text>
                               <StatusChip label={`${selectedPetAdoptionListing.media.length}/${adoptionMediaLimit} fotos`} tone="neutral" />
                               {selectedPetAdoptionListing.media.length ? (
@@ -2905,11 +2905,9 @@ export function PetsWorkspace({
                                             <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>Usar portada</Text>
                                           </Pressable>
                                         ) : null}
-                                        {media.moderationStatus !== "approved" ? (
-                                          <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => removeAdoptionPhoto(media)}>
-                                            <Text style={{ color: "#991b1b", fontSize: 9, fontWeight: "900" }}>Quitar</Text>
-                                          </Pressable>
-                                        ) : null}
+                                        <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => removeAdoptionPhoto(media)}>
+                                          <Text style={{ color: "#991b1b", fontSize: 9, fontWeight: "900" }}>Quitar</Text>
+                                        </Pressable>
                                       </View>
                                     ))}
                                   </View>

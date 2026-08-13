@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster responsible direct adoption photos
+
+- Mobile Foster deja de tratar las fotos de adopcion como media pendiente de revision individual.
+- `uploadPetAdoptionMedia` ahora crea la foto con `moderation_status = approved`, lo que mantiene compatible el discovery publico que solo muestra media aprobada.
+- Mobile actualiza el copy: las fotos se publican bajo responsabilidad de la Familia Protectora y ya no dependen de aprobacion admin previa.
+- Migracion `20260813120000_foster_direct_adoption_media_publication.sql` actualiza RLS para aceptar media `approved` en insert y permitir que la Familia Protectora retire fotos propias de su publicacion.
+- El API retira primero el objeto del bucket `pet-adoption-media` y luego la fila metadata, para conservar contexto RLS de Storage durante el borrado.
+- La plataforma conserva moderacion posterior, pausa/retiro y auditoria; no se abre pago ni se cambia el flujo de solicitudes/transferencias.
+
 # Handoff 2026-08-13 - Foster embedded adoption media
 
 - Web Foster corrige la galeria de `Fotos publicas` para usar media embebida por los RPC de publicaciones cuando esta disponible.

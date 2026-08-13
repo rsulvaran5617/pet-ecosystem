@@ -239,13 +239,13 @@ Reglas de identidad:
 - No transfiere reservas, chats, pagos, soporte ni recordatorios.
 - No expone documentos privados completos; el resumen de salud es texto publico controlado por la familia protectora y moderado por admin.
 
-Foster-3B agrega moderacion individual de fotos sobre este mismo modelo:
+Foster-3B agrego moderacion individual de fotos sobre este mismo modelo. Desde FOSTER-MEDIA-DIRECT-1, la carga operativa de Familias Protectoras aprobadas pasa a publicacion responsable directa:
 
 - `pet_adoption_listing_media` acepta hasta 8 imagenes por publicacion.
 - una publicacion `published` puede recibir fotos nuevas sin volver a `pending_review`.
-- fotos nuevas quedan `moderation_status = pending` hasta revision admin.
-- lectura publica solo usa fotos `approved`; owner/admin ven todos los estados.
-- `set_pet_adoption_listing_cover` controla la portada y `review_pet_adoption_listing_media` aprueba/rechaza fotos individuales.
+- fotos nuevas quedan `moderation_status = approved` bajo responsabilidad de la Familia Protectora aprobada.
+- lectura publica solo usa fotos `approved`; owner/admin ven todos los estados historicos o moderados.
+- `set_pet_adoption_listing_cover` controla la portada y `review_pet_adoption_listing_media` queda como herramienta de moderacion posterior/admin cuando aplique.
 
 Videos siguen fuera de alcance; Foster-3B usa fotos privadas con URLs firmadas temporales.
 

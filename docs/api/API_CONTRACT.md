@@ -33,7 +33,7 @@ Operaciones tipadas en `packages/api-client/src/foster.ts`.
 - `reviewPetAdoptionListingMedia(mediaId, input)`
 - `removePetAdoptionMedia(mediaId)`
 
-Foster-3B mantiene publicaciones `published` visibles mientras fotos nuevas quedan `pending`. Los listados publicos devuelven solo media aprobada; listados propios/admin conservan estados por foto. El modelo vigente permite que una Familia Protectora aprobada publique/actualice la ficha bajo responsabilidad propia; admin conserva moderacion posterior. Foster-3A/3B no transfiere mascotas desde la vitrina.
+FOSTER-MEDIA-DIRECT-1 mantiene publicaciones `published` visibles mientras fotos nuevas quedan `approved` bajo responsabilidad directa de la Familia Protectora aprobada. Los listados publicos devuelven solo media aprobada; listados propios/admin conservan estados por foto para trazabilidad y moderacion posterior. El modelo vigente permite que una Familia Protectora aprobada publique/actualice la ficha bajo responsabilidad propia; admin conserva moderacion posterior. Foster-3A/3B no transfiere mascotas desde la vitrina.
 
 ### Auth
 

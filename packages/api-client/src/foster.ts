@@ -1736,7 +1736,7 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
           file_name: input.fileName,
           file_size_bytes: input.fileSizeBytes ?? null,
           mime_type: input.mimeType,
-          moderation_status: "pending",
+          moderation_status: "approved",
           display_order: 0,
           is_cover: input.isCover ?? false,
           created_by_user_id: currentUserId
@@ -1790,13 +1790,13 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         failMissingFosterSchema(error);
       }
 
+      await supabase.storage.from(data.storage_bucket).remove([data.storage_path]);
+
       const { error: deleteError } = await supabase.from("pet_adoption_listing_media").delete().eq("id", mediaId);
 
       if (deleteError) {
         fail(deleteError, "Unable to remove adoption media metadata.");
       }
-
-      await supabase.storage.from(data.storage_bucket).remove([data.storage_path]);
     }
   };
 }
