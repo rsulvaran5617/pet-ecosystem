@@ -574,6 +574,10 @@ function publicationGuidance(listing: PetAdoptionListing | null) {
     return "La adopcion fue cerrada mediante transferencia privada.";
   }
 
+  if (listing.status === "closed") {
+    return "La publicacion esta cerrada. Conserva trazabilidad del proceso y no permite editar la ficha publica.";
+  }
+
   return "Revisa el estado de esta publicacion antes de continuar.";
 }
 
@@ -1564,6 +1568,21 @@ function AdoptionPublicationFlow({
               ) : null}
             </div>
           </div>
+          {canEdit ? (
+            <button
+              disabled={disabled}
+              onClick={() => setIsEditing((current) => !current)}
+              style={isEditing ? styles.secondaryButton : styles.primaryButton}
+              type="button"
+            >
+              {isEditing ? "Ocultar edicion" : "Editar ficha publica"}
+            </button>
+          ) : (
+            <div style={styles.lockedPublicationNotice}>
+              <strong>Ficha cerrada para edicion.</strong>
+              <span>Esta publicacion ya esta cerrada o adoptada. Se conserva como evidencia del proceso y no debe modificarse desde la vitrina.</span>
+            </div>
+          )}
           <div style={styles.publicContentGrid}>
             <ContentSummaryTile label="Historia" value={listing.publicStory} />
             <ContentSummaryTile label="Personalidad" value={listing.personalityNotes} />
@@ -2968,6 +2987,7 @@ const styles: Record<string, React.CSSProperties> = {
   mediaUploadIcon: { alignItems: "center", background: "#dff7f3", borderRadius: "999px", color: "#0f766e", display: "inline-flex", fontSize: "18px", fontWeight: 900, height: "32px", justifyContent: "center", width: "32px" },
   mediaUploadNotice: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "14px", color: "#0f766e", fontSize: "12px", fontWeight: 900, padding: "10px 12px" },
   mediaUploadTile: { alignItems: "center", aspectRatio: "1 / 1", background: "#fffdf8", border: "1px dashed rgba(15, 118, 110, 0.26)", borderRadius: "14px", color: "#0f766e", cursor: "pointer", display: "flex", flexDirection: "column", fontSize: "12px", fontWeight: 900, gap: "8px", justifyContent: "center", padding: "10px", textAlign: "center", width: "118px" },
+  lockedPublicationNotice: { background: "rgba(247, 242, 232, 0.78)", border: "1px solid rgba(120, 113, 108, 0.18)", borderRadius: "14px", color: "#475569", display: "grid", fontSize: "12px", gap: "4px", lineHeight: 1.45, padding: "10px 12px" },
   notice: { border: "1px solid", borderRadius: "16px", fontSize: "12px", fontWeight: 800, padding: "12px 14px" },
   operationalStatusText: { color: "#c2410c", fontSize: "12px", fontWeight: 900, margin: "6px 0 0" },
   pageShell: { background: "#fbfaf7", color: "#0f172a", display: "grid", gap: "16px", minHeight: "100vh", padding: "24px" },

@@ -747,7 +747,7 @@ export function useFosterConsoleWorkspace() {
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setInfoMessage("Publicacion preparada como borrador. Completa su historia, fotos y datos antes de enviarla a revision.");
+        setInfoMessage("Publicacion preparada como borrador. Completa su historia, fotos y datos antes de publicarla bajo responsabilidad.");
       }
 
       return listing;
@@ -774,7 +774,7 @@ export function useFosterConsoleWorkspace() {
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setInfoMessage("Publicacion guardada como borrador. Cuando este completa, enviala a revision admin.");
+        setInfoMessage("Publicacion guardada. Cuando este completa, publicala bajo responsabilidad de la Familia Protectora.");
       }
 
       return listing;
@@ -801,7 +801,7 @@ export function useFosterConsoleWorkspace() {
       await reloadSelectedHousehold();
 
       if (mountedRef.current) {
-        setInfoMessage("Publicacion enviada a revision. Admin debe aprobarla antes de que aparezca en Mascotas que buscan hogar.");
+        setInfoMessage("Publicacion visible bajo responsabilidad de la Familia Protectora.");
       }
 
       return listing;

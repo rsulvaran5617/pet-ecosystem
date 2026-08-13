@@ -138,7 +138,7 @@ Razon:
 | Perfil publico en revision | public profile `pending_review` | Estado de revision | Esperar revision | Discovery publico |
 | Lista para operar | familia approved + public profile approved/is_public | Dashboard Foster simple y bottom nav Foster separado | Registrar mascota bajo acogida | Setup repetitivo |
 | Mascota bajo acogida sin publicacion | pet activa en hogar protective sin listing | Ficha de mascota y guia | Preparar publicacion | Solicitudes |
-| Publicacion en borrador | listing `draft` | Completar contenido/fotos | Enviar a revision | Compartir publicamente |
+| Publicacion en borrador | listing `draft` | Completar contenido/fotos | Publicar bajo responsabilidad | Compartir publicamente |
 | Publicacion en revision | listing `pending_review` | Estado de espera admin | Revisar estado | Solicitudes nuevas |
 | Publicada | listing `published` | Ficha visible, compartir, solicitudes | Revisar solicitudes | Setup de familia |
 | Solicitud nueva | application `submitted` | Bandeja de solicitudes | Revisar solicitud | Transferencia |
@@ -398,7 +398,7 @@ CTA: `Iniciar transferencia`
 | Perfil publico aprobado | Registrar mascota bajo acogida | Editar perfil |
 | Sin mascotas | Registrar mascota bajo acogida | Ver guia |
 | Mascota sin publicacion | Preparar publicacion | Editar mascota |
-| Publicacion borrador | Enviar a revision | Agregar fotos |
+| Publicacion borrador | Publicar bajo responsabilidad | Agregar fotos |
 | Publicacion publicada | Ver solicitudes | Compartir ficha |
 | Solicitud nueva | Revisar solicitud | Rechazar con nota |
 | Solicitud en entrevista | Aprobar solicitud | Rechazar |

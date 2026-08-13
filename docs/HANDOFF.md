@@ -2,6 +2,8 @@
 
 # Handoff 2026-08-13 - Foster responsible direct adoption photos
 
+- Web Foster aclara que publicaciones `closed`/`adopted` quedan cerradas para edicion y conserva trazabilidad; el CTA `Editar ficha publica` queda mas visible en publicaciones editables, especialmente en layout movil.
+- Mobile Foster muestra publicaciones `closed`/`adopted` como solo lectura en la vitrina de adopcion, bloquea edicion/fotos/cierre y conserva la ficha visible como historial; publicaciones activas/publicadas pueden editar contenido bajo responsabilidad.
 - Mobile Foster deja de tratar las fotos de adopcion como media pendiente de revision individual.
 - `uploadPetAdoptionMedia` ahora crea la foto con `moderation_status = approved`, lo que mantiene compatible el discovery publico que solo muestra media aprobada.
 - Mobile actualiza el copy: las fotos se publican bajo responsabilidad de la Familia Protectora y ya no dependen de aprobacion admin previa.

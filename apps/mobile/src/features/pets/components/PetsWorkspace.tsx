@@ -1235,9 +1235,9 @@ export function PetsWorkspace({
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
-  const selectedPetAdoptionListing = selectedPet
-    ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id && listing.status !== "closed") ?? null
-    : null;
+  const selectedPetAdoptionListing = selectedPet ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id) ?? null : null;
+  const selectedPetAdoptionListingIsClosed =
+    selectedPetAdoptionListing?.status === "closed" || selectedPetAdoptionListing?.status === "adopted";
   const adoptionListingTextIsReady = Boolean(adoptionListingForm.title.trim()) && Boolean(adoptionListingForm.city.trim());
   const adoptionListingHasHealthInfo =
     Boolean(adoptionListingForm.publicHealthSummary.trim()) ||
@@ -1252,8 +1252,8 @@ export function PetsWorkspace({
     { id: "photos", label: "Fotos", isComplete: adoptionListingPhotoCount > 0 },
     {
       id: "review",
-      label: adoptionListingIsVisible ? "Visible" : "Revision",
-      isComplete: adoptionListingIsVisible || selectedPetAdoptionListing?.status === "pending_review"
+      label: selectedPetAdoptionListingIsClosed ? "Cerrada" : adoptionListingIsVisible ? "Visible" : "Publicar",
+      isComplete: selectedPetAdoptionListingIsClosed || adoptionListingIsVisible || selectedPetAdoptionListing?.status === "pending_review"
     }
   ] as const;
   const currentAdoptionListingStepIndex = adoptionListingSteps.findIndex((step) => step.id === adoptionListingStep);
@@ -1355,7 +1355,20 @@ export function PetsWorkspace({
   };
 
   const openAdoptionListingForm = (pet: NonNullable<typeof selectedPet>) => {
-    const currentListing = myAdoptionListings.find((listing) => listing.petId === pet.id && listing.status !== "closed") ?? null;
+    const currentListing = myAdoptionListings.find((listing) => listing.petId === pet.id) ?? null;
+
+    if (currentListing && (currentListing.status === "closed" || currentListing.status === "adopted")) {
+      clearMessages();
+      void runAction(
+        async () => {
+          throw new Error("Esta publicacion ya esta cerrada o adoptada. Se conserva como evidencia del proceso y no puede editarse.");
+        },
+        "",
+        false
+      );
+      return;
+    }
+
     setAdoptionListingPetId(pet.id);
     setAdoptionListingStep("story");
     setAdoptionListingForm(
@@ -1393,11 +1406,11 @@ export function PetsWorkspace({
     void runAction(
       async () => {
         const currentListing =
-          myAdoptionListings.find((listing) => listing.petId === pet.id && listing.status !== "closed") ??
+          myAdoptionListings.find((listing) => listing.petId === pet.id && listing.status !== "closed" && listing.status !== "adopted") ??
           (await getMobileFosterApiClient().createPetAdoptionListing(pet.id, selectedHouseholdId));
 
-        if (currentListing.status === "published") {
-          throw new Error("La publicacion aprobada sigue visible. Pausala si necesitas cambiar textos principales; puedes gestionar fotos sin enviarlas a revision.");
+        if (currentListing.status === "closed" || currentListing.status === "adopted") {
+          throw new Error("Esta publicacion ya esta cerrada o adoptada. Se conserva como evidencia del proceso y no puede editarse.");
         }
 
         await getMobileFosterApiClient().updatePetAdoptionListing({
@@ -1418,7 +1431,7 @@ export function PetsWorkspace({
         await getMobileFosterApiClient().submitPetAdoptionListing(listingId);
         await refreshAdoptionListings();
       },
-      "Publicacion enviada a revision. El equipo admin debe aprobarla antes de mostrarse.",
+      "Publicacion visible bajo responsabilidad de la Familia Protectora.",
       false
     );
   };
@@ -2648,11 +2661,13 @@ export function PetsWorkspace({
                           label={
                             selectedPetAdoptionListing
                               ? selectedPetAdoptionListing.status === "pending_review"
-                                ? "en revision"
+                                ? "lista"
+                                : selectedPetAdoptionListing.status === "closed" || selectedPetAdoptionListing.status === "adopted"
+                                  ? "cerrada"
                                 : selectedPetAdoptionListing.status
                               : "borrador"
                           }
-                          tone={selectedPetAdoptionListing?.status === "published" ? "active" : "pending"}
+                          tone={selectedPetAdoptionListing?.status === "published" ? "active" : selectedPetAdoptionListingIsClosed ? "neutral" : "pending"}
                         />
                       </View>
                       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
@@ -2696,7 +2711,7 @@ export function PetsWorkspace({
                                 {selectedPetDetail.pet.breed ? ` - ${selectedPetDetail.pet.breed}` : ""} - {formatSterilizedLabel(selectedPetDetail.pet.isSterilized)}
                               </Text>
                               <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
-                                Registrar una mascota no la publica. La vitrina se guarda y luego se envia a revision admin.
+                                Registrar una mascota no la publica. La vitrina se completa y luego se publica bajo responsabilidad de la Familia Protectora.
                               </Text>
                             </View>
                           ) : null}
@@ -2787,7 +2802,9 @@ export function PetsWorkspace({
                                 {adoptionListingForm.city.trim() || "Ciudad pendiente"}, {adoptionListingForm.countryCode.trim().toUpperCase() || "PA"}
                               </Text>
                               <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
-                                Fotos: {adoptionListingPhotoCount}/{adoptionMediaLimit}. Guardar conserva el borrador; las fotos cargadas quedan disponibles para la vitrina responsable.
+                                {selectedPetAdoptionListingIsClosed
+                                  ? "Esta publicacion esta cerrada y se conserva solo como historial del proceso."
+                                  : `Fotos: ${adoptionListingPhotoCount}/${adoptionMediaLimit}. Guardar conserva el borrador; las fotos cargadas quedan disponibles para la vitrina responsable.`}
                               </Text>
                             </View>
                           ) : null}
@@ -2823,7 +2840,7 @@ export function PetsWorkspace({
                             />
                             {adoptionListingStep === "photos" && selectedPetAdoptionListing ? (
                               <Button
-                                disabled={isSubmitting || selectedPetAdoptionListing.status === "pending_review" || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
+                                disabled={isSubmitting || selectedPetAdoptionListingIsClosed || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
                                 label="Agregar foto"
                                 labelSize={11}
                                 onPress={() => void uploadAdoptionCoverPhoto(selectedPetAdoptionListing)}
@@ -2834,7 +2851,7 @@ export function PetsWorkspace({
                             (selectedPetAdoptionListing?.status === "draft" || selectedPetAdoptionListing?.status === "rejected" || selectedPetAdoptionListing?.status === "paused") ? (
                               <Button
                                 disabled={isSubmitting || !selectedPetAdoptionListing.title.trim()}
-                                label="Enviar a revision"
+                                label="Publicar"
                                 labelSize={11}
                                 onPress={() => submitAdoptionListing(selectedPetAdoptionListing.id)}
                                 tone="secondary"
@@ -2860,7 +2877,9 @@ export function PetsWorkspace({
                                 {selectedPetAdoptionListing.title} - {selectedPetAdoptionListing.city}, {selectedPetAdoptionListing.countryCode}
                               </Text>
                               <Text style={{ color: "#115e59", fontSize: 10, fontWeight: "800", lineHeight: 15 }}>
-                                {selectedPetAdoptionListing.status === "published"
+                                {selectedPetAdoptionListingIsClosed
+                                  ? "La publicacion esta cerrada. Puedes consultar el historial, pero no editar esta ficha."
+                                  : selectedPetAdoptionListing.status === "published"
                                   ? "La publicacion sigue visible. Las fotos nuevas se muestran bajo responsabilidad de la Familia Protectora."
                                   : "Las fotos quedan listas para mostrarse cuando la publicacion este visible."}
                               </Text>
@@ -2900,14 +2919,16 @@ export function PetsWorkspace({
                                           {getAdoptionMediaStatusLabel(media.moderationStatus)}
                                           {media.isCover ? " · Portada" : ""}
                                         </Text>
-                                        {!media.isCover && media.moderationStatus !== "rejected" ? (
+                                        {!selectedPetAdoptionListingIsClosed && !media.isCover && media.moderationStatus !== "rejected" ? (
                                           <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => setAdoptionCoverPhoto(media)}>
                                             <Text style={{ color: colorTokens.accentDark, fontSize: 9, fontWeight: "900" }}>Usar portada</Text>
                                           </Pressable>
                                         ) : null}
-                                        <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => removeAdoptionPhoto(media)}>
-                                          <Text style={{ color: "#991b1b", fontSize: 9, fontWeight: "900" }}>Quitar</Text>
-                                        </Pressable>
+                                        {!selectedPetAdoptionListingIsClosed ? (
+                                          <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => removeAdoptionPhoto(media)}>
+                                            <Text style={{ color: "#991b1b", fontSize: 9, fontWeight: "900" }}>Quitar</Text>
+                                          </Pressable>
+                                        ) : null}
                                       </View>
                                     ))}
                                   </View>
@@ -2925,14 +2946,14 @@ export function PetsWorkspace({
                           )}
                           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                             <Button
-                              disabled={isSubmitting || isSelectedPetInMemory || selectedPetAdoptionListing?.status === "published"}
-                              label={selectedPetAdoptionListing ? "Editar textos" : "Preparar adopcion"}
+                              disabled={isSubmitting || isSelectedPetInMemory || selectedPetAdoptionListingIsClosed}
+                              label={selectedPetAdoptionListingIsClosed ? "Ficha cerrada" : selectedPetAdoptionListing ? "Editar ficha" : "Preparar adopcion"}
                               labelSize={11}
                               onPress={() => openAdoptionListingForm(selectedPetDetail.pet)}
                             />
                             {selectedPetAdoptionListing ? (
                               <Button
-                                disabled={isSubmitting || selectedPetAdoptionListing.status === "pending_review" || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
+                                disabled={isSubmitting || selectedPetAdoptionListingIsClosed || selectedPetAdoptionListing.media.length >= adoptionMediaLimit}
                                 label="Agregar foto"
                                 labelSize={11}
                                 onPress={() => void uploadAdoptionCoverPhoto(selectedPetAdoptionListing)}
@@ -2942,7 +2963,7 @@ export function PetsWorkspace({
                             {selectedPetAdoptionListing?.status === "draft" || selectedPetAdoptionListing?.status === "rejected" || selectedPetAdoptionListing?.status === "paused" ? (
                               <Button
                                 disabled={isSubmitting || !selectedPetAdoptionListing.title.trim()}
-                                label="Enviar a revision"
+                                label="Publicar"
                                 labelSize={11}
                                 onPress={() => submitAdoptionListing(selectedPetAdoptionListing.id)}
                                 tone="secondary"
@@ -2957,7 +2978,7 @@ export function PetsWorkspace({
                                 tone="secondary"
                               />
                             ) : null}
-                            {selectedPetAdoptionListing && selectedPetAdoptionListing.status !== "closed" ? (
+                            {selectedPetAdoptionListing && !selectedPetAdoptionListingIsClosed ? (
                               <Button
                                 disabled={isSubmitting}
                                 label="Cerrar"
