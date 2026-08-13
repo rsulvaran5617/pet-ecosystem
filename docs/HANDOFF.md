@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster pet list avatars
+
+- Web Foster `Mascotas bajo acogida` muestra la foto de perfil de cada mascota cuando existe `PetSummary.avatarUrl`.
+- Si no hay foto disponible, la fila conserva un avatar circular con iniciales de la mascota para mantener seguimiento visual consistente.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile, pagos ni reglas de adopcion/transferencia.
+
 # Handoff 2026-08-13 - Foster delivered pets metric
 
 - Web Foster agrega KPI `Mascotas entregadas` al panel principal de Familias Protectoras.

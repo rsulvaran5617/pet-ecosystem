@@ -1433,10 +1433,19 @@ function FosterPetsPanel({
                   type="button"
                 >
                   <div style={styles.fosterPetHeaderMain}>
-                    <div>
-                      <strong style={styles.itemTitle}>{pet.name}</strong>
-                      <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
-                      <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                    <div style={styles.fosterPetIdentity}>
+                      <span style={styles.fosterPetAvatar}>
+                        {pet.avatarUrl ? (
+                          <img alt={`Foto de ${pet.name}`} src={pet.avatarUrl} style={styles.fosterPetAvatarImage} />
+                        ) : (
+                          getPetInitials(pet)
+                        )}
+                      </span>
+                      <div style={styles.fosterPetIdentityCopy}>
+                        <strong style={styles.itemTitle}>{pet.name}</strong>
+                        <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
+                        <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                      </div>
                     </div>
                     <div style={styles.fosterPetHeaderMeta}>
                       <StatusBadge label="En acogida" tone="success" />
@@ -2804,6 +2813,17 @@ function getApplicantInitials(application: PetAdoptionApplication) {
   return (parts[0]?.[0] ?? "S").concat(parts[1]?.[0] ?? "").toUpperCase();
 }
 
+function getPetInitials(pet: PetSummary) {
+  const initials = pet.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "MP";
+}
+
 function ApplicantIdentity({ application, compact = false }: { application: PetAdoptionApplication; compact?: boolean }) {
   return (
     <div style={compact ? styles.applicantIdentityCompact : styles.applicantIdentity}>
@@ -2883,8 +2903,12 @@ const styles: Record<string, React.CSSProperties> = {
   fosterPetAccordionHeader: { alignItems: "center", background: "transparent", border: 0, color: "inherit", cursor: "pointer", display: "flex", gap: "14px", justifyContent: "space-between", padding: "14px", textAlign: "left", width: "100%" },
   fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
+  fosterPetAvatar: { alignItems: "center", background: "#dff7f3", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "46px", justifyContent: "center", overflow: "hidden", width: "46px" },
+  fosterPetAvatarImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
   fosterPetHeaderMain: { alignItems: "center", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
   fosterPetHeaderMeta: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end" },
+  fosterPetIdentity: { alignItems: "center", display: "flex", gap: "11px", minWidth: 0 },
+  fosterPetIdentityCopy: { display: "grid", minWidth: 0 },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "24px", color: "white", display: "flex", gap: "20px", justifyContent: "space-between", padding: "24px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "8px" },

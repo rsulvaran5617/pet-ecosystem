@@ -26,6 +26,8 @@ Nota operativa 2026-08-13: Web Foster `Solicitudes` usa lista tipo acordeon en l
 
 Nota operativa 2026-08-13: Web Foster `Panel` agrega el indicador `Mascotas entregadas`, derivado de transferencias privadas aceptadas y contado por mascota unica. Este KPI representa adopciones cerradas, no ventas ni pagos, y complementa solicitudes, entrevistas y transferencias pendientes.
 
+Nota operativa 2026-08-13: Web Foster `Mascotas bajo acogida` muestra la foto de perfil de la mascota desde `PetSummary.avatarUrl` en la lista operativa, con iniciales como fallback. Esto mejora seguimiento visual sin cambiar cargas, storage, permisos ni reglas de adopcion.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
