@@ -492,6 +492,58 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
     });
   };
 
+  const openDocument = (document: NonNullable<typeof selectedPetDetail>["documents"][number]) => {
+    clearMessages();
+    void runAction(
+      async () => {
+        const access = await getBrowserPetsApiClient().getPetDocumentSignedUrl(document.id);
+        window.open(access.signedUrl, "_blank", "noopener,noreferrer");
+        return access;
+      },
+      "Documento abierto en una nueva pestana.",
+      false
+    );
+  };
+
+  const replaceDocumentFile = (document: NonNullable<typeof selectedPetDetail>["documents"][number], file: File | null) => {
+    if (!file || !selectedPetDetail) {
+      return;
+    }
+
+    clearMessages();
+    void runAction(
+      async () =>
+        getBrowserPetsApiClient().replacePetDocumentFile(document.id, {
+          fileBytes: await file.arrayBuffer(),
+          fileName: file.name,
+          mimeType: file.type || null
+        }),
+      "Archivo del documento reemplazado.",
+      false
+    ).then(async () => {
+      await refresh();
+      await selectPet(selectedPetDetail.pet.id);
+    });
+  };
+
+  const deleteDocument = (document: NonNullable<typeof selectedPetDetail>["documents"][number]) => {
+    if (!selectedPetDetail) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Se eliminara "${document.title}" del expediente de ${selectedPetDetail.pet.name}. Esta accion no se puede deshacer.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    clearMessages();
+    void runAction(() => getBrowserPetsApiClient().deletePetDocument(document.id), "Documento eliminado del expediente.", false).then(async () => {
+      await refresh();
+      await selectPet(selectedPetDetail.pet.id);
+    });
+  };
+
   const loadPetForm = (pet: typeof pets[number]) => {
     setEditingPetId(pet.id);
     setIsPetEditorOpen(true);
@@ -968,7 +1020,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                                 fileBytes
                               });
                             },
-                            editingDocumentId ? "Vigencia actualizada." : "Documento cargado.",
+                            editingDocumentId ? "Documento actualizado." : "Documento cargado.",
                             false
                           ).then(async () => {
                             closeDocumentForm();
@@ -978,6 +1030,11 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                         }}
                         style={{ display: "grid", gap: "8px" }}
                       >
+                        {editingDocumentId ? (
+                          <p style={{ margin: 0, color: "#57534e", fontSize: "9px", lineHeight: 1.35 }}>
+                            Edita titulo, tipo y vigencia. Para corregir el archivo cargado, usa `Reemplazar` en la tarjeta del documento.
+                          </p>
+                        ) : null}
                         <Field
                           label="Titulo del documento"
                           onChange={(value) => setDocumentForm((currentForm) => ({ ...currentForm, title: value }))}
@@ -1048,7 +1105,7 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                           </label>
                         ) : null}
                         <Button disabled={isSubmitting} type="submit">
-                          {editingDocumentId ? "Guardar vigencia" : "Cargar documento"}
+                          {editingDocumentId ? "Guardar datos" : "Cargar documento"}
                         </Button>
                         {editingDocumentId ? (
                           <Button disabled={isSubmitting} onClick={closeDocumentForm} tone="secondary">
@@ -1115,13 +1172,47 @@ export function PetsWorkspace({ enabled }: { enabled: boolean }) {
                                   </span>
                                   <span style={{ color: "#57534e", fontSize: "8px" }}>{document.fileName}</span>
                                   <span style={{ color: "#57534e", fontSize: "8px" }}>{formatFileSize(document.fileSizeBytes)} - {document.mimeType ?? "Tipo de archivo desconocido"}</span>
-                                  {canEditSelectedHousehold ? (
-                                    <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                                  <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "flex-start" }}>
+                                    <Button onClick={() => openDocument(document)} tone="secondary">
+                                      Ver
+                                    </Button>
+                                    {canEditSelectedHousehold ? (
                                       <Button onClick={() => openDocumentValidityEditor(document)} tone="secondary">
-                                        Editar vigencia
+                                        Editar datos
                                       </Button>
-                                    </div>
-                                  ) : null}
+                                    ) : null}
+                                    {canEditSelectedHousehold ? (
+                                      <label style={{ display: "inline-flex" }}>
+                                        <span
+                                          style={{
+                                            ...controlStyle,
+                                            borderRadius: "999px",
+                                            cursor: isSubmitting ? "not-allowed" : "pointer",
+                                            fontSize: "9px",
+                                            fontWeight: 700,
+                                            opacity: isSubmitting ? 0.65 : 1,
+                                            padding: "6px 10px"
+                                          }}
+                                        >
+                                          Reemplazar
+                                        </span>
+                                        <input
+                                          disabled={isSubmitting}
+                                          onChange={(event) => {
+                                            replaceDocumentFile(document, event.target.files?.[0] ?? null);
+                                            event.currentTarget.value = "";
+                                          }}
+                                          style={{ height: 1, opacity: 0, overflow: "hidden", position: "absolute", width: 1 }}
+                                          type="file"
+                                        />
+                                      </label>
+                                    ) : null}
+                                    {canEditSelectedHousehold ? (
+                                      <Button disabled={isSubmitting} onClick={() => deleteDocument(document)} tone="secondary">
+                                        Eliminar
+                                      </Button>
+                                    ) : null}
+                                  </div>
                                 </article>
                               );
                             })}

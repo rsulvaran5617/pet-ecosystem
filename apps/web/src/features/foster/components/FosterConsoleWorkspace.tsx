@@ -649,6 +649,7 @@ export function FosterConsoleWorkspace() {
     transfers,
     uploadAdoptionCommitmentTemplate,
     uploadAdoptionListingPhoto,
+    uploadFosterPetAvatar,
     uploadPublicProfileLogo,
     updateApplicationStatus
   } = useFosterConsoleWorkspace();
@@ -1014,6 +1015,7 @@ export function FosterConsoleWorkspace() {
             }}
             onSubmitListing={submitAdoptionListing}
             onUploadListingPhoto={uploadAdoptionListingPhoto}
+            onUploadPetAvatar={uploadFosterPetAvatar}
           />
           ) : null}
 
@@ -1271,6 +1273,7 @@ function FosterPetsPanel({
   onShowApplications,
   onSubmitListing,
   onUploadListingPhoto,
+  onUploadPetAvatar,
   pets,
   profileStatus,
   publicProfileStatus
@@ -1288,13 +1291,16 @@ function FosterPetsPanel({
   onShowApplications: (petId: Uuid) => void;
   onSubmitListing: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
   onUploadListingPhoto: (listingId: Uuid, file: File) => Promise<PetAdoptionListingMedia | null>;
+  onUploadPetAvatar: (petId: Uuid, file: File) => Promise<PetSummary | null>;
   pets: PetSummary[];
   profileStatus: string | null;
   publicProfileStatus: string | null;
 }) {
   const canCreatePet = profileStatus === "approved";
+  const [createAvatarFile, setCreateAvatarFile] = useState<File | null>(null);
   const [expandedPetId, setExpandedPetId] = useState<Uuid | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [uploadingAvatarPetId, setUploadingAvatarPetId] = useState<Uuid | null>(null);
   const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
     birthDate: "",
     breed: "",
@@ -1328,6 +1334,7 @@ function FosterPetsPanel({
       sex: "unknown",
       species: ""
     });
+    setCreateAvatarFile(null);
   }
 
   return (
@@ -1362,9 +1369,15 @@ function FosterPetsPanel({
               notes: form.notes?.trim() || null
             }).then((pet) => {
               if (pet) {
+                const avatarFile = createAvatarFile;
                 resetForm();
                 setIsCreating(false);
                 setExpandedPetId(pet.id);
+
+                if (avatarFile) {
+                  setUploadingAvatarPetId(pet.id);
+                  void onUploadPetAvatar(pet.id, avatarFile).finally(() => setUploadingAvatarPetId(null));
+                }
               }
             });
           }}
@@ -1417,6 +1430,29 @@ function FosterPetsPanel({
               placeholder="Notas de comportamiento, rescate o cuidado inicial."
               style={styles.textarea}
               value={form.notes ?? ""}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Foto de perfil
+            <span style={styles.avatarPickerRow}>
+              <span style={styles.avatarPreview}>
+                {getDraftPetInitials(form.name, form.species)}
+              </span>
+              <span style={styles.avatarPickerCopy}>
+                <strong>{createAvatarFile ? createAvatarFile.name : "Opcional al registrar"}</strong>
+                <span>JPG, PNG o WebP. Esta foto identifica la mascota en la consola.</span>
+              </span>
+              <span style={styles.secondaryButton}>Elegir foto</span>
+            </span>
+            <input
+              accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
+              disabled={disabled}
+              onChange={(event) => {
+                setCreateAvatarFile(event.target.files?.[0] ?? null);
+                event.target.value = "";
+              }}
+              style={styles.fileInput}
+              type="file"
             />
           </label>
           <div style={styles.heroActions}>
@@ -1479,6 +1515,24 @@ function FosterPetsPanel({
                         <strong style={styles.itemTitle}>{pet.name}</strong>
                         <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
                         <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                        <label style={styles.avatarInlineUpload}>
+                          {uploadingAvatarPetId === pet.id ? "Subiendo foto..." : pet.avatarUrl ? "Cambiar foto" : "Agregar foto"}
+                          <input
+                            accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
+                            disabled={disabled || uploadingAvatarPetId === pet.id}
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              event.target.value = "";
+
+                              if (file) {
+                                setUploadingAvatarPetId(pet.id);
+                                void onUploadPetAvatar(pet.id, file).finally(() => setUploadingAvatarPetId(null));
+                              }
+                            }}
+                            style={styles.fileInput}
+                            type="file"
+                          />
+                        </label>
                       </div>
                     </div>
                     <div style={styles.fosterPetHeaderMeta}>
@@ -2912,6 +2966,16 @@ function getPetInitials(pet: PetSummary) {
   return initials || "MP";
 }
 
+function getDraftPetInitials(name: string, species: string) {
+  const initials = [name, species]
+    .map((value) => value.trim()[0])
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
+
+  return initials || "MP";
+}
+
 function ApplicantIdentity({ application, compact = false }: { application: PetAdoptionApplication; compact?: boolean }) {
   return (
     <div style={compact ? styles.applicantIdentityCompact : styles.applicantIdentity}>
@@ -2959,6 +3023,10 @@ const styles: Record<string, React.CSSProperties> = {
   applicationStatusStack: { alignItems: "flex-end", display: "grid", flexShrink: 0, gap: "5px", justifyItems: "end", maxWidth: "260px", textAlign: "right" },
   applicationTitleRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" },
   accordionChevron: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "9.5px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "24px", padding: "5px 8px", whiteSpace: "nowrap" },
+  avatarInlineUpload: { color: "#00796f", cursor: "pointer", display: "inline-flex", fontSize: "11px", fontWeight: 900, marginTop: "6px", textDecoration: "underline", textUnderlineOffset: "2px" },
+  avatarPickerCopy: { display: "flex", flex: 1, flexDirection: "column", gap: "3px", minWidth: 0 },
+  avatarPickerRow: { alignItems: "center", background: "#ffffff", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "18px", cursor: "pointer", display: "flex", gap: "12px", padding: "10px" },
+  avatarPreview: { alignItems: "center", background: "#dff7f3", border: "1px solid rgba(15, 118, 110, 0.22)", borderRadius: "999px", color: "#00796f", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "44px", justifyContent: "center", width: "44px" },
   badgeStack: { alignItems: "flex-end", display: "flex", flexDirection: "column", gap: "6px" },
   bodyText: { color: "#475569", fontSize: "12px", lineHeight: 1.5, margin: 0 },
   checklistGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },

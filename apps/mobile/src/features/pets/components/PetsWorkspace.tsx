@@ -393,12 +393,13 @@ function DocumentIconButton({
   tone = "secondary"
 }: {
   disabled?: boolean;
-  icon: "calendar" | "eye";
+  icon: "calendar" | "eye" | "replace" | "trash";
   label: string;
   onPress: () => void;
   tone?: "primary" | "secondary";
 }) {
-  const tint = tone === "primary" ? "#ffffff" : colorTokens.accentDark;
+  const isDanger = icon === "trash";
+  const tint = tone === "primary" ? "#ffffff" : isDanger ? "#b91c1c" : colorTokens.accentDark;
 
   return (
     <Pressable
@@ -408,8 +409,8 @@ function DocumentIconButton({
       onPress={onPress}
       style={{
         alignItems: "center",
-        backgroundColor: tone === "primary" ? colorTokens.accent : "rgba(15,118,110,0.1)",
-        borderColor: "rgba(15,118,110,0.24)",
+        backgroundColor: tone === "primary" ? colorTokens.accent : isDanger ? "rgba(254,226,226,0.82)" : "rgba(15,118,110,0.1)",
+        borderColor: isDanger ? "rgba(248,113,113,0.42)" : "rgba(15,118,110,0.24)",
         borderRadius: 18,
         borderWidth: 1,
         height: 36,
@@ -424,12 +425,24 @@ function DocumentIconButton({
             <Path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5Z" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
             <Circle cx={12} cy={12} fill="none" r={2.6} stroke={tint} strokeWidth={2} />
           </>
-        ) : (
+        ) : null}
+        {icon === "calendar" ? (
           <>
             <Rect fill="none" height={16} rx={3} stroke={tint} strokeWidth={2} width={16} x={4} y={5} />
             <Path d="M8 3v4M16 3v4M4 10h16M8 15h3" stroke={tint} strokeLinecap="round" strokeWidth={2} />
           </>
-        )}
+        ) : null}
+        {icon === "replace" ? (
+          <>
+            <Path d="M7 7h8a4 4 0 0 1 0 8H6" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+            <Path d="m9 4-3 3 3 3M17 20l3-3-3-3" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+          </>
+        ) : null}
+        {icon === "trash" ? (
+          <>
+            <Path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" fill="none" stroke={tint} strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+          </>
+        ) : null}
       </Svg>
     </Pressable>
   );
@@ -1231,6 +1244,68 @@ export function PetsWorkspace({
     } finally {
       setDocumentPreviewLoadingId(null);
     }
+  };
+
+  const replaceDocumentFile = (document: PetDocument) => {
+    void DocumentPicker.getDocumentAsync({
+      multiple: false,
+      copyToCacheDirectory: true,
+      type: "*/*"
+    }).then((result) => {
+      if (result.canceled) {
+        return;
+      }
+
+      const asset = result.assets[0];
+
+      if (!asset || !selectedPetDetail) {
+        return;
+      }
+
+      clearMessages();
+      void runAction(
+        async () => {
+          const response = await fetch(asset.uri);
+          const fileBytes = await response.arrayBuffer();
+
+          return getMobilePetsApiClient().replacePetDocumentFile(document.id, {
+            fileBytes,
+            fileName: asset.name,
+            mimeType: asset.mimeType ?? null
+          });
+        },
+        "Archivo del documento reemplazado.",
+        false
+      ).then(async () => {
+        await refresh();
+        await selectActivePet(selectedPetDetail.pet.id);
+      });
+    });
+  };
+
+  const confirmDeleteDocument = (document: PetDocument) => {
+    if (!selectedPetDetail) {
+      return;
+    }
+
+    Alert.alert(
+      "Eliminar documento",
+      `Se eliminara "${document.title}" del expediente de ${selectedPetDetail.pet.name}. Esta accion no se puede deshacer.`,
+      [
+        { style: "cancel", text: "Cancelar" },
+        {
+          style: "destructive",
+          text: "Eliminar",
+          onPress: () => {
+            clearMessages();
+            void runAction(() => getMobilePetsApiClient().deletePetDocument(document.id), "Documento eliminado del expediente.", false).then(async () => {
+              await refresh();
+              await selectActivePet(selectedPetDetail.pet.id);
+            });
+          }
+        }
+      ]
+    );
   };
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
@@ -3388,10 +3463,12 @@ export function PetsWorkspace({
                   <>
                     <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
                       <Text style={{ color: "#1c1917", fontSize: 12, fontWeight: "900" }}>
-                        {editingDocumentId ? "Editar vigencia" : "Nuevo documento"} - {petDocumentTypeLabels[documentForm.documentType]}
+                        {editingDocumentId ? "Editar datos del documento" : "Nuevo documento"} - {petDocumentTypeLabels[documentForm.documentType]}
                       </Text>
                       <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
-                        Registra el archivo y su vigencia para que la app pueda avisarte antes de que venza.
+                        {editingDocumentId
+                          ? "Puedes ajustar titulo, tipo y vigencia. Para corregir el archivo, usa reemplazar en la tarjeta del documento."
+                          : "Registra el archivo y su vigencia para que la app pueda avisarte antes de que venza."}
                       </Text>
                       {documentFormError ? (
                         <View style={{ borderRadius: 12, backgroundColor: "rgba(254,226,226,0.72)", padding: 9 }}>
@@ -3518,7 +3595,7 @@ export function PetsWorkspace({
                       ) : null}
                       <CompactActionButton
                         disabled={isSubmitting}
-                        label={editingDocumentId ? "Guardar vigencia" : "Cargar documento"}
+                        label={editingDocumentId ? "Guardar datos" : "Cargar documento"}
                         onPress={() => {
                           clearMessages();
                           const selectedDocument = documentForm.selectedDocument;
@@ -3561,7 +3638,7 @@ export function PetsWorkspace({
                                 fileBytes
                               });
                             },
-                            editingDocumentId ? "Vigencia actualizada." : "Documento cargado.",
+                            editingDocumentId ? "Documento actualizado." : "Documento cargado.",
                             false
                           ).then(async () => {
                             closeDocumentForm();
@@ -3613,8 +3690,26 @@ export function PetsWorkspace({
                               <DocumentIconButton
                                 disabled={isSubmitting}
                                 icon="calendar"
-                                label="Editar vigencia"
+                                label="Editar datos"
                                 onPress={() => openDocumentValidityEditor(document)}
+                                tone="secondary"
+                              />
+                            ) : null}
+                            {canEditSelectedHousehold ? (
+                              <DocumentIconButton
+                                disabled={isSubmitting}
+                                icon="replace"
+                                label="Reemplazar archivo"
+                                onPress={() => replaceDocumentFile(document)}
+                                tone="secondary"
+                              />
+                            ) : null}
+                            {canEditSelectedHousehold ? (
+                              <DocumentIconButton
+                                disabled={isSubmitting}
+                                icon="trash"
+                                label="Eliminar documento"
+                                onPress={() => confirmDeleteDocument(document)}
                                 tone="secondary"
                               />
                             ) : null}

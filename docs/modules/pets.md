@@ -25,6 +25,8 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - cargar documentos basicos de mascota
 - clasificar documentos por tipo
 - registrar y editar vigencia de documentos de mascota
+- reemplazar el archivo de un documento cargado cuando el owner se equivoca
+- eliminar documentos cargados por error desde el expediente de la mascota
 - visualizar documentos cargados mediante URL firmada temporal, con preview de imagen y apertura externa para PDF/otros formatos soportados por el dispositivo
 - reutilizar documentos tipo `vaccination_record` como soporte/sticker de vacunas desde el modulo Salud
 
@@ -33,7 +35,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - compartir documentos con proveedores
 - permisos por mascota
 - expediente clinico avanzado
-- borrado fisico de mascotas, documentos, salud, recordatorios o historial
+- borrado fisico de mascotas, salud, recordatorios o historial
 - archivado o restore de documentos si no queda explicitamente pedido por release posterior
 
 ## Entidades
@@ -52,8 +54,11 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - un miembro con permiso de hogar `edit` o `admin` puede marcar o reactivar una mascota entre `active` e `in_memory`
 - un miembro con permiso de hogar `edit` o `admin` puede cargar o reemplazar la foto/avatar de la mascota
 - mobile owner permite reemplazar la foto/avatar de mascota desde dos fuentes: tomar foto con camara o elegir una imagen de la galeria, respetando permisos del dispositivo
+- Web Foster permite cargar una foto de perfil al registrar una mascota bajo acogida y reemplazarla desde la fila de la mascota. Esta foto usa el avatar privado de `pets` y no sustituye la galeria publica de adopcion.
 - mobile/web owner permiten editar y consultar el estado de esterilizacion como dato descriptivo del perfil; no afecta reservas ni reglas operativas.
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
+- un miembro con permiso de hogar `edit` o `admin` puede corregir documentos del expediente: editar metadata/vigencia, reemplazar el archivo y eliminar documentos cargados por error
+- Owner web expone las mismas acciones de correccion documental que mobile: ver documento, editar datos/vigencia, reemplazar archivo y eliminar con confirmacion.
 - un miembro con permiso de hogar `edit` o `admin` puede editar metadata de vigencia documental sin reemplazar el archivo
 - un miembro autorizado del hogar puede abrir documentos privados usando URL firmada temporal; la app no expone buckets, rutas internas ni URL publica permanente
 - las fotos de mascota viven en Supabase Storage privado `pet-avatars` y se exponen al cliente mediante URL firmada temporal
@@ -82,3 +87,5 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - `GET /pet-documents/{id}/signed-url`
 - `GET /households/{id}/pet-documents`
 - `PATCH /pet-documents/{id}`
+- `PATCH /pet-documents/{id}/file`
+- `DELETE /pet-documents/{id}`

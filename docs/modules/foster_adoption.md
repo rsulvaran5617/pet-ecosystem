@@ -30,6 +30,8 @@ Nota operativa 2026-08-13: Web Foster `Panel` agrega el indicador `Mascotas entr
 
 Nota operativa 2026-08-13: Web Foster `Mascotas bajo acogida` muestra la foto de perfil de la mascota desde `PetSummary.avatarUrl` en la lista operativa, con iniciales como fallback. Esto mejora seguimiento visual sin cambiar cargas, storage, permisos ni reglas de adopcion.
 
+Nota operativa 2026-08-13: Web Foster `Mascotas bajo acogida` permite asignar foto de perfil al registrar una mascota y reemplazarla desde la fila operativa. La foto se guarda en el flujo canonico de avatar privado de mascota (`pet-avatars`) y se mantiene separada de las fotos publicas de adopcion.
+
 Nota operativa 2026-08-13: Web Foster `Ver plantilla` de compromiso de adopcion solicita un enlace firmado fresco antes de abrir el archivo. Esto evita errores `InvalidJWT` por URLs de Supabase Storage vencidas durante sesiones largas y no cambia storage, permisos ni contratos API.
 
 Nota operativa 2026-08-13: Web Foster `Fotos publicas` usa la media embebida por los RPC de publicaciones cuando esta disponible, antes de recurrir a una consulta directa a `pet_adoption_listing_media`. Esto mantiene visibles en web las fotos subidas desde mobile bajo el mismo listing aunque la consulta directa quede limitada por RLS o compatibilidad de despliegue.

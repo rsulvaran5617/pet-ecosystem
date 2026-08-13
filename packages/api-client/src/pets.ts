@@ -35,6 +35,8 @@ export interface PetsApiClient {
   uploadPetAvatar(petId: Uuid, input: UploadPetAvatarInput): Promise<PetSummary>;
   uploadPetDocument(petId: Uuid, input: UploadPetDocumentInput): Promise<PetDocument>;
   updatePetDocument(documentId: Uuid, input: UpdatePetDocumentInput): Promise<PetDocument>;
+  replacePetDocumentFile(documentId: Uuid, input: Pick<UploadPetDocumentInput, "fileBytes" | "fileName" | "mimeType">): Promise<PetDocument>;
+  deletePetDocument(documentId: Uuid): Promise<void>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -493,6 +495,73 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
       }
 
       return mapPetDocument(data);
+    },
+    async replacePetDocumentFile(documentId, input) {
+      if (input.fileBytes.byteLength === 0) {
+        throw new Error("Document file is empty.");
+      }
+
+      const { data: currentDocument, error: documentError } = await supabase.from("pet_documents").select("*").eq("id", documentId).single();
+
+      if (documentError) {
+        fail(documentError, "No fue posible abrir el documento.");
+      }
+
+      if (currentDocument.storage_bucket !== petDocumentsBucketId) {
+        throw new Error("No fue posible reemplazar el documento.");
+      }
+
+      const storagePath = buildDocumentStoragePath(currentDocument.pet_id, input.fileName);
+      const uploadPayload = new Uint8Array(input.fileBytes);
+      const { error: uploadError } = await supabase.storage.from(petDocumentsBucketId).upload(storagePath, uploadPayload, {
+        contentType: input.mimeType ?? undefined,
+        upsert: false
+      });
+
+      if (uploadError) {
+        fail(uploadError, "Unable to upload the replacement pet document.");
+      }
+
+      const { data, error } = await supabase
+        .from("pet_documents")
+        .update({
+          file_name: input.fileName,
+          file_size_bytes: input.fileBytes.byteLength,
+          mime_type: input.mimeType ?? null,
+          storage_bucket: petDocumentsBucketId,
+          storage_path: storagePath
+        })
+        .eq("id", documentId)
+        .select("*")
+        .single();
+
+      if (error) {
+        await supabase.storage.from(petDocumentsBucketId).remove([storagePath]).catch(() => undefined);
+        fail(error, "No fue posible reemplazar el documento.");
+      }
+
+      await supabase.storage.from(petDocumentsBucketId).remove([currentDocument.storage_path]).catch(() => undefined);
+
+      return mapPetDocument(data);
+    },
+    async deletePetDocument(documentId) {
+      const { data: documentRow, error: documentError } = await supabase.from("pet_documents").select("*").eq("id", documentId).single();
+
+      if (documentError) {
+        fail(documentError, "No fue posible abrir el documento.");
+      }
+
+      if (documentRow.storage_bucket !== petDocumentsBucketId) {
+        throw new Error("No fue posible eliminar el documento.");
+      }
+
+      const { error } = await supabase.from("pet_documents").delete().eq("id", documentId);
+
+      if (error) {
+        fail(error, "No fue posible eliminar el documento.");
+      }
+
+      await supabase.storage.from(petDocumentsBucketId).remove([documentRow.storage_path]).catch(() => undefined);
     }
   };
 }

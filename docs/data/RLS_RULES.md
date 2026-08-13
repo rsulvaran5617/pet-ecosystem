@@ -57,6 +57,7 @@ El conteo del limite de fotos debe ejecutarse mediante funcion `security definer
 Visible para miembros autorizados del hogar.
 Carga de documentos requiere permisos derivados de `edit` o `admin`.
 Edicion de metadata documental, incluyendo vigencia, requiere permisos derivados de `edit` o `admin`.
+Eliminacion de metadata documental requiere permisos derivados de `edit` o `admin`; el archivo del bucket privado `pet-documents` se retira por la misma regla de Storage antes de eliminar la fila.
 Lectura de vigencia documental requiere el mismo acceso de lectura a la mascota/hogar.
 
 ### Pet Travel Passport / Expediente Internacional (V2 conceptual)

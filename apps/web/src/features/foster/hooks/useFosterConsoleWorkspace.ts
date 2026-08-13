@@ -727,6 +727,44 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function uploadFosterPetAvatar(petId: Uuid, file: File) {
+    const normalizedFile = normalizeAdoptionPhotoFile(file);
+
+    if (normalizedFile.error || !normalizedFile.mimeType) {
+      setErrorMessage(normalizedFile.error);
+      return null;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const pet = await getBrowserPetsApiClient().uploadPetAvatar(petId, {
+        fileBytes: await file.arrayBuffer(),
+        fileName: file.name,
+        mimeType: normalizedFile.mimeType
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Foto de perfil de la mascota actualizada.");
+      }
+
+      return pet;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible actualizar la foto de perfil de la mascota."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   async function prepareAdoptionListing(petId: Uuid) {
     if (!selectedHousehold) {
       setErrorMessage("Selecciona una Familia Protectora antes de preparar una publicacion.");
@@ -1006,6 +1044,7 @@ export function useFosterConsoleWorkspace() {
     submitAdoptionListing,
     submitPublicProfile,
     uploadAdoptionCommitmentTemplate,
+    uploadFosterPetAvatar,
     uploadPublicProfileLogo,
     removeAdoptionListingPhoto,
     setAdoptionListingCover,

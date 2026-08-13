@@ -1,5 +1,19 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Owner mobile pet document corrections
+
+- Owner mobile `Mascotas > Docs` ahora permite enmendar errores de expediente: editar titulo/tipo/vigencia, reemplazar el archivo cargado y eliminar documentos subidos por error.
+- Owner web `Mascotas > Documentos` replica el mismo criterio: `Ver`, `Editar datos`, `Reemplazar` y `Eliminar` con confirmacion.
+- `packages/api-client/src/pets.ts` agrega `replacePetDocumentFile` y `deletePetDocument`; el reemplazo sube nuevo archivo, actualiza metadata y retira el archivo anterior. El borrado elimina primero la metadata autorizada y luego retira el objeto del bucket privado como limpieza.
+- Nueva migracion local `20260813153000_pet_document_owner_delete.sql` agrega policy `pet_documents_delete_editable` para eliminar metadata solo con `can_edit_pet`. Debe aplicarse remoto antes de probar eliminacion en dispositivos contra Supabase.
+- No se cambia el modelo de mascotas, salud, reservas, foster ni pagos.
+
+# Handoff 2026-08-13 - Foster web pet avatar upload
+
+- Web Foster `Mascotas bajo acogida` ahora permite cargar foto de perfil al registrar una mascota y reemplazarla desde la fila operativa.
+- La carga reutiliza `getBrowserPetsApiClient().uploadPetAvatar`, bucket privado `pet-avatars` y RPC existente `set_pet_avatar`; no cambia Supabase, RLS, migraciones ni contratos API.
+- La foto de perfil queda separada de `Fotos publicas` de adopcion, que sigue siendo la galeria visible para familias interesadas.
+
 # Handoff 2026-08-13 - Foster publication quality guardrails
 
 - Web Foster y mobile Foster bloquean publicar o cerrar una vitrina de adopcion si faltan minimos de calidad: historia, personalidad, salud publica, requisitos, ubicacion y al menos una foto.
