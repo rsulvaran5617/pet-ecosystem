@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster publication quality guardrails
+
+- Web Foster y mobile Foster bloquean publicar o cerrar una vitrina de adopcion si faltan minimos de calidad: historia, personalidad, salud publica, requisitos, ubicacion y al menos una foto.
+- El cierre deja de ser una salida para fichas incompletas; la UI orienta a usar `Pausar` cuando la Familia Protectora solo necesita ocultar temporalmente una publicacion.
+- Web Foster expone acciones `Pausar` y `Cerrar` dentro de la ficha de publicacion con la misma regla de calidad; mobile conserva el boton `Cerrar`, pero deshabilitado y validado si faltan datos.
+- No se tocaron Supabase, migraciones, RLS ni contratos API. La validacion queda en cliente como guardrail UX; un blindaje transaccional por RPC queda como siguiente slice si se requiere.
+
 # Handoff 2026-08-13 - Foster responsible direct adoption photos
 
 - Web Foster aclara que publicaciones `closed`/`adopted` quedan cerradas para edicion y conserva trazabilidad; el CTA `Editar ficha publica` queda mas visible en publicaciones editables, especialmente en layout movil.

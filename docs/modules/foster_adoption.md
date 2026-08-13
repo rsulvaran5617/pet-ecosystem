@@ -34,6 +34,8 @@ Nota operativa 2026-08-13: Web Foster `Ver plantilla` de compromiso de adopcion 
 
 Nota operativa 2026-08-13: Web Foster `Fotos publicas` usa la media embebida por los RPC de publicaciones cuando esta disponible, antes de recurrir a una consulta directa a `pet_adoption_listing_media`. Esto mantiene visibles en web las fotos subidas desde mobile bajo el mismo listing aunque la consulta directa quede limitada por RLS o compatibilidad de despliegue.
 
+Nota operativa 2026-08-13: Web Foster y mobile Foster agregan guardrails de calidad para la vitrina de adopcion. Una publicacion no debe publicarse ni cerrarse si faltan historia, personalidad, salud publica, requisitos, ubicacion o al menos una foto. Si la Familia Protectora necesita retirar temporalmente una ficha incompleta, debe usar `Pausar` en lugar de `Cerrar`. El cierre queda reservado para fichas completas o procesos con trazabilidad de adopcion/transferencia; el blindaje actual es de cliente y no cambia RLS/RPC.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

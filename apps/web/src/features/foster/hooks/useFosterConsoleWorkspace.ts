@@ -818,6 +818,60 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function pauseAdoptionListing(listingId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const listing = await getBrowserFosterApiClient().pausePetAdoptionListing(listingId);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Publicacion pausada. Puedes corregirla y volver a publicarla cuando este lista.");
+      }
+
+      return listing;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible pausar la publicacion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function closeAdoptionListing(listingId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const listing = await getBrowserFosterApiClient().closePetAdoptionListing(listingId);
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Publicacion cerrada. El expediente queda como historial del proceso.");
+      }
+
+      return listing;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible cerrar la publicacion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   async function uploadAdoptionListingPhoto(listingId: Uuid, file: File) {
     const normalizedFile = normalizeAdoptionPhotoFile(file);
 
@@ -928,6 +982,7 @@ export function useFosterConsoleWorkspace() {
     openApplication,
     openAdoptionCommitmentTemplate,
     pets: selectedContext?.pets ?? [],
+    pauseAdoptionListing,
     prepareAdoptionListing,
     profile: selectedContext?.profile ?? null,
     protectiveHouseholds,
@@ -947,6 +1002,7 @@ export function useFosterConsoleWorkspace() {
       setInfoMessage(null);
     },
     startTransfer,
+    closeAdoptionListing,
     submitAdoptionListing,
     submitPublicProfile,
     uploadAdoptionCommitmentTemplate,

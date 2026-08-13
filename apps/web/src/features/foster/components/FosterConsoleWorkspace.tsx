@@ -581,6 +581,25 @@ function publicationGuidance(listing: PetAdoptionListing | null) {
   return "Revisa el estado de esta publicacion antes de continuar.";
 }
 
+function getAdoptionListingQuality(listing: PetAdoptionListing | null) {
+  const missing: string[] = [];
+
+  if (!listing?.publicStory?.trim()) missing.push("historia");
+  if (!listing?.personalityNotes?.trim()) missing.push("personalidad");
+  if (!listing?.publicHealthSummary?.trim()) missing.push("salud publica");
+  if (!listing?.adoptionRequirements?.trim()) missing.push("requisitos");
+  if (!listing?.city?.trim()) missing.push("ubicacion");
+  if (!listing?.media.some((media) => media.moderationStatus !== "rejected")) missing.push("al menos una foto");
+
+  return { isComplete: missing.length === 0, missing };
+}
+
+function adoptionListingQualityMessage(missing: string[]) {
+  return missing.length
+    ? `Completa ${missing.join(", ")} antes de publicar o cerrar esta vitrina. Si solo necesitas ocultarla temporalmente, usa Pausar.`
+    : "La ficha cumple los minimos de calidad para operar.";
+}
+
 function ContentSummaryTile({ label, value }: { label: string; value: string | null | undefined }) {
   const cleanValue = value?.trim();
 
@@ -596,6 +615,7 @@ export function FosterConsoleWorkspace() {
   const {
     applications,
     authState,
+    closeAdoptionListing,
     commitmentTemplate,
     createProtectiveHousehold,
     createFosterPet,
@@ -606,6 +626,7 @@ export function FosterConsoleWorkspace() {
     listings,
     openApplication,
     openAdoptionCommitmentTemplate,
+    pauseAdoptionListing,
     pets,
     prepareAdoptionListing,
     profile,
@@ -980,6 +1001,8 @@ export function FosterConsoleWorkspace() {
             profileStatus={profile?.status ?? null}
             publicProfileStatus={publicProfile?.moderationStatus ?? null}
             onCreatePet={createFosterPet}
+            onCloseListing={closeAdoptionListing}
+            onPauseListing={pauseAdoptionListing}
             onPrepareListing={prepareAdoptionListing}
             onRemoveListingPhoto={removeAdoptionListingPhoto}
             onSaveListing={saveAdoptionListing}
@@ -1239,6 +1262,8 @@ function FosterPetsPanel({
   disabled,
   listings,
   onCreatePet,
+  onCloseListing,
+  onPauseListing,
   onPrepareListing,
   onRemoveListingPhoto,
   onSaveListing,
@@ -1254,6 +1279,8 @@ function FosterPetsPanel({
   disabled: boolean;
   listings: PetAdoptionListing[];
   onCreatePet: (input: Omit<CreatePetInput, "householdId">) => Promise<PetSummary | null>;
+  onCloseListing: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
+  onPauseListing: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
   onPrepareListing: (petId: Uuid) => Promise<PetAdoptionListing | null>;
   onRemoveListingPhoto: (media: PetAdoptionListingMedia) => Promise<void>;
   onSaveListing: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
@@ -1470,6 +1497,8 @@ function FosterPetsPanel({
                       applicationCount={applicationCount}
                       disabled={disabled}
                       listing={listing ?? null}
+                      onClose={onCloseListing}
+                      onPause={onPauseListing}
                       onPrepare={() => onPrepareListing(pet.id)}
                       onRemovePhoto={onRemoveListingPhoto}
                       onSave={onSaveListing}
@@ -1496,6 +1525,8 @@ function AdoptionPublicationFlow({
   applicationCount,
   disabled,
   listing,
+  onClose,
+  onPause,
   onPrepare,
   onRemovePhoto,
   onSave,
@@ -1508,6 +1539,8 @@ function AdoptionPublicationFlow({
   applicationCount: number;
   disabled: boolean;
   listing: PetAdoptionListing | null;
+  onClose: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
+  onPause: (listingId: Uuid) => Promise<PetAdoptionListing | null>;
   onPrepare: () => Promise<PetAdoptionListing | null>;
   onRemovePhoto: (media: PetAdoptionListingMedia) => Promise<void>;
   onSave: (input: PetAdoptionListingInput) => Promise<PetAdoptionListing | null>;
@@ -1524,6 +1557,7 @@ function AdoptionPublicationFlow({
   const canEdit = !listing || !["adopted", "closed"].includes(listing.status);
   const canPublish = listing ? ["draft", "rejected", "paused", "pending_review"].includes(listing.status) : false;
   const canManageMedia = Boolean(listing && !["adopted", "closed"].includes(listing.status));
+  const quality = getAdoptionListingQuality(listing);
 
   useEffect(() => {
     setForm(buildAdoptionListingForm(listing, pet));
@@ -1548,6 +1582,12 @@ function AdoptionPublicationFlow({
         ))}
       </div>
       <p style={styles.itemMeta}>{publicationGuidance(listing)}</p>
+      {listing && !quality.isComplete && !["adopted", "closed"].includes(listing.status) ? (
+        <div style={styles.qualityNotice}>
+          <strong>Ficha incompleta.</strong>
+          <span>{adoptionListingQualityMessage(quality.missing)}</span>
+        </div>
+      ) : null}
 
       {listing ? (
         <section style={styles.publicContentBox}>
@@ -1686,8 +1726,18 @@ function AdoptionPublicationFlow({
           </button>
         ) : null}
         {listing && canPublish ? (
-          <button disabled={disabled} onClick={() => void onSubmit(listing.id)} style={styles.primaryButton} type="button">
+          <button disabled={disabled || !quality.isComplete} onClick={() => void onSubmit(listing.id)} style={styles.primaryButton} type="button">
             Publicar bajo responsabilidad
+          </button>
+        ) : null}
+        {listing?.status === "published" || listing?.status === "pending_review" ? (
+          <button disabled={disabled} onClick={() => void onPause(listing.id)} style={styles.secondaryButton} type="button">
+            Pausar
+          </button>
+        ) : null}
+        {listing && ["published", "paused", "pending_review"].includes(listing.status) ? (
+          <button disabled={disabled || !quality.isComplete} onClick={() => void onClose(listing.id)} style={styles.secondaryButton} type="button">
+            Cerrar
           </button>
         ) : null}
         {applicationCount ? (
@@ -3003,6 +3053,7 @@ const styles: Record<string, React.CSSProperties> = {
   processStepActive: { background: "#fff7ed", borderColor: "rgba(234, 88, 12, 0.24)", color: "#c2410c" },
   processStepDone: { background: "#ecfdf5", borderColor: "rgba(15, 118, 110, 0.22)", color: "#0f766e" },
   publicationFlowBox: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
+  qualityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "4px", lineHeight: 1.45, padding: "10px 12px" },
   publicContentBox: { background: "rgba(255, 253, 248, 0.82)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
   publicContentGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
   publicContentTile: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "4px", minHeight: "74px", padding: "10px" },

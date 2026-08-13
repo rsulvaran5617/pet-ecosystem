@@ -1244,6 +1244,15 @@ export function PetsWorkspace({
     Boolean(adoptionListingForm.adoptionRequirements.trim()) ||
     Boolean(adoptionListingForm.personalityNotes.trim());
   const adoptionListingPhotoCount = selectedPetAdoptionListing?.media.length ?? 0;
+  const adoptionListingMissingQualityItems = [
+    ...(selectedPetAdoptionListing?.publicStory?.trim() ? [] : ["historia"]),
+    ...(selectedPetAdoptionListing?.personalityNotes?.trim() ? [] : ["personalidad"]),
+    ...(selectedPetAdoptionListing?.publicHealthSummary?.trim() ? [] : ["salud publica"]),
+    ...(selectedPetAdoptionListing?.adoptionRequirements?.trim() ? [] : ["requisitos"]),
+    ...(selectedPetAdoptionListing?.city?.trim() ? [] : ["ubicacion"]),
+    ...(adoptionListingPhotoCount > 0 ? [] : ["al menos una foto"])
+  ];
+  const adoptionListingMeetsQualityMinimum = adoptionListingMissingQualityItems.length === 0;
   const adoptionListingIsVisible = selectedPetAdoptionListing?.status === "published";
   const adoptionListingSteps = [
     { id: "pet", label: "Mascota", isComplete: true },
@@ -1428,6 +1437,20 @@ export function PetsWorkspace({
     clearMessages();
     void runAction(
       async () => {
+        const listing = myAdoptionListings.find((item) => item.id === listingId) ?? selectedPetAdoptionListing;
+        const missing = [
+          ...(listing?.publicStory?.trim() ? [] : ["historia"]),
+          ...(listing?.personalityNotes?.trim() ? [] : ["personalidad"]),
+          ...(listing?.publicHealthSummary?.trim() ? [] : ["salud publica"]),
+          ...(listing?.adoptionRequirements?.trim() ? [] : ["requisitos"]),
+          ...(listing?.city?.trim() ? [] : ["ubicacion"]),
+          ...(listing?.media.length ? [] : ["al menos una foto"])
+        ];
+
+        if (missing.length) {
+          throw new Error(`Completa ${missing.join(", ")} antes de publicar la vitrina de adopcion.`);
+        }
+
         await getMobileFosterApiClient().submitPetAdoptionListing(listingId);
         await refreshAdoptionListings();
       },
@@ -1443,6 +1466,19 @@ export function PetsWorkspace({
         if (action === "pause") {
           await getMobileFosterApiClient().pausePetAdoptionListing(listing.id);
         } else {
+          const missing = [
+            ...(listing.publicStory?.trim() ? [] : ["historia"]),
+            ...(listing.personalityNotes?.trim() ? [] : ["personalidad"]),
+            ...(listing.publicHealthSummary?.trim() ? [] : ["salud publica"]),
+            ...(listing.adoptionRequirements?.trim() ? [] : ["requisitos"]),
+            ...(listing.city?.trim() ? [] : ["ubicacion"]),
+            ...(listing.media.length ? [] : ["al menos una foto"])
+          ];
+
+          if (missing.length) {
+            throw new Error(`No cierres una ficha incompleta. Completa ${missing.join(", ")} o usa Pausar si solo quieres ocultarla temporalmente.`);
+          }
+
           await getMobileFosterApiClient().closePetAdoptionListing(listing.id);
         }
         await refreshAdoptionListings();
@@ -2806,6 +2842,13 @@ export function PetsWorkspace({
                                   ? "Esta publicacion esta cerrada y se conserva solo como historial del proceso."
                                   : `Fotos: ${adoptionListingPhotoCount}/${adoptionMediaLimit}. Guardar conserva el borrador; las fotos cargadas quedan disponibles para la vitrina responsable.`}
                               </Text>
+                              {!selectedPetAdoptionListingIsClosed && !adoptionListingMeetsQualityMinimum ? (
+                                <View style={{ backgroundColor: "#fff7ed", borderColor: "rgba(234,88,12,0.2)", borderRadius: 12, borderWidth: 1, padding: 9 }}>
+                                  <Text style={{ color: "#9a3412", fontSize: 10, fontWeight: "900", lineHeight: 15 }}>
+                                    Completa {adoptionListingMissingQualityItems.join(", ")} antes de publicar o cerrar. Para ocultar temporalmente usa Pausar.
+                                  </Text>
+                                </View>
+                              ) : null}
                             </View>
                           ) : null}
                           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
@@ -2850,7 +2893,7 @@ export function PetsWorkspace({
                             {adoptionListingStep === "review" &&
                             (selectedPetAdoptionListing?.status === "draft" || selectedPetAdoptionListing?.status === "rejected" || selectedPetAdoptionListing?.status === "paused") ? (
                               <Button
-                                disabled={isSubmitting || !selectedPetAdoptionListing.title.trim()}
+                                disabled={isSubmitting || !selectedPetAdoptionListing.title.trim() || !adoptionListingMeetsQualityMinimum}
                                 label="Publicar"
                                 labelSize={11}
                                 onPress={() => submitAdoptionListing(selectedPetAdoptionListing.id)}
@@ -2962,7 +3005,7 @@ export function PetsWorkspace({
                             ) : null}
                             {selectedPetAdoptionListing?.status === "draft" || selectedPetAdoptionListing?.status === "rejected" || selectedPetAdoptionListing?.status === "paused" ? (
                               <Button
-                                disabled={isSubmitting || !selectedPetAdoptionListing.title.trim()}
+                                disabled={isSubmitting || !selectedPetAdoptionListing.title.trim() || !adoptionListingMeetsQualityMinimum}
                                 label="Publicar"
                                 labelSize={11}
                                 onPress={() => submitAdoptionListing(selectedPetAdoptionListing.id)}
@@ -2980,7 +3023,7 @@ export function PetsWorkspace({
                             ) : null}
                             {selectedPetAdoptionListing && !selectedPetAdoptionListingIsClosed ? (
                               <Button
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !adoptionListingMeetsQualityMinimum}
                                 label="Cerrar"
                                 labelSize={11}
                                 onPress={() => pauseOrCloseAdoptionListing(selectedPetAdoptionListing, "close")}

@@ -32,6 +32,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - UX-FOSTER-FLOWS Slice 1B: si el household activo es `protective`, Owner mobile `Inicio` se convierte en home Foster progresiva con estado de revision, tren de pasos y CTA contextual; los hogares `owner` conservan el Inicio owner normal.
 - UX-FOSTER-FLOWS Slice 1C: solicitud de Familia Protectora en mobile se organiza como wizard `Identidad -> Ubicacion -> Contexto -> Enviar`, con trencito horizontal, pasos bloqueados hasta completar minimos, descripcion del paso activo y resumen final antes de guardar o enviar a revision admin.
 - UX-FOSTER-FLOWS Slice 1D: publicacion de mascota en adopcion dentro de `Mascotas > Detalle` se organiza como wizard `Mascota -> Historia -> Salud -> Fotos -> Revision/Visible`, separando guardar borrador, fotos y envio a revision.
+- UX-FOSTER-FLOWS Slice 1D aplica guardrails de calidad: publicar o cerrar una vitrina exige historia, personalidad, salud publica, requisitos, ubicacion y al menos una foto; `Pausar` queda como accion correcta para ocultar temporalmente una ficha incompleta.
 - pantalla sin sesion enfocada solo en autenticacion; marketplace, contexto de hogar y proveedores quedan ocultos hasta iniciar sesion
 - login exitoso sin aviso global persistente; los mensajes visibles quedan para errores, verificacion, recuperacion y cierre de sesion
 - registro mobile pasa a verificación OTP después de crear cuenta y permite solicitar reenvío controlado del código
