@@ -198,6 +198,7 @@ Riesgos:
 - mobile debe normalizar a espanol los errores conocidos de booking/cancelacion que lleguen desde RPC para evitar mensajes tecnicos o en ingles al usuario final.
 - al entrar a secciones operativas de reservas, el cliente mobile puede refrescar silenciosamente para evitar mostrar estados obsoletos durante QA/piloto; si Realtime no esta disponible, el polling de respaldo mantiene convergencia
 - el canal Realtime mobile de bookings debe usar un nombre unico por instancia de workspace para evitar colisiones al desmontar/remontar `Reservas` desde otras secciones owner
+- MOBILE-BADGES-1 agrega un badge local del icono app basado en reservas reales ya cargadas: owner cuenta reservas `pending_approval` y `confirmed`; provider cuenta reservas `pending_approval` de su organizacion cargada. No cambia estados ni reglas de reserva, y depende de los refresh/Realtimes existentes para converger.
 
 ## Dependencias
 - core

@@ -38,6 +38,8 @@ Nota operativa 2026-08-13: Web Foster `Fotos publicas` usa la media embebida por
 
 Nota operativa 2026-08-13: Web Foster y mobile Foster agregan guardrails de calidad para la vitrina de adopcion. Una publicacion no debe publicarse ni cerrarse si faltan historia, personalidad, salud publica, requisitos, ubicacion o al menos una foto. Si la Familia Protectora necesita retirar temporalmente una ficha incompleta, debe usar `Pausar` en lugar de `Cerrar`. El cierre queda reservado para fichas completas o procesos con trazabilidad de adopcion/transferencia; el blindaje actual es de cliente y no cambia RLS/RPC.
 
+Nota operativa 2026-08-13: MOBILE-BADGES-1 habilita badge local del icono para el rol `protective_family` con datos ya disponibles a nivel shell: invitaciones de hogar pendientes y perfil protector que requiere atencion (`draft`, `pending_review` o `rejected`). Solicitudes de adopcion nuevas y transferencias Foster especificas quedan fuera del contador hasta exponer conteos canonicos fuera del componente de mascotas o agregar fuente persistida segura.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

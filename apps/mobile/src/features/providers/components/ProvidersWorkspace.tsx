@@ -15,6 +15,7 @@ import {
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   BookingMode,
+  BookingSummary,
   CreateProviderAvailabilityRuleInput,
   ProviderApprovalDocumentType,
   ProviderLocationPrecision,
@@ -524,12 +525,14 @@ export function ProvidersWorkspace({
   activeSection = "inicio",
   enabled,
   hasProviderRole,
+  onBadgeBookingsChange,
   onNavigateSection,
   providerRoleActive
 }: {
   activeSection?: ProviderWorkspaceSection;
   enabled: boolean;
   hasProviderRole: boolean;
+  onBadgeBookingsChange?: (bookings: BookingSummary[]) => void;
   onNavigateSection?: (section: ProviderWorkspaceSection) => void;
   providerRoleActive: boolean;
 }) {
@@ -609,6 +612,10 @@ export function ProvidersWorkspace({
   }, [selectedOrganizationDetail]);
 
   const selectedOrganization = selectedOrganizationDetail?.organization ?? null;
+
+  useEffect(() => {
+    onBadgeBookingsChange?.(enabled && hasProviderRole ? providerBookings : []);
+  }, [enabled, hasProviderRole, onBadgeBookingsChange, providerBookings]);
 
   useEffect(() => {
     if (!enabled || !hasProviderRole) {

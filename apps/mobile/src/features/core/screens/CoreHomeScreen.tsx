@@ -35,6 +35,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { CoreSectionCard } from "../components/CoreSectionCard";
 import { StatusChip } from "../components/StatusChip";
 import { useCoreWorkspace } from "../hooks/useCoreWorkspace";
+import { clearAppBadgeCount, setAppBadgeCount } from "../services/appBadgeService";
 import { getMobileCoreApiClient, getMobileFosterApiClient, getMobileRecoveryRedirectUrl } from "../services/supabase-mobile";
 import { HouseholdsWorkspace } from "../../households/components/HouseholdsWorkspace";
 import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
@@ -100,6 +101,7 @@ type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType
 type OwnerHomeBooking = Pick<BookingSummary, "id" | "petId" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
 type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" | "providerCount" | "serviceCount">;
 type ActiveOwnerPetContext = { householdId: Uuid | null; petId: Uuid | null };
+type AppBadgeRole = "owner" | "provider" | "foster" | "signed-out";
 
 const ownerSections: Array<{ description: string; id: OwnerSectionId; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Lo importante para cuidar a tus mascotas hoy." },
@@ -142,6 +144,60 @@ const fosterSections: Array<{ description: string; id: FosterSectionId; label: s
 const fosterSectionLookup = Object.fromEntries(
   fosterSections.map((section) => [section.id, section])
 ) as Record<FosterSectionId, (typeof fosterSections)[number]>;
+
+function countPendingOwnerReminders(reminders: Reminder[]) {
+  const now = Date.now();
+  const criticalWindowMs = 1000 * 60 * 60 * 24 * 7;
+
+  return reminders.filter((reminder) => {
+    if (reminder.status !== "pending") {
+      return false;
+    }
+
+    const dueAt = new Date(reminder.dueAt).getTime();
+
+    return Number.isFinite(dueAt) && dueAt <= now + criticalWindowMs;
+  }).length;
+}
+
+function calculateAppBadgeCount({
+  activeRole,
+  bookings,
+  householdInvitationCount,
+  isAuthenticated,
+  providerBookings,
+  protectiveProfile,
+  reminders
+}: {
+  activeRole: AppBadgeRole;
+  bookings: BookingSummary[];
+  householdInvitationCount: number;
+  isAuthenticated: boolean;
+  providerBookings: BookingSummary[];
+  protectiveProfile: ProtectiveHouseholdProfile | null;
+  reminders: Reminder[];
+}) {
+  if (!isAuthenticated || activeRole === "signed-out") {
+    return 0;
+  }
+
+  if (activeRole === "provider") {
+    return providerBookings.filter((booking) => booking.status === "pending_approval").length;
+  }
+
+  if (activeRole === "foster") {
+    const profileNeedsAttention =
+      protectiveProfile?.status === "rejected" || protectiveProfile?.status === "draft" || protectiveProfile?.status === "pending_review";
+
+    return householdInvitationCount + (profileNeedsAttention ? 1 : 0);
+  }
+
+  return (
+    bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed").length +
+    countPendingOwnerReminders(reminders) +
+    householdInvitationCount
+  );
+}
 
 const inputStyle = {
   borderRadius: 14,
@@ -1628,6 +1684,7 @@ export function CoreHomeScreen() {
   const [bookingHubContext, setBookingHubContext] = useState<{ bookingId: Uuid | null }>({
     bookingId: null
   });
+  const [providerBadgeBookings, setProviderBadgeBookings] = useState<BookingSummary[]>([]);
 
   useEffect(() => {
     if (!snapshot) {
@@ -1715,6 +1772,31 @@ export function CoreHomeScreen() {
   const activeOwnerPetContextForModules: ActiveOwnerPetContext = activeOwnerPet
     ? { householdId: activeOwnerPet.householdId, petId: activeOwnerPet.id }
     : { householdId: activeOwnerPetContext.householdId, petId: activeOwnerPetContextId };
+  const appBadgeRole: AppBadgeRole = !authState.isAuthenticated
+    ? "signed-out"
+    : isProviderMode
+      ? "provider"
+      : isProtectiveMode
+        ? "foster"
+        : "owner";
+  const appBadgeCount = calculateAppBadgeCount({
+    activeRole: appBadgeRole,
+    bookings: bookingsWorkspace.bookings,
+    householdInvitationCount: petsWorkspace.householdSnapshot?.pendingInvitations.length ?? 0,
+    isAuthenticated: authState.isAuthenticated,
+    providerBookings: providerBadgeBookings,
+    protectiveProfile: activeProtectiveProfile,
+    reminders: remindersWorkspace.reminders
+  });
+
+  useEffect(() => {
+    if (!authState.isAuthenticated) {
+      void clearAppBadgeCount();
+      return;
+    }
+
+    void setAppBadgeCount(appBadgeCount);
+  }, [appBadgeCount, appBadgeRole, authState.isAuthenticated]);
 
   const handlePetTransferAccepted = async (context: { householdId: Uuid; petId: Uuid }) => {
     setPendingPetHubPetId(context.petId);
@@ -3341,6 +3423,7 @@ export function CoreHomeScreen() {
             activeSection={activeProviderSection}
             enabled
             hasProviderRole={hasProviderRole}
+            onBadgeBookingsChange={setProviderBadgeBookings}
             onNavigateSection={setActiveProviderSection}
             providerRoleActive={activeRole === "provider"}
           />
@@ -3407,6 +3490,15 @@ export function CoreHomeScreen() {
                     : section.id === "solicitudes"
                       ? "chat"
                       : "user";
+            const sectionBadgeCount =
+              isProviderMode && section.id === "reservas"
+                ? appBadgeCount
+                : isProtectiveMode && (section.id === "inicio" || section.id === "solicitudes")
+                  ? appBadgeCount
+                  : !isProviderMode && !isProtectiveMode && (section.id === "inicio" || section.id === "reservas")
+                    ? appBadgeCount
+                    : 0;
+            const displaySectionBadge = sectionBadgeCount > 0 ? (sectionBadgeCount > 99 ? "99+" : `${sectionBadgeCount}`) : null;
 
             return (
               <Pressable
@@ -3444,10 +3536,34 @@ export function CoreHomeScreen() {
                   paddingVertical: 7
                 }}
               >
-                {!isProviderMode && !isProtectiveMode ? (
-                  <View>
+                <View>
+                  {!isProviderMode && !isProtectiveMode ? (
                     <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={ownerNavIcon} size={21} />
-                    {section.id === "mensajes" ? (
+                  ) : isProtectiveMode ? (
+                    <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={fosterNavIcon} size={20} />
+                  ) : (
+                    <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={providerNavIcon} size={20} />
+                  )}
+                  {displaySectionBadge ? (
+                    <View
+                      style={{
+                        alignItems: "center",
+                        backgroundColor: "#f43f5e",
+                        borderColor: colorTokens.surface,
+                        borderRadius: 999,
+                        borderWidth: 1.5,
+                        minHeight: 16,
+                        minWidth: 16,
+                        paddingHorizontal: 4,
+                        position: "absolute",
+                        right: -8,
+                        top: -5
+                      }}
+                    >
+                      <Text style={{ color: "#ffffff", fontSize: 8, fontWeight: "900", lineHeight: 12 }}>{displaySectionBadge}</Text>
+                    </View>
+                  ) : null}
+                  {!displaySectionBadge && !isProviderMode && !isProtectiveMode && section.id === "mensajes" ? (
                       <View
                         style={{
                           backgroundColor: "#f43f5e",
@@ -3461,13 +3577,8 @@ export function CoreHomeScreen() {
                           width: 10
                         }}
                       />
-                    ) : null}
-                  </View>
-                ) : isProtectiveMode ? (
-                  <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={fosterNavIcon} size={20} />
-                ) : (
-                  <OwnerLineIcon color={isActive ? colorTokens.accentDark : colorTokens.muted} name={providerNavIcon} size={20} />
-                )}
+                  ) : null}
+                </View>
                 <Text
                   numberOfLines={1}
                   adjustsFontSizeToFit

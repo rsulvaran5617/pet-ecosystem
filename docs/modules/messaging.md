@@ -47,6 +47,7 @@ Habilitar comunicacion basica entre cliente y proveedor, siempre vinculada a una
 - `chat_threads` y `chat_messages` estan publicados en `supabase_realtime` y la migracion `20260527152000_enable_chat_realtime.sql` esta aplicada y registrada en Supabase remoto para que owner mobile/web y provider web reciban cambios casi inmediatos mientras el chat esta abierto
 - Realtime es la via primaria para refrescar chats abiertos; el polling queda como respaldo cada 30 segundos ante reconexiones, pestañas en reposo o redes inestables
 - push notifications en background/cerrado quedan fuera de este slice y deben abrirse como fase separada
+- MOBILE-BADGES-1 no incluye mensajes no leidos dentro del badge del icono porque `chat_threads`/`chat_messages` aun no tienen una marca canonica de lectura por participante. El contador de mensajes queda pendiente para un slice posterior que agregue `last_read_at` o recibos equivalentes con RLS y migracion controlada.
 
 ## APIs relacionadas
 - `GET /chats`

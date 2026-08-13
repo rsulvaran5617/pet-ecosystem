@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - MOBILE-BADGES-1 badge count local
+
+- Mobile agrega `appBadgeService` sobre `expo-notifications` para setear/limpiar el contador del icono sin abrir push notifications server-side.
+- El contador se recalcula desde `CoreHomeScreen` al cargar sesion, cambiar rol o actualizar datos operativos disponibles.
+- Owner cuenta reservas `pending_approval`/`confirmed`, recordatorios `pending` vencidos o dentro de 7 dias e invitaciones de hogar pendientes.
+- Provider cuenta reservas `pending_approval` de la organizacion cargada.
+- Familia Protectora cuenta invitaciones de hogar pendientes y perfil protector que requiere atencion (`draft`, `pending_review`, `rejected`).
+- Logout/sesion no autenticada limpia el badge a `0`.
+- iOS usa badge nativo; Android queda como best effort por dependencia del launcher/fabricante.
+- Pendiente: mensajes no leidos requieren marca canonica de lectura; solicitudes Foster/transferencias pendientes requieren conteos canonicos expuestos fuera del componente de mascotas.
+
 # Handoff 2026-08-13 - Owner mobile pet document corrections
 
 - Owner mobile `Mascotas > Docs` ahora permite enmendar errores de expediente: editar titulo/tipo/vigencia, reemplazar el archivo cargado y eliminar documentos subidos por error.

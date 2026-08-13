@@ -61,3 +61,27 @@ Alcance:
 ## Siguiente slice recomendado
 
 Publicar la web en la gota/DigitalOcean y completar politica de privacidad/Data Safety/App Privacy antes de envio publico a tiendas.
+
+## MOBILE-BADGES-1 - Badge count del icono
+
+Estado: implementado localmente para mobile iOS/Android sin push notifications server-side.
+
+Alcance:
+
+- usa `expo-notifications` ya instalado en `apps/mobile`;
+- actualiza el badge del icono con `Notifications.setBadgeCountAsync`;
+- limpia el badge a `0` cuando no hay sesion autenticada;
+- no solicita permisos invasivos ni agrega pantallas nuevas;
+- no crea migraciones, tablas, RLS, pagos ni reglas de negocio nuevas.
+
+Fuentes reales del contador:
+
+- Owner: reservas `pending_approval`/`confirmed`, recordatorios `pending` vencidos o dentro de 7 dias, invitaciones de hogar pendientes.
+- Provider: reservas `pending_approval` de la organizacion cargada.
+- Familia Protectora: invitaciones de hogar pendientes y perfil protector que requiere atencion (`draft`, `pending_review` o `rejected`).
+
+Limitaciones:
+
+- Mensajes no leidos quedan fuera porque no existe marca canonica de lectura por participante.
+- Solicitudes Foster nuevas y transferencias pendientes quedan fuera hasta exponer un conteo canonico fuera del componente de mascotas o crear fuente persistida segura.
+- iOS soporta badge nativo. Android se maneja como best effort porque depende del launcher/fabricante; si el dispositivo no lo soporta, la app no falla.
