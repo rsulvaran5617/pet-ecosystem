@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster delivered pets metric
+
+- Web Foster agrega KPI `Mascotas entregadas` al panel principal de Familias Protectoras.
+- El contador se deriva de transferencias privadas aceptadas (`status = accepted`) y cuenta mascotas unicas para representar adopciones cerradas sin duplicar registros.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile, pagos ni reglas de adopcion/transferencia.
+
 # Handoff 2026-08-13 - Foster application accordion
 
 - Web Foster `Solicitudes` cambia de panel maestro-detalle a lista tipo acordeon: cada solicitud muestra resumen, estado de revision y estado operativo de transferencia/adopcion; el detalle se abre inline con `Ver detalle`.

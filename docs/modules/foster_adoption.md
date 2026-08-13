@@ -24,6 +24,8 @@ Nota operativa 2026-07-26: Web Foster `Publicaciones` agrega historia read-only 
 
 Nota operativa 2026-08-13: Web Foster `Solicitudes` usa lista tipo acordeon en lugar de panel maestro-detalle. Cada solicitud muestra estado de revision y estado operativo derivado de la transferencia vinculada: aprobada pendiente de transferir, transferencia pendiente, mascota transferida/adopcion cerrada, transferencia rechazada/cancelada o estado normal de revision. El detalle se abre inline y mantiene historial, compromiso documental y acciones existentes sin crear datos nuevos.
 
+Nota operativa 2026-08-13: Web Foster `Panel` agrega el indicador `Mascotas entregadas`, derivado de transferencias privadas aceptadas y contado por mascota unica. Este KPI representa adopciones cerradas, no ventas ni pagos, y complementa solicitudes, entrevistas y transferencias pendientes.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

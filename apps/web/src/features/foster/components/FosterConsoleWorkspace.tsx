@@ -650,6 +650,10 @@ export function FosterConsoleWorkspace() {
     () => applications.filter((application) => isApprovedApplicationPendingTransfer(application, transfers)).length,
     [applications, transfers]
   );
+  const transferredPetsCount = useMemo(
+    () => new Set(transfers.filter((transfer) => transfer.status === "accepted").map((transfer) => transfer.petId)).size,
+    [transfers]
+  );
 
   const metrics: MetricCard[] = [
     {
@@ -703,6 +707,13 @@ export function FosterConsoleWorkspace() {
       value: transfers.filter((transfer) => transfer.status === "pending").length,
       detail: "La familia receptora debe aceptar",
       tone: "warning"
+    },
+    {
+      label: "Mascotas entregadas",
+      value: transferredPetsCount,
+      detail: "Adopciones cerradas por transferencia",
+      tone: transferredPetsCount ? "success" : "default",
+      onClick: () => setActiveSection("transfers")
     }
   ];
 
