@@ -52,6 +52,21 @@ type PetAdoptionListingFunctionRow =
   | Database["public"]["Functions"]["list_published_pet_adoption_listings"]["Returns"][number]
   | Database["public"]["Functions"]["list_pending_pet_adoption_listings_for_admin"]["Returns"][number]
   | Database["public"]["Functions"]["get_pet_adoption_listing_detail"]["Returns"][number];
+type EmbeddedPetAdoptionListingMediaRow = {
+  display_order?: number | null;
+  file_name?: string | null;
+  file_size_bytes?: number | null;
+  id?: string | null;
+  is_cover?: boolean | null;
+  media_type?: "image" | "video" | string | null;
+  mime_type?: string | null;
+  moderation_status?: PetAdoptionListingMediaRow["moderation_status"] | null;
+  storage_bucket?: string | null;
+  storage_path?: string | null;
+};
+type PetAdoptionListingFunctionRowWithMedia = PetAdoptionListingFunctionRow & {
+  media?: EmbeddedPetAdoptionListingMediaRow[] | null;
+};
 type PublicPetAdoptionProfileRow =
   Database["public"]["Functions"]["get_public_pet_adoption_listing_by_slug"]["Returns"][number];
 type PetAdoptionListingMediaRow = Database["public"]["Tables"]["pet_adoption_listing_media"]["Row"];
@@ -319,6 +334,36 @@ async function mapPetAdoptionMedia(
     createdByUserId: row.created_by_user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+async function mapEmbeddedPetAdoptionMedia(
+  supabase: FosterSupabaseClient,
+  listingId: Uuid,
+  row: EmbeddedPetAdoptionListingMediaRow
+): Promise<PetAdoptionListingMedia | null> {
+  if (!row.id || !row.storage_bucket || !row.storage_path) {
+    return null;
+  }
+
+  const { data } = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 60 * 60);
+
+  return {
+    id: row.id,
+    listingId,
+    mediaType: row.media_type === "video" ? "video" : "image",
+    storageBucket: row.storage_bucket,
+    storagePath: row.storage_path,
+    fileName: row.file_name ?? "adopcion.jpg",
+    fileSizeBytes: row.file_size_bytes ?? null,
+    mimeType: row.mime_type ?? null,
+    displayOrder: row.display_order ?? 0,
+    isCover: row.is_cover === true,
+    moderationStatus: row.moderation_status ?? "pending",
+    signedUrl: data?.signedUrl ?? null,
+    createdByUserId: "",
+    createdAt: "",
+    updatedAt: ""
   };
 }
 
@@ -622,11 +667,27 @@ async function mapPetAdoptionListings(
   rows: PetAdoptionListingFunctionRow[],
   visibility: "admin" | "owner" | "public" = "owner"
 ): Promise<PetAdoptionListing[]> {
-  const mediaByListing = await listPetAdoptionMedia(
-    supabase,
-    rows.map((row) => row.id),
-    visibility
-  );
+  const rowsWithMedia = rows as PetAdoptionListingFunctionRowWithMedia[];
+  const hasEmbeddedMedia = rowsWithMedia.some((row) => Array.isArray(row.media));
+  const mediaByListing = hasEmbeddedMedia
+    ? await Promise.all(
+        rowsWithMedia.map(async (row) => {
+          const embeddedMedia = Array.isArray(row.media) ? row.media : [];
+          const mappedMedia = await Promise.all(embeddedMedia.map((media) => mapEmbeddedPetAdoptionMedia(supabase, row.id, media)));
+          const availableMedia = mappedMedia.filter((media): media is PetAdoptionListingMedia => Boolean(media));
+          const visibleMedia =
+            visibility === "public"
+              ? availableMedia.filter((media) => media.moderationStatus === "approved")
+              : availableMedia;
+
+          return [row.id, visibleMedia] as const;
+        })
+      ).then((entries) => new Map<Uuid, PetAdoptionListingMedia[]>(entries))
+    : await listPetAdoptionMedia(
+        supabase,
+        rows.map((row) => row.id),
+        visibility
+      );
 
   return rows.map((row) => mapPetAdoptionListing(row, mediaByListing.get(row.id) ?? []));
 }

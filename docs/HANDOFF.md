@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - Foster embedded adoption media
+
+- Web Foster corrige la galeria de `Fotos publicas` para usar media embebida por los RPC de publicaciones cuando esta disponible.
+- Esto permite mostrar fotos subidas desde mobile aunque una segunda consulta directa a `pet_adoption_listing_media` no devuelva filas por RLS/compatibilidad; se mantiene fallback a consulta directa para RPC antiguos.
+- No se tocaron Supabase remoto, migraciones, RLS, backend SQL, mobile, pagos ni reglas de adopcion/transferencia.
+
+# Handoff 2026-08-13 - Foster commitment template fresh link
+
+- Web Foster deja de abrir la URL firmada cacheada de la planilla de compromiso de adopcion.
+- Los botones `Ver plantilla` y `Ver/descargar` solicitan un signed URL fresco antes de abrir el archivo, evitando errores `InvalidJWT` por enlaces vencidos en sesiones largas.
+- No se tocaron backend, Supabase, migraciones, RLS, contratos API, mobile, pagos ni reglas de adopcion/transferencia.
+
 # Handoff 2026-08-13 - Foster pet list avatars
 
 - Web Foster `Mascotas bajo acogida` muestra la foto de perfil de cada mascota cuando existe `PetSummary.avatarUrl`.

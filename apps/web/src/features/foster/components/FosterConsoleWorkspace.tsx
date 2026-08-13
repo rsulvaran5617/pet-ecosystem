@@ -601,6 +601,7 @@ export function FosterConsoleWorkspace() {
     isSubmitting,
     listings,
     openApplication,
+    openAdoptionCommitmentTemplate,
     pets,
     prepareAdoptionListing,
     profile,
@@ -962,6 +963,7 @@ export function FosterConsoleWorkspace() {
             onSubmit={submitPublicProfile}
             onUploadCommitmentTemplate={uploadAdoptionCommitmentTemplate}
             onUploadLogo={uploadPublicProfileLogo}
+            onOpenCommitmentTemplate={openAdoptionCommitmentTemplate}
           />
           ) : null}
 
@@ -1137,6 +1139,7 @@ export function FosterConsoleWorkspace() {
                             detail={detailForApplication}
                             disabled={isSubmitting}
                             onRejectNoteChange={setRejectNote}
+                            onOpenCommitmentTemplate={openAdoptionCommitmentTemplate}
                             onReviewCommitmentDocument={reviewApplicationCommitmentDocument}
                             onStartTransfer={startTransfer}
                             onUpdateStatus={updateApplicationStatus}
@@ -1767,6 +1770,7 @@ function AdoptionPublicationFlow({
 function PublicProfilePanel({
   commitmentTemplate,
   disabled,
+  onOpenCommitmentTemplate,
   onSave,
   onSubmit,
   onUploadCommitmentTemplate,
@@ -1778,6 +1782,7 @@ function PublicProfilePanel({
 }: {
   commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
   disabled: boolean;
+  onOpenCommitmentTemplate: (householdId: Uuid) => Promise<ProtectiveAdoptionCommitmentTemplate | null>;
   onSave: (input: ProtectivePublicProfileInput) => Promise<ProtectivePublicProfile | null>;
   onSubmit: (profileId: Uuid) => Promise<ProtectivePublicProfile | null>;
   onUploadCommitmentTemplate: (input: {
@@ -1921,9 +1926,14 @@ function PublicProfilePanel({
                   <strong style={styles.itemTitle}>{commitmentTemplate.fileName}</strong>
                   <p style={styles.itemMeta}>{commitmentTemplate.mimeType}{commitmentTemplate.fileSizeBytes ? ` - ${Math.round(commitmentTemplate.fileSizeBytes / 1024)} KB` : ""}</p>
                 </div>
-                {commitmentTemplate.signedUrl ? (
-                  <a href={commitmentTemplate.signedUrl} rel="noreferrer" style={styles.secondaryButtonCompact} target="_blank">Ver/descargar</a>
-                ) : null}
+                <button
+                  disabled={disabled || !selectedHouseholdId}
+                  onClick={() => selectedHouseholdId ? void onOpenCommitmentTemplate(selectedHouseholdId) : undefined}
+                  style={styles.secondaryButtonCompact}
+                  type="button"
+                >
+                  Ver/descargar
+                </button>
               </div>
             ) : (
               <p style={styles.bodyText}>Sube una plantilla PDF o imagen para que las familias interesadas puedan revisarla y devolverla firmada cuando corresponda.</p>
@@ -2481,6 +2491,7 @@ function ApplicationDetailPanel({
   commitmentTemplate,
   detail,
   disabled,
+  onOpenCommitmentTemplate,
   onRejectNoteChange,
   onReviewCommitmentDocument,
   onStartTransfer,
@@ -2491,6 +2502,7 @@ function ApplicationDetailPanel({
   commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
   detail: FosterConsoleApplicationDetail | null;
   disabled: boolean;
+  onOpenCommitmentTemplate: (householdId: Uuid) => Promise<ProtectiveAdoptionCommitmentTemplate | null>;
   onRejectNoteChange: (value: string) => void;
   onReviewCommitmentDocument: (
     applicationId: Uuid,
@@ -2564,8 +2576,15 @@ function ApplicationDetailPanel({
             />
           ) : null}
         </div>
-        {commitmentTemplate?.signedUrl ? (
-          <a href={commitmentTemplate.signedUrl} rel="noreferrer" style={styles.secondaryButtonCompact} target="_blank">Ver plantilla</a>
+        {commitmentTemplate ? (
+          <button
+            disabled={disabled}
+            onClick={() => void onOpenCommitmentTemplate(application.protectiveHouseholdId)}
+            style={styles.secondaryButtonCompact}
+            type="button"
+          >
+            Ver plantilla
+          </button>
         ) : null}
         {commitmentDocument?.signedUrl ? (
           <div style={styles.documentSummaryRow}>

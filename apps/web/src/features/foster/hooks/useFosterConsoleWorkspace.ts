@@ -587,6 +587,56 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function openAdoptionCommitmentTemplate(householdId: Uuid) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const template = await getBrowserFosterApiClient().getProtectiveAdoptionCommitmentTemplate(householdId);
+
+      if (mountedRef.current) {
+        setDataByHousehold((current) => {
+          const currentContext = current[householdId];
+
+          if (!currentContext) {
+            return current;
+          }
+
+          return {
+            ...current,
+            [householdId]: {
+              ...currentContext,
+              commitmentTemplate: template
+            }
+          };
+        });
+      }
+
+      if (!template?.signedUrl) {
+        if (mountedRef.current) {
+          setErrorMessage("No fue posible generar un enlace vigente para la planilla.");
+        }
+
+        return null;
+      }
+
+      window.open(template.signedUrl, "_blank", "noopener,noreferrer");
+
+      return template;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible abrir la planilla de adopcion."));
+      }
+
+      return null;
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   async function reviewApplicationCommitmentDocument(
     applicationId: Uuid,
     status: Exclude<AdoptionCommitmentDocumentStatus, "pending" | "received">,
@@ -876,6 +926,7 @@ export function useFosterConsoleWorkspace() {
     isSubmitting,
     listings: selectedContext?.listings ?? [],
     openApplication,
+    openAdoptionCommitmentTemplate,
     pets: selectedContext?.pets ?? [],
     prepareAdoptionListing,
     profile: selectedContext?.profile ?? null,
