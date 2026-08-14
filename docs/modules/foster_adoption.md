@@ -46,6 +46,8 @@ Nota operativa 2026-08-13: FOSTER-PET-DOCUMENTS-1 expone el expediente documenta
 
 Nota operativa 2026-08-13: FOSTER-EXPENSES-1 agrega un registro privado de gastos de acogida por mascota. Usa `foster_pet_expenses`, puede vincular comprobantes existentes en `pet_documents` y no publica montos ni recibos en la vitrina publica de adopcion. Ver `docs/modules/foster_expenses.md`.
 
+Nota operativa 2026-08-14: FOSTER-KPI-1 agrega en Web Foster `Panel` una bateria de KPIs operativos agrupados en `Resumen operativo`, `Adopciones y solicitudes`, `Calidad del expediente` y `Transparencia de gastos`. Usa datos ya existentes (`pets`, `pet_adoption_listings`, `pet_adoption_applications`, transferencias privadas, `pet_documents` y `foster_pet_expenses`) y carga documentos/gastos privados solo dentro de la consola autenticada. Los gastos siguen siendo evidencia privada de esfuerzo de acogida; no son pagos, donaciones procesadas ni informacion publica.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

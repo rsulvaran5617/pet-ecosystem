@@ -40,10 +40,16 @@ type FosterConsoleSection = "panel" | "profile" | "pets" | "publications" | "req
 
 type MetricCard = {
   label: string;
-  value: number;
+  value: number | string;
   detail: string;
   tone?: "default" | "warning" | "success";
   onClick?: () => void;
+};
+
+type FosterKpiSectionModel = {
+  title: string;
+  detail: string;
+  cards: MetricCard[];
 };
 
 const applicationStatusLabels: Record<PetAdoptionApplicationStatus, string> = {
@@ -722,6 +728,232 @@ function adoptionListingQualityMessage(missing: string[]) {
     : "La ficha cumple los minimos de calidad para operar.";
 }
 
+function parseNullableDate(value: string | null | undefined) {
+  if (!value) return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getDaysBetween(start: Date, end: Date) {
+  const dayInMs = 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / dayInMs));
+}
+
+function formatKpiMoney(amount: number, currency = "USD") {
+  return `${currency} ${amount.toFixed(2)}`;
+}
+
+function getExpenseMonthKey(value: string) {
+  const date = parseNullableDate(value);
+  return date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}` : "";
+}
+
+function getFosterOperationalKpiSections({
+  applications,
+  documentsByPetId,
+  expensesByPetId,
+  isLoadingPrivateData,
+  listings,
+  onOpenRequests,
+  onOpenTransfers,
+  pets,
+  transfers
+}: {
+  applications: PetAdoptionApplication[];
+  documentsByPetId: Record<string, PetDocument[]>;
+  expensesByPetId: Record<string, FosterPetExpense[]>;
+  isLoadingPrivateData: boolean;
+  listings: PetAdoptionListing[];
+  onOpenRequests: (filter: ApplicationStatusFilter) => void;
+  onOpenTransfers: () => void;
+  pets: PetSummary[];
+  transfers: PetTransferRecord[];
+}): FosterKpiSectionModel[] {
+  const listingByPetId = new Map(listings.map((listing) => [listing.petId, listing]));
+  const acceptedTransfers = transfers.filter((transfer) => transfer.status === "accepted");
+  const acceptedTransferByPetId = new Map(acceptedTransfers.map((transfer) => [transfer.petId, transfer]));
+  const transferredPetIds = new Set(acceptedTransfers.map((transfer) => transfer.petId));
+  const pendingTransfers = transfers.filter((transfer) => transfer.status === "pending");
+  const submittedApplications = applications.filter((application) => application.status === "submitted");
+  const reviewApplications = applications.filter((application) => application.status === "in_review" || application.status === "interview");
+  const approvedPendingTransfer = applications.filter((application) => isApprovedApplicationPendingTransfer(application, transfers));
+  const preparedPetCount = new Set(listings.map((listing) => listing.petId)).size;
+  const readyListingCount = listings.filter((listing) => getAdoptionListingQuality(listing).isComplete).length;
+  const incompletePublicationCount = pets.filter((pet) => !getAdoptionListingQuality(listingByPetId.get(pet.id) ?? null).isComplete).length;
+  const petsWithoutAvatar = pets.filter((pet) => !pet.avatarUrl).length;
+  const petsWithoutIntakeDate = pets.filter((pet) => !pet.fosterIntakeDate).length;
+  const petsWithoutPrivateDocuments = pets.filter((pet) => {
+    const documents = documentsByPetId[pet.id];
+    return documents ? documents.length === 0 : pet.documentCount === 0;
+  }).length;
+  const today = new Date();
+  const fosterDaySamples = pets
+    .map((pet) => {
+      const intakeDate = parseNullableDate(pet.fosterIntakeDate);
+      if (!intakeDate) return null;
+
+      const acceptedTransfer = acceptedTransferByPetId.get(pet.id);
+      const endDate = parseNullableDate(acceptedTransfer?.acceptedAt) ?? today;
+      return getDaysBetween(intakeDate, endDate);
+    })
+    .filter((days): days is number => days !== null);
+  const averageFosterDays = fosterDaySamples.length
+    ? Math.round(fosterDaySamples.reduce((total, days) => total + days, 0) / fosterDaySamples.length)
+    : null;
+  const allExpenses = Object.values(expensesByPetId).flat();
+  const expenseCurrency = allExpenses.find((expense) => expense.currency)?.currency ?? "USD";
+  const currentMonthKey = getExpenseMonthKey(today.toISOString());
+  const totalExpenseAmount = allExpenses.reduce((total, expense) => total + expense.amount, 0);
+  const currentMonthExpenseAmount = allExpenses
+    .filter((expense) => getExpenseMonthKey(expense.expenseDate) === currentMonthKey)
+    .reduce((total, expense) => total + expense.amount, 0);
+  const reimbursedExpenseAmount = allExpenses
+    .filter((expense) => expense.isReimbursed)
+    .reduce((total, expense) => total + expense.amount, 0);
+  const unreimbursedExpenseAmount = totalExpenseAmount - reimbursedExpenseAmount;
+  const expenseTotalLabel = isLoadingPrivateData ? "Cargando" : formatKpiMoney(totalExpenseAmount, expenseCurrency);
+  const monthExpenseLabel = isLoadingPrivateData ? "Cargando" : formatKpiMoney(currentMonthExpenseAmount, expenseCurrency);
+  const averageExpenseLabel =
+    isLoadingPrivateData || !pets.length ? (isLoadingPrivateData ? "Cargando" : formatKpiMoney(0, expenseCurrency)) : formatKpiMoney(totalExpenseAmount / pets.length, expenseCurrency);
+  const receiptLinkedCount = allExpenses.filter((expense) => expense.receiptDocumentId).length;
+  const conversionRate = listings.length ? Math.round((transferredPetIds.size / listings.length) * 100) : null;
+
+  return [
+    {
+      title: "Resumen operativo",
+      detail: "Estado general de mascotas bajo cuidado y preparacion de vitrinas.",
+      cards: [
+        { detail: "Mascotas activas de la familia seleccionada", label: "Mascotas bajo acogida", value: pets.length },
+        { detail: "Con ficha creada o publicada", label: "En vitrina", value: preparedPetCount },
+        { detail: "Adopciones cerradas por transferencia", label: "Mascotas entregadas", onClick: onOpenTransfers, tone: transferredPetIds.size ? "success" : "default", value: transferredPetIds.size },
+        {
+          detail: petsWithoutIntakeDate ? `${petsWithoutIntakeDate} sin fecha de acogida` : "Calculado con fecha real de ingreso",
+          label: "Dias promedio en acogida",
+          tone: petsWithoutIntakeDate ? "warning" : "default",
+          value: averageFosterDays === null ? "Sin fecha" : averageFosterDays
+        }
+      ]
+    },
+    {
+      title: "Adopciones y solicitudes",
+      detail: "Embudo operativo desde solicitudes nuevas hasta transferencia aceptada.",
+      cards: [
+        { detail: "Requieren primera revision", label: "Solicitudes nuevas", onClick: () => onOpenRequests("submitted"), tone: submittedApplications.length ? "warning" : "default", value: submittedApplications.length },
+        { detail: "En revision o entrevista", label: "Solicitudes en revision", onClick: () => onOpenRequests("in_review"), value: reviewApplications.length },
+        {
+          detail: "Listas para iniciar transferencia",
+          label: "Aprobadas pendientes",
+          onClick: () => onOpenRequests("approved_without_transfer"),
+          tone: approvedPendingTransfer.length ? "warning" : "default",
+          value: approvedPendingTransfer.length
+        },
+        { detail: "Esperan aceptacion del hogar receptor", label: "Transferencias pendientes", onClick: onOpenTransfers, tone: pendingTransfers.length ? "warning" : "default", value: pendingTransfers.length },
+        { detail: "Transferencias aceptadas", label: "Adopciones cerradas", onClick: onOpenTransfers, tone: acceptedTransfers.length ? "success" : "default", value: acceptedTransfers.length },
+        { detail: "Entregadas sobre vitrinas creadas", label: "Conversion basica", value: conversionRate === null ? "Sin base" : `${conversionRate}%` }
+      ]
+    },
+    {
+      title: "Calidad del expediente",
+      detail: "Senales que ayudan a mantener publicaciones claras y trazables.",
+      cards: [
+        { detail: "Requieren historia, salud, ubicacion o fotos", label: "Publicaciones incompletas", tone: incompletePublicationCount ? "warning" : "success", value: incompletePublicationCount },
+        { detail: "Sin imagen de perfil", label: "Sin foto de mascota", tone: petsWithoutAvatar ? "warning" : "success", value: petsWithoutAvatar },
+        { detail: "Sin fecha real de ingreso", label: "Sin fecha de acogida", tone: petsWithoutIntakeDate ? "warning" : "success", value: petsWithoutIntakeDate },
+        { detail: isLoadingPrivateData ? "Validando expediente privado" : "Sin documentos privados", label: "Sin documentos", tone: petsWithoutPrivateDocuments ? "warning" : "success", value: isLoadingPrivateData ? "..." : petsWithoutPrivateDocuments },
+        { detail: "Cumplen minimos publicos", label: "Fichas listas", tone: readyListingCount ? "success" : "default", value: readyListingCount }
+      ]
+    },
+    {
+      title: "Transparencia de gastos",
+      detail: "Registro privado para evidenciar esfuerzo de acogida. No son pagos ni donaciones procesadas.",
+      cards: [
+        { detail: "Suma documentada en expedientes", label: "Gasto total", value: expenseTotalLabel },
+        { detail: "Gastos con fecha del mes actual", label: "Gasto del mes", value: monthExpenseLabel },
+        { detail: "Total dividido entre mascotas bajo acogida", label: "Promedio por mascota", value: averageExpenseLabel },
+        { detail: "Gastos con documento vinculado", label: "Comprobantes", value: isLoadingPrivateData ? "..." : receiptLinkedCount },
+        { detail: "Marcado como reembolsado", label: "Reembolsado", tone: reimbursedExpenseAmount ? "success" : "default", value: isLoadingPrivateData ? "..." : formatKpiMoney(reimbursedExpenseAmount, expenseCurrency) },
+        { detail: "Pendiente o no reembolsado", label: "No reembolsado", tone: unreimbursedExpenseAmount ? "warning" : "default", value: isLoadingPrivateData ? "..." : formatKpiMoney(unreimbursedExpenseAmount, expenseCurrency) }
+      ]
+    }
+  ];
+}
+
+function FosterKpiCard({ card }: { card: MetricCard }) {
+  const buttonStyle = {
+    ...styles.metricCard,
+    ...(card.tone === "warning" ? styles.warningMetric : {}),
+    ...(card.tone === "success" ? styles.successMetric : {}),
+    cursor: card.onClick ? "pointer" : "default"
+  };
+
+  return (
+    <button disabled={!card.onClick} onClick={card.onClick} style={buttonStyle} type="button">
+      <span style={styles.metricLabel}>{card.label}</span>
+      <strong style={styles.metricValue}>{card.value}</strong>
+      <span style={styles.metricDetail}>{card.detail}</span>
+    </button>
+  );
+}
+
+function FosterKpiSection({ section }: { section: FosterKpiSectionModel }) {
+  return (
+    <section style={styles.kpiSection}>
+      <div style={styles.sectionHeaderCompact}>
+        <div>
+          <h3 style={styles.kpiSectionTitle}>{section.title}</h3>
+          <p style={styles.kpiSectionDetail}>{section.detail}</p>
+        </div>
+      </div>
+      <div className="foster-web-kpi-grid" style={styles.metricGrid}>
+        {section.cards.map((card) => (
+          <FosterKpiCard card={card} key={card.label} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FosterExpenseBreakdown({ expenses, isLoading }: { expenses: FosterPetExpense[]; isLoading: boolean }) {
+  const totals = getFosterExpenseTotals(expenses);
+  const visibleCategories = totals.byCategory.filter(([, amount]) => amount > 0);
+  const expenseCurrency = expenses.find((expense) => expense.currency)?.currency ?? "USD";
+
+  if (isLoading) {
+    return <div style={styles.emptyState}>Calculando gastos documentados por categoria...</div>;
+  }
+
+  if (!visibleCategories.length) {
+    return <div style={styles.emptyState}>Aun no hay gastos categorizados para esta familia protectora.</div>;
+  }
+
+  return (
+    <section style={styles.kpiBreakdown}>
+      <div>
+        <h3 style={styles.kpiSectionTitle}>Gastos por categoria</h3>
+        <p style={styles.kpiSectionDetail}>Vista privada para transparentar alimento, salud, transporte y otros apoyos.</p>
+      </div>
+      <div style={styles.kpiBreakdownList}>
+        {visibleCategories.slice(0, 6).map(([category, amount]) => {
+          const percent = totals.totalAmount ? Math.max(4, Math.round((amount / totals.totalAmount) * 100)) : 0;
+          const count = expenses.filter((expense) => expense.category === category).length;
+          return (
+            <div key={category} style={styles.kpiBreakdownRow}>
+              <div style={styles.kpiBreakdownHeader}>
+                <strong>{fosterPetExpenseCategoryLabels[category]}</strong>
+                <span>{formatKpiMoney(amount, expenseCurrency)} · {count} registro(s)</span>
+              </div>
+              <div style={styles.kpiBarTrack}>
+                <span style={{ ...styles.kpiBarFill, width: `${percent}%` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function ContentSummaryTile({ label, value }: { label: string; value: string | null | undefined }) {
   const cleanValue = value?.trim();
 
@@ -782,89 +1014,89 @@ export function FosterConsoleWorkspace() {
   const [expandedListingId, setExpandedListingId] = useState<Uuid | null>(null);
   const [expandedTimelineItemId, setExpandedTimelineItemId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
+  const [kpiDocumentsByPetId, setKpiDocumentsByPetId] = useState<Record<string, PetDocument[]>>({});
+  const [kpiExpensesByPetId, setKpiExpensesByPetId] = useState<Record<string, FosterPetExpense[]>>({});
+  const [isLoadingKpiPrivateData, setIsLoadingKpiPrivateData] = useState(false);
 
-  const applicationCounts = useMemo(
-    () => ({
-      approved: applications.filter((application) => application.status === "approved").length,
-      converted_to_transfer: applications.filter((application) => application.status === "converted_to_transfer").length,
-      in_review: applications.filter((application) => application.status === "in_review").length,
-      interview: applications.filter((application) => application.status === "interview").length,
-      rejected: applications.filter((application) => application.status === "rejected").length,
-      submitted: applications.filter((application) => application.status === "submitted").length,
-      withdrawn: applications.filter((application) => application.status === "withdrawn").length
-    }),
-    [applications]
+  const kpiPetIdsKey = useMemo(() => pets.map((pet) => pet.id).sort().join("|"), [pets]);
+  const fosterKpiSections = useMemo(
+    () =>
+      getFosterOperationalKpiSections({
+        applications,
+        documentsByPetId: kpiDocumentsByPetId,
+        expensesByPetId: kpiExpensesByPetId,
+        isLoadingPrivateData: isLoadingKpiPrivateData,
+        listings,
+        onOpenRequests: (filter) => {
+          setApplicationStatusFilter(filter);
+          setActiveSection("requests");
+        },
+        onOpenTransfers: () => setActiveSection("transfers"),
+        pets,
+        transfers
+      }),
+    [applications, isLoadingKpiPrivateData, kpiDocumentsByPetId, kpiExpensesByPetId, listings, pets, transfers]
   );
-  const approvedPendingTransferCount = useMemo(
-    () => applications.filter((application) => isApprovedApplicationPendingTransfer(application, transfers)).length,
-    [applications, transfers]
-  );
-  const transferredPetsCount = useMemo(
-    () => new Set(transfers.filter((transfer) => transfer.status === "accepted").map((transfer) => transfer.petId)).size,
-    [transfers]
-  );
+  const allKpiExpenses = useMemo(() => Object.values(kpiExpensesByPetId).flat(), [kpiExpensesByPetId]);
 
-  const metrics: MetricCard[] = [
-    {
-      label: "Mascotas en vitrina",
-      value: new Set(listings.map((listing) => listing.petId)).size,
-      detail: "Expedientes publicados o preparados"
-    },
-    {
-      label: "Publicadas",
-      value: listings.filter((listing) => listing.status === "published").length,
-      detail: "Visibles para familias interesadas",
-      tone: "success"
-    },
-    {
-      label: "En revision",
-      value: listings.filter((listing) => listing.status === "pending_review").length,
-      detail: "Esperan moderacion admin",
-      tone: "warning"
-    },
-    {
-      label: "Solicitudes nuevas",
-      value: applicationCounts.submitted,
-      detail: "Requieren primera revision",
-      tone: applicationCounts.submitted ? "warning" : "default",
-      onClick: () => {
-        setApplicationStatusFilter("submitted");
-        setActiveSection("requests");
-      }
-    },
-    {
-      label: "Entrevistas",
-      value: applicationCounts.interview,
-      detail: "Conversaciones en curso",
-      onClick: () => {
-        setApplicationStatusFilter("interview");
-        setActiveSection("requests");
-      }
-    },
-    {
-      label: "Aprobadas pendientes",
-      value: approvedPendingTransferCount,
-      detail: "Listas para iniciar transferencia",
-      tone: approvedPendingTransferCount ? "warning" : "default",
-      onClick: () => {
-        setApplicationStatusFilter("approved_without_transfer");
-        setActiveSection("requests");
-      }
-    },
-    {
-      label: "Transferencias pendientes",
-      value: transfers.filter((transfer) => transfer.status === "pending").length,
-      detail: "La familia receptora debe aceptar",
-      tone: "warning"
-    },
-    {
-      label: "Mascotas entregadas",
-      value: transferredPetsCount,
-      detail: "Adopciones cerradas por transferencia",
-      tone: transferredPetsCount ? "success" : "default",
-      onClick: () => setActiveSection("transfers")
+  useEffect(() => {
+    if (activeSection !== "panel" || !pets.length || !selectedHouseholdId) {
+      return;
     }
-  ];
+
+    const missingPetIds = pets
+      .map((pet) => pet.id)
+      .filter((petId) => !Object.prototype.hasOwnProperty.call(kpiDocumentsByPetId, petId) || !Object.prototype.hasOwnProperty.call(kpiExpensesByPetId, petId));
+
+    if (!missingPetIds.length) {
+      return;
+    }
+
+    let isCancelled = false;
+    setIsLoadingKpiPrivateData(true);
+
+    void Promise.all(
+      missingPetIds.map(async (petId) => {
+        const [documents, expenses] = await Promise.all([
+          getBrowserPetsApiClient()
+            .listPetDocuments(petId)
+            .catch(() => [] as PetDocument[]),
+          getBrowserFosterApiClient()
+            .listFosterPetExpenses(petId)
+            .catch(() => [] as FosterPetExpense[])
+        ]);
+
+        return { documents, expenses, petId };
+      })
+    )
+      .then((results) => {
+        if (isCancelled) return;
+
+        setKpiDocumentsByPetId((current) => {
+          const next = { ...current };
+          results.forEach((result) => {
+            next[result.petId] = result.documents;
+          });
+          return next;
+        });
+        setKpiExpensesByPetId((current) => {
+          const next = { ...current };
+          results.forEach((result) => {
+            next[result.petId] = result.expenses;
+          });
+          return next;
+        });
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsLoadingKpiPrivateData(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeSection, kpiDocumentsByPetId, kpiExpensesByPetId, kpiPetIdsKey, pets, selectedHouseholdId]);
 
   const petOptions = useMemo(() => {
     const pets = new Map<string, string>();
@@ -1081,20 +1313,12 @@ export function FosterConsoleWorkspace() {
             />
           ) : null}
 
-          <section className="foster-web-metrics" style={styles.metricGrid}>
-            {metrics.map((metric) => (
-              <button
-                key={metric.label}
-                onClick={metric.onClick}
-                style={{ ...styles.metricCard, ...(metric.tone === "warning" ? styles.warningMetric : {}), ...(metric.tone === "success" ? styles.successMetric : {}) }}
-                type="button"
-              >
-                <span style={styles.metricLabel}>{metric.label}</span>
-                <strong style={styles.metricValue}>{metric.value}</strong>
-                <span style={styles.metricDetail}>{metric.detail}</span>
-              </button>
+          <div className="foster-web-kpi-dashboard" style={styles.kpiDashboard}>
+            {fosterKpiSections.map((section) => (
+              <FosterKpiSection key={section.title} section={section} />
             ))}
-          </section>
+            <FosterExpenseBreakdown expenses={allKpiExpenses} isLoading={isLoadingKpiPrivateData} />
+          </div>
             </>
           ) : null}
 
@@ -3976,6 +4200,16 @@ const styles: Record<string, React.CSSProperties> = {
   iconPillButton: { background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "9.5px", fontWeight: 900, padding: "6px 8px" },
   itemMeta: { color: "#64748b", fontSize: "10.5px", lineHeight: 1.4, margin: "4px 0 0" },
   itemTitle: { color: "#0f172a", fontSize: "13px" },
+  kpiBarFill: { background: "linear-gradient(90deg, #0f766e, #2dd4bf)", borderRadius: "999px", display: "block", height: "100%" },
+  kpiBarTrack: { background: "rgba(15, 118, 110, 0.08)", borderRadius: "999px", height: "8px", overflow: "hidden", width: "100%" },
+  kpiBreakdown: { background: "linear-gradient(135deg, #f8fffd, #fffdf8)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "12px", padding: "13px" },
+  kpiBreakdownHeader: { alignItems: "center", color: "#0f172a", display: "flex", fontSize: "11px", gap: "10px", justifyContent: "space-between" },
+  kpiBreakdownList: { display: "grid", gap: "10px" },
+  kpiBreakdownRow: { display: "grid", gap: "6px" },
+  kpiDashboard: { display: "grid", gap: "12px" },
+  kpiSection: { background: "rgba(255, 255, 255, 0.78)", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "18px", display: "grid", gap: "11px", padding: "13px" },
+  kpiSectionDetail: { color: "#64748b", fontSize: "11px", lineHeight: 1.4, margin: "3px 0 0" },
+  kpiSectionTitle: { color: "#0f172a", fontSize: "15px", margin: 0 },
   listingCard: { alignItems: "center", background: "#fffdf8", borderRadius: "20px", display: "flex", gap: "12px", padding: "12px" },
   listingHistoryCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   listStack: { display: "grid", gap: "10px" },

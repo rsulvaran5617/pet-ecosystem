@@ -1,15 +1,27 @@
 # HANDOFF.md
 
-# Handoff 2026-08-13 - FOSTER-EXPENSES-1 gastos de acogida
+# Handoff 2026-08-14 - FOSTER-KPI-1 panel operativo Web Foster
 
-- Se agrega alcance local para registrar gastos privados por mascota bajo acogida.
-- Nueva migracion local pendiente de aplicar remoto: `supabase/migrations/20260813190000_foster_pet_expenses.sql`.
-- Modelo: `foster_pet_expenses` con fecha real, categoria, titulo, monto, moneda, proveedor/metodo opcional, estado de reembolso y `receipt_document_id` opcional hacia `pet_documents`.
+- Web Foster `Panel` agrega KPIs operativos agrupados en `Resumen operativo`, `Adopciones y solicitudes`, `Calidad del expediente` y `Transparencia de gastos`.
+- Datos usados: `pets`, `pet_adoption_listings`, `pet_adoption_applications`, transferencias privadas, documentos privados `pet_documents` y gastos `foster_pet_expenses`.
+- Documentos y gastos se cargan de forma controlada solo al abrir `Panel`, usando APIs existentes y sin tocar Supabase, RLS, contratos ni mobile.
+- KPIs minimos incluidos: mascotas bajo acogida, mascotas entregadas, solicitudes nuevas, transferencias pendientes, gasto documentado total, gasto del mes, dias promedio en acogida y publicaciones incompletas.
+- Extras incluidos: solicitudes en revision, aprobadas pendientes, adopciones cerradas, conversion basica, mascotas sin foto, sin fecha de acogida, sin documentos, fichas listas, promedio de gasto por mascota, comprobantes, reembolsado/no reembolsado y desglose por categoria con barras simples.
+- Los gastos siguen siendo privados de consola: no son pagos, donaciones procesadas ni datos publicos de `/adopciones/[slug]`.
+- Pendiente recomendado: QA visual desktop/mobile web del panel con familias protectoras que tengan muchos gastos/documentos; si crece el volumen, evaluar endpoint agregado backend para reducir llamadas por mascota.
+
+# Handoff 2026-08-13 - Foster web polish y gastos de acogida
+
+- Ultimos commits en `master`: `fc073b7 feat(foster): add foster pet expense tracking`, `4559cdd fix(foster): organize expense form layout` y `b0993d9 fix(foster): align pet row action controls`.
+- La migracion `supabase/migrations/20260813190000_foster_pet_expenses.sql` fue aplicada remoto con `npx supabase db push` tras aprobacion del Product Owner.
+- Modelo operativo: `foster_pet_expenses` registra gastos privados por mascota bajo acogida con fecha real, categoria, titulo, monto, moneda, proveedor/metodo opcional, estado de reembolso y `receipt_document_id` opcional hacia `pet_documents`.
 - No es modulo de pagos, no integra pasarelas, no publica donaciones ni expone montos/recibos en `/adopciones/[slug]`.
 - Web Foster muestra `Gastos de acogida` dentro del acordeon de cada mascota, con resumen, categorias, lista, crear/editar/eliminar y vinculo a comprobantes privados existentes.
+- El formulario web de gastos fue reorganizado en bloques responsivos: datos principales, soporte/comprobante/reembolso y notas/acciones, evitando solapes cuando baja el ancho.
 - Mobile Foster agrega pestana `Gastos` solo cuando el hogar activo es `protective`, con resumen, formulario compacto y lista editable.
-- RLS propuesta: lectura para miembros autorizados del hogar protector/admin; mutacion para permisos edit/admin sobre la mascota; comprobantes deben pertenecer al mismo `pet_id`.
-- No aplicar la migracion remota ni hacer push de DB sin aprobacion del Product Owner.
+- Web Foster `Mascotas bajo acogida` alinea la fila operativa con espacios fijos: chips `En acogida`/estado, solicitudes, `Cambiar foto` y `Abrir/Ocultar` ahora usan alturas y anchos consistentes.
+- RLS aplicada: lectura para miembros autorizados del hogar protector/admin; mutacion para permisos edit/admin sobre la mascota; comprobantes deben pertenecer al mismo `pet_id`.
+- Pendiente recomendado: actualizar la gota para ver los cambios en `petecosyst.com/foster` y hacer QA visual desktop real.
 
 # Handoff 2026-08-13 - FOSTER-PET-DOCUMENTS-1 expediente documental
 
