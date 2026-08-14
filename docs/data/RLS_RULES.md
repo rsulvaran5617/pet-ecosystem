@@ -60,6 +60,7 @@ Carga de documentos requiere permisos derivados de `edit` o `admin`.
 Edicion de metadata documental, incluyendo vigencia, requiere permisos derivados de `edit` o `admin`.
 Eliminacion de metadata documental requiere permisos derivados de `edit` o `admin`; el archivo del bucket privado `pet-documents` se retira por la misma regla de Storage antes de eliminar la fila.
 Lectura de vigencia documental requiere el mismo acceso de lectura a la mascota/hogar.
+Familias Protectoras gestionan documentos de mascotas bajo hogares `protective` mediante estas mismas reglas; no existe lectura publica de documentos privados en publicaciones de adopcion.
 
 ### Pet Travel Passport / Expediente Internacional (V2 conceptual)
 

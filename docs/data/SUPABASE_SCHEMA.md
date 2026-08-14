@@ -76,6 +76,8 @@ No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster
 
 FOSTER-INTAKE-DATE-1 propone migracion local `20260813170000_foster_pet_intake_date.sql`: agrega `pet_profiles.foster_intake_date` y amplia `create_pet` / `update_pet` con `next_foster_intake_date` opcional. No requiere policy nueva porque hereda permisos de mascota/perfil.
 
+FOSTER-PET-DOCUMENTS-1 no agrega migracion: las mascotas bajo acogida usan `pet_documents` y el bucket privado `pet-documents` con las mismas funciones de documento existentes.
+
 ## Foster-5 adopcion responsable operativa
 
 Tablas y cambios locales:

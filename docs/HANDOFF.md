@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - FOSTER-PET-DOCUMENTS-1 expediente documental
+
+- Web Foster `Mascotas bajo acogida` expone `Expediente documental` dentro del acordeon de cada mascota.
+- Reutiliza `pet_documents`, bucket privado `pet-documents`, URLs firmadas y el API existente de mascotas: listar, cargar, ver, editar metadata/vigencia, reemplazar archivo y eliminar documentos cargados por error.
+- No se crea modelo nuevo Foster, tabla nueva, bucket publico ni migracion.
+- Los documentos se mantienen privados y no aparecen en `/adopciones/[slug]` ni en fotos publicas de adopcion.
+- Mobile Foster ya reutiliza `PetsWorkspace` con la pestana `Docs` en hogares `protective`, por lo que conserva la misma gestion documental que Owner mobile.
+
 # Handoff 2026-08-13 - FOSTER-INTAKE-DATE-1 fecha de ingreso a acogida
 
 - FOSTER-INTAKE-DATE-1 queda preparado localmente para registrar la fecha real en que una mascota entra bajo cuidado de una Familia Protectora.

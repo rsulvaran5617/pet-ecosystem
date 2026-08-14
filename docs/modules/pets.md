@@ -56,6 +56,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - mobile owner permite reemplazar la foto/avatar de mascota desde dos fuentes: tomar foto con camara o elegir una imagen de la galeria, respetando permisos del dispositivo
 - Web Foster permite cargar una foto de perfil al registrar una mascota bajo acogida y reemplazarla desde la fila de la mascota. Esta foto usa el avatar privado de `pets` y no sustituye la galeria publica de adopcion.
 - Web/mobile Foster permiten registrar `fosterIntakeDate` como fecha real de ingreso a acogida para mascotas de hogares `protective`; si falta, la UI muestra `Fecha de acogida no registrada` sin usar `created_at` como sustituto.
+- Web Foster expone `Expediente documental` para mascotas bajo acogida reutilizando `pet_documents`: cargar, ver con URL firmada, editar vigencia/metadata, reemplazar archivo y eliminar documentos privados cargados por error. Mobile Foster conserva esta capacidad mediante la pestana `Docs` del workspace compartido de mascotas.
 - mobile/web owner permiten editar y consultar el estado de esterilizacion como dato descriptivo del perfil; no afecta reservas ni reglas operativas.
 - un miembro con permiso de hogar `edit` o `admin` puede cargar documentos
 - un miembro con permiso de hogar `edit` o `admin` puede corregir documentos del expediente: editar metadata/vigencia, reemplazar el archivo y eliminar documentos cargados por error

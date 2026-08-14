@@ -42,6 +42,8 @@ Nota operativa 2026-08-13: MOBILE-BADGES-1 habilita badge local del icono para e
 
 Nota operativa 2026-08-13: FOSTER-INTAKE-DATE-1 prepara `pet_profiles.foster_intake_date` como fecha real de ingreso a acogida para mascotas bajo hogares `protective`. Web Foster y mobile Foster la muestran como `En acogida desde ...`; registros historicos o mascotas owner sin dato muestran `Fecha de acogida no registrada`. No se usa `pets.created_at` como backfill ni como sustituto de la fecha real.
 
+Nota operativa 2026-08-13: FOSTER-PET-DOCUMENTS-1 expone el expediente documental privado de mascotas bajo acogida en Web Foster reutilizando `pet_documents`. La Familia Protectora puede cargar, ver con URL firmada, editar vigencia/metadata, reemplazar archivo y eliminar documentos cargados por error. Estos documentos no se muestran en la ficha publica `/adopciones/[slug]` ni se mezclan con la galeria publica de adopcion.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

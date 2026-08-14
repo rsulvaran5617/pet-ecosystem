@@ -5,6 +5,8 @@ import type {
   AdoptionCommitmentRequirementPolicy,
   ApplicationCommitmentDocument,
   CreatePetInput,
+  PetDocument,
+  PetDocumentType,
   ProtectiveContactPolicy,
   ProtectiveHouseholdOrganizationType,
   ProtectivePublicProfile,
@@ -21,9 +23,12 @@ import type {
   ProtectiveAdoptionCommitmentTemplate,
   Uuid
 } from "@pet/types";
-import { useEffect, useMemo, useState } from "react";
+import { getPetDocumentValidityStatus } from "@pet/types";
+import { petDocumentTypeLabels, petDocumentTypeOrder } from "@pet/config";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { CreateProtectiveHouseholdInput, FosterConsoleApplicationDetail } from "../hooks/useFosterConsoleWorkspace";
+import { getBrowserPetsApiClient } from "../../core/services/supabase-browser";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
@@ -115,6 +120,60 @@ function formatDate(value: string | null | undefined) {
 function formatFosterIntakeDate(value: string | null | undefined) {
   return value ? `En acogida desde ${formatDate(value)}` : "Fecha de acogida no registrada";
 }
+
+function formatFileSize(fileSizeBytes: number | null) {
+  if (!fileSizeBytes) {
+    return "Tamano no disponible";
+  }
+
+  if (fileSizeBytes < 1024 * 1024) {
+    return `${Math.round(fileSizeBytes / 102.4) / 10} KB`;
+  }
+
+  return `${Math.round(fileSizeBytes / 1024 / 102.4) / 10} MB`;
+}
+
+function getDocumentValidityBadge(document: Pick<PetDocument, "expirationWarningDays" | "expiresAt" | "hasExpiration">) {
+  const validity = getPetDocumentValidityStatus(document);
+
+  if (validity.status === "no_expiration") {
+    return { label: "Sin vencimiento", tone: "neutral" as const };
+  }
+
+  if (validity.status === "missing_expiration_date") {
+    return { label: "Fecha pendiente", tone: "warning" as const };
+  }
+
+  if (validity.status === "expired") {
+    return { label: document.expiresAt ? `Vencido ${formatDate(document.expiresAt)}` : "Vencido", tone: "warning" as const };
+  }
+
+  if (validity.status === "expiring_soon") {
+    return { label: validity.daysUntilExpiration === 0 ? "Vence hoy" : `Vence en ${validity.daysUntilExpiration} dias`, tone: "warning" as const };
+  }
+
+  return { label: document.expiresAt ? `Vigente hasta ${formatDate(document.expiresAt)}` : "Vigente", tone: "success" as const };
+}
+
+type FosterDocumentFormState = {
+  documentType: PetDocumentType;
+  expirationWarningDays: number;
+  expiresAt: string;
+  file: File | null;
+  hasExpiration: boolean;
+  issuedAt: string;
+  title: string;
+};
+
+const emptyFosterDocumentForm: FosterDocumentFormState = {
+  documentType: "other",
+  expirationWarningDays: 30,
+  expiresAt: "",
+  file: null,
+  hasExpiration: false,
+  issuedAt: "",
+  title: ""
+};
 
 function statusTone(status: PetAdoptionApplicationStatus): "warning" | "success" | "neutral" {
   if (status === "approved" || status === "converted_to_transfer") {
@@ -1302,7 +1361,11 @@ function FosterPetsPanel({
 }) {
   const canCreatePet = profileStatus === "approved";
   const [createAvatarFile, setCreateAvatarFile] = useState<File | null>(null);
+  const [documentForm, setDocumentForm] = useState<FosterDocumentFormState>(emptyFosterDocumentForm);
+  const [documentsByPetId, setDocumentsByPetId] = useState<Record<string, PetDocument[]>>({});
+  const [editingDocumentId, setEditingDocumentId] = useState<Uuid | null>(null);
   const [expandedPetId, setExpandedPetId] = useState<Uuid | null>(null);
+  const [loadingDocumentsPetId, setLoadingDocumentsPetId] = useState<Uuid | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [previewAvatarPetId, setPreviewAvatarPetId] = useState<Uuid | null>(null);
   const [uploadingAvatarPetId, setUploadingAvatarPetId] = useState<Uuid | null>(null);
@@ -1343,6 +1406,120 @@ function FosterPetsPanel({
     });
     setCreateAvatarFile(null);
   }
+
+  function resetDocumentForm() {
+    setDocumentForm(emptyFosterDocumentForm);
+    setEditingDocumentId(null);
+  }
+
+  const loadPetDocuments = useCallback(async (petId: Uuid) => {
+    setLoadingDocumentsPetId(petId);
+
+    try {
+      const documents = await getBrowserPetsApiClient().listPetDocuments(petId);
+      setDocumentsByPetId((current) => ({ ...current, [petId]: documents }));
+    } finally {
+      setLoadingDocumentsPetId((current) => (current === petId ? null : current));
+    }
+  }, []);
+
+  async function openDocument(document: PetDocument) {
+    const access = await getBrowserPetsApiClient().getPetDocumentSignedUrl(document.id);
+    window.open(access.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function openDocumentEditor(document: PetDocument) {
+    setEditingDocumentId(document.id);
+    setDocumentForm({
+      documentType: document.documentType,
+      expirationWarningDays: document.expirationWarningDays,
+      expiresAt: document.expiresAt ?? "",
+      file: null,
+      hasExpiration: document.hasExpiration,
+      issuedAt: document.issuedAt ?? "",
+      title: document.title
+    });
+  }
+
+  async function saveDocument(petId: Uuid) {
+    if (!documentForm.title.trim()) {
+      window.alert("Indica un titulo para el documento.");
+      return;
+    }
+
+    if (documentForm.hasExpiration && !documentForm.expiresAt) {
+      window.alert("Indica la fecha de vencimiento del documento.");
+      return;
+    }
+
+    if (documentForm.issuedAt && documentForm.expiresAt && documentForm.expiresAt < documentForm.issuedAt) {
+      window.alert("La fecha de vencimiento no puede ser anterior a la fecha de emision.");
+      return;
+    }
+
+    if (editingDocumentId) {
+      await getBrowserPetsApiClient().updatePetDocument(editingDocumentId, {
+        documentType: documentForm.documentType,
+        expirationWarningDays: documentForm.expirationWarningDays,
+        expiresAt: documentForm.hasExpiration ? documentForm.expiresAt : null,
+        hasExpiration: documentForm.hasExpiration,
+        issuedAt: documentForm.issuedAt || null,
+        title: documentForm.title.trim()
+      });
+    } else {
+      if (!documentForm.file) {
+        window.alert("Elige un archivo antes de cargarlo.");
+        return;
+      }
+
+      await getBrowserPetsApiClient().uploadPetDocument(petId, {
+        documentType: documentForm.documentType,
+        expirationWarningDays: documentForm.expirationWarningDays,
+        expiresAt: documentForm.hasExpiration ? documentForm.expiresAt : null,
+        fileBytes: await documentForm.file.arrayBuffer(),
+        fileName: documentForm.file.name,
+        hasExpiration: documentForm.hasExpiration,
+        issuedAt: documentForm.issuedAt || null,
+        mimeType: documentForm.file.type || null,
+        title: documentForm.title.trim() || documentForm.file.name
+      });
+    }
+
+    resetDocumentForm();
+    await loadPetDocuments(petId);
+  }
+
+  async function replaceDocumentFile(petId: Uuid, document: PetDocument, file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    await getBrowserPetsApiClient().replacePetDocumentFile(document.id, {
+      fileBytes: await file.arrayBuffer(),
+      fileName: file.name,
+      mimeType: file.type || null
+    });
+    await loadPetDocuments(petId);
+  }
+
+  async function deleteDocument(petId: Uuid, document: PetDocument) {
+    const confirmed = window.confirm(`Se eliminara "${document.title}" del expediente privado de la mascota. Esta accion no se puede deshacer.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    await getBrowserPetsApiClient().deletePetDocument(document.id);
+    await loadPetDocuments(petId);
+  }
+
+  useEffect(() => {
+    if (!expandedPetId || documentsByPetId[expandedPetId]) {
+      return;
+    }
+
+    void loadPetDocuments(expandedPetId);
+  }, [documentsByPetId, expandedPetId, loadPetDocuments]);
 
   return (
     <section style={styles.panel}>
@@ -1591,6 +1768,20 @@ function FosterPetsPanel({
                       <InfoTile label="Nacimiento" value={pet.birthDate ? formatDate(pet.birthDate) : "Fecha de nacimiento no registrada"} />
                       <InfoTile label="Esterilizacion" value={pet.isSterilized === null ? "Sin indicar" : pet.isSterilized ? "Esterilizada" : "No esterilizada"} />
                     </div>
+                    <FosterPetDocumentsBox
+                      disabled={disabled}
+                      documentForm={documentForm}
+                      documents={documentsByPetId[pet.id] ?? []}
+                      editingDocumentId={editingDocumentId}
+                      isLoading={loadingDocumentsPetId === pet.id}
+                      onCancelEdit={resetDocumentForm}
+                      onDeleteDocument={(document) => void deleteDocument(pet.id, document)}
+                      onDocumentFormChange={setDocumentForm}
+                      onEditDocument={openDocumentEditor}
+                      onOpenDocument={(document) => void openDocument(document)}
+                      onReplaceDocumentFile={(document, file) => void replaceDocumentFile(pet.id, document, file)}
+                      onSaveDocument={() => void saveDocument(pet.id)}
+                    />
                     <AdoptionPublicationFlow
                       applicationCount={applicationCount}
                       disabled={disabled}
@@ -1615,6 +1806,216 @@ function FosterPetsPanel({
       ) : (
         <EmptyState text="Aun no tienes mascotas bajo acogida. Registra la primera mascota cuando este bajo cuidado de esta Familia Protectora." />
       )}
+    </section>
+  );
+}
+
+function FosterPetDocumentsBox({
+  disabled,
+  documentForm,
+  documents,
+  editingDocumentId,
+  isLoading,
+  onCancelEdit,
+  onDeleteDocument,
+  onDocumentFormChange,
+  onEditDocument,
+  onOpenDocument,
+  onReplaceDocumentFile,
+  onSaveDocument
+}: {
+  disabled: boolean;
+  documentForm: FosterDocumentFormState;
+  documents: PetDocument[];
+  editingDocumentId: Uuid | null;
+  isLoading: boolean;
+  onCancelEdit: () => void;
+  onDeleteDocument: (document: PetDocument) => void;
+  onDocumentFormChange: React.Dispatch<React.SetStateAction<FosterDocumentFormState>>;
+  onEditDocument: (document: PetDocument) => void;
+  onOpenDocument: (document: PetDocument) => void;
+  onReplaceDocumentFile: (document: PetDocument, file: File | null) => void;
+  onSaveDocument: () => void;
+}) {
+  const documentsByType = petDocumentTypeOrder
+    .map((documentType) => ({
+      documentType,
+      documents: documents.filter((document) => document.documentType === documentType)
+    }))
+    .filter((group) => group.documents.length > 0);
+
+  return (
+    <section style={styles.documentBox}>
+      <div style={styles.sectionHeaderCompact}>
+        <div>
+          <strong style={styles.itemTitle}>Expediente documental</strong>
+          <p style={styles.itemMeta}>Estos documentos son privados y no se muestran en la publicacion publica de adopcion.</p>
+        </div>
+        <span style={styles.countPill}>{documents.length} documento(s)</span>
+      </div>
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSaveDocument();
+        }}
+        style={styles.documentFormGrid}
+      >
+        <label style={styles.fieldLabel}>
+          Titulo
+          <input
+            disabled={disabled}
+            onChange={(event) => onDocumentFormChange((current) => ({ ...current, title: event.target.value }))}
+            placeholder="Ej. Carnet de vacunas"
+            style={styles.input}
+            value={documentForm.title}
+          />
+        </label>
+        <label style={styles.fieldLabel}>
+          Tipo
+          <select
+            disabled={disabled}
+            onChange={(event) => onDocumentFormChange((current) => ({ ...current, documentType: event.target.value as PetDocumentType }))}
+            style={styles.input}
+            value={documentForm.documentType}
+          >
+            {petDocumentTypeOrder.map((documentType) => (
+              <option key={documentType} value={documentType}>{petDocumentTypeLabels[documentType]}</option>
+            ))}
+          </select>
+        </label>
+        <label style={styles.fieldLabel}>
+          Emitido
+          <input
+            disabled={disabled}
+            onChange={(event) => onDocumentFormChange((current) => ({ ...current, issuedAt: event.target.value }))}
+            style={styles.input}
+            type="date"
+            value={documentForm.issuedAt}
+          />
+        </label>
+        <label style={styles.fieldLabel}>
+          Vencimiento
+          <select
+            disabled={disabled}
+            onChange={(event) =>
+              onDocumentFormChange((current) => ({
+                ...current,
+                expiresAt: event.target.value === "yes" ? current.expiresAt : "",
+                hasExpiration: event.target.value === "yes"
+              }))
+            }
+            style={styles.input}
+            value={documentForm.hasExpiration ? "yes" : "no"}
+          >
+            <option value="no">Sin vencimiento</option>
+            <option value="yes">Tiene vencimiento</option>
+          </select>
+        </label>
+        {documentForm.hasExpiration ? (
+          <>
+            <label style={styles.fieldLabel}>
+              Fecha vence
+              <input
+                disabled={disabled}
+                onChange={(event) => onDocumentFormChange((current) => ({ ...current, expiresAt: event.target.value }))}
+                style={styles.input}
+                type="date"
+                value={documentForm.expiresAt}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Aviso
+              <select
+                disabled={disabled}
+                onChange={(event) => onDocumentFormChange((current) => ({ ...current, expirationWarningDays: Number(event.target.value) }))}
+                style={styles.input}
+                value={`${documentForm.expirationWarningDays}`}
+              >
+                {[7, 15, 30, 60, 90].map((days) => (
+                  <option key={days} value={days}>{days} dias</option>
+                ))}
+              </select>
+            </label>
+          </>
+        ) : null}
+        {!editingDocumentId ? (
+          <label style={styles.fieldLabel}>
+            Archivo
+            <input
+              disabled={disabled}
+              onChange={(event) => onDocumentFormChange((current) => ({ ...current, file: event.target.files?.[0] ?? null }))}
+              style={styles.fileControl}
+              type="file"
+            />
+          </label>
+        ) : null}
+        <div style={styles.documentFormActions}>
+          <button disabled={disabled} style={styles.primaryButton} type="submit">
+            {editingDocumentId ? "Guardar datos" : "Cargar documento"}
+          </button>
+          {editingDocumentId ? (
+            <button disabled={disabled} onClick={onCancelEdit} style={styles.secondaryButton} type="button">
+              Cancelar
+            </button>
+          ) : null}
+        </div>
+      </form>
+
+      {isLoading ? <p style={styles.itemMeta}>Cargando documentos privados...</p> : null}
+      {!isLoading && !documents.length ? <EmptyState text="Aun no hay documentos cargados para esta mascota." /> : null}
+
+      {documentsByType.length ? (
+        <div style={styles.documentGroupGrid}>
+          {documentsByType.map((group) => (
+            <section key={group.documentType} style={styles.documentGroup}>
+              <div style={styles.sectionHeaderCompact}>
+                <strong style={styles.tileLabel}>{petDocumentTypeLabels[group.documentType]}</strong>
+                <span style={styles.compactPill}>{group.documents.length}</span>
+              </div>
+              {group.documents.map((document) => {
+                const validity = getDocumentValidityBadge(document);
+
+                return (
+                  <article key={document.id} style={styles.documentItem}>
+                    <div style={styles.sectionHeaderCompact}>
+                      <div style={styles.textBlock}>
+                        <strong style={styles.itemTitle}>{document.title}</strong>
+                        <span style={styles.itemMeta}>{document.fileName}</span>
+                      </div>
+                      <StatusBadge label={validity.label} tone={validity.tone} />
+                    </div>
+                    <p style={styles.itemMeta}>{formatFileSize(document.fileSizeBytes)} - {document.mimeType ?? "Tipo desconocido"}</p>
+                    <div style={styles.petActionsRow}>
+                      <button onClick={() => onOpenDocument(document)} style={styles.secondaryButtonCompact} type="button">
+                        Ver
+                      </button>
+                      <button disabled={disabled} onClick={() => onEditDocument(document)} style={styles.secondaryButtonCompact} type="button">
+                        Editar datos
+                      </button>
+                      <label style={styles.documentReplaceButton}>
+                        Reemplazar
+                        <input
+                          disabled={disabled}
+                          onChange={(event) => {
+                            onReplaceDocumentFile(document, event.target.files?.[0] ?? null);
+                            event.currentTarget.value = "";
+                          }}
+                          style={styles.fileInput}
+                          type="file"
+                        />
+                      </label>
+                      <button disabled={disabled} onClick={() => onDeleteDocument(document)} style={styles.dangerPillButton} type="button">
+                        Eliminar
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </section>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -3091,6 +3492,13 @@ const styles: Record<string, React.CSSProperties> = {
   dangerButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.22)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "11px", fontWeight: 800, padding: "8px 12px" },
   dangerPillButton: { background: "#fff1f2", border: "1px solid rgba(185, 28, 28, 0.18)", borderRadius: "999px", color: "#991b1b", cursor: "pointer", fontSize: "9.5px", fontWeight: 900, padding: "6px 8px" },
   documentSummaryRow: { alignItems: "center", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "flex", gap: "12px", justifyContent: "space-between", padding: "12px" },
+  documentBox: { background: "rgba(255, 253, 248, 0.88)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "18px", display: "grid", gap: "10px", padding: "12px" },
+  documentFormActions: { alignItems: "end", display: "flex", flexWrap: "wrap", gap: "8px" },
+  documentFormGrid: { alignItems: "end", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" },
+  documentGroup: { background: "rgba(248, 255, 253, 0.86)", border: "1px solid rgba(15, 118, 110, 0.1)", borderRadius: "16px", display: "grid", gap: "8px", padding: "10px" },
+  documentGroupGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" },
+  documentItem: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "7px", padding: "10px" },
+  documentReplaceButton: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 900, justifyContent: "center", padding: "7px 10px", whiteSpace: "nowrap" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
   detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
   detailTitle: { color: "#0f172a", fontSize: "17px", margin: 0 },
@@ -3099,6 +3507,7 @@ const styles: Record<string, React.CSSProperties> = {
   eyebrow: { color: "#0f766e", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", margin: 0, textTransform: "uppercase" },
   filtersRow: { display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" },
   fieldLabel: { color: "#334155", display: "grid", fontSize: "10px", fontWeight: 900, gap: "6px", textTransform: "uppercase" },
+  fileControl: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "14px", color: "#0f172a", fontSize: "10px", padding: "9px 10px", textTransform: "none" },
   fileInput: { height: 1, opacity: 0, overflow: "hidden", position: "absolute", width: 1 },
   formGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" },
   formStack: { display: "grid", gap: "12px" },
