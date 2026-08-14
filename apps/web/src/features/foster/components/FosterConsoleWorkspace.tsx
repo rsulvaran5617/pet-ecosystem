@@ -1657,6 +1657,7 @@ function FosterPetsPanel({
   const [isCreating, setIsCreating] = useState(false);
   const [previewAvatarPetId, setPreviewAvatarPetId] = useState<Uuid | null>(null);
   const [uploadingAvatarPetId, setUploadingAvatarPetId] = useState<Uuid | null>(null);
+  const [uploadingReceiptPetId, setUploadingReceiptPetId] = useState<Uuid | null>(null);
   const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
     birthDate: "",
     breed: "",
@@ -1816,6 +1817,32 @@ function FosterPetsPanel({
 
     await getBrowserPetsApiClient().deletePetDocument(document.id);
     await loadPetDocuments(petId);
+  }
+
+  async function uploadExpenseReceipt(petId: Uuid, file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setUploadingReceiptPetId(petId);
+
+    try {
+      const cleanTitle = expenseForm.title.trim();
+      const receiptDocument = await getBrowserPetsApiClient().uploadPetDocument(petId, {
+        documentType: "other",
+        fileBytes: await file.arrayBuffer(),
+        fileName: file.name,
+        hasExpiration: false,
+        mimeType: file.type || null,
+        title: cleanTitle ? `Comprobante - ${cleanTitle}` : `Comprobante de gasto - ${file.name}`
+      });
+
+      setDocumentsByPetId((current) => ({ ...current, [petId]: [...(current[petId] ?? []), receiptDocument] }));
+      setExpenseForm((current) => ({ ...current, receiptDocumentId: receiptDocument.id }));
+      await loadPetDocuments(petId);
+    } finally {
+      setUploadingReceiptPetId((current) => (current === petId ? null : current));
+    }
   }
 
   function openExpenseEditor(expense: FosterPetExpense) {
@@ -2181,6 +2208,7 @@ function FosterPetsPanel({
                       expenses={expensesByPetId[pet.id] ?? []}
                       isFormOpen={expenseFormPetId === pet.id}
                       isLoading={loadingExpensesPetId === pet.id}
+                      isUploadingReceipt={uploadingReceiptPetId === pet.id}
                       onCancel={resetExpenseForm}
                       onDeleteExpense={(expense) => void deleteExpense(pet.id, expense)}
                       onEditExpense={openExpenseEditor}
@@ -2191,6 +2219,7 @@ function FosterPetsPanel({
                         setExpenseForm(emptyFosterExpenseForm);
                       }}
                       onSaveExpense={() => void saveExpense(pet)}
+                      onUploadReceipt={(file) => void uploadExpenseReceipt(pet.id, file)}
                     />
                     <AdoptionPublicationFlow
                       applicationCount={applicationCount}
@@ -2228,12 +2257,14 @@ function FosterPetExpensesBox({
   expenses,
   isFormOpen,
   isLoading,
+  isUploadingReceipt,
   onCancel,
   onDeleteExpense,
   onEditExpense,
   onExpenseFormChange,
   onOpenForm,
-  onSaveExpense
+  onSaveExpense,
+  onUploadReceipt
 }: {
   disabled: boolean;
   documents: PetDocument[];
@@ -2242,12 +2273,14 @@ function FosterPetExpensesBox({
   expenses: FosterPetExpense[];
   isFormOpen: boolean;
   isLoading: boolean;
+  isUploadingReceipt: boolean;
   onCancel: () => void;
   onDeleteExpense: (expense: FosterPetExpense) => void;
   onEditExpense: (expense: FosterPetExpense) => void;
   onExpenseFormChange: React.Dispatch<React.SetStateAction<FosterExpenseFormState>>;
   onOpenForm: () => void;
   onSaveExpense: () => void;
+  onUploadReceipt: (file: File | null) => void;
 }) {
   const totals = getFosterExpenseTotals(expenses);
   const currency = expenses[0]?.currency ?? expenseForm.currency;
@@ -2368,8 +2401,8 @@ function FosterPetExpensesBox({
                 value={expenseForm.paymentMethod}
               />
             </label>
-            <label style={styles.fieldLabel}>
-              Comprobante privado
+            <div style={styles.fieldLabel}>
+              <span>Comprobante asociado</span>
               <select
                 disabled={disabled}
                 onChange={(event) => onExpenseFormChange((current) => ({ ...current, receiptDocumentId: event.target.value }))}
@@ -2381,7 +2414,23 @@ function FosterPetExpensesBox({
                   <option key={document.id} value={document.id}>{document.title}</option>
                 ))}
               </select>
-            </label>
+              <div style={styles.receiptUploadRow}>
+                <label style={{ ...styles.documentReplaceButton, opacity: disabled || isUploadingReceipt ? 0.65 : 1 }}>
+                  {isUploadingReceipt ? "Subiendo..." : "+ Subir comprobante"}
+                  <input
+                    accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
+                    disabled={disabled || isUploadingReceipt}
+                    onChange={(event) => {
+                      onUploadReceipt(event.target.files?.[0] ?? null);
+                      event.currentTarget.value = "";
+                    }}
+                    style={styles.fileInput}
+                    type="file"
+                  />
+                </label>
+                <span style={styles.receiptHint}>Factura, recibo, captura o soporte privado.</span>
+              </div>
+            </div>
             <label style={styles.expenseCheckboxChip}>
               <input
                 checked={expenseForm.isReimbursed}
@@ -4259,6 +4308,8 @@ const styles: Record<string, React.CSSProperties> = {
   rejectionNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.2)", borderRadius: "16px", color: "#9a3412", display: "grid", gap: "6px", lineHeight: 1.45, padding: "11px" },
   rejectBox: { display: "grid", gap: "8px" },
   responsibilityNotice: { background: "#fff7ed", border: "1px solid rgba(234, 88, 12, 0.18)", borderRadius: "14px", color: "#9a3412", display: "grid", fontSize: "12px", gap: "3px", lineHeight: 1.4, padding: "10px" },
+  receiptHint: { color: "#64748b", fontSize: "9.5px", fontWeight: 800, lineHeight: 1.3, textTransform: "none" },
+  receiptUploadRow: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "8px" },
   secondaryButton: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "12px", fontWeight: 900, padding: "9px 13px", textDecoration: "none" },
   secondaryButtonCompact: { background: "rgba(255,255,255,0.9)", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", fontSize: "10px", fontWeight: 900, padding: "7px 10px", textDecoration: "none", whiteSpace: "nowrap" },
   sectionHeader: { alignItems: "flex-start", display: "flex", gap: "14px", justifyContent: "space-between" },

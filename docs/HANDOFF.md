@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-14 - Foster expense receipts en Web Foster
+
+- Web Foster `Gastos de acogida` ahora permite subir un comprobante privado directamente desde el formulario del gasto, ademas de vincular un documento existente.
+- El comprobante subido reutiliza `pet_documents` con tipo `other`, bucket privado `pet-documents` y queda seleccionado automaticamente como `receipt_document_id` del gasto en edicion/creacion.
+- El archivo no se muestra en `/adopciones/[slug]`, no se mezcla con fotos publicas y no abre pagos/donaciones.
+- Para gastos existentes, despues de subir el comprobante se debe guardar el gasto para persistir el vinculo; el documento queda igualmente cargado en el expediente privado de la mascota.
+- Pendiente recomendado: si el negocio requiere reportes fiscales o categorias especificas, evaluar un `PetDocumentType` futuro `expense_receipt`; en este slice se usa `other` para evitar migraciones.
+
 # Handoff 2026-08-14 - FOSTER-KPI-1 panel operativo Web Foster
 
 - Web Foster `Panel` agrega KPIs operativos agrupados en `Resumen operativo`, `Adopciones y solicitudes`, `Calidad del expediente` y `Transparencia de gastos`.
