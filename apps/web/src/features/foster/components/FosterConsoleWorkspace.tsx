@@ -2063,134 +2063,140 @@ function FosterPetExpensesBox({
             event.preventDefault();
             onSaveExpense();
           }}
-          style={styles.documentFormGrid}
+          style={styles.expenseFormCard}
         >
-          <label style={styles.fieldLabel}>
-            Titulo
-            <input
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, title: event.target.value }))}
-              placeholder="Ej. Alimento mensual"
-              style={styles.input}
-              value={expenseForm.title}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Categoria
-            <select
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, category: event.target.value as FosterPetExpenseCategory }))}
-              style={styles.input}
-              value={expenseForm.category}
-            >
-              {fosterPetExpenseCategoryOrder.map((category) => (
-                <option key={category} value={category}>{fosterPetExpenseCategoryLabels[category]}</option>
-              ))}
-            </select>
-          </label>
-          <label style={styles.fieldLabel}>
-            Fecha
-            <input
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, expenseDate: event.target.value }))}
-              style={styles.input}
-              type="date"
-              value={expenseForm.expenseDate}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Monto
-            <input
-              disabled={disabled}
-              min="0"
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, amount: event.target.value }))}
-              placeholder="0.00"
-              step="0.01"
-              style={styles.input}
-              type="number"
-              value={expenseForm.amount}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Moneda
-            <input
-              disabled={disabled}
-              maxLength={3}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, currency: event.target.value.toUpperCase() }))}
-              style={styles.input}
-              value={expenseForm.currency}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Proveedor o comercio
-            <input
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, vendorName: event.target.value }))}
-              placeholder="Opcional"
-              style={styles.input}
-              value={expenseForm.vendorName}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Metodo de pago
-            <input
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, paymentMethod: event.target.value }))}
-              placeholder="Efectivo, transferencia, tarjeta..."
-              style={styles.input}
-              value={expenseForm.paymentMethod}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Comprobante privado
-            <select
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, receiptDocumentId: event.target.value }))}
-              style={styles.input}
-              value={expenseForm.receiptDocumentId}
-            >
-              <option value="">Sin comprobante vinculado</option>
-              {documents.map((document) => (
-                <option key={document.id} value={document.id}>{document.title}</option>
-              ))}
-            </select>
-          </label>
-          <label style={styles.checkboxLabel}>
-            <input
-              checked={expenseForm.isReimbursed}
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, isReimbursed: event.target.checked }))}
-              type="checkbox"
-            />
-            Marcado como reembolsado
-          </label>
-          <label style={styles.fieldLabel}>
-            Descripcion
-            <textarea
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, description: event.target.value }))}
-              placeholder="Detalle opcional para rendicion de apoyo."
-              style={styles.textarea}
-              value={expenseForm.description}
-            />
-          </label>
-          <label style={styles.fieldLabel}>
-            Nota de reembolso
-            <textarea
-              disabled={disabled}
-              onChange={(event) => onExpenseFormChange((current) => ({ ...current, reimbursementNote: event.target.value }))}
-              placeholder="Opcional"
-              style={styles.textarea}
-              value={expenseForm.reimbursementNote}
-            />
-          </label>
-          <div style={styles.heroActions}>
-            <button disabled={disabled} style={styles.primaryButton} type="submit">
-              {editingExpenseId ? "Guardar gasto" : "Registrar gasto"}
-            </button>
-            <button disabled={disabled} onClick={onCancel} style={styles.secondaryButton} type="button">
-              Cancelar
-            </button>
+          <div style={styles.expenseFormMainGrid}>
+            <label style={styles.fieldLabel}>
+              Titulo
+              <input
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, title: event.target.value }))}
+                placeholder="Ej. Alimento mensual"
+                style={styles.input}
+                value={expenseForm.title}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Categoria
+              <select
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, category: event.target.value as FosterPetExpenseCategory }))}
+                style={styles.input}
+                value={expenseForm.category}
+              >
+                {fosterPetExpenseCategoryOrder.map((category) => (
+                  <option key={category} value={category}>{fosterPetExpenseCategoryLabels[category]}</option>
+                ))}
+              </select>
+            </label>
+            <label style={styles.fieldLabel}>
+              Fecha
+              <input
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, expenseDate: event.target.value }))}
+                style={styles.input}
+                type="date"
+                value={expenseForm.expenseDate}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Monto
+              <input
+                disabled={disabled}
+                min="0"
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, amount: event.target.value }))}
+                placeholder="0.00"
+                step="0.01"
+                style={styles.input}
+                type="number"
+                value={expenseForm.amount}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Moneda
+              <input
+                disabled={disabled}
+                maxLength={3}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, currency: event.target.value.toUpperCase() }))}
+                style={styles.input}
+                value={expenseForm.currency}
+              />
+            </label>
+          </div>
+          <div style={styles.expenseFormSupportGrid}>
+            <label style={styles.fieldLabel}>
+              Proveedor o comercio
+              <input
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, vendorName: event.target.value }))}
+                placeholder="Opcional"
+                style={styles.input}
+                value={expenseForm.vendorName}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Metodo de pago
+              <input
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, paymentMethod: event.target.value }))}
+                placeholder="Efectivo, transferencia, tarjeta..."
+                style={styles.input}
+                value={expenseForm.paymentMethod}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Comprobante privado
+              <select
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, receiptDocumentId: event.target.value }))}
+                style={styles.input}
+                value={expenseForm.receiptDocumentId}
+              >
+                <option value="">Sin comprobante vinculado</option>
+                {documents.map((document) => (
+                  <option key={document.id} value={document.id}>{document.title}</option>
+                ))}
+              </select>
+            </label>
+            <label style={styles.expenseCheckboxChip}>
+              <input
+                checked={expenseForm.isReimbursed}
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, isReimbursed: event.target.checked }))}
+                type="checkbox"
+              />
+              Reembolsado
+            </label>
+          </div>
+          <div style={styles.expenseFormNotesGrid}>
+            <label style={styles.fieldLabel}>
+              Descripcion
+              <textarea
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, description: event.target.value }))}
+                placeholder="Detalle opcional para rendicion de apoyo."
+                style={styles.expenseTextarea}
+                value={expenseForm.description}
+              />
+            </label>
+            <label style={styles.fieldLabel}>
+              Nota de reembolso
+              <textarea
+                disabled={disabled}
+                onChange={(event) => onExpenseFormChange((current) => ({ ...current, reimbursementNote: event.target.value }))}
+                placeholder="Opcional"
+                style={styles.expenseTextarea}
+                value={expenseForm.reimbursementNote}
+              />
+            </label>
+            <div style={styles.expenseFormActions}>
+              <button disabled={disabled} style={styles.primaryButton} type="submit">
+                {editingExpenseId ? "Guardar gasto" : "Registrar gasto"}
+              </button>
+              <button disabled={disabled} onClick={onCancel} style={styles.secondaryButton} type="button">
+                Cancelar
+              </button>
+            </div>
           </div>
           {receiptDocument ? <p style={styles.itemMeta}>Comprobante vinculado: {receiptDocument.title}</p> : null}
         </form>
@@ -3918,7 +3924,14 @@ const styles: Record<string, React.CSSProperties> = {
   documentItem: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "7px", padding: "10px" },
   documentReplaceButton: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 900, justifyContent: "center", padding: "7px 10px", whiteSpace: "nowrap" },
   expenseCategoryStrip: { display: "flex", flexWrap: "wrap", gap: "6px" },
+  expenseCheckboxChip: { alignItems: "center", alignSelf: "end", background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", fontSize: "10px", fontWeight: 900, gap: "7px", justifyContent: "center", minHeight: "38px", padding: "8px 10px", textTransform: "none", whiteSpace: "nowrap" },
+  expenseFormActions: { alignItems: "center", alignSelf: "end", display: "flex", flexWrap: "wrap", gap: "8px" },
+  expenseFormCard: { background: "rgba(248, 255, 253, 0.72)", border: "1px solid rgba(15, 118, 110, 0.12)", borderRadius: "16px", display: "grid", gap: "12px", padding: "12px" },
+  expenseFormMainGrid: { alignItems: "end", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))" },
+  expenseFormNotesGrid: { alignItems: "end", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" },
+  expenseFormSupportGrid: { alignItems: "end", display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))" },
   expenseStatsGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))" },
+  expenseTextarea: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "14px", color: "#0f172a", fontSize: "11px", minHeight: "72px", padding: "10px", resize: "vertical" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
   detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
   detailTitle: { color: "#0f172a", fontSize: "17px", margin: 0 },
