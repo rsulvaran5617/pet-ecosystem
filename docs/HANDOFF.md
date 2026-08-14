@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - FOSTER-EXPENSES-1 gastos de acogida
+
+- Se agrega alcance local para registrar gastos privados por mascota bajo acogida.
+- Nueva migracion local pendiente de aplicar remoto: `supabase/migrations/20260813190000_foster_pet_expenses.sql`.
+- Modelo: `foster_pet_expenses` con fecha real, categoria, titulo, monto, moneda, proveedor/metodo opcional, estado de reembolso y `receipt_document_id` opcional hacia `pet_documents`.
+- No es modulo de pagos, no integra pasarelas, no publica donaciones ni expone montos/recibos en `/adopciones/[slug]`.
+- Web Foster muestra `Gastos de acogida` dentro del acordeon de cada mascota, con resumen, categorias, lista, crear/editar/eliminar y vinculo a comprobantes privados existentes.
+- Mobile Foster agrega pestana `Gastos` solo cuando el hogar activo es `protective`, con resumen, formulario compacto y lista editable.
+- RLS propuesta: lectura para miembros autorizados del hogar protector/admin; mutacion para permisos edit/admin sobre la mascota; comprobantes deben pertenecer al mismo `pet_id`.
+- No aplicar la migracion remota ni hacer push de DB sin aprobacion del Product Owner.
+
 # Handoff 2026-08-13 - FOSTER-PET-DOCUMENTS-1 expediente documental
 
 - Web Foster `Mascotas bajo acogida` expone `Expediente documental` dentro del acordeon de cada mascota.

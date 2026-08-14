@@ -17,6 +17,7 @@ export * from "./health";
 export * from "./marketplace";
 export * from "./providers";
 export * from "./bookings";
+export * from "./foster";
 export * from "./pets";
 export * from "./reminders";
 export * from "./support";

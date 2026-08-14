@@ -78,6 +78,8 @@ FOSTER-INTAKE-DATE-1 propone migracion local `20260813170000_foster_pet_intake_d
 
 FOSTER-PET-DOCUMENTS-1 no agrega migracion: las mascotas bajo acogida usan `pet_documents` y el bucket privado `pet-documents` con las mismas funciones de documento existentes.
 
+FOSTER-EXPENSES-1 propone migracion local `20260813190000_foster_pet_expenses.sql`: crea `foster_pet_expenses` para gastos privados de mascotas bajo acogida, con `receipt_document_id` opcional hacia `pet_documents`. No publica gastos ni crea pagos.
+
 ## Foster-5 adopcion responsable operativa
 
 Tablas y cambios locales:

@@ -4,8 +4,12 @@ import type {
   ApplicationCommitmentDocument,
   ApplicationCommitmentDocumentReviewInput,
   ApplicationCommitmentDocumentUploadInput,
+  CreateFosterPetExpenseInput,
   CreatePetTransferInvitationInput,
   Database,
+  FosterPetExpense,
+  FosterPetExpenseCategorySummary,
+  FosterPetExpenseSummary,
   PetAdoptionApplication,
   PetAdoptionApplicationInput,
   PetAdoptionClosureDetail,
@@ -31,6 +35,7 @@ import type {
   ProtectivePublicProfileInput,
   ProtectivePublicProfileLogoUploadInput,
   ProtectivePublicProfileReviewInput,
+  UpdateFosterPetExpenseInput,
   Uuid
 } from "@pet/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -83,6 +88,7 @@ type ProtectiveAdoptionCommitmentTemplateRow =
   Database["public"]["Tables"]["protective_household_adoption_commitment_templates"]["Row"];
 type ApplicationCommitmentDocumentRow =
   Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"];
+type FosterPetExpenseRow = Database["public"]["Tables"]["foster_pet_expenses"]["Row"];
 
 const protectiveHouseholdLogosBucketId = "protective-household-logos";
 const fosterAdoptionDocumentsBucketId = "foster-adoption-documents";
@@ -139,6 +145,11 @@ export interface FosterApiClient {
   getApplicationCommitmentDocument(applicationId: Uuid): Promise<ApplicationCommitmentDocument | null>;
   uploadApplicationCommitmentDocument(input: ApplicationCommitmentDocumentUploadInput): Promise<ApplicationCommitmentDocument>;
   reviewApplicationCommitmentDocument(input: ApplicationCommitmentDocumentReviewInput): Promise<ApplicationCommitmentDocument>;
+  listFosterPetExpenses(petId: Uuid): Promise<FosterPetExpense[]>;
+  createFosterPetExpense(input: CreateFosterPetExpenseInput): Promise<FosterPetExpense>;
+  updateFosterPetExpense(input: UpdateFosterPetExpenseInput): Promise<FosterPetExpense>;
+  deleteFosterPetExpense(expenseId: Uuid): Promise<void>;
+  getFosterPetExpenseSummary(householdId: Uuid): Promise<FosterPetExpenseSummary>;
   uploadPetAdoptionMedia(input: PetAdoptionMediaUploadInput): Promise<PetAdoptionListingMedia>;
   setPetAdoptionListingCover(mediaId: Uuid): Promise<PetAdoptionListingMedia>;
   reviewPetAdoptionListingMedia(mediaId: Uuid, input: PetAdoptionMediaReviewInput): Promise<PetAdoptionListingMedia>;
@@ -207,7 +218,8 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("get_pet_adoption_application_commitment_document") ||
     message.includes("register_pet_adoption_application_commitment_document") ||
     message.includes("review_pet_adoption_application_commitment_document") ||
-    message.includes("get_pet_adoption_closure_detail")
+    message.includes("get_pet_adoption_closure_detail") ||
+    message.includes("foster_pet_expenses")
   ) && (message.includes("schema cache") || message.includes("could not find") || message.includes("does not exist"));
 }
 
@@ -814,6 +826,51 @@ function mapPetCustodyContext(row: PetCustodyHistoryRow): PetCustodyContext {
     createdByUserId: row.created_by_user_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function mapFosterPetExpense(row: FosterPetExpenseRow): FosterPetExpense {
+  return {
+    id: row.id,
+    petId: row.pet_id,
+    protectiveHouseholdId: row.protective_household_id,
+    expenseDate: row.expense_date,
+    category: row.category,
+    title: row.title,
+    description: row.description,
+    amount: Number(row.amount),
+    currency: row.currency,
+    vendorName: row.vendor_name,
+    paymentMethod: row.payment_method,
+    receiptDocumentId: row.receipt_document_id,
+    isReimbursed: row.is_reimbursed,
+    reimbursementNote: row.reimbursement_note,
+    createdByUserId: row.created_by_user_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function summarizeFosterPetExpenses(expenses: FosterPetExpense[], householdId?: Uuid): FosterPetExpenseSummary {
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const byCategoryMap = expenses.reduce((summary, expense) => {
+    const current = summary.get(expense.category) ?? { category: expense.category, amount: 0, count: 0 };
+    current.amount += expense.amount;
+    current.count += 1;
+    summary.set(expense.category, current);
+    return summary;
+  }, new Map<FosterPetExpense["category"], FosterPetExpenseCategorySummary>());
+
+  return {
+    protectiveHouseholdId: householdId,
+    currency: expenses[0]?.currency ?? "USD",
+    totalAmount: expenses.reduce((total, expense) => total + expense.amount, 0),
+    currentMonthAmount: expenses
+      .filter((expense) => expense.expenseDate.startsWith(currentMonth))
+      .reduce((total, expense) => total + expense.amount, 0),
+    expenseCount: expenses.length,
+    byCategory: Array.from(byCategoryMap.values()).sort((first, second) => second.amount - first.amount)
   };
 }
 
@@ -1691,6 +1748,105 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return mapApplicationCommitmentDocument(supabase, data);
+    },
+    async listFosterPetExpenses(petId) {
+      const { data, error } = await supabase
+        .from("foster_pet_expenses")
+        .select("*")
+        .eq("pet_id", petId)
+        .order("expense_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "Unable to load foster pet expenses.");
+      }
+
+      return (data ?? []).map(mapFosterPetExpense);
+    },
+    async createFosterPetExpense(input) {
+      const currentUserId = await requireCurrentUserId(supabase);
+      const { data, error } = await supabase
+        .from("foster_pet_expenses")
+        .insert({
+          pet_id: input.petId,
+          protective_household_id: input.protectiveHouseholdId,
+          expense_date: input.expenseDate,
+          category: input.category,
+          title: input.title,
+          description: input.description ?? null,
+          amount: input.amount,
+          currency: input.currency ?? "USD",
+          vendor_name: input.vendorName ?? null,
+          payment_method: input.paymentMethod ?? null,
+          receipt_document_id: input.receiptDocumentId ?? null,
+          is_reimbursed: input.isReimbursed ?? false,
+          reimbursement_note: input.reimbursementNote ?? null,
+          created_by_user_id: currentUserId
+        })
+        .select("*")
+        .single();
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapFosterPetExpense(data);
+    },
+    async updateFosterPetExpense(input) {
+      const updatePayload: Database["public"]["Tables"]["foster_pet_expenses"]["Update"] = {};
+
+      if (input.expenseDate !== undefined) updatePayload.expense_date = input.expenseDate;
+      if (input.category !== undefined) updatePayload.category = input.category;
+      if (input.title !== undefined) updatePayload.title = input.title;
+      if (input.description !== undefined) updatePayload.description = input.description;
+      if (input.amount !== undefined) updatePayload.amount = input.amount;
+      if (input.currency !== undefined) updatePayload.currency = input.currency;
+      if (input.vendorName !== undefined) updatePayload.vendor_name = input.vendorName;
+      if (input.paymentMethod !== undefined) updatePayload.payment_method = input.paymentMethod;
+      if (input.receiptDocumentId !== undefined) updatePayload.receipt_document_id = input.receiptDocumentId;
+      if (input.isReimbursed !== undefined) updatePayload.is_reimbursed = input.isReimbursed;
+      if (input.reimbursementNote !== undefined) updatePayload.reimbursement_note = input.reimbursementNote;
+
+      const { data, error } = await supabase
+        .from("foster_pet_expenses")
+        .update(updatePayload)
+        .eq("id", input.expenseId)
+        .select("*")
+        .single();
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapFosterPetExpense(data);
+    },
+    async deleteFosterPetExpense(expenseId) {
+      const { error } = await supabase.from("foster_pet_expenses").delete().eq("id", expenseId);
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+    },
+    async getFosterPetExpenseSummary(householdId) {
+      const { data, error } = await supabase
+        .from("foster_pet_expenses")
+        .select("*")
+        .eq("protective_household_id", householdId)
+        .order("expense_date", { ascending: false });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return summarizeFosterPetExpenses([], householdId);
+        }
+
+        fail(error, "Unable to load foster pet expense summary.");
+      }
+
+      return summarizeFosterPetExpenses((data ?? []).map(mapFosterPetExpense), householdId);
     },
     async uploadPetAdoptionMedia(input) {
       const currentUserId = await requireCurrentUserId(supabase);

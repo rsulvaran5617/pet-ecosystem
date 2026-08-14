@@ -24,7 +24,8 @@ import type {
   ProtectiveHouseholdOrganizationType,
   ProtectiveHouseholdProfileStatus,
   ProtectivePublicProfileModerationStatus,
-  ProtectiveHouseholdReviewDecision
+  ProtectiveHouseholdReviewDecision,
+  FosterPetExpenseCategory
 } from "./foster";
 import type { HouseholdInvitationStatus, HouseholdPermission, HouseholdType } from "./households";
 import type {
@@ -1633,6 +1634,66 @@ export interface Database {
           issued_at?: string | null;
           expires_at?: string | null;
           expiration_warning_days?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      foster_pet_expenses: {
+        Row: {
+          id: string;
+          pet_id: string;
+          protective_household_id: string;
+          expense_date: string;
+          category: FosterPetExpenseCategory;
+          title: string;
+          description: string | null;
+          amount: number;
+          currency: string;
+          vendor_name: string | null;
+          payment_method: string | null;
+          receipt_document_id: string | null;
+          is_reimbursed: boolean;
+          reimbursement_note: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          pet_id: string;
+          protective_household_id: string;
+          expense_date: string;
+          category: FosterPetExpenseCategory;
+          title: string;
+          description?: string | null;
+          amount: number;
+          currency?: string;
+          vendor_name?: string | null;
+          payment_method?: string | null;
+          receipt_document_id?: string | null;
+          is_reimbursed?: boolean;
+          reimbursement_note?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          pet_id?: string;
+          protective_household_id?: string;
+          expense_date?: string;
+          category?: FosterPetExpenseCategory;
+          title?: string;
+          description?: string | null;
+          amount?: number;
+          currency?: string;
+          vendor_name?: string | null;
+          payment_method?: string | null;
+          receipt_document_id?: string | null;
+          is_reimbursed?: boolean;
+          reimbursement_note?: string | null;
+          created_by_user_id?: string;
           created_at?: string;
           updated_at?: string;
         };

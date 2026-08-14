@@ -169,6 +169,7 @@ Foster-2A implementacion local:
 - aceptar transferencia actualiza `pets.household_id`; no se crean nuevas filas en `pets`.
 - `pet_documents`, salud, vacunas, alergias y condiciones siguen asociados a `pet_id` y viajan por la nueva custodia.
 - FOSTER-PET-DOCUMENTS-1 no crea documentos Foster paralelos: Web/mobile Foster reutilizan `pet_documents` para expediente privado de mascotas bajo acogida.
+- FOSTER-EXPENSES-1 agrega `foster_pet_expenses` como bitacora privada de gastos por mascota bajo acogida. Puede vincular `receipt_document_id` a `pet_documents`, pero no publica montos ni comprobantes en adopciones publicas y no procesa pagos.
 - `bookings`, `chat_threads`, pagos, soporte y recordatorios conservan su `household_id` original y no se transfieren automaticamente.
 - reservas, chats, soporte y datos privados del hogar anterior no viajan automaticamente al nuevo hogar.
 

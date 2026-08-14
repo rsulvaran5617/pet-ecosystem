@@ -44,6 +44,8 @@ Nota operativa 2026-08-13: FOSTER-INTAKE-DATE-1 prepara `pet_profiles.foster_int
 
 Nota operativa 2026-08-13: FOSTER-PET-DOCUMENTS-1 expone el expediente documental privado de mascotas bajo acogida en Web Foster reutilizando `pet_documents`. La Familia Protectora puede cargar, ver con URL firmada, editar vigencia/metadata, reemplazar archivo y eliminar documentos cargados por error. Estos documentos no se muestran en la ficha publica `/adopciones/[slug]` ni se mezclan con la galeria publica de adopcion.
 
+Nota operativa 2026-08-13: FOSTER-EXPENSES-1 agrega un registro privado de gastos de acogida por mascota. Usa `foster_pet_expenses`, puede vincular comprobantes existentes en `pet_documents` y no publica montos ni recibos en la vitrina publica de adopcion. Ver `docs/modules/foster_expenses.md`.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.

@@ -4,7 +4,10 @@ import type {
   AdoptionCommitmentDocumentStatus,
   AdoptionCommitmentRequirementPolicy,
   ApplicationCommitmentDocument,
+  CreateFosterPetExpenseInput,
   CreatePetInput,
+  FosterPetExpense,
+  FosterPetExpenseCategory,
   PetDocument,
   PetDocumentType,
   ProtectiveContactPolicy,
@@ -21,14 +24,15 @@ import type {
   PetSummary,
   PetTransferRecord,
   ProtectiveAdoptionCommitmentTemplate,
+  UpdateFosterPetExpenseInput,
   Uuid
 } from "@pet/types";
 import { getPetDocumentValidityStatus } from "@pet/types";
-import { petDocumentTypeLabels, petDocumentTypeOrder } from "@pet/config";
+import { fosterPetExpenseCategoryLabels, fosterPetExpenseCategoryOrder, petDocumentTypeLabels, petDocumentTypeOrder } from "@pet/config";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { CreateProtectiveHouseholdInput, FosterConsoleApplicationDetail } from "../hooks/useFosterConsoleWorkspace";
-import { getBrowserPetsApiClient } from "../../core/services/supabase-browser";
+import { getBrowserFosterApiClient, getBrowserPetsApiClient } from "../../core/services/supabase-browser";
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
@@ -174,6 +178,61 @@ const emptyFosterDocumentForm: FosterDocumentFormState = {
   issuedAt: "",
   title: ""
 };
+
+type FosterExpenseFormState = {
+  amount: string;
+  category: FosterPetExpenseCategory;
+  currency: string;
+  description: string;
+  expenseDate: string;
+  isReimbursed: boolean;
+  paymentMethod: string;
+  receiptDocumentId: string;
+  reimbursementNote: string;
+  title: string;
+  vendorName: string;
+};
+
+const emptyFosterExpenseForm: FosterExpenseFormState = {
+  amount: "",
+  category: "food",
+  currency: "USD",
+  description: "",
+  expenseDate: new Date().toISOString().slice(0, 10),
+  isReimbursed: false,
+  paymentMethod: "",
+  receiptDocumentId: "",
+  reimbursementNote: "",
+  title: "",
+  vendorName: ""
+};
+
+function formatFosterExpenseAmount(amount: number, currency = "USD") {
+  return new Intl.NumberFormat("es-PA", {
+    currency,
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+    style: "currency"
+  }).format(amount);
+}
+
+function getFosterExpenseTotals(expenses: FosterPetExpense[]) {
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const byCategory = expenses.reduce((summary, expense) => {
+    const current = summary.get(expense.category) ?? 0;
+    summary.set(expense.category, current + expense.amount);
+    return summary;
+  }, new Map<FosterPetExpenseCategory, number>());
+
+  return {
+    byCategory: Array.from(byCategory.entries()).sort((first, second) => second[1] - first[1]),
+    currentMonthAmount: expenses
+      .filter((expense) => expense.expenseDate.startsWith(currentMonth))
+      .reduce((total, expense) => total + expense.amount, 0),
+    totalAmount: expenses.reduce((total, expense) => total + expense.amount, 0)
+  };
+}
 
 function statusTone(status: PetAdoptionApplicationStatus): "warning" | "success" | "neutral" {
   if (status === "approved" || status === "converted_to_transfer") {
@@ -1364,7 +1423,12 @@ function FosterPetsPanel({
   const [documentForm, setDocumentForm] = useState<FosterDocumentFormState>(emptyFosterDocumentForm);
   const [documentsByPetId, setDocumentsByPetId] = useState<Record<string, PetDocument[]>>({});
   const [editingDocumentId, setEditingDocumentId] = useState<Uuid | null>(null);
+  const [expenseForm, setExpenseForm] = useState<FosterExpenseFormState>(emptyFosterExpenseForm);
+  const [expensesByPetId, setExpensesByPetId] = useState<Record<string, FosterPetExpense[]>>({});
+  const [editingExpenseId, setEditingExpenseId] = useState<Uuid | null>(null);
+  const [expenseFormPetId, setExpenseFormPetId] = useState<Uuid | null>(null);
   const [expandedPetId, setExpandedPetId] = useState<Uuid | null>(null);
+  const [loadingExpensesPetId, setLoadingExpensesPetId] = useState<Uuid | null>(null);
   const [loadingDocumentsPetId, setLoadingDocumentsPetId] = useState<Uuid | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [previewAvatarPetId, setPreviewAvatarPetId] = useState<Uuid | null>(null);
@@ -1412,6 +1476,12 @@ function FosterPetsPanel({
     setEditingDocumentId(null);
   }
 
+  function resetExpenseForm() {
+    setExpenseForm(emptyFosterExpenseForm);
+    setEditingExpenseId(null);
+    setExpenseFormPetId(null);
+  }
+
   const loadPetDocuments = useCallback(async (petId: Uuid) => {
     setLoadingDocumentsPetId(petId);
 
@@ -1420,6 +1490,17 @@ function FosterPetsPanel({
       setDocumentsByPetId((current) => ({ ...current, [petId]: documents }));
     } finally {
       setLoadingDocumentsPetId((current) => (current === petId ? null : current));
+    }
+  }, []);
+
+  const loadPetExpenses = useCallback(async (petId: Uuid) => {
+    setLoadingExpensesPetId(petId);
+
+    try {
+      const expenses = await getBrowserFosterApiClient().listFosterPetExpenses(petId);
+      setExpensesByPetId((current) => ({ ...current, [petId]: expenses }));
+    } finally {
+      setLoadingExpensesPetId((current) => (current === petId ? null : current));
     }
   }, []);
 
@@ -1513,6 +1594,84 @@ function FosterPetsPanel({
     await loadPetDocuments(petId);
   }
 
+  function openExpenseEditor(expense: FosterPetExpense) {
+    setEditingExpenseId(expense.id);
+    setExpenseFormPetId(expense.petId);
+    setExpenseForm({
+      amount: String(expense.amount),
+      category: expense.category,
+      currency: expense.currency,
+      description: expense.description ?? "",
+      expenseDate: expense.expenseDate,
+      isReimbursed: expense.isReimbursed,
+      paymentMethod: expense.paymentMethod ?? "",
+      receiptDocumentId: expense.receiptDocumentId ?? "",
+      reimbursementNote: expense.reimbursementNote ?? "",
+      title: expense.title,
+      vendorName: expense.vendorName ?? ""
+    });
+  }
+
+  async function saveExpense(pet: PetSummary) {
+    const amount = Number(expenseForm.amount);
+
+    if (!expenseForm.title.trim()) {
+      window.alert("Indica un titulo para el gasto.");
+      return;
+    }
+
+    if (!expenseForm.expenseDate) {
+      window.alert("Indica la fecha del gasto.");
+      return;
+    }
+
+    if (!Number.isFinite(amount) || amount < 0) {
+      window.alert("Indica un monto valido mayor o igual a cero.");
+      return;
+    }
+
+    const payload = {
+      amount,
+      category: expenseForm.category,
+      currency: expenseForm.currency.trim().toUpperCase() || "USD",
+      description: expenseForm.description.trim() || null,
+      expenseDate: expenseForm.expenseDate,
+      isReimbursed: expenseForm.isReimbursed,
+      paymentMethod: expenseForm.paymentMethod.trim() || null,
+      receiptDocumentId: expenseForm.receiptDocumentId || null,
+      reimbursementNote: expenseForm.reimbursementNote.trim() || null,
+      title: expenseForm.title.trim(),
+      vendorName: expenseForm.vendorName.trim() || null
+    };
+
+    if (editingExpenseId) {
+      await getBrowserFosterApiClient().updateFosterPetExpense({
+        expenseId: editingExpenseId,
+        ...payload
+      } satisfies UpdateFosterPetExpenseInput);
+    } else {
+      await getBrowserFosterApiClient().createFosterPetExpense({
+        petId: pet.id,
+        protectiveHouseholdId: pet.householdId,
+        ...payload
+      } satisfies CreateFosterPetExpenseInput);
+    }
+
+    resetExpenseForm();
+    await loadPetExpenses(pet.id);
+  }
+
+  async function deleteExpense(petId: Uuid, expense: FosterPetExpense) {
+    const confirmed = window.confirm(`Se eliminara el gasto "${expense.title}". Esta accion no se puede deshacer.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    await getBrowserFosterApiClient().deleteFosterPetExpense(expense.id);
+    await loadPetExpenses(petId);
+  }
+
   useEffect(() => {
     if (!expandedPetId || documentsByPetId[expandedPetId]) {
       return;
@@ -1520,6 +1679,14 @@ function FosterPetsPanel({
 
     void loadPetDocuments(expandedPetId);
   }, [documentsByPetId, expandedPetId, loadPetDocuments]);
+
+  useEffect(() => {
+    if (!expandedPetId || expensesByPetId[expandedPetId]) {
+      return;
+    }
+
+    void loadPetExpenses(expandedPetId);
+  }, [expandedPetId, expensesByPetId, loadPetExpenses]);
 
   return (
     <section style={styles.panel}>
@@ -1782,6 +1949,25 @@ function FosterPetsPanel({
                       onReplaceDocumentFile={(document, file) => void replaceDocumentFile(pet.id, document, file)}
                       onSaveDocument={() => void saveDocument(pet.id)}
                     />
+                    <FosterPetExpensesBox
+                      disabled={disabled}
+                      documents={documentsByPetId[pet.id] ?? []}
+                      editingExpenseId={editingExpenseId}
+                      expenseForm={expenseForm}
+                      expenses={expensesByPetId[pet.id] ?? []}
+                      isFormOpen={expenseFormPetId === pet.id}
+                      isLoading={loadingExpensesPetId === pet.id}
+                      onCancel={resetExpenseForm}
+                      onDeleteExpense={(expense) => void deleteExpense(pet.id, expense)}
+                      onEditExpense={openExpenseEditor}
+                      onExpenseFormChange={setExpenseForm}
+                      onOpenForm={() => {
+                        setExpenseFormPetId(pet.id);
+                        setEditingExpenseId(null);
+                        setExpenseForm(emptyFosterExpenseForm);
+                      }}
+                      onSaveExpense={() => void saveExpense(pet)}
+                    />
                     <AdoptionPublicationFlow
                       applicationCount={applicationCount}
                       disabled={disabled}
@@ -1805,6 +1991,238 @@ function FosterPetsPanel({
         </div>
       ) : (
         <EmptyState text="Aun no tienes mascotas bajo acogida. Registra la primera mascota cuando este bajo cuidado de esta Familia Protectora." />
+      )}
+    </section>
+  );
+}
+
+function FosterPetExpensesBox({
+  disabled,
+  documents,
+  editingExpenseId,
+  expenseForm,
+  expenses,
+  isFormOpen,
+  isLoading,
+  onCancel,
+  onDeleteExpense,
+  onEditExpense,
+  onExpenseFormChange,
+  onOpenForm,
+  onSaveExpense
+}: {
+  disabled: boolean;
+  documents: PetDocument[];
+  editingExpenseId: Uuid | null;
+  expenseForm: FosterExpenseFormState;
+  expenses: FosterPetExpense[];
+  isFormOpen: boolean;
+  isLoading: boolean;
+  onCancel: () => void;
+  onDeleteExpense: (expense: FosterPetExpense) => void;
+  onEditExpense: (expense: FosterPetExpense) => void;
+  onExpenseFormChange: React.Dispatch<React.SetStateAction<FosterExpenseFormState>>;
+  onOpenForm: () => void;
+  onSaveExpense: () => void;
+}) {
+  const totals = getFosterExpenseTotals(expenses);
+  const currency = expenses[0]?.currency ?? expenseForm.currency;
+  const receiptDocument = documents.find((document) => document.id === expenseForm.receiptDocumentId);
+
+  return (
+    <section style={styles.documentBox}>
+      <div style={styles.rowBetween}>
+        <div>
+          <strong style={styles.itemTitle}>Gastos de acogida</strong>
+          <p style={styles.itemMeta}>Registro privado para transparentar alimento, salud, transporte y otros apoyos. No se muestra en la publicacion publica.</p>
+        </div>
+        <button disabled={disabled} onClick={isFormOpen ? onCancel : onOpenForm} style={styles.secondaryButton} type="button">
+          {isFormOpen ? "Cerrar" : "+ Gasto"}
+        </button>
+      </div>
+
+      <div style={styles.expenseStatsGrid}>
+        <InfoTile label="Total documentado" value={formatFosterExpenseAmount(totals.totalAmount, currency)} />
+        <InfoTile label="Mes actual" value={formatFosterExpenseAmount(totals.currentMonthAmount, currency)} />
+        <InfoTile label="Registros" value={`${expenses.length} gasto(s)`} />
+      </div>
+
+      {totals.byCategory.length ? (
+        <div style={styles.expenseCategoryStrip}>
+          {totals.byCategory.slice(0, 6).map(([category, amount]) => (
+            <span key={category} style={styles.compactPill}>
+              {fosterPetExpenseCategoryLabels[category]}: {formatFosterExpenseAmount(amount, currency)}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {isFormOpen ? (
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSaveExpense();
+          }}
+          style={styles.documentFormGrid}
+        >
+          <label style={styles.fieldLabel}>
+            Titulo
+            <input
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, title: event.target.value }))}
+              placeholder="Ej. Alimento mensual"
+              style={styles.input}
+              value={expenseForm.title}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Categoria
+            <select
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, category: event.target.value as FosterPetExpenseCategory }))}
+              style={styles.input}
+              value={expenseForm.category}
+            >
+              {fosterPetExpenseCategoryOrder.map((category) => (
+                <option key={category} value={category}>{fosterPetExpenseCategoryLabels[category]}</option>
+              ))}
+            </select>
+          </label>
+          <label style={styles.fieldLabel}>
+            Fecha
+            <input
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, expenseDate: event.target.value }))}
+              style={styles.input}
+              type="date"
+              value={expenseForm.expenseDate}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Monto
+            <input
+              disabled={disabled}
+              min="0"
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, amount: event.target.value }))}
+              placeholder="0.00"
+              step="0.01"
+              style={styles.input}
+              type="number"
+              value={expenseForm.amount}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Moneda
+            <input
+              disabled={disabled}
+              maxLength={3}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, currency: event.target.value.toUpperCase() }))}
+              style={styles.input}
+              value={expenseForm.currency}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Proveedor o comercio
+            <input
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, vendorName: event.target.value }))}
+              placeholder="Opcional"
+              style={styles.input}
+              value={expenseForm.vendorName}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Metodo de pago
+            <input
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, paymentMethod: event.target.value }))}
+              placeholder="Efectivo, transferencia, tarjeta..."
+              style={styles.input}
+              value={expenseForm.paymentMethod}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Comprobante privado
+            <select
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, receiptDocumentId: event.target.value }))}
+              style={styles.input}
+              value={expenseForm.receiptDocumentId}
+            >
+              <option value="">Sin comprobante vinculado</option>
+              {documents.map((document) => (
+                <option key={document.id} value={document.id}>{document.title}</option>
+              ))}
+            </select>
+          </label>
+          <label style={styles.checkboxLabel}>
+            <input
+              checked={expenseForm.isReimbursed}
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, isReimbursed: event.target.checked }))}
+              type="checkbox"
+            />
+            Marcado como reembolsado
+          </label>
+          <label style={styles.fieldLabel}>
+            Descripcion
+            <textarea
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, description: event.target.value }))}
+              placeholder="Detalle opcional para rendicion de apoyo."
+              style={styles.textarea}
+              value={expenseForm.description}
+            />
+          </label>
+          <label style={styles.fieldLabel}>
+            Nota de reembolso
+            <textarea
+              disabled={disabled}
+              onChange={(event) => onExpenseFormChange((current) => ({ ...current, reimbursementNote: event.target.value }))}
+              placeholder="Opcional"
+              style={styles.textarea}
+              value={expenseForm.reimbursementNote}
+            />
+          </label>
+          <div style={styles.heroActions}>
+            <button disabled={disabled} style={styles.primaryButton} type="submit">
+              {editingExpenseId ? "Guardar gasto" : "Registrar gasto"}
+            </button>
+            <button disabled={disabled} onClick={onCancel} style={styles.secondaryButton} type="button">
+              Cancelar
+            </button>
+          </div>
+          {receiptDocument ? <p style={styles.itemMeta}>Comprobante vinculado: {receiptDocument.title}</p> : null}
+        </form>
+      ) : null}
+
+      {isLoading ? <p style={styles.itemMeta}>Cargando gastos...</p> : null}
+      {expenses.length ? (
+        <div style={styles.documentList}>
+          {expenses.map((expense) => {
+            const linkedDocument = documents.find((document) => document.id === expense.receiptDocumentId);
+            return (
+              <article key={expense.id} style={styles.documentItem}>
+                <div>
+                  <strong style={styles.itemTitle}>{expense.title}</strong>
+                  <p style={styles.itemMeta}>
+                    {fosterPetExpenseCategoryLabels[expense.category]} - {formatDate(expense.expenseDate)}
+                    {expense.vendorName ? ` - ${expense.vendorName}` : ""}
+                  </p>
+                  <p style={styles.itemMeta}>{expense.description || "Sin descripcion adicional."}</p>
+                  {linkedDocument ? <p style={styles.itemMeta}>Comprobante: {linkedDocument.title}</p> : null}
+                </div>
+                <div style={styles.documentActions}>
+                  <StatusBadge label={formatFosterExpenseAmount(expense.amount, expense.currency)} tone={expense.isReimbursed ? "success" : "neutral"} />
+                  <button disabled={disabled} onClick={() => onEditExpense(expense)} style={styles.secondaryButton} type="button">Editar</button>
+                  <button disabled={disabled} onClick={() => onDeleteExpense(expense)} style={styles.dangerButton} type="button">Eliminar</button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <p style={styles.itemMeta}>Aun no hay gastos documentados para esta mascota.</p>
       )}
     </section>
   );
@@ -3499,6 +3917,8 @@ const styles: Record<string, React.CSSProperties> = {
   documentGroupGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))" },
   documentItem: { background: "#fffdf8", border: "1px solid rgba(28, 25, 23, 0.08)", borderRadius: "14px", display: "grid", gap: "7px", padding: "10px" },
   documentReplaceButton: { alignItems: "center", background: "#ecfdf5", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", cursor: "pointer", display: "inline-flex", fontSize: "10px", fontWeight: 900, justifyContent: "center", padding: "7px 10px", whiteSpace: "nowrap" },
+  expenseCategoryStrip: { display: "flex", flexWrap: "wrap", gap: "6px" },
+  expenseStatsGrid: { display: "grid", gap: "8px", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))" },
   detailGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))" },
   detailPanel: { background: "#f8fffd", border: "1px solid rgba(15, 118, 110, 0.16)", borderRadius: "18px", display: "grid", gap: "12px", padding: "14px" },
   detailTitle: { color: "#0f172a", fontSize: "17px", margin: 0 },

@@ -89,7 +89,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
 };
 
 type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta" | "adopcion";
-type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
+type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios" | "gastos";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type FosterSectionId = "inicio" | "acogida" | "publicaciones" | "solicitudes" | "cuenta";
 type AuthAccessPanel = "login" | "register" | "verify" | "recover";

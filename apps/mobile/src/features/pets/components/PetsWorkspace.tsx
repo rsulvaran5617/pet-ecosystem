@@ -1,6 +1,13 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { petDocumentTypeLabels, petDocumentTypeOrder, petSexLabels, reminderTypeLabels } from "@pet/config";
+import {
+  fosterPetExpenseCategoryLabels,
+  fosterPetExpenseCategoryOrder,
+  petDocumentTypeLabels,
+  petDocumentTypeOrder,
+  petSexLabels,
+  reminderTypeLabels
+} from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import type {
   PetAdoptionListing,
@@ -8,6 +15,8 @@ import type {
   PetAdoptionApplication,
   PetDocument,
   PetDocumentType,
+  FosterPetExpense,
+  FosterPetExpenseCategory,
   PetHealthDashboard,
   PetSummary,
   PetTransferRecord,
@@ -128,6 +137,34 @@ const emptyDocumentForm: DocumentFormState = {
   selectedDocument: null
 };
 
+type FosterExpenseFormState = {
+  amount: string;
+  category: FosterPetExpenseCategory;
+  currency: string;
+  description: string;
+  expenseDate: string;
+  isReimbursed: boolean;
+  paymentMethod: string;
+  receiptDocumentId: string;
+  reimbursementNote: string;
+  title: string;
+  vendorName: string;
+};
+
+const emptyFosterExpenseForm: FosterExpenseFormState = {
+  amount: "",
+  category: "food",
+  currency: "USD",
+  description: "",
+  expenseDate: new Date().toISOString().slice(0, 10),
+  isReimbursed: false,
+  paymentMethod: "",
+  receiptDocumentId: "",
+  reimbursementNote: "",
+  title: "",
+  vendorName: ""
+};
+
 type AdoptionListingFormState = {
   title: string;
   publicStory: string;
@@ -158,7 +195,7 @@ const emptyAdoptionListingForm: AdoptionListingFormState = {
   specialNeedsNotes: ""
 };
 
-type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios";
+type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios" | "gastos";
 type PetWorkspaceView = "lista" | "crear" | "editar" | "detalle";
 type FosterFlowScope = "all" | "care" | "publications" | "applications";
 type PetsWorkspacePresentation = "standard" | "firstPetOnboarding";
@@ -777,6 +814,15 @@ function formatFosterIntakeDate(date: string | null) {
   return date ? `En acogida desde ${formatShortDate(date)}` : "Fecha de acogida no registrada";
 }
 
+function formatFosterExpenseAmount(amount: number, currency = "USD") {
+  return new Intl.NumberFormat("es-PA", {
+    currency,
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+    style: "currency"
+  }).format(amount);
+}
+
 function getTodayDateKey() {
   const today = new Date();
   const year = today.getFullYear();
@@ -964,6 +1010,11 @@ export function PetsWorkspace({
   const [openDocumentDatePicker, setOpenDocumentDatePicker] = useState<"expiresAt" | "issuedAt" | null>(null);
   const [documentPreview, setDocumentPreview] = useState<{ document: PetDocument; signedUrl: string } | null>(null);
   const [documentPreviewLoadingId, setDocumentPreviewLoadingId] = useState<Uuid | null>(null);
+  const [petExpenses, setPetExpenses] = useState<FosterPetExpense[]>([]);
+  const [expenseForm, setExpenseForm] = useState<FosterExpenseFormState>(emptyFosterExpenseForm);
+  const [editingExpenseId, setEditingExpenseId] = useState<Uuid | null>(null);
+  const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
+  const [isExpensesLoading, setIsExpensesLoading] = useState(false);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
   const [isFosterIntakeDatePickerOpen, setIsFosterIntakeDatePickerOpen] = useState(false);
   const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
@@ -1004,6 +1055,20 @@ export function PetsWorkspace({
         })),
     [selectedPetDetail]
   );
+  const hubPanelOptionsForContext = useMemo(
+    () => (selectedHouseholdIsProtective ? [...hubPanelOptions, { label: "Gastos", value: "gastos" as const }] : hubPanelOptions),
+    [selectedHouseholdIsProtective]
+  );
+  const expenseTotals = useMemo(() => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    return {
+      currentMonthAmount: petExpenses
+        .filter((expense) => expense.expenseDate.startsWith(currentMonth))
+        .reduce((total, expense) => total + expense.amount, 0),
+      totalAmount: petExpenses.reduce((total, expense) => total + expense.amount, 0)
+    };
+  }, [petExpenses]);
   const { summary: selectedPetHealthSummary, isLoading: isHealthSummaryLoading } = usePetHealthSummary(
     selectedPetDetail?.pet.id ?? null,
     enabled
@@ -1016,6 +1081,41 @@ export function PetsWorkspace({
         .slice(0, 3),
     [ownerReminders, selectedPetDetail?.pet.id]
   );
+
+  useEffect(() => {
+    if (!selectedHouseholdIsProtective || !selectedPetDetail?.pet.id) {
+      setPetExpenses([]);
+      setIsExpenseFormOpen(false);
+      setEditingExpenseId(null);
+      setExpenseForm(emptyFosterExpenseForm);
+      return;
+    }
+
+    let isCurrent = true;
+    setIsExpensesLoading(true);
+
+    getMobileFosterApiClient()
+      .listFosterPetExpenses(selectedPetDetail.pet.id)
+      .then((expenses) => {
+        if (isCurrent) {
+          setPetExpenses(expenses);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) {
+          setPetExpenses([]);
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsExpensesLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [selectedHouseholdIsProtective, selectedPetDetail?.pet.id]);
 
   useEffect(() => {
     onContextChangeRef.current = onContextChange;
@@ -1322,6 +1422,108 @@ export function PetsWorkspace({
 
   const selectedPet = selectedPetDetail?.pet ?? pets.find((pet) => pet.id === selectedPetId) ?? null;
   const selectedDocuments = selectedPetDetail?.documents ?? [];
+  const closeExpenseForm = () => {
+    setExpenseForm(emptyFosterExpenseForm);
+    setEditingExpenseId(null);
+    setIsExpenseFormOpen(false);
+  };
+  const openExpenseForm = () => {
+    setExpenseForm(emptyFosterExpenseForm);
+    setEditingExpenseId(null);
+    setIsExpenseFormOpen(true);
+  };
+  const openExpenseEditor = (expense: FosterPetExpense) => {
+    setEditingExpenseId(expense.id);
+    setExpenseForm({
+      amount: String(expense.amount),
+      category: expense.category,
+      currency: expense.currency,
+      description: expense.description ?? "",
+      expenseDate: expense.expenseDate,
+      isReimbursed: expense.isReimbursed,
+      paymentMethod: expense.paymentMethod ?? "",
+      receiptDocumentId: expense.receiptDocumentId ?? "",
+      reimbursementNote: expense.reimbursementNote ?? "",
+      title: expense.title,
+      vendorName: expense.vendorName ?? ""
+    });
+    setIsExpenseFormOpen(true);
+  };
+  const reloadSelectedPetExpenses = async () => {
+    if (!selectedPetDetail?.pet.id || !selectedHouseholdIsProtective) {
+      setPetExpenses([]);
+      return;
+    }
+
+    const expenses = await getMobileFosterApiClient().listFosterPetExpenses(selectedPetDetail.pet.id);
+    setPetExpenses(expenses);
+  };
+  const saveExpense = () => {
+    if (!selectedPetDetail || !selectedHousehold) {
+      return;
+    }
+
+    const amount = Number(expenseForm.amount);
+
+    if (!expenseForm.title.trim()) {
+      Alert.alert("Dato requerido", "Indica un titulo para el gasto.");
+      return;
+    }
+
+    if (!expenseForm.expenseDate) {
+      Alert.alert("Dato requerido", "Indica la fecha del gasto.");
+      return;
+    }
+
+    if (!Number.isFinite(amount) || amount < 0) {
+      Alert.alert("Monto invalido", "Indica un monto mayor o igual a cero.");
+      return;
+    }
+
+    const payload = {
+      amount,
+      category: expenseForm.category,
+      currency: expenseForm.currency.trim().toUpperCase() || "USD",
+      description: expenseForm.description.trim() || null,
+      expenseDate: expenseForm.expenseDate,
+      isReimbursed: expenseForm.isReimbursed,
+      paymentMethod: expenseForm.paymentMethod.trim() || null,
+      receiptDocumentId: expenseForm.receiptDocumentId || null,
+      reimbursementNote: expenseForm.reimbursementNote.trim() || null,
+      title: expenseForm.title.trim(),
+      vendorName: expenseForm.vendorName.trim() || null
+    };
+
+    clearMessages();
+    void runAction(
+      () =>
+        editingExpenseId
+          ? getMobileFosterApiClient().updateFosterPetExpense({ expenseId: editingExpenseId, ...payload })
+          : getMobileFosterApiClient().createFosterPetExpense({
+              petId: selectedPetDetail.pet.id,
+              protectiveHouseholdId: selectedHousehold.id,
+              ...payload
+            }),
+      editingExpenseId ? "Gasto actualizado." : "Gasto registrado.",
+      false
+    ).then(async () => {
+      closeExpenseForm();
+      await reloadSelectedPetExpenses();
+    });
+  };
+  const confirmDeleteExpense = (expense: FosterPetExpense) => {
+    Alert.alert("Eliminar gasto", `Se eliminara "${expense.title}". Esta accion no se puede deshacer.`, [
+      { style: "cancel", text: "Cancelar" },
+      {
+        style: "destructive",
+        text: "Eliminar",
+        onPress: () => {
+          clearMessages();
+          void runAction(() => getMobileFosterApiClient().deleteFosterPetExpense(expense.id), "Gasto eliminado.", false).then(reloadSelectedPetExpenses);
+        }
+      }
+    ]);
+  };
   const selectedPetAdoptionListing = selectedPet ? myAdoptionListings.find((listing) => listing.petId === selectedPet.id) ?? null : null;
   const selectedPetAdoptionListingIsClosed =
     selectedPetAdoptionListing?.status === "closed" || selectedPetAdoptionListing?.status === "adopted";
@@ -2040,10 +2242,18 @@ export function PetsWorkspace({
             ...visualTokens.mobile.softShadow
           }}
         >
-          {hubPanelOptions.map((option) => {
+          {hubPanelOptionsForContext.map((option) => {
             const isActive = activePanel === option.value;
             const iconName: PetIconName =
-              option.value === "detalle" ? "paw" : option.value === "salud" ? "heart" : option.value === "documentos" ? "file" : "bell";
+              option.value === "detalle"
+                ? "paw"
+                : option.value === "salud"
+                  ? "heart"
+                  : option.value === "documentos"
+                    ? "file"
+                    : option.value === "gastos"
+                      ? "scale"
+                      : "bell";
             const isOperationalMemoryPanel = isSelectedPetInMemory && option.value === "recordatorios";
 
             return (
@@ -3776,6 +3986,131 @@ export function PetsWorkspace({
                     </View>
                   )}
                 </View>
+              </View>
+            ) : null}
+
+            {activePanel === "gastos" && selectedHouseholdIsProtective ? (
+              <View style={{ borderRadius: 18, backgroundColor: "#ffffff", padding: 14, gap: 12, ...visualTokens.mobile.softShadow }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={{ color: "#111827", fontSize: 15, fontWeight: "900" }}>Gastos de acogida</Text>
+                    <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                      Registro privado para transparentar alimento, salud, transporte y otros apoyos.
+                    </Text>
+                  </View>
+                  {canEditSelectedHousehold ? (
+                    <CompactActionButton disabled={isSubmitting} label={isExpenseFormOpen ? "Cerrar" : "+ Gasto"} onPress={isExpenseFormOpen ? closeExpenseForm : openExpenseForm} tone="primary" />
+                  ) : null}
+                </View>
+
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <View style={{ flex: 1, borderRadius: 14, backgroundColor: "rgba(240,253,250,0.92)", padding: 10, gap: 4 }}>
+                    <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Total</Text>
+                    <Text style={{ color: "#111827", fontSize: 15, fontWeight: "900" }}>{formatFosterExpenseAmount(expenseTotals.totalAmount)}</Text>
+                  </View>
+                  <View style={{ flex: 1, borderRadius: 14, backgroundColor: "rgba(255,247,237,0.92)", padding: 10, gap: 4 }}>
+                    <Text style={{ color: "#92400e", fontSize: 10, fontWeight: "900", textTransform: "uppercase" }}>Mes actual</Text>
+                    <Text style={{ color: "#111827", fontSize: 15, fontWeight: "900" }}>{formatFosterExpenseAmount(expenseTotals.currentMonthAmount)}</Text>
+                  </View>
+                </View>
+
+                {isExpenseFormOpen ? (
+                  <View style={{ borderRadius: 16, backgroundColor: "rgba(247,250,252,0.92)", padding: 10, gap: 8 }}>
+                    <Text style={{ color: "#111827", fontSize: 12, fontWeight: "900" }}>{editingExpenseId ? "Editar gasto" : "Nuevo gasto"}</Text>
+                    <Field label="Titulo" onChange={(value) => setExpenseForm((current) => ({ ...current, title: value }))} value={expenseForm.title} />
+                    <ChoiceBar
+                      onChange={(value) => setExpenseForm((current) => ({ ...current, category: value }))}
+                      options={fosterPetExpenseCategoryOrder.map((category) => ({
+                        label: fosterPetExpenseCategoryLabels[category],
+                        value: category
+                      }))}
+                      value={expenseForm.category}
+                    />
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Field label="Fecha" onChange={(value) => setExpenseForm((current) => ({ ...current, expenseDate: value }))} value={expenseForm.expenseDate} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Field label="Monto" onChange={(value) => setExpenseForm((current) => ({ ...current, amount: value }))} value={expenseForm.amount} />
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Field label="Moneda" onChange={(value) => setExpenseForm((current) => ({ ...current, currency: value.toUpperCase() }))} value={expenseForm.currency} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Field label="Metodo" onChange={(value) => setExpenseForm((current) => ({ ...current, paymentMethod: value }))} value={expenseForm.paymentMethod} />
+                      </View>
+                    </View>
+                    <Field label="Proveedor o comercio" onChange={(value) => setExpenseForm((current) => ({ ...current, vendorName: value }))} value={expenseForm.vendorName} />
+                    {selectedDocuments.length ? (
+                      <ChoiceBar
+                        onChange={(value) => setExpenseForm((current) => ({ ...current, receiptDocumentId: value }))}
+                        options={[
+                          { label: "Sin comprobante", value: "" },
+                          ...selectedDocuments.map((document) => ({ label: document.title, value: document.id }))
+                        ]}
+                        value={expenseForm.receiptDocumentId}
+                      />
+                    ) : (
+                      <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>
+                        Para vincular un comprobante, subelo primero desde la pestana Docs de esta mascota.
+                      </Text>
+                    )}
+                    <MultilineField label="Descripcion" onChange={(value) => setExpenseForm((current) => ({ ...current, description: value }))} value={expenseForm.description} />
+                    <Pressable
+                      onPress={() => setExpenseForm((current) => ({ ...current, isReimbursed: !current.isReimbursed }))}
+                      style={{ alignItems: "center", flexDirection: "row", gap: 8 }}
+                    >
+                      <View
+                        style={{
+                          alignItems: "center",
+                          backgroundColor: expenseForm.isReimbursed ? colorTokens.accent : "#ffffff",
+                          borderColor: "rgba(15,118,110,0.28)",
+                          borderRadius: 6,
+                          borderWidth: 1,
+                          height: 20,
+                          justifyContent: "center",
+                          width: 20
+                        }}
+                      >
+                        {expenseForm.isReimbursed ? <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "900" }}>✓</Text> : null}
+                      </View>
+                      <Text style={{ color: "#111827", fontSize: 12, fontWeight: "800" }}>Marcado como reembolsado</Text>
+                    </Pressable>
+                    <MultilineField label="Nota de reembolso" onChange={(value) => setExpenseForm((current) => ({ ...current, reimbursementNote: value }))} value={expenseForm.reimbursementNote} />
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <CompactActionButton disabled={isSubmitting} label={editingExpenseId ? "Guardar" : "Registrar"} onPress={saveExpense} tone="primary" />
+                      <CompactActionButton disabled={isSubmitting} label="Cancelar" onPress={closeExpenseForm} tone="secondary" />
+                    </View>
+                  </View>
+                ) : null}
+
+                {isExpensesLoading ? <ActivityIndicator color={colorTokens.accentDark} size="small" /> : null}
+                {petExpenses.length ? (
+                  <View style={{ gap: 8 }}>
+                    {petExpenses.map((expense) => (
+                      <View key={expense.id} style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", borderColor: "rgba(15,23,42,0.06)", borderWidth: 1, padding: 10, gap: 5 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                          <Text style={{ color: "#111827", flex: 1, fontSize: 12, fontWeight: "900" }}>{expense.title}</Text>
+                          <StatusChip label={formatFosterExpenseAmount(expense.amount, expense.currency)} tone={expense.isReimbursed ? "active" : "neutral"} />
+                        </View>
+                        <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "800" }}>
+                          {fosterPetExpenseCategoryLabels[expense.category]} - {formatShortDate(expense.expenseDate)}
+                        </Text>
+                        <Text style={{ color: colorTokens.muted, fontSize: 10 }}>{expense.description || "Sin descripcion adicional."}</Text>
+                        <View style={{ flexDirection: "row", gap: 8, paddingTop: 4 }}>
+                          {canEditSelectedHousehold ? <CompactActionButton disabled={isSubmitting} label="Editar" onPress={() => openExpenseEditor(expense)} tone="secondary" /> : null}
+                          {canEditSelectedHousehold ? <CompactActionButton disabled={isSubmitting} label="Eliminar" onPress={() => confirmDeleteExpense(expense)} tone="secondary" /> : null}
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={{ color: colorTokens.muted, fontSize: 12, lineHeight: 17 }}>
+                    Aun no hay gastos documentados para esta mascota.
+                  </Text>
+                )}
               </View>
             ) : null}
           </>

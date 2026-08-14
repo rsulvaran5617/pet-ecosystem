@@ -28,6 +28,19 @@ export type PetAdoptionMediaType = "image" | "video";
 export type PetAdoptionMediaModerationStatus = "pending" | "approved" | "rejected";
 export type PetAdoptionListingReviewDecision = "approved" | "rejected" | "paused";
 export type PetAdoptionMediaReviewDecision = "approved" | "rejected";
+export type FosterPetExpenseCategory =
+  | "food"
+  | "veterinary"
+  | "medication"
+  | "vaccination"
+  | "deworming"
+  | "sterilization"
+  | "transport"
+  | "hygiene"
+  | "accessories"
+  | "documentation"
+  | "emergency"
+  | "other";
 export type PetAdoptionApplicationStatus =
   | "submitted"
   | "withdrawn"
@@ -196,6 +209,71 @@ export interface PetCustodyContext {
   createdByUserId: Uuid;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface FosterPetExpense extends TimestampedEntity {
+  id: Uuid;
+  petId: Uuid;
+  protectiveHouseholdId: Uuid;
+  expenseDate: string;
+  category: FosterPetExpenseCategory;
+  title: string;
+  description: string | null;
+  amount: number;
+  currency: string;
+  vendorName: string | null;
+  paymentMethod: string | null;
+  receiptDocumentId: Uuid | null;
+  isReimbursed: boolean;
+  reimbursementNote: string | null;
+  createdByUserId: Uuid;
+}
+
+export interface CreateFosterPetExpenseInput {
+  petId: Uuid;
+  protectiveHouseholdId: Uuid;
+  expenseDate: string;
+  category: FosterPetExpenseCategory;
+  title: string;
+  description?: string | null;
+  amount: number;
+  currency?: string;
+  vendorName?: string | null;
+  paymentMethod?: string | null;
+  receiptDocumentId?: Uuid | null;
+  isReimbursed?: boolean;
+  reimbursementNote?: string | null;
+}
+
+export interface UpdateFosterPetExpenseInput {
+  expenseId: Uuid;
+  expenseDate?: string;
+  category?: FosterPetExpenseCategory;
+  title?: string;
+  description?: string | null;
+  amount?: number;
+  currency?: string;
+  vendorName?: string | null;
+  paymentMethod?: string | null;
+  receiptDocumentId?: Uuid | null;
+  isReimbursed?: boolean;
+  reimbursementNote?: string | null;
+}
+
+export interface FosterPetExpenseCategorySummary {
+  category: FosterPetExpenseCategory;
+  amount: number;
+  count: number;
+}
+
+export interface FosterPetExpenseSummary {
+  protectiveHouseholdId?: Uuid;
+  petId?: Uuid;
+  currency: string;
+  totalAmount: number;
+  currentMonthAmount: number;
+  expenseCount: number;
+  byCategory: FosterPetExpenseCategorySummary[];
 }
 
 export interface CreatePetTransferInvitationInput {
