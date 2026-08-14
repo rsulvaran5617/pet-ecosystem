@@ -1893,10 +1893,10 @@ function FosterPetsPanel({
                       </div>
                     </div>
                     <div style={styles.fosterPetHeaderMeta}>
-                      <StatusBadge label="En acogida" tone="success" />
-                      <span style={styles.compactPill}>{listingSummary}</span>
-                      {applicationCount ? <span style={styles.compactPill}>{applicationCount} solicitud(es)</span> : null}
-                      <label style={styles.avatarInlineUpload}>
+                      <span style={{ ...styles.fosterPetFixedPill, ...styles.successBadge }}>En acogida</span>
+                      <span style={styles.fosterPetFixedPill}>{listingSummary}</span>
+                      {applicationCount ? <span style={styles.fosterPetWidePill}>{applicationCount} solicitud(es)</span> : null}
+                      <label style={styles.fosterPetActionButton}>
                         {uploadingAvatarPetId === pet.id ? "Subiendo..." : pet.avatarUrl ? "Cambiar foto" : "+ Foto"}
                         <input
                           accept=".jpg,.jpeg,.jpe,.jfif,.png,.webp,image/jpeg,image/png,image/webp"
@@ -1918,7 +1918,7 @@ function FosterPetsPanel({
                         aria-label={`${isExpanded ? "Ocultar" : "Abrir"} detalle de ${pet.name}`}
                         aria-expanded={isExpanded}
                         onClick={() => setExpandedPetId((current) => (current === pet.id ? null : pet.id))}
-                        style={styles.accordionChevronButton}
+                        style={styles.fosterPetActionButton}
                         type="button"
                       >
                         {isExpanded ? "Ocultar" : "Abrir"}
@@ -3950,14 +3950,17 @@ const styles: Record<string, React.CSSProperties> = {
   fosterPetCard: { background: "#fffdf8", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "20px", display: "grid", overflow: "hidden" },
   fosterPetCardPreviewing: { overflow: "visible", position: "relative", zIndex: 25 },
   fosterPetGrid: { display: "grid", gap: "12px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" },
+  fosterPetActionButton: { alignItems: "center", background: "#f0fdfa", border: "1px solid rgba(15, 118, 110, 0.22)", borderRadius: "999px", color: "#00796f", cursor: "pointer", display: "inline-flex", flexShrink: 0, fontSize: "8.6px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "28px", padding: "5px 8px", textAlign: "center", whiteSpace: "nowrap", width: "82px" },
   fosterPetAvatar: { alignItems: "center", background: "#dff7f3", border: "1px solid rgba(15, 118, 110, 0.18)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "13px", fontWeight: 900, height: "46px", justifyContent: "center", overflow: "hidden", width: "46px" },
   fosterPetAvatarFrame: { borderRadius: "999px", display: "inline-flex", flexShrink: 0, position: "relative" },
   fosterPetAvatarImage: { display: "block", height: "100%", objectFit: "cover", width: "100%" },
   fosterPetAvatarInspectable: { boxShadow: "0 0 0 3px rgba(15, 118, 110, 0.08)", cursor: "zoom-in" },
-  fosterPetHeaderMain: { alignItems: "center", display: "flex", flex: 1, gap: "12px", justifyContent: "space-between", minWidth: 0 },
-  fosterPetHeaderMeta: { alignItems: "center", display: "flex", flex: "0 1 auto", flexWrap: "wrap", gap: "5px", justifyContent: "flex-end", minWidth: 0 },
+  fosterPetFixedPill: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "8.6px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "28px", overflow: "hidden", padding: "5px 8px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "84px" },
+  fosterPetHeaderMain: { alignItems: "center", display: "grid", flex: 1, gap: "12px", gridTemplateColumns: "minmax(240px, 1fr) minmax(0, auto)", minWidth: 0, width: "100%" },
+  fosterPetHeaderMeta: { alignItems: "center", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "6px", justifyContent: "flex-end", maxWidth: "520px", minWidth: "360px" },
   fosterPetIdentity: { alignItems: "center", display: "flex", gap: "11px", minWidth: 0 },
   fosterPetIdentityCopy: { display: "grid", minWidth: 0 },
+  fosterPetWidePill: { alignItems: "center", background: "#f8fafc", border: "1px solid rgba(15, 118, 110, 0.14)", borderRadius: "999px", color: "#0f766e", display: "inline-flex", flexShrink: 0, fontSize: "8.6px", fontWeight: 900, justifyContent: "center", lineHeight: 1, minHeight: "28px", overflow: "hidden", padding: "5px 8px", textAlign: "center", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "112px" },
   guidanceGrid: { display: "grid", gap: "10px", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))" },
   hero: { alignItems: "flex-start", background: "linear-gradient(135deg, #0f766e, #115e59)", borderRadius: "24px", color: "white", display: "flex", gap: "20px", justifyContent: "space-between", padding: "24px" },
   heroActions: { display: "flex", flexWrap: "wrap", gap: "8px" },
