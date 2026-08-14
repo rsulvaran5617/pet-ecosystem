@@ -47,6 +47,7 @@ Visible para usuarios con acceso al hogar y permisos correspondientes.
 Crear o editar mascota requiere permisos derivados de `edit` o `admin`.
 Cambiar estado `active`/`in_memory` requiere los mismos permisos de edicion del hogar.
 `in_memory` no borra datos ni cambia visibilidad historica; solo evita uso en nuevas reservas.
+`pet_profiles.foster_intake_date` hereda las mismas reglas de lectura/escritura del perfil de mascota: solo miembros con permiso `edit` o `admin` pueden cambiarlo via `create_pet`/`update_pet`; no agrega policy nueva ni exposicion publica.
 
 ### pet_adoption_listings / pet_adoption_listing_media (Foster-3A/3B)
 Solo familias protectoras aprobadas pueden crear/editar publicaciones de mascotas activas de su hogar. La revision y moderacion corresponde a admin de plataforma. Usuarios autenticados leen solo publicaciones `published`. La media vive en bucket privado `pet-adoption-media` y se consulta con URLs firmadas temporales; no se permite lectura publica irrestricta ni direccion exacta de la familia protectora.

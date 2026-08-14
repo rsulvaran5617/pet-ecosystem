@@ -48,6 +48,7 @@ const emptyPetForm: UpdatePetInput = {
   sex: "unknown",
   birthDate: "",
   isSterilized: null,
+  fosterIntakeDate: "",
   notes: ""
 };
 
@@ -772,6 +773,10 @@ function formatShortDate(date: string | null) {
   });
 }
 
+function formatFosterIntakeDate(date: string | null) {
+  return date ? `En acogida desde ${formatShortDate(date)}` : "Fecha de acogida no registrada";
+}
+
 function getTodayDateKey() {
   const today = new Date();
   const year = today.getFullYear();
@@ -960,6 +965,7 @@ export function PetsWorkspace({
   const [documentPreview, setDocumentPreview] = useState<{ document: PetDocument; signedUrl: string } | null>(null);
   const [documentPreviewLoadingId, setDocumentPreviewLoadingId] = useState<Uuid | null>(null);
   const [isBirthDatePickerOpen, setIsBirthDatePickerOpen] = useState(false);
+  const [isFosterIntakeDatePickerOpen, setIsFosterIntakeDatePickerOpen] = useState(false);
   const [petMemoryConfirmationId, setPetMemoryConfirmationId] = useState<Uuid | null>(null);
   const [protectiveProfile, setProtectiveProfile] = useState<ProtectiveHouseholdProfile | null>(null);
   const [isProtectiveProfileLoading, setIsProtectiveProfileLoading] = useState(false);
@@ -1106,6 +1112,7 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setIsFosterIntakeDatePickerOpen(false);
     setIsDocumentFormOpen(false);
     setPetView("detalle");
     onPanelChange?.("detalle");
@@ -1131,6 +1138,7 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setIsFosterIntakeDatePickerOpen(false);
     setPetMemoryConfirmationId(null);
     setIsProfileActionsOpen(false);
     setPetView("crear");
@@ -1147,9 +1155,11 @@ export function PetsWorkspace({
       sex: pet.sex,
       birthDate: pet.birthDate ?? "",
       isSterilized: pet.isSterilized,
+      fosterIntakeDate: pet.fosterIntakeDate ?? "",
       notes: pet.notes ?? ""
     });
     setIsBirthDatePickerOpen(false);
+    setIsFosterIntakeDatePickerOpen(false);
     setIsProfileActionsOpen(false);
     setPetView("editar");
     onPanelChange?.("detalle");
@@ -1166,6 +1176,7 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setIsFosterIntakeDatePickerOpen(false);
     setIsDocumentFormOpen(false);
     setIsProfileActionsOpen(false);
     setPetView("detalle");
@@ -1176,6 +1187,7 @@ export function PetsWorkspace({
     setEditingPetId(null);
     setPetForm(emptyPetForm);
     setIsBirthDatePickerOpen(false);
+    setIsFosterIntakeDatePickerOpen(false);
     setPetMemoryConfirmationId(null);
     setPetView(selectedPetId ? "detalle" : "lista");
   };
@@ -1915,7 +1927,9 @@ export function PetsWorkspace({
                   <View style={{ flex: 1, gap: 3 }}>
                     <Text numberOfLines={1} style={{ color: "#111827", fontSize: 14, fontWeight: "900" }}>{pet.name}</Text>
                     <Text numberOfLines={1} style={{ color: "#0f766e", fontSize: 11, fontWeight: "700" }}>{getPetDescription(pet)}</Text>
-                    <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 11 }}>{formatPetAge(pet.birthDate)}</Text>
+                    <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 11 }}>
+                      {selectedHouseholdIsProtective ? formatFosterIntakeDate(pet.fosterIntakeDate) : formatPetAge(pet.birthDate)}
+                    </Text>
                     {pet.status === "in_memory" ? <Text style={{ color: "#7c3aed", fontSize: 9, fontWeight: "900" }}>En memoria</Text> : null}
                   </View>
                   {isSelected ? (
@@ -2116,6 +2130,16 @@ export function PetsWorkspace({
                     onToggle={() => setIsBirthDatePickerOpen((currentValue) => !currentValue)}
                     value={petForm.birthDate ?? ""}
                   />
+                  {selectedHouseholdIsProtective ? (
+                    <BirthDatePickerField
+                      isOpen={isFosterIntakeDatePickerOpen}
+                      label="Fecha de ingreso a acogida"
+                      maxDate={new Date().toISOString().slice(0, 10)}
+                      onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, fosterIntakeDate: value }))}
+                      onToggle={() => setIsFosterIntakeDatePickerOpen((currentValue) => !currentValue)}
+                      value={petForm.fosterIntakeDate ?? ""}
+                    />
+                  ) : null}
                   <MultilineField label="Notas" onChange={(value) => setPetForm((currentForm) => ({ ...currentForm, notes: value }))} value={petForm.notes ?? ""} />
                   <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
                     <Button
@@ -2132,6 +2156,7 @@ export function PetsWorkspace({
                           sex: petForm.sex ?? "unknown",
                           birthDate: petForm.birthDate || null,
                           isSterilized: petForm.isSterilized ?? null,
+                          fosterIntakeDate: selectedHouseholdIsProtective ? petForm.fosterIntakeDate || null : petForm.fosterIntakeDate ?? null,
                           notes: petForm.notes?.trim() || null
                         } satisfies UpdatePetInput;
 
@@ -2288,11 +2313,21 @@ export function PetsWorkspace({
                       <Text numberOfLines={1} style={{ color: "#64748b", fontSize: 13, fontWeight: "700" }}>{selectedPetBreed}</Text>
                       <View style={{ gap: 8 }}>
                         {[
-                          { icon: "calendar" as const, label: selectedPetAge, meta: formatShortDate(selectedPetDetail.pet.birthDate) },
-                          { icon: "scale" as const, label: `${selectedDocuments.length} doc(s)`, meta: "Documentos" },
-                          { icon: "home" as const, label: "Hogar", meta: selectedPetHome }
+                          { key: "birth-date", icon: "calendar" as const, label: selectedPetAge, meta: formatShortDate(selectedPetDetail.pet.birthDate) },
+                          ...(selectedHouseholdIsProtective
+                            ? [
+                                {
+                                  key: "foster-intake-date",
+                                  icon: "calendar" as const,
+                                  label: "Ingreso a acogida",
+                                  meta: selectedPetDetail.pet.fosterIntakeDate ? formatShortDate(selectedPetDetail.pet.fosterIntakeDate) : "Fecha de acogida no registrada"
+                                }
+                              ]
+                            : []),
+                          { key: "documents", icon: "scale" as const, label: `${selectedDocuments.length} doc(s)`, meta: "Documentos" },
+                          { key: "home", icon: "home" as const, label: "Hogar", meta: selectedPetHome }
                         ].map((item) => (
-                          <View key={item.icon} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                          <View key={item.key} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <PetLineIcon color="#64748b" name={item.icon} size={14} />
                             <Text numberOfLines={1} style={{ color: "#111827", flex: 1, fontSize: 12, fontWeight: "800" }}>{item.label}</Text>
                             <Text numberOfLines={1} style={{ color: "#64748b", flex: 1, fontSize: 10 }}>{item.meta}</Text>

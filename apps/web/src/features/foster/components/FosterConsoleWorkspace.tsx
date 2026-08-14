@@ -112,6 +112,10 @@ function formatDate(value: string | null | undefined) {
   }).format(date);
 }
 
+function formatFosterIntakeDate(value: string | null | undefined) {
+  return value ? `En acogida desde ${formatDate(value)}` : "Fecha de acogida no registrada";
+}
+
 function statusTone(status: PetAdoptionApplicationStatus): "warning" | "success" | "neutral" {
   if (status === "approved" || status === "converted_to_transfer") {
     return "success";
@@ -1305,6 +1309,7 @@ function FosterPetsPanel({
   const [form, setForm] = useState<Omit<CreatePetInput, "householdId">>({
     birthDate: "",
     breed: "",
+    fosterIntakeDate: "",
     isSterilized: null,
     name: "",
     notes: "",
@@ -1329,6 +1334,7 @@ function FosterPetsPanel({
     setForm({
       birthDate: "",
       breed: "",
+      fosterIntakeDate: "",
       isSterilized: null,
       name: "",
       notes: "",
@@ -1367,6 +1373,7 @@ function FosterPetsPanel({
               ...form,
               birthDate: form.birthDate || null,
               breed: form.breed?.trim() || null,
+              fosterIntakeDate: form.fosterIntakeDate || null,
               notes: form.notes?.trim() || null
             }).then((pet) => {
               if (pet) {
@@ -1408,6 +1415,10 @@ function FosterPetsPanel({
             <label style={styles.fieldLabel}>
               Fecha de nacimiento
               <input disabled={disabled} onChange={(event) => updateField("birthDate", event.target.value)} style={styles.input} type="date" value={form.birthDate ?? ""} />
+            </label>
+            <label style={styles.fieldLabel}>
+              Fecha de ingreso a acogida
+              <input disabled={disabled} onChange={(event) => updateField("fosterIntakeDate", event.target.value)} style={styles.input} type="date" value={form.fosterIntakeDate ?? ""} />
             </label>
             <label style={styles.fieldLabel}>
               Esterilizada
@@ -1534,6 +1545,7 @@ function FosterPetsPanel({
                         <strong style={styles.itemTitle}>{pet.name}</strong>
                         <p style={styles.itemMeta}>{pet.species}{pet.breed ? ` - ${pet.breed}` : ""}</p>
                         <p style={styles.itemMeta}>{pet.birthDate ? `Nacio ${formatDate(pet.birthDate)}` : "Edad no indicada"} - {petSexLabels[pet.sex]}</p>
+                        <p style={styles.itemMeta}>{formatFosterIntakeDate(pet.fosterIntakeDate)}</p>
                       </div>
                     </div>
                     <div style={styles.fosterPetHeaderMeta}>
@@ -1574,6 +1586,11 @@ function FosterPetsPanel({
                 {isExpanded ? (
                   <div style={styles.fosterPetAccordionBody}>
                     <p style={styles.itemMeta}>{pet.notes || "Sin notas de acogida registradas."}</p>
+                    <div style={styles.detailGrid}>
+                      <InfoTile label="Ingreso a acogida" value={formatFosterIntakeDate(pet.fosterIntakeDate)} />
+                      <InfoTile label="Nacimiento" value={pet.birthDate ? formatDate(pet.birthDate) : "Fecha de nacimiento no registrada"} />
+                      <InfoTile label="Esterilizacion" value={pet.isSterilized === null ? "Sin indicar" : pet.isSterilized ? "Esterilizada" : "No esterilizada"} />
+                    </div>
                     <AdoptionPublicationFlow
                       applicationCount={applicationCount}
                       disabled={disabled}

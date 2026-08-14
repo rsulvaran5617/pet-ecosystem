@@ -16,6 +16,7 @@ export interface PetSummary extends TimestampedEntity {
   sex: PetSex;
   birthDate: string | null;
   isSterilized: boolean | null;
+  fosterIntakeDate: string | null;
   notes: string | null;
   avatarUrl: string | null;
   avatarStorageBucket: string | null;
@@ -63,6 +64,7 @@ export interface CreatePetInput {
   sex?: PetSex;
   birthDate?: string | null;
   isSterilized?: boolean | null;
+  fosterIntakeDate?: string | null;
   notes?: string | null;
 }
 
@@ -73,6 +75,7 @@ export interface UpdatePetInput {
   sex?: PetSex;
   birthDate?: string | null;
   isSterilized?: boolean | null;
+  fosterIntakeDate?: string | null;
   notes?: string | null;
 }
 

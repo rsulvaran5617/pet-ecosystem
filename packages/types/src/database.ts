@@ -1546,6 +1546,7 @@ export interface Database {
           sex: PetSex;
           birth_date: string | null;
           is_sterilized: boolean | null;
+          foster_intake_date: string | null;
           notes: string | null;
           avatar_storage_bucket: string | null;
           avatar_storage_path: string | null;
@@ -1558,6 +1559,7 @@ export interface Database {
           sex?: PetSex;
           birth_date?: string | null;
           is_sterilized?: boolean | null;
+          foster_intake_date?: string | null;
           notes?: string | null;
           avatar_storage_bucket?: string | null;
           avatar_storage_path?: string | null;
@@ -1570,6 +1572,7 @@ export interface Database {
           sex?: PetSex;
           birth_date?: string | null;
           is_sterilized?: boolean | null;
+          foster_intake_date?: string | null;
           notes?: string | null;
           avatar_storage_bucket?: string | null;
           avatar_storage_path?: string | null;
@@ -2884,6 +2887,7 @@ export interface Database {
           next_birth_date: string | null;
           next_notes: string | null;
           next_is_sterilized?: boolean | null;
+          next_foster_intake_date?: string | null;
         };
         Returns: Database["public"]["Tables"]["pets"]["Row"];
       };
@@ -2897,6 +2901,7 @@ export interface Database {
           next_birth_date: string | null;
           next_notes: string | null;
           next_is_sterilized?: boolean | null;
+          next_foster_intake_date?: string | null;
         };
         Returns: Database["public"]["Tables"]["pets"]["Row"];
       };

@@ -40,6 +40,8 @@ Nota operativa 2026-08-13: Web Foster y mobile Foster agregan guardrails de cali
 
 Nota operativa 2026-08-13: MOBILE-BADGES-1 habilita badge local del icono para el rol `protective_family` con datos ya disponibles a nivel shell: invitaciones de hogar pendientes y perfil protector que requiere atencion (`draft`, `pending_review` o `rejected`). Solicitudes de adopcion nuevas y transferencias Foster especificas quedan fuera del contador hasta exponer conteos canonicos fuera del componente de mascotas o agregar fuente persistida segura.
 
+Nota operativa 2026-08-13: FOSTER-INTAKE-DATE-1 prepara `pet_profiles.foster_intake_date` como fecha real de ingreso a acogida para mascotas bajo hogares `protective`. Web Foster y mobile Foster la muestran como `En acogida desde ...`; registros historicos o mascotas owner sin dato muestran `Fecha de acogida no registrada`. No se usa `pets.created_at` como backfill ni como sustituto de la fecha real.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
@@ -1589,6 +1591,8 @@ Entidades conceptuales para el primer frente:
 - `created_at timestamptz`
 - `accepted_at timestamptz null`
 - `cancelled_at timestamptz null`
+
+Implementacion MVP actual para fecha de ingreso: hasta que exista una tabla operativa `foster_pets`, la fecha minima de ingreso a acogida vive en `pet_profiles.foster_intake_date`. Este campo no reemplaza `pet_custody_contexts.started_at`, no duplica la mascota y permite capturar el dato visible sin abrir un modelo nuevo.
 
 ### U.3 Regla de ownership/custodia
 

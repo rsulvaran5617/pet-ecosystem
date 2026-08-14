@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-08-13 - FOSTER-INTAKE-DATE-1 fecha de ingreso a acogida
+
+- FOSTER-INTAKE-DATE-1 queda preparado localmente para registrar la fecha real en que una mascota entra bajo cuidado de una Familia Protectora.
+- Decision de modelo: usar `pet_profiles.foster_intake_date date null` porque no existe una tabla operativa `foster_pets` y `pet_profiles` ya concentra datos extendidos de mascota.
+- La migracion local `supabase/migrations/20260813170000_foster_pet_intake_date.sql` agrega el campo nullable y amplia `create_pet` / `update_pet` con `next_foster_intake_date`.
+- No hay backfill automatico desde `pets.created_at`; mascotas historicas o owner sin dato muestran `Fecha de acogida no registrada`.
+- Web Foster muestra `En acogida desde ...` en la lista/acordeon y permite capturar la fecha al registrar mascota bajo acogida.
+- Mobile Foster muestra la fecha en lista/ficha y permite capturarla o corregirla desde el formulario existente cuando el hogar activo es `protective`.
+- RLS no cambia: el dato hereda permisos de `pet_profiles`/mascota y solo miembros con permiso `edit/admin` pueden modificarlo via RPC.
+- Migracion remota pendiente de aprobacion; no aplicar sin revisar plan y estado de migraciones Supabase.
+
 # Handoff 2026-08-13 - MOBILE-BADGES-1 badge count local
 
 - Mobile agrega `appBadgeService` sobre `expo-notifications` para setear/limpiar el contador del icono sin abrir push notifications server-side.

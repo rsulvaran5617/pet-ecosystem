@@ -14,6 +14,7 @@ La entidad transaccional del baseline MVP es `booking`, conectada a identidad, h
 - un hogar puede tener multiples mascotas
 - una mascota pertenece a un hogar
 - una mascota tiene un perfil resumen en `pet_profiles`
+- una mascota bajo hogar `protective` puede registrar `pet_profiles.foster_intake_date` como fecha real de ingreso a acogida; es nullable, no se deriva de `pets.created_at` y no reemplaza fecha de nacimiento
 - una mascota puede tener avatar privado en `pet-avatars` referenciado por metadata controlada
 - una mascota puede estar `active` o `in_memory`; `in_memory` conserva historial y bloquea nuevas reservas
 - una mascota puede tener multiples documentos y registros de salud
@@ -147,6 +148,7 @@ Tablas conceptuales iniciales para transferencia privada:
 - `protective_household_profiles`: `household_id`, `status`, `display_name`, `organization_type`, `city`, `state_region`, `country_code`, `contact_notes`, `review_notes`, `reviewed_by_user_id`, `reviewed_at`, `created_at`, `updated_at`.
 - `pet_custody_contexts`: `pet_id`, `household_id`, `custody_type`, `status`, `started_at`, `ended_at`, `created_by_user_id`, `created_at`, `updated_at`.
 - `pet_transfer_records`: `pet_id`, `from_household_id`, `to_household_id`, `initiated_by_user_id`, `accepted_by_user_id`, `status`, `recipient_email`, `consent_snapshot`, `transfer_notes`, `created_at`, `accepted_at`, `cancelled_at`.
+- `pet_profiles.foster_intake_date`: implementacion minima actual para capturar la fecha real de ingreso a acogida mientras no exista `foster_pets`; queda null para mascotas owner e historicas sin dato.
 
 Reglas estructurales:
 - una mascota privada no aparece en marketplace.

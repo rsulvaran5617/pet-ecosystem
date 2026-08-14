@@ -24,6 +24,7 @@ Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 - `household_invitations`
 - `pets`
 - `pet_profiles`
+  - `foster_intake_date date null`: fecha real de ingreso a acogida para mascotas bajo hogares `protective`; nullable para mascotas owner e historicas, sin backfill automatico desde `pets.created_at`.
 - `pet_documents`
 - `pet_vaccines`
 - `pet_allergies`
@@ -72,6 +73,8 @@ RPCs Foster-3B:
 - `submit_pet_adoption_listing(target_listing_id, responsibility_acknowledged)` publica directo bajo responsabilidad de la Familia Protectora aprobada y habilita `share_status`.
 
 No hay duplicacion de mascotas ni transferencia automatica de custodia en Foster-3A/3B.
+
+FOSTER-INTAKE-DATE-1 propone migracion local `20260813170000_foster_pet_intake_date.sql`: agrega `pet_profiles.foster_intake_date` y amplia `create_pet` / `update_pet` con `next_foster_intake_date` opcional. No requiere policy nueva porque hereda permisos de mascota/perfil.
 
 ## Foster-5 adopcion responsable operativa
 
