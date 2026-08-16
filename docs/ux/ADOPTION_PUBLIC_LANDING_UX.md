@@ -130,5 +130,9 @@ La landing no muestra:
 
 - SEO dinamico por perfil real.
 - Mejor preview social con imagen institucional.
-- Ficha publica de mascota reforzada como siguiente paso del embudo.
-- CTA `Quiero adoptar` aun sin formulario publico.
+- Ficha publica de mascota reforzada como siguiente paso del embudo: implementada en `/adopciones/[petSlug]`.
+- CTA `Quiero adoptar` aun sin formulario publico: implementado como orientacion hacia adopcion responsable, no como captura de solicitud.
+
+## Resultado Slice 3
+
+La landing de fundacion ahora enlaza a una ficha publica de mascota mas clara y compartible. La ficha muestra historia, galeria, atributos principales, datos publicos de la Familia Protectora, privacidad y pasos esperados para continuar la adopcion responsable sin crear todavia solicitudes publicas.

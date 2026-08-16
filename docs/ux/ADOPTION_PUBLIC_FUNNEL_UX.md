@@ -108,6 +108,16 @@ Errores:
 - Publicacion pausada o cerrada.
 - Link vencido o invalido.
 
+Estado Slice 3:
+
+- La ficha publica se presenta como landing individual de mascota.
+- El hero incluye foto principal, estado, ubicacion general, titulo y chips de datos basicos.
+- La galeria muestra solo media publica firmada.
+- El CTA `Quiero adoptar` explica el proceso responsable pero no crea solicitud publica todavia.
+- `Compartir` usa Web Share API o copia el enlace.
+- `Ver protectora` conecta con `/protectoras/[slug]`.
+- El bloque de privacidad deja claro que documentos, gastos, notas internas y direccion exacta no se publican.
+
 ### `/adopciones/[petSlug]/solicitar`
 
 Objetivo: capturar interes inicial antes de exigir app owner.

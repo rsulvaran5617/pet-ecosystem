@@ -236,3 +236,10 @@ No es aceptable lanzar si:
 - No hay portada institucional dedicada. El hero usa composicion visual y logo/iniciales.
 - Las necesidades actuales dependen de `needsSummary`; no existe todavia una entidad estructurada de necesidades.
 - No hay formulario publico ni captura de leads hasta Slice 4.
+
+## Slice 3 riesgos residuales
+
+- El CTA `Quiero adoptar` no crea solicitud publica todavia; solo orienta el proceso responsable. Esto evita prometer funcionalidad de Slice 4 antes de tiempo.
+- La ficha usa metadata generica de Next porque los datos se resuelven en cliente. SEO dinamico por mascota queda pendiente.
+- La disponibilidad publica depende del RPC `get_public_pet_adoption_listing_by_slug`; si el listing cambia de estado, la ficha debe responder como no disponible.
+- Las fotos usan URLs firmadas temporales, por lo que previews sociales con imagen real requieren una estrategia server-side futura.

@@ -174,6 +174,17 @@ Estado implementado:
 - CTA `Quiero adoptar`.
 - SEO basico y previews sociales.
 
+Estado implementado:
+
+- Ruta existente `/adopciones/[petSlug]` reforzada como ficha publica profesional.
+- Usa `getPublicPetAdoptionListingBySlug(slug)`.
+- Muestra hero visual, galeria publica, historia, personalidad, salud publica, requisitos, compatibilidad y estado.
+- Agrega CTA `Quiero adoptar` hacia la seccion de adopcion responsable, sin abrir aun formulario publico.
+- Agrega `Compartir` con Web Share API y fallback a copiar enlace.
+- Agrega enlace `Ver protectora` hacia `/protectoras/[slug]`.
+- Mantiene copy de privacidad: no muestra documentos, direccion exacta, gastos, comprobantes ni notas internas.
+- Mantiene el cierre formal dentro de app owner para futuros slices.
+
 ### SLICE 4 - Solicitud inicial publica
 
 - Formulario corto.

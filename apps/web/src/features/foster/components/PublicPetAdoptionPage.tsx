@@ -1,7 +1,6 @@
 "use client";
 
 import type { PublicPetAdoptionProfile } from "@pet/types";
-import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getBrowserFosterApiClient } from "../../core/services/supabase-browser";
@@ -9,41 +8,29 @@ import { getBrowserFosterApiClient } from "../../core/services/supabase-browser"
 const colors = {
   accent: "#0f8f86",
   accentDark: "#0f766e",
-  ink: "#111827",
-  muted: "#64748b",
+  amber: "#b45309",
+  ink: "#0f172a",
   line: "rgba(15, 118, 110, 0.18)",
-  surface: "#ffffff",
-  warm: "#fbfaf7",
+  muted: "#64748b",
+  softAmber: "#fff7ed",
   softTeal: "#e7f7f4",
-  softAmber: "#fff7ed"
+  surface: "#ffffff",
+  warm: "#fbfaf7"
 };
 
 function formatAge(birthDate: string | null) {
-  if (!birthDate) {
-    return "Edad por confirmar";
-  }
-
+  if (!birthDate) return "Edad por confirmar";
   const parsed = new Date(`${birthDate}T00:00:00`);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return "Edad por confirmar";
-  }
+  if (Number.isNaN(parsed.getTime())) return "Edad por confirmar";
 
   const today = new Date();
   let years = today.getFullYear() - parsed.getFullYear();
   const birthdayPassed =
     today.getMonth() > parsed.getMonth() ||
     (today.getMonth() === parsed.getMonth() && today.getDate() >= parsed.getDate());
+  if (!birthdayPassed) years -= 1;
 
-  if (!birthdayPassed) {
-    years -= 1;
-  }
-
-  if (years <= 0) {
-    return "Menos de 1 ano";
-  }
-
-  return `${years} ano${years === 1 ? "" : "s"}`;
+  return years <= 0 ? "Menos de 1 ano" : `${years} ano${years === 1 ? "" : "s"}`;
 }
 
 function formatSpecies(value: string) {
@@ -55,15 +42,13 @@ function formatSpecies(value: string) {
 }
 
 function formatSterilized(value: boolean | null) {
-  if (value === true) {
-    return "Esterilizada";
-  }
-
-  if (value === false) {
-    return "No esterilizada";
-  }
-
+  if (value === true) return "Esterilizada";
+  if (value === false) return "No esterilizada";
   return "Esterilizacion por confirmar";
+}
+
+function formatLocation(profile: PublicPetAdoptionProfile) {
+  return [profile.city, profile.stateRegion, profile.countryCode].filter(Boolean).join(", ");
 }
 
 function getCover(profile: PublicPetAdoptionProfile) {
@@ -72,7 +57,6 @@ function getCover(profile: PublicPetAdoptionProfile) {
 
 function getDonationMethods(profile: PublicPetAdoptionProfile) {
   const household = profile.protectiveHousehold;
-
   return [
     { label: "ACH / transferencia", value: household.donationAchDetails },
     { label: "Yappy", value: household.donationYappyDetails },
@@ -83,26 +67,37 @@ function getDonationMethods(profile: PublicPetAdoptionProfile) {
 }
 
 function shouldShowDonationBlock(profile: PublicPetAdoptionProfile) {
-  if (!profile.protectiveHousehold.donationsEnabled) {
-    return false;
-  }
-
-  return Boolean(profile.protectiveHousehold.donationDescription?.trim() || getDonationMethods(profile).length);
+  return Boolean(
+    profile.protectiveHousehold.donationsEnabled &&
+      (profile.protectiveHousehold.donationDescription?.trim() || getDonationMethods(profile).length)
+  );
 }
 
-function InfoCard({ children, title }: { children: ReactNode; title: string }) {
+function EmptyState({ copy, title }: { copy: string; title: string }) {
   return (
-    <section
-      style={{
-        background: colors.surface,
-        border: `1px solid ${colors.line}`,
-        borderRadius: 20,
-        boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
-        padding: 20
-      }}
-    >
-      <h2 style={{ color: colors.ink, fontSize: 20, lineHeight: 1.2, margin: "0 0 10px", fontWeight: 900 }}>{title}</h2>
-      <div style={{ color: colors.muted, fontSize: 15, lineHeight: 1.65 }}>{children}</div>
+    <section className="empty-state">
+      <strong>{title}</strong>
+      <p>{copy}</p>
+      <style jsx>{styles}</style>
+    </section>
+  );
+}
+
+function SectionHeading({ copy, eyebrow, title }: { copy: string; eyebrow: string; title: string }) {
+  return (
+    <div className="section-heading">
+      <p>{eyebrow}</p>
+      <h2>{title}</h2>
+      <span>{copy}</span>
+    </div>
+  );
+}
+
+function DetailCard({ copy, title }: { copy: string; title: string }) {
+  return (
+    <section className="detail-card">
+      <h3>{title}</h3>
+      <p>{copy}</p>
     </section>
   );
 }
@@ -111,6 +106,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
   const [profile, setProfile] = useState<PublicPetAdoptionProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [shareLabel, setShareLabel] = useState("Compartir");
 
   useEffect(() => {
     let isMounted = true;
@@ -121,18 +117,13 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
 
       try {
         const result = await getBrowserFosterApiClient().getPublicPetAdoptionListingBySlug(slug);
-
-        if (isMounted) {
-          setProfile(result);
-        }
+        if (isMounted) setProfile(result);
       } catch (error) {
         if (isMounted) {
           setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir esta ficha de adopcion.");
         }
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     }
 
@@ -144,293 +135,559 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
   }, [slug]);
 
   const cover = useMemo(() => (profile ? getCover(profile) : null), [profile]);
+  const gallery = useMemo(() => profile?.media.filter((media) => media.signedUrl) ?? [], [profile]);
   const donationMethods = useMemo(() => (profile ? getDonationMethods(profile) : []), [profile]);
   const isAdopted = profile?.listingStatus === "adopted";
+  const isAvailable = profile?.listingStatus === "published";
+
+  async function handleShare() {
+    const title = profile ? `${profile.petName} busca hogar responsable` : "Mascota en adopcion";
+    const text = profile?.title ?? "Conoce esta ficha publica de adopcion en Pet Ecosystem.";
+    const url = typeof window !== "undefined" ? window.location.href : "";
+
+    try {
+      const browserNavigator =
+        typeof navigator !== "undefined"
+          ? (navigator as Navigator & { clipboard?: Clipboard; share?: (data: ShareData) => Promise<void> })
+          : null;
+
+      if (browserNavigator?.share) {
+        await browserNavigator.share({ title, text, url });
+      } else if (browserNavigator?.clipboard && url) {
+        await browserNavigator.clipboard.writeText(url);
+        setShareLabel("Enlace copiado");
+        window.setTimeout(() => setShareLabel("Compartir"), 1800);
+      }
+    } catch {
+      setShareLabel("Compartir");
+    }
+  }
 
   if (isLoading) {
     return (
-      <main style={{ minHeight: "100vh", padding: 24 }}>
-        <InfoCard title="Cargando ficha">Estamos preparando la informacion publica de adopcion.</InfoCard>
+      <main className="public-adoption-page">
+        <EmptyState copy="Estamos preparando la informacion publica de adopcion." title="Cargando ficha" />
+        <style jsx>{styles}</style>
       </main>
     );
   }
 
   if (errorMessage || !profile) {
     return (
-      <main style={{ minHeight: "100vh", padding: 24 }}>
-        <InfoCard title="Ficha no disponible">
-          {errorMessage ?? "Esta publicacion no esta disponible publicamente o fue pausada por la familia protectora."}
-        </InfoCard>
+      <main className="public-adoption-page">
+        <EmptyState
+          copy={errorMessage ?? "Esta publicacion no esta disponible publicamente o fue pausada por la Familia Protectora."}
+          title="Ficha no disponible"
+        />
+        <style jsx>{styles}</style>
       </main>
     );
   }
 
   return (
-    <main
-      style={{
-        background: `linear-gradient(180deg, ${colors.warm} 0%, #eef8f5 100%)`,
-        minHeight: "100vh",
-        padding: "28px 16px 48px"
-      }}
-    >
-      <div style={{ display: "grid", gap: 18, margin: "0 auto", maxWidth: 1080 }}>
-        <section
-          style={{
-            alignItems: "stretch",
-            background: colors.surface,
-            border: `1px solid ${colors.line}`,
-            borderRadius: 28,
-            boxShadow: "0 24px 70px rgba(15, 23, 42, 0.12)",
-            display: "grid",
-            gap: 20,
-            gridTemplateColumns: "minmax(0, 1.05fr) minmax(280px, 0.95fr)",
-            overflow: "hidden"
-          }}
-        >
-          <div style={{ background: colors.softTeal, minHeight: 360 }}>
-            {cover?.signedUrl ? (
-              <img
-                alt={`Foto principal de ${profile.petName}`}
-                src={cover.signedUrl}
-                style={{ display: "block", height: "100%", objectFit: "cover", width: "100%" }}
-              />
-            ) : (
-              <div
-                style={{
-                  alignItems: "center",
-                  color: colors.accentDark,
-                  display: "flex",
-                  fontSize: 72,
-                  fontWeight: 900,
-                  height: "100%",
-                  justifyContent: "center"
-                }}
-              >
-                {profile.petName.slice(0, 1).toUpperCase()}
-              </div>
-            )}
-          </div>
+    <main className="public-adoption-page">
+      <section className="hero">
+        <div className="hero-media">
+          {cover?.signedUrl ? <img alt={`Foto principal de ${profile.petName}`} src={cover.signedUrl} /> : <span>{profile.petName.slice(0, 1).toUpperCase()}</span>}
+        </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: 26 }}>
-            <span
-              style={{
-                alignSelf: "flex-start",
-                background: colors.softAmber,
-                border: "1px solid rgba(245, 158, 11, 0.22)",
-                borderRadius: 999,
-                color: "#b45309",
-                fontSize: 12,
-                fontWeight: 900,
-                letterSpacing: 0.4,
-                padding: "8px 12px",
-                textTransform: "uppercase"
-              }}
-            >
-              {isAdopted ? "Adoptada" : "Busca hogar"}
-            </span>
-            <div>
-              <h1 style={{ color: colors.ink, fontSize: 42, lineHeight: 1.05, margin: 0 }}>{profile.petName}</h1>
-              <p style={{ color: colors.muted, fontSize: 17, lineHeight: 1.55, margin: "12px 0 0" }}>
-                {profile.title}
-              </p>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-              {[formatSpecies(profile.petSpecies), profile.petBreed, formatAge(profile.petBirthDate), formatSterilized(profile.petIsSterilized)]
-                .filter(Boolean)
-                .map((label) => (
-                  <span
-                    key={label}
-                    style={{
-                      background: colors.softTeal,
-                      border: `1px solid ${colors.line}`,
-                      borderRadius: 999,
-                      color: colors.accentDark,
-                      fontSize: 13,
-                      fontWeight: 800,
-                      padding: "8px 12px"
-                    }}
-                  >
-                    {label}
-                  </span>
-                ))}
-            </div>
-            <p style={{ color: colors.ink, fontSize: 16, lineHeight: 1.7, margin: 0 }}>
-              {profile.publicStory ?? "La familia protectora esta preparando la historia publica de esta mascota."}
-            </p>
-            <div
-              style={{
-                background: colors.softTeal,
-                border: `1px solid ${colors.line}`,
-                borderRadius: 18,
-                color: colors.accentDark,
-                fontSize: 14,
-                fontWeight: 800,
-                padding: 14
-              }}
-            >
-              {profile.city}, {profile.countryCode} · Publicada por {profile.protectiveHousehold.displayName}
-              {isAdopted ? " · Esta mascota ya encontro hogar" : ""}
-            </div>
+        <div className="hero-copy">
+          <div className="hero-kicker">
+            <span>{isAdopted ? "Adopcion cerrada" : "Busca hogar"}</span>
+            <span>{formatLocation(profile) || "Ubicacion general no publicada"}</span>
           </div>
-        </section>
-
-        {profile.media.length > 1 ? (
-          <section style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
-            {profile.media
-              .filter((media) => media.signedUrl)
-              .map((media) => (
-                <img
-                  alt={`Foto de ${profile.petName}`}
-                  key={media.id}
-                  src={media.signedUrl ?? ""}
-                  style={{
-                    aspectRatio: "4 / 3",
-                    border: `1px solid ${colors.line}`,
-                    borderRadius: 18,
-                    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
-                    objectFit: "cover",
-                    width: "100%"
-                  }}
-                />
+          <h1>{profile.petName}</h1>
+          <p>{profile.title}</p>
+          <div className="tag-row">
+            {[formatSpecies(profile.petSpecies), profile.petBreed, profile.petSex, formatAge(profile.petBirthDate), formatSterilized(profile.petIsSterilized)]
+              .filter(Boolean)
+              .map((label) => (
+                <span key={label}>{label}</span>
               ))}
-          </section>
-        ) : null}
+          </div>
+          <div className="hero-actions">
+            <a href={isAvailable ? "#adopcion-responsable" : "#estado"}>{isAvailable ? "Quiero adoptar" : "Ver estado"}</a>
+            <button onClick={handleShare} type="button">
+              {shareLabel}
+            </button>
+            <a href={`/protectoras/${profile.protectiveHousehold.publicSlug}`}>Ver protectora</a>
+          </div>
+        </div>
+      </section>
 
-        <section style={{ display: "grid", gap: 18, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-          <InfoCard title="Personalidad">
-            {profile.personalityNotes ?? "La familia protectora compartira mas detalles durante el proceso responsable."}
-          </InfoCard>
-          <InfoCard title="Salud publica">
-            {profile.publicHealthSummary ?? "Resumen publico pendiente. No se muestran documentos ni historial clinico privado."}
-          </InfoCard>
-          <InfoCard title="Compatibilidad">
-            <p style={{ margin: 0 }}>Ninos: {profile.compatibilityChildren ?? "por confirmar"}</p>
-            <p style={{ margin: "6px 0 0" }}>Perros: {profile.compatibilityDogs ?? "por confirmar"}</p>
-            <p style={{ margin: "6px 0 0" }}>Gatos: {profile.compatibilityCats ?? "por confirmar"}</p>
-          </InfoCard>
-          <InfoCard title="Requisitos">
-            {profile.adoptionRequirements ?? "La coordinacion final se revisa dentro de la app con la familia protectora."}
-          </InfoCard>
+      {gallery.length > 1 ? (
+        <section aria-label={`Galeria publica de ${profile.petName}`} className="gallery">
+          {gallery.map((media) => (
+            <img alt={`Foto publica de ${profile.petName}`} key={media.id} src={media.signedUrl ?? ""} />
+          ))}
         </section>
+      ) : null}
 
-        <section
-          style={{
-            background: colors.surface,
-            border: `1px solid ${colors.line}`,
-            borderRadius: 24,
-            boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
-            display: "grid",
-            gap: 18,
-            gridTemplateColumns: "minmax(0, 1fr) auto",
-            padding: 22
-          }}
-        >
-          <div>
-            <p style={{ color: colors.accentDark, fontSize: 12, fontWeight: 900, letterSpacing: 1, margin: 0 }}>
-              FAMILIA PROTECTORA
-            </p>
-            <h2 style={{ color: colors.ink, fontSize: 26, lineHeight: 1.15, margin: "8px 0" }}>
-              {profile.protectiveHousehold.displayName}
-            </h2>
-            <p style={{ color: colors.muted, fontSize: 15, lineHeight: 1.65, margin: 0 }}>
+      <section className="content-grid">
+        <div className="main-column">
+          <section className="card">
+            <SectionHeading
+              copy="Esta informacion fue preparada por la Familia Protectora para orientar el proceso de adopcion."
+              eyebrow="Historia"
+              title={`${profile.petName} busca una familia responsable`}
+            />
+            <p className="story-copy">{profile.publicStory ?? "La Familia Protectora esta preparando la historia publica de esta mascota."}</p>
+          </section>
+
+          <section className="details-grid">
+            <DetailCard copy={profile.personalityNotes ?? "La Familia Protectora compartira mas detalles durante el proceso responsable."} title="Personalidad" />
+            <DetailCard copy={profile.publicHealthSummary ?? "Resumen publico pendiente. No se muestran documentos ni historial clinico privado."} title="Salud publica" />
+            <DetailCard copy={profile.adoptionRequirements ?? "La coordinacion final se revisa dentro de la app con la Familia Protectora."} title="Requisitos" />
+            <DetailCard
+              copy={`Ninos: ${profile.compatibilityChildren ?? "por confirmar"}. Perros: ${profile.compatibilityDogs ?? "por confirmar"}. Gatos: ${
+                profile.compatibilityCats ?? "por confirmar"
+              }.`}
+              title="Compatibilidad"
+            />
+          </section>
+
+          <section className="card process-card" id="adopcion-responsable">
+            <SectionHeading
+              copy="Pet Ecosystem conserva el cierre formal dentro de la app para proteger hogares, expedientes y trazabilidad."
+              eyebrow="Adopcion responsable"
+              title={isAvailable ? "Siguiente paso" : "Estado de la publicacion"}
+            />
+            {isAvailable ? (
+              <div className="process-steps">
+                <div>
+                  <strong>1. Conoce la historia</strong>
+                  <span>Revisa la ficha publica y comparte la mascota si puede interesar a otra familia.</span>
+                </div>
+                <div>
+                  <strong>2. Contacta a la protectora</strong>
+                  <span>La coordinacion inicial depende de los datos publicos declarados por la organizacion.</span>
+                </div>
+                <div>
+                  <strong>3. Continua en Pet Ecosystem</strong>
+                  <span>La solicitud formal, evaluacion y transferencia responsable ocurren dentro de la app owner.</span>
+                </div>
+              </div>
+            ) : (
+              <p className="story-copy" id="estado">
+                {isAdopted
+                  ? "Esta mascota ya encontro hogar. La ficha puede conservarse como referencia publica del proceso."
+                  : "Esta publicacion no recibe solicitudes en este momento."}
+              </p>
+            )}
+          </section>
+        </div>
+
+        <aside className="side-column">
+          <section className="card">
+            <SectionHeading copy="Organizacion responsable de esta publicacion." eyebrow="Familia Protectora" title={profile.protectiveHousehold.displayName} />
+            <p>
               {profile.protectiveHousehold.mission ??
                 profile.protectiveHousehold.publicStory ??
-                "Familia protectora aprobada por la plataforma."}
+                "Familia Protectora aprobada por Pet Ecosystem."}
             </p>
-            {profile.protectiveHousehold.needsSummary ? (
-              <p style={{ color: colors.accentDark, fontSize: 14, fontWeight: 800, margin: "12px 0 0" }}>
-                {profile.protectiveHousehold.needsSummary}
-              </p>
-            ) : null}
-          </div>
-          <div style={{ alignSelf: "center", display: "flex", flexDirection: "column", gap: 10, minWidth: 190 }}>
-            <button
-              disabled
-              style={{
-                background: colors.accent,
-                border: 0,
-                borderRadius: 999,
-                color: "#ffffff",
-                cursor: "not-allowed",
-                fontSize: 14,
-                fontWeight: 900,
-                opacity: 0.75,
-                padding: "12px 16px"
-              }}
-              type="button"
-            >
-              {isAdopted ? "Adopcion cerrada" : "Solicitar adopcion"}
-            </button>
-            <span style={{ color: colors.muted, fontSize: 12, lineHeight: 1.45, textAlign: "center" }}>
-              {isAdopted
-                ? "Esta ficha queda visible como referencia, pero ya no recibe solicitudes."
-                : "Inicia sesion desde la app para enviar una solicitud formal y responsable."}
-            </span>
-          </div>
-        </section>
+            {profile.protectiveHousehold.needsSummary ? <p className="needs-copy">{profile.protectiveHousehold.needsSummary}</p> : null}
+            <a className="profile-link" href={`/protectoras/${profile.protectiveHousehold.publicSlug}`}>
+              Ver landing publica
+            </a>
+          </section>
 
-        {shouldShowDonationBlock(profile) ? (
-          <section
-            style={{
-              background: colors.surface,
-              border: `1px solid ${colors.line}`,
-              borderRadius: 22,
-              boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
-              display: "grid",
-              gap: 14,
-              padding: 20
-            }}
-          >
-            <div>
-              <p style={{ color: colors.accentDark, fontSize: 12, fontWeight: 900, letterSpacing: 1, margin: 0 }}>
-                APOYO OPCIONAL
-              </p>
-              <h2 style={{ color: colors.ink, fontSize: 22, lineHeight: 1.2, margin: "8px 0 6px" }}>
-                {profile.protectiveHousehold.donationTitle?.trim() || "Apoya a esta Familia Protectora"}
-              </h2>
-              <p style={{ color: colors.muted, fontSize: 14, lineHeight: 1.65, margin: 0 }}>
-                {profile.protectiveHousehold.donationDescription ??
-                  "Esta Familia Protectora declaro informacion de apoyo para sostener su labor de cuidado."}
-              </p>
-            </div>
-            {donationMethods.length ? (
-              <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+          <section className="card privacy-card">
+            <SectionHeading copy="Esta ficha publica no expone informacion sensible." eyebrow="Privacidad" title="Datos protegidos" />
+            <ul>
+              <li>No muestra documentos privados.</li>
+              <li>No muestra direccion exacta.</li>
+              <li>No muestra gastos ni comprobantes.</li>
+              <li>No muestra notas internas.</li>
+            </ul>
+          </section>
+
+          {shouldShowDonationBlock(profile) ? (
+            <section className="card support-card">
+              <SectionHeading
+                copy="Donar no es obligatorio y no garantiza aprobacion de adopcion."
+                eyebrow="Apoyo opcional"
+                title={profile.protectiveHousehold.donationTitle?.trim() || "Apoya a esta Familia Protectora"}
+              />
+              <p>{profile.protectiveHousehold.donationDescription}</p>
+              <div className="donation-list">
                 {donationMethods.map((method) => (
-                  <div
-                    key={method.label}
-                    style={{
-                      background: colors.warm,
-                      border: "1px solid rgba(15, 23, 42, 0.08)",
-                      borderRadius: 14,
-                      padding: 14
-                    }}
-                  >
-                    <strong style={{ color: colors.ink, display: "block", fontSize: 13 }}>{method.label}</strong>
-                    {method.label === "Sitio externo" ? (
-                      <a
-                        href={method.value}
-                        rel="noreferrer"
-                        style={{ color: colors.accentDark, display: "block", fontSize: 13, fontWeight: 800, marginTop: 6, wordBreak: "break-word" }}
-                        target="_blank"
-                      >
-                        {method.value}
-                      </a>
-                    ) : (
-                      <p style={{ color: colors.muted, fontSize: 13, lineHeight: 1.55, margin: "6px 0 0", whiteSpace: "pre-wrap" }}>
-                        {method.value}
-                      </p>
-                    )}
+                  <div key={method.label}>
+                    <strong>{method.label}</strong>
+                    <span>{method.value}</span>
                   </div>
                 ))}
               </div>
-            ) : null}
-            <p style={{ color: colors.muted, fontSize: 12, lineHeight: 1.55, margin: 0 }}>
-              {profile.protectiveHousehold.donationDisclaimer?.trim() ||
-                "Donar es opcional, no garantiza aprobacion de adopcion y la informacion fue declarada por la Familia Protectora. Pet Ecosystem no procesa ni valida donaciones."}
-            </p>
-          </section>
-        ) : null}
-      </div>
+              <small>
+                {profile.protectiveHousehold.donationDisclaimer ||
+                  "La informacion fue declarada por la Familia Protectora. Pet Ecosystem no procesa ni valida donaciones."}
+              </small>
+            </section>
+          ) : null}
+        </aside>
+      </section>
+
+      <footer className="trust-footer">
+        Ficha publicada en Pet Ecosystem. La informacion es responsabilidad de la organizacion protectora.
+      </footer>
+
+      <style jsx>{styles}</style>
     </main>
   );
 }
+
+const styles = `
+  .public-adoption-page {
+    background: linear-gradient(180deg, ${colors.warm} 0%, #eef8f5 100%);
+    color: ${colors.ink};
+    min-height: 100vh;
+    padding: 24px 16px 42px;
+  }
+
+  .hero,
+  .gallery,
+  .content-grid,
+  .trust-footer,
+  .empty-state {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1120px;
+  }
+
+  .hero {
+    background: ${colors.surface};
+    border: 1px solid ${colors.line};
+    border-radius: 32px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+    overflow: hidden;
+    padding: 24px;
+  }
+
+  .hero-media {
+    align-items: center;
+    aspect-ratio: 4 / 3;
+    background: ${colors.softTeal};
+    border: 1px solid ${colors.line};
+    border-radius: 26px;
+    color: ${colors.accentDark};
+    display: flex;
+    font-size: 78px;
+    font-weight: 900;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero-media img,
+  .gallery img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    justify-content: center;
+    padding: 16px 10px;
+  }
+
+  .hero-kicker,
+  .tag-row,
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hero-kicker span,
+  .tag-row span {
+    background: ${colors.softTeal};
+    border: 1px solid ${colors.line};
+    border-radius: 999px;
+    color: ${colors.accentDark};
+    font-size: 12px;
+    font-weight: 900;
+    padding: 8px 11px;
+  }
+
+  .hero-kicker span:first-child {
+    background: ${colors.softAmber};
+    border-color: rgba(245, 158, 11, 0.25);
+    color: ${colors.amber};
+    text-transform: uppercase;
+  }
+
+  h1 {
+    color: ${colors.ink};
+    font-size: clamp(42px, 6vw, 78px);
+    line-height: 0.95;
+    margin: 0;
+  }
+
+  .hero-copy p,
+  .card p,
+  .detail-card p,
+  .empty-state p {
+    color: ${colors.muted};
+    font-size: 15px;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  .hero-copy > p {
+    color: ${colors.ink};
+    font-size: 18px;
+  }
+
+  .hero-actions a,
+  .hero-actions button,
+  .profile-link {
+    align-items: center;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 14px;
+    font-weight: 900;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    text-decoration: none;
+  }
+
+  .hero-actions a:first-child,
+  .profile-link {
+    background: ${colors.accent};
+    border: 1px solid ${colors.accent};
+    color: #ffffff;
+  }
+
+  .hero-actions a:not(:first-child),
+  .hero-actions button {
+    background: #ffffff;
+    border: 1px solid rgba(15, 118, 110, 0.28);
+    color: ${colors.accentDark};
+  }
+
+  .gallery {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin-top: 18px;
+  }
+
+  .gallery img {
+    aspect-ratio: 4 / 3;
+    border: 1px solid ${colors.line};
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .content-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    margin-top: 20px;
+  }
+
+  .main-column,
+  .side-column,
+  .details-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card,
+  .detail-card,
+  .empty-state,
+  .trust-footer {
+    background: ${colors.surface};
+    border: 1px solid ${colors.line};
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    padding: 22px;
+  }
+
+  .section-heading {
+    margin-bottom: 16px;
+  }
+
+  .section-heading p {
+    color: ${colors.accentDark};
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+
+  .section-heading h2,
+  .detail-card h3 {
+    color: ${colors.ink};
+    font-size: 24px;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .detail-card h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .section-heading span {
+    color: ${colors.muted};
+    display: block;
+    font-size: 14px;
+    line-height: 1.55;
+    margin-top: 8px;
+  }
+
+  .story-copy {
+    color: ${colors.ink} !important;
+    font-size: 16px !important;
+  }
+
+  .process-card {
+    background: ${colors.softTeal};
+  }
+
+  .process-steps {
+    display: grid;
+    gap: 12px;
+  }
+
+  .process-steps div {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(15, 118, 110, 0.16);
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .process-steps strong,
+  .process-steps span {
+    display: block;
+  }
+
+  .process-steps strong {
+    color: ${colors.ink};
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .process-steps span,
+  .privacy-card li,
+  .support-card small {
+    color: ${colors.muted};
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .needs-copy {
+    color: ${colors.accentDark} !important;
+    font-weight: 800;
+    margin-top: 12px !important;
+  }
+
+  .profile-link {
+    margin-top: 16px;
+  }
+
+  .privacy-card ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-left: 18px;
+  }
+
+  .support-card {
+    background: ${colors.softAmber};
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  .donation-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .donation-list div {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .donation-list strong,
+  .donation-list span {
+    display: block;
+  }
+
+  .donation-list strong {
+    color: ${colors.ink};
+    font-size: 13px;
+  }
+
+  .donation-list span {
+    color: ${colors.muted};
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 4px;
+    word-break: break-word;
+  }
+
+  .trust-footer {
+    color: ${colors.muted};
+    font-size: 13px;
+    line-height: 1.5;
+    margin-top: 22px;
+    text-align: center;
+  }
+
+  .empty-state {
+    margin-top: 24px;
+  }
+
+  .empty-state strong {
+    color: ${colors.ink};
+    display: block;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 920px) {
+    .hero,
+    .content-grid,
+    .details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .public-adoption-page {
+      padding: 12px;
+    }
+
+    .hero,
+    .card,
+    .detail-card,
+    .empty-state,
+    .trust-footer {
+      border-radius: 20px;
+      padding: 18px;
+    }
+
+    .hero {
+      gap: 14px;
+    }
+
+    .hero-actions a,
+    .hero-actions button {
+      width: 100%;
+    }
+  }
+`;
