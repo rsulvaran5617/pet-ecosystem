@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-16 - Foster adoption listing permission repair
+
+- Se prepara migracion local `20260816110000_foster_adoption_listing_management_scope.sql` para corregir falsos bloqueos al completar/publicar fichas de adopcion desde Web Foster.
+- El helper `can_manage_pet_adoption_listing` ahora permite gestion si el usuario administra una Familia Protectora aprobada asociada al household de la publicacion o al household protector que custodia actualmente la mascota.
+- Se reemiten `update_pet_adoption_listing` y `submit_pet_adoption_listing(..., responsibility_acknowledged)` con el flujo vigente de publicacion responsable directa.
+- No se crean tablas, no se abre acceso publico, no se cambia marketplace comercial, pagos, solicitudes ni transferencias.
+- Debe aplicarse la migracion remoto antes de volver a probar en `petecosyst.com/foster`; sin aplicar DB, la web seguira usando las reglas SQL anteriores.
+
 # Handoff 2026-08-14 - Foster expense receipts en Web Foster
 
 - Web Foster `Gastos de acogida` ahora permite subir un comprobante privado directamente desde el formulario del gasto, ademas de vincular un documento existente.

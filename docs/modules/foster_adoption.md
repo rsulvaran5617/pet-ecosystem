@@ -50,6 +50,8 @@ Nota operativa 2026-08-14: FOSTER-KPI-1 agrega en Web Foster `Panel` una bateria
 
 Nota operativa 2026-08-14: Web Foster `Gastos de acogida` permite subir un comprobante privado directamente desde el formulario del gasto. El archivo se guarda como `pet_documents.document_type = other`, se vincula al gasto via `receipt_document_id` y queda en el expediente privado de la mascota. Tambien se conserva la opcion de elegir un documento privado existente. No se publica en adopciones ni se procesa como pago/donacion.
 
+Nota operativa 2026-08-16: se prepara hotfix de alcance de gestion para fichas publicas de adopcion. `can_manage_pet_adoption_listing` permite a una Familia Protectora aprobada gestionar la ficha si administra el hogar registrado en la publicacion o el hogar protector que actualmente custodia la mascota. Esto evita falsos bloqueos al completar historia, personalidad, salud publica, requisitos o publicar bajo responsabilidad desde Web Foster cuando la custodia protectora sigue vigente. No abre acceso a owners regulares, proveedores comerciales ni usuarios publicos.
+
 ## Decision 2026-06-29 - Separar familias owner y familias protectoras
 
 El frente Foster/Adoption debe evolucionar desde "capacidad adicional de un hogar owner" hacia un tipo operativo diferenciado de household.
