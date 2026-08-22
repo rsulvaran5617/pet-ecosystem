@@ -1714,3 +1714,11 @@ Al final:
 - Nueva migracion local `20260821110000_adoption_public_funnel_slice4.sql`: `adoption_public_requests`, historial, RLS y RPCs de creacion/listado/cambio de estado.
 - Web Foster agrega `Interes publico` separado de `Solicitudes`: permite revisar, preseleccionar o descartar; no crea solicitud formal, transferencia ni cambia `pets.household_id`.
 - Pendiente: validaciones completas y dry-run. No aplicar remoto ni abrir Slice 5 sin aprobacion.
+# Handoff 2026-08-22 - Adoption Public Funnel Slice 5 local
+
+- Slice 5 implementado localmente sin commit/push ni aplicacion remota.
+- Agrega `adoption_invites`, estado `invited_to_app`, RPCs `create_adoption_invite` / `resolve_adoption_invite`, API tipada, CTA en Web Foster y pagina puente `/adoption-invite/[token]`.
+- Seguridad: token aleatorio devuelto una vez y almacenado solo como SHA-256; expiracion, revocacion al reemitir y una invitacion activa por contacto.
+- Compartir es manual mediante copia del enlace; no se agrego email/SMS.
+- No crea solicitud formal, hogar owner, transferencia ni cambio de custodia. Esos pasos pertenecen a Slice 6.
+- Pendiente: validaciones completas y dry-run. No aplicar remoto sin confirmar exactamente las migraciones pendientes del embudo.

@@ -2,6 +2,7 @@
 
 import type {
   AdoptionCommitmentDocumentStatus,
+  AdoptionInviteCreated,
   AdoptionCommitmentRequirementPolicy,
   ApplicationCommitmentDocument,
   CreateFosterPetExpenseInput,
@@ -71,6 +72,7 @@ const publicRequestStatusLabels: Record<PublicAdoptionRequestStatus, string> = {
   cancelled: "Cancelado",
   expired: "Vencido",
   in_review: "En revision",
+  invited_to_app: "Invitado a app",
   preselected: "Preseleccionado",
   rejected: "Descartado",
   submitted: "Nuevo"
@@ -984,6 +986,7 @@ export function FosterConsoleWorkspace() {
     commitmentTemplate,
     createProtectiveHousehold,
     createFosterPet,
+    createAdoptionInvite,
     errorMessage,
     infoMessage,
     isLoading,
@@ -1029,6 +1032,7 @@ export function FosterConsoleWorkspace() {
   const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
   const [expandedPublicRequestId, setExpandedPublicRequestId] = useState<Uuid | null>(null);
   const [publicRequestNote, setPublicRequestNote] = useState("");
+  const [createdInviteByRequest, setCreatedInviteByRequest] = useState<Record<string, AdoptionInviteCreated>>({});
   const [kpiDocumentsByPetId, setKpiDocumentsByPetId] = useState<Record<string, PetDocument[]>>({});
   const [kpiExpensesByPetId, setKpiExpensesByPetId] = useState<Record<string, FosterPetExpense[]>>({});
   const [isLoadingKpiPrivateData, setIsLoadingKpiPrivateData] = useState(false);
@@ -1470,6 +1474,13 @@ export function FosterConsoleWorkspace() {
               disabled={isSubmitting}
               expandedRequestId={expandedPublicRequestId}
               note={publicRequestNote}
+              createdInviteByRequest={createdInviteByRequest}
+              onCreateInvite={async (request) => {
+                const created = await createAdoptionInvite(request);
+                if (created) {
+                  setCreatedInviteByRequest((current) => ({ ...current, [request.id]: created }));
+                }
+              }}
               onNoteChange={setPublicRequestNote}
               onToggle={(requestId) => {
                 setExpandedPublicRequestId((current) => (current === requestId ? null : requestId));
@@ -2750,22 +2761,26 @@ function FosterPetDocumentsBox({
 }
 
 function PublicInterestPanel({
+  createdInviteByRequest,
   disabled,
   expandedRequestId,
   note,
+  onCreateInvite,
   onNoteChange,
   onToggle,
   onUpdateStatus,
   requests
 }: {
+  createdInviteByRequest: Record<string, AdoptionInviteCreated>;
   disabled: boolean;
   expandedRequestId: Uuid | null;
   note: string;
+  onCreateInvite: (request: PublicAdoptionRequest) => Promise<void>;
   onNoteChange: (value: string) => void;
   onToggle: (requestId: Uuid) => void;
   onUpdateStatus: (
     request: PublicAdoptionRequest,
-    status: Exclude<PublicAdoptionRequestStatus, "submitted" | "expired">,
+    status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">,
     notes?: string | null
   ) => Promise<void>;
   requests: PublicAdoptionRequest[];
@@ -2821,7 +2836,27 @@ function PublicInterestPanel({
                     {request.status === "in_review" ? (
                       <button disabled={disabled} onClick={() => void onUpdateStatus(request, "preselected", note)} style={styles.primaryButton} type="button">Preseleccionar</button>
                     ) : null}
+                    {request.status === "preselected" || request.status === "invited_to_app" ? (
+                      <button disabled={disabled} onClick={() => void onCreateInvite(request)} style={styles.primaryButton} type="button">
+                        {request.status === "invited_to_app" ? "Generar nuevo enlace" : "Invitar a continuar"}
+                      </button>
+                    ) : null}
                   </div>
+                  {createdInviteByRequest[request.id] ? (
+                    <div style={styles.infoPanel}>
+                      <strong style={styles.itemTitle}>Enlace listo para compartir</strong>
+                      <a href={createdInviteByRequest[request.id].inviteUrl} rel="noreferrer" style={styles.itemMeta} target="_blank">
+                        {createdInviteByRequest[request.id].inviteUrl}
+                      </a>
+                      <button
+                        onClick={() => void navigator.clipboard.writeText(createdInviteByRequest[request.id].inviteUrl)}
+                        style={styles.secondaryButtonCompact}
+                        type="button"
+                      >
+                        Copiar enlace
+                      </button>
+                    </div>
+                  ) : null}
                   {request.status === "submitted" || request.status === "in_review" || request.status === "preselected" ? (
                     <>
                       <textarea

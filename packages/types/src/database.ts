@@ -13,6 +13,7 @@ import type {
   PetAdoptionListingReviewDecision,
   PetAdoptionShareStatus,
   PetAdoptionApplicationStatus,
+  AdoptionInviteStatus,
   PublicAdoptionRequestStatus,
   PetAdoptionListingStatus,
   PetAdoptionMediaReviewDecision,
@@ -1431,6 +1432,46 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["adoption_public_request_status_history"]["Insert"]>;
+        Relationships: [];
+      };
+      adoption_invites: {
+        Row: {
+          id: string;
+          public_request_id: string;
+          listing_id: string;
+          protective_household_id: string;
+          invite_token_hash: string;
+          recipient_email: string;
+          recipient_phone: string | null;
+          status: AdoptionInviteStatus;
+          expires_at: string;
+          sent_at: string | null;
+          opened_at: string | null;
+          claimed_by_user_id: string | null;
+          claimed_at: string | null;
+          created_by_user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          public_request_id: string;
+          listing_id: string;
+          protective_household_id: string;
+          invite_token_hash: string;
+          recipient_email: string;
+          recipient_phone?: string | null;
+          status?: AdoptionInviteStatus;
+          expires_at: string;
+          sent_at?: string | null;
+          opened_at?: string | null;
+          claimed_by_user_id?: string | null;
+          claimed_at?: string | null;
+          created_by_user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["adoption_invites"]["Insert"]>;
         Relationships: [];
       };
       protective_household_adoption_commitment_templates: {
@@ -2897,6 +2938,27 @@ export interface Database {
           notes?: string | null;
         };
         Returns: Database["public"]["Tables"]["adoption_public_requests"]["Row"];
+      };
+      create_adoption_invite: {
+        Args: {
+          target_public_request_id: string;
+          expires_in_hours?: number;
+        };
+        Returns: Array<{
+          invite_id: string;
+          invite_token: string;
+          invite_expires_at: string;
+        }>;
+      };
+      resolve_adoption_invite: {
+        Args: { raw_token: string };
+        Returns: Array<{
+          invite_status: AdoptionInviteStatus | "invalid";
+          pet_name: string | null;
+          listing_slug: string | null;
+          protective_display_name: string | null;
+          expires_at: string | null;
+        }>;
       };
       create_pet_adoption_application: {
         Args: {

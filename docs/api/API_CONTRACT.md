@@ -18,6 +18,8 @@ El baseline actual no expone un backend REST dedicado. El contrato canonicamente
 
 Adoption Public Funnel Slice 4 agrega localmente `createPublicAdoptionRequest`, `listReceivedPublicAdoptionRequests` y `updatePublicAdoptionRequestStatus`, respaldados por RPCs con el mismo alcance. El contacto publico es preliminar y no crea solicitud formal, transferencia ni cambio de custodia.
 
+Adoption Public Funnel Slice 5 agrega localmente `createAdoptionInvite` y `resolveAdoptionInvite`. La primera operacion genera un enlace temporal para un contacto preseleccionado; la segunda valida el token y entrega contexto publico minimo para la pagina puente. No hay claim, solicitud formal ni transferencia en este slice.
+
 Operaciones tipadas en `packages/api-client/src/foster.ts`.
 
 - `createPetAdoptionListing(petId, householdId)`

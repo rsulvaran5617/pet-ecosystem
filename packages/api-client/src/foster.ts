@@ -4,6 +4,9 @@ import type {
   ApplicationCommitmentDocument,
   ApplicationCommitmentDocumentReviewInput,
   ApplicationCommitmentDocumentUploadInput,
+  AdoptionInviteContext,
+  AdoptionInviteCreated,
+  CreateAdoptionInviteInput,
   CreateFosterPetExpenseInput,
   CreatePublicAdoptionRequestInput,
   CreatePetTransferInvitationInput,
@@ -138,6 +141,8 @@ export interface FosterApiClient {
   createPublicAdoptionRequest(input: CreatePublicAdoptionRequestInput): Promise<PublicAdoptionRequestCreated>;
   listReceivedPublicAdoptionRequests(householdId?: Uuid | null): Promise<PublicAdoptionRequest[]>;
   updatePublicAdoptionRequestStatus(input: UpdatePublicAdoptionRequestStatusInput): Promise<PublicAdoptionRequest>;
+  createAdoptionInvite(input: CreateAdoptionInviteInput): Promise<AdoptionInviteCreated>;
+  resolveAdoptionInvite(token: string): Promise<AdoptionInviteContext>;
   listPendingPetAdoptionListingsForAdmin(): Promise<PetAdoptionListing[]>;
   createPetAdoptionApplication(input: PetAdoptionApplicationInput): Promise<PetAdoptionApplication>;
   listMyPetAdoptionApplications(): Promise<PetAdoptionApplication[]>;
@@ -189,7 +194,10 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("review_protective_public_profile") ||
     message.includes("get_public_protective_profile_by_slug") ||
     message.includes("adoption_public_requests") ||
+    message.includes("adoption_invites") ||
     message.includes("create_public_adoption_request") ||
+    message.includes("create_adoption_invite") ||
+    message.includes("resolve_adoption_invite") ||
     message.includes("list_received_public_adoption_requests") ||
     message.includes("update_public_adoption_request_status") ||
     message.includes("list_pending_protective_public_profiles_for_admin") ||
@@ -1589,6 +1597,56 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return mapPublicAdoptionRequest(data);
+    },
+    async createAdoptionInvite(input) {
+      const { data, error } = await supabase.rpc("create_adoption_invite", {
+        target_public_request_id: input.publicRequestId,
+        expires_in_hours: input.expiresInHours ?? 168
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const created = data?.[0];
+      if (!created) {
+        fail(null, "No fue posible crear la invitacion.");
+      }
+
+      const baseUrl = input.publicBaseUrl.replace(/\/$/, "");
+      return {
+        inviteId: created.invite_id,
+        inviteUrl: `${baseUrl}/adoption-invite/${created.invite_token}`,
+        expiresAt: created.invite_expires_at
+      };
+    },
+    async resolveAdoptionInvite(token) {
+      const { data, error } = await supabase.rpc("resolve_adoption_invite", { raw_token: token });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const context = data?.[0];
+      if (!context) {
+        return {
+          appDeepLink: null,
+          expiresAt: null,
+          listingSlug: null,
+          petName: null,
+          protectiveDisplayName: null,
+          status: "invalid"
+        };
+      }
+
+      return {
+        appDeepLink: context.invite_status === "opened" ? `petecosystem://adoption/invite/${token}` : null,
+        expiresAt: context.expires_at,
+        listingSlug: context.listing_slug,
+        petName: context.pet_name,
+        protectiveDisplayName: context.protective_display_name,
+        status: context.invite_status
+      };
     },
     async listPendingPetAdoptionListingsForAdmin() {
       const { data, error } = await supabase.rpc("list_pending_pet_adoption_listings_for_admin", {});

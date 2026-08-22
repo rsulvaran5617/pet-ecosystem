@@ -80,6 +80,7 @@ Reglas esperadas:
 ### Foster/Adoption (V2.5 conceptual)
 
 - Adoption Public Funnel Slice 4: anon/authenticated solo ejecutan `create_public_adoption_request`; no tienen lectura directa de las tablas. Miembros visibles pueden consultar y solo administradores del hogar protector pueden cambiar estados; admin plataforma conserva auditoria. El RPC publico valida listing, perfiles aprobados, consentimiento, honeypot, duplicados y limite de frecuencia.
+- Adoption Public Funnel Slice 5: anon no puede leer `adoption_invites`; solo puede resolver un token opaco mediante RPC y recibe contexto publico minimo. La tabla es visible para el hogar protector, claimant futuro o admin. Solo un administrador del hogar puede crear/reemitir invitaciones, y la base conserva exclusivamente el hash del token.
 
 Alcance documental para futuras tablas `protective_household_profiles`, `pet_custody_contexts`, `pet_transfer_records`, `foster_profiles`, `foster_organizations`, `foster_pets`, `adoption_listings`, `adoption_applications`, `adoption_status_history`, `adoption_documents` y `adoption_screening_notes`.
 

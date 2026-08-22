@@ -2,6 +2,7 @@
 
 import type {
   ApplicationCommitmentDocument,
+  AdoptionInviteCreated,
   AdoptionCommitmentDocumentStatus,
   HouseholdSummary,
   PetAdoptionApplication,
@@ -734,7 +735,7 @@ export function useFosterConsoleWorkspace() {
 
   async function updatePublicRequestStatus(
     request: PublicAdoptionRequest,
-    status: Exclude<PublicAdoptionRequestStatus, "submitted" | "expired">,
+    status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">,
     notes?: string | null
   ) {
     setIsSubmitting(true);
@@ -756,6 +757,35 @@ export function useFosterConsoleWorkspace() {
       if (mountedRef.current) {
         setErrorMessage(toHumanFosterError(error, "No fue posible actualizar el interes publico."));
       }
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
+  async function createAdoptionInvite(request: PublicAdoptionRequest): Promise<AdoptionInviteCreated | null> {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      const created = await getBrowserFosterApiClient().createAdoptionInvite({
+        expiresInHours: 168,
+        publicBaseUrl: window.location.origin,
+        publicRequestId: request.id
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Invitacion creada. Copia el enlace y compartelo con la persona preseleccionada.");
+      }
+      return created;
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible crear la invitacion."));
+      }
+      return null;
     } finally {
       if (mountedRef.current) {
         setIsSubmitting(false);
@@ -1046,6 +1076,7 @@ export function useFosterConsoleWorkspace() {
       setInfoMessage(null);
     },
     createFosterPet,
+    createAdoptionInvite,
     createProtectiveHousehold,
     commitmentTemplate: selectedContext?.commitmentTemplate ?? null,
     errorMessage,

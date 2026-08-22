@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL API Contract
 
-Contrato del embudo publico de adopcion. Slice 4 queda implementado localmente y pendiente de aplicacion remota controlada.
+Contrato del embudo publico de adopcion. Slice 4 y Slice 5 quedan implementados localmente y pendientes de aplicacion remota controlada.
 
 ## Principios
 
@@ -266,6 +266,19 @@ Reglas:
 Objetivo:
 
 Generar invitacion para continuar en app owner.
+
+Implementacion Slice 5:
+
+- `createAdoptionInvite({ publicRequestId, publicBaseUrl, expiresInHours? })`
+  - RPC `create_adoption_invite`.
+  - Solo administradores de la Familia Protectora y contactos `preselected`/`invited_to_app`.
+  - Devuelve el token una sola vez dentro de `inviteUrl`; la base conserva solo su hash.
+- `resolveAdoptionInvite(token)`
+  - RPC publica `resolve_adoption_invite`.
+  - Devuelve estado y contexto publico minimo de mascota/protectora.
+  - Genera deep link `petecosystem://adoption/invite/[token]` cuando la invitacion esta disponible.
+- El envio es manual mediante copiar/compartir enlace. No existe servicio de email/SMS en este slice.
+- No crea `pet_adoption_applications`, `pet_transfer_records` ni cambia `pets.household_id`.
 
 Entrada:
 

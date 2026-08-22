@@ -160,6 +160,15 @@ Estado Slice 4:
 
 ### `/adoption-invite/[token]`
 
+Estado Slice 5:
+
+- Pagina puente publica implementada con validacion segura del token.
+- Explica que la preseleccion no garantiza adopcion ni transfiere custodia.
+- CTA `Abrir Pet Ecosystem` usa `petecosystem://adoption/invite/[token]`.
+- CTA secundario permite volver a la ficha publica de la mascota.
+- Maneja invitacion vigente, vencida, revocada, utilizada e invalida.
+- El claim autenticado y la continuacion guiada dentro de owner pertenecen a Slice 6.
+
 Objetivo: conectar una preseleccion de la protectora con la app owner.
 
 Contenido:

@@ -8,11 +8,12 @@ Landing publica de fundaciones y conversion responsable hacia app owner.
 - Slice 2 landing publica de Familia Protectora: implementado en `/protectoras/[slug]` con datos reales del perfil publico aprobado, mascotas publicadas, contacto/redes declaradas y bloque opcional de apoyo.
 - Slice 3 ficha publica de mascota: implementado en `/adopciones/[petSlug]` como pagina publica profesional con galeria, historia, personalidad, salud publica, requisitos, compatibilidad, ubicacion general y enlace de regreso a la Familia Protectora.
 - Slice 4 solicitud inicial publica: implementado localmente en `/adopciones/[petSlug]/solicitar`, con consentimiento, honeypot, controles de duplicados/rate limit y bandeja Web Foster `Interes publico` separada de solicitudes formales.
+- Slice 5 invitacion hacia app owner: implementado localmente con token de un solo uso almacenado como hash, vigencia controlada, CTA Web Foster, enlace compartible y pagina puente `/adoption-invite/[token]`. El estado `invited_to_app` no crea solicitud formal ni transfiere custodia.
 - No se han creado migraciones para este frente publico, no se tocaron RLS ni Supabase remoto y no se expusieron documentos privados, gastos, comprobantes, solicitudes, notas internas ni direcciones exactas.
 - El cierre formal de adopcion sigue dentro del flujo autenticado owner/foster existente. La ficha publica orienta el interes, pero aun no captura una solicitud publica ligera.
 - Para verlo en produccion, la gota debe actualizarse al commit mas reciente de `origin/master`.
 
-Siguiente paso recomendado: validar Slice 4 en QA y aplicar su migracion de forma controlada. Slice 5, invitacion hacia app owner, permanece fuera de este cierre.
+Siguiente paso recomendado: validar y aplicar de forma controlada las migraciones pendientes de Slice 4 y Slice 5 en orden. Slice 6 debe resolver autenticacion/claim, hogar owner y conversion a solicitud formal sin mezclar custodia.
 
 ## Resumen ejecutivo
 

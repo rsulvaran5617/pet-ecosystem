@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL Data Model
 
-Modelo del embudo publico de adopcion. Slice 4 prepara localmente las entidades de interes publico; la migracion no debe aplicarse remoto sin dry-run y aprobacion.
+Modelo del embudo publico de adopcion. Slice 4 prepara el interes publico y Slice 5 agrega localmente la invitacion segura hacia la app owner; sus migraciones no deben aplicarse remoto sin dry-run y aprobacion.
 
 ## Reutilizacion actual
 
@@ -126,6 +126,18 @@ Implementacion Slice 4:
 - `adoption_public_request_status_history` conserva cada transicion operativa.
 
 ### `adoption_invites`
+
+Implementacion local Slice 5:
+
+- Token aleatorio de 256 bits; la base almacena solo `invite_token_hash` SHA-256.
+- Estados: `created`, `sent`, `opened`, `claimed`, `expired`, `revoked`.
+- Una sola invitacion activa por `public_request_id`.
+- Vigencia configurable entre 24 y 720 horas; la consola usa siete dias.
+- Reemitir revoca cualquier invitacion activa anterior.
+- `recipient_email` y `recipient_phone` se copian del contacto preseleccionado.
+- `claimed_by_user_id` y `claimed_at` quedan preparados, pero Slice 5 no ejecuta claim.
+- RLS permite lectura al hogar protector, claimant futuro y admin; anon no lee la tabla.
+- `resolve_adoption_invite` expone solo contexto publico minimo y marca apertura/expiracion.
 
 Objetivo:
 

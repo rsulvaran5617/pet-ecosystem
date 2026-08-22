@@ -523,3 +523,11 @@ La migracion local `20260821110000_adoption_public_funnel_slice4.sql` prepara:
 - RPCs autenticadas `list_received_public_adoption_requests` y `update_public_adoption_request_status` para la consola Foster.
 
 No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
+
+## Adoption Public Funnel Slice 5
+
+- Migracion local `20260822100000_adoption_public_funnel_slice5_invites.sql`.
+- Tabla `adoption_invites` con token hasheado, expiracion y estados controlados.
+- RPC autenticada `create_adoption_invite` y RPC publica segura `resolve_adoption_invite`.
+- `adoption_public_requests.status` incorpora `invited_to_app`.
+- No crea solicitud formal, transferencia ni cambio de custodia.

@@ -53,9 +53,11 @@ export type PublicAdoptionRequestStatus =
   | "submitted"
   | "in_review"
   | "preselected"
+  | "invited_to_app"
   | "rejected"
   | "cancelled"
   | "expired";
+export type AdoptionInviteStatus = "created" | "sent" | "opened" | "claimed" | "expired" | "revoked";
 
 export interface ProtectiveHouseholdProfile extends TimestampedEntity {
   householdId: Uuid;
@@ -478,6 +480,27 @@ export interface UpdatePublicAdoptionRequestStatusInput {
   requestId: Uuid;
   status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">;
   notes?: string | null;
+}
+
+export interface CreateAdoptionInviteInput {
+  publicRequestId: Uuid;
+  expiresInHours?: number;
+  publicBaseUrl: string;
+}
+
+export interface AdoptionInviteCreated {
+  inviteId: Uuid;
+  inviteUrl: string;
+  expiresAt: string;
+}
+
+export interface AdoptionInviteContext {
+  status: AdoptionInviteStatus | "invalid";
+  petName: string | null;
+  listingSlug: string | null;
+  protectiveDisplayName: string | null;
+  expiresAt: string | null;
+  appDeepLink: string | null;
 }
 
 export interface PetAdoptionListingInput {
