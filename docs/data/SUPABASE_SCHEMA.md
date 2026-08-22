@@ -531,3 +531,11 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - RPC autenticada `create_adoption_invite` y RPC publica segura `resolve_adoption_invite`.
 - `adoption_public_requests.status` incorpora `invited_to_app`.
 - No crea solicitud formal, transferencia ni cambio de custodia.
+
+## Adoption Public Funnel Slice 6
+
+- Migracion local `20260822143000_adoption_public_funnel_slice6_owner_conversion.sql`.
+- `adoption_invites.formal_application_id` enlaza la conversion formal sin duplicar aplicaciones.
+- RPCs autenticadas `claim_adoption_invite` y `convert_public_request_to_adoption_application`.
+- `adoption_public_requests.status` incorpora `converted_to_application`.
+- Claim exige correo destinatario y conversion exige hogar `owner` administrable.

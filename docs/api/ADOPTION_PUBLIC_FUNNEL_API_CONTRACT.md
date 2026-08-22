@@ -356,6 +356,13 @@ Reglas:
 - Validar email si se decide restringir a destinatario.
 - No crear transferencia.
 
+Implementacion Slice 6:
+
+- RPC `claim_adoption_invite` autenticada.
+- Verifica expiracion, revocacion, cuenta reclamante y correo destinatario.
+- Devuelve datos precargables del contacto y `nextStep`: `create_household`, `complete_application` o `completed`.
+- Una invitacion reclamada por la misma cuenta puede retomarse sin duplicar efectos.
+
 ### `convertPublicRequestToAdoptionApplication(input)`
 
 Objetivo:
@@ -379,6 +386,14 @@ type ConvertPublicRequestToAdoptionApplicationInput = {
   commitmentAccepted: boolean;
 };
 ```
+
+Implementacion Slice 6:
+
+- RPC `convert_public_request_to_adoption_application`.
+- Exige invitacion reclamada por el usuario actual y household familiar `owner` administrable.
+- Reutiliza una solicitud activa existente para la misma cuenta/listing o crea una sola mediante el RPC canonico.
+- Enlaza `adoption_invites.formal_application_id` y marca el contacto `converted_to_application`.
+- No aprueba la adopcion, no crea transferencia y no cambia custodia.
 
 Salida:
 

@@ -54,6 +54,7 @@ export type PublicAdoptionRequestStatus =
   | "in_review"
   | "preselected"
   | "invited_to_app"
+  | "converted_to_application"
   | "rejected"
   | "cancelled"
   | "expired";
@@ -501,6 +502,33 @@ export interface AdoptionInviteContext {
   protectiveDisplayName: string | null;
   expiresAt: string | null;
   appDeepLink: string | null;
+}
+
+export type AdoptionInviteNextStep = "create_household" | "complete_application" | "completed";
+
+export interface ClaimedAdoptionInvite {
+  inviteId: Uuid;
+  publicRequestId: Uuid;
+  listingId: Uuid;
+  status: "claimed";
+  nextStep: AdoptionInviteNextStep;
+  petName: string;
+  protectiveDisplayName: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone: string | null;
+  requesterCity: string | null;
+  housingType: string | null;
+  hasChildren: boolean | null;
+  hasOtherPets: boolean | null;
+  experience: string | null;
+  motivation: string;
+}
+
+export interface ConvertPublicRequestToAdoptionApplicationInput
+  extends Omit<PetAdoptionApplicationInput, "listingId"> {
+  inviteId: Uuid;
+  applicantHouseholdId: Uuid;
 }
 
 export interface PetAdoptionListingInput {

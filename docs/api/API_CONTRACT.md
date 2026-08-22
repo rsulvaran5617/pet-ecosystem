@@ -20,6 +20,8 @@ Adoption Public Funnel Slice 4 agrega localmente `createPublicAdoptionRequest`, 
 
 Adoption Public Funnel Slice 5 agrega localmente `createAdoptionInvite` y `resolveAdoptionInvite`. La primera operacion genera un enlace temporal para un contacto preseleccionado; la segunda valida el token y entrega contexto publico minimo para la pagina puente. No hay claim, solicitud formal ni transferencia en este slice.
 
+Adoption Public Funnel Slice 6 agrega localmente `claimAdoptionInvite` y `convertPublicRequestToAdoptionApplication`. Claim vincula la invitacion al destinatario autenticado; conversion exige hogar Owner y crea o reutiliza una solicitud formal. Ninguna operacion mueve custodia.
+
 Operaciones tipadas en `packages/api-client/src/foster.ts`.
 
 - `createPetAdoptionListing(petId, householdId)`

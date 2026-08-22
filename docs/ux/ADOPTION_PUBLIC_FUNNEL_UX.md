@@ -169,6 +169,14 @@ Estado Slice 5:
 - Maneja invitacion vigente, vencida, revocada, utilizada e invalida.
 - El claim autenticado y la continuacion guiada dentro de owner pertenecen a Slice 6.
 
+Estado Slice 6:
+
+- Mobile reconoce `petecosystem://adoption/invite/[token]` y conserva el token durante login.
+- Si el rol activo no es Owner, muestra una instruccion clara para cambiarlo.
+- Un adoptante sin mascotas propias puede continuar; sigue siendo obligatorio crear o seleccionar un hogar familiar.
+- La pantalla contextual reclama la invitacion, precarga datos del contacto y presenta un formulario formal compacto.
+- Al enviar, informa que la Familia Protectora revisara la solicitud y que la custodia no ha cambiado.
+
 Objetivo: conectar una preseleccion de la protectora con la app owner.
 
 Contenido:

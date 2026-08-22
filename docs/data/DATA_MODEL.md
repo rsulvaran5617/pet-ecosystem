@@ -118,6 +118,8 @@ Slice 4 del embudo publico agrega localmente `adoption_public_requests` y `adopt
 
 Slice 5 agrega localmente `adoption_invites`, vinculada al contacto publico preseleccionado, la publicacion y la Familia Protectora. Almacena solo hash del token, vigencia y trazabilidad de apertura/claim; el claim queda diferido. `invited_to_app` sigue siendo interes preliminar.
 
+Slice 6 enlaza opcionalmente `adoption_invites.formal_application_id` con `pet_adoption_applications` y agrega `converted_to_application` al contacto publico. Claim y conversion son auditados e idempotentes; ninguna de estas operaciones mueve `pets.household_id`.
+
 Modelo conceptual documental. No implementado y sin migraciones asociadas.
 
 Recomendacion:

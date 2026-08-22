@@ -1722,3 +1722,12 @@ Al final:
 - Compartir es manual mediante copia del enlace; no se agrego email/SMS.
 - No crea solicitud formal, hogar owner, transferencia ni cambio de custodia. Esos pasos pertenecen a Slice 6.
 - Pendiente: validaciones completas y dry-run. No aplicar remoto sin confirmar exactamente las migraciones pendientes del embudo.
+# Handoff 2026-08-22 - Adoption Public Funnel Slice 6 local
+
+- Slice 6 implementado localmente sin commit/push ni aplicacion remota.
+- Agrega claim autenticado por correo destinatario y conversion idempotente del interes publico a `pet_adoption_applications`.
+- Mobile conserva `petecosystem://adoption/invite/[token]` durante login, exige modo Owner y hogar familiar, precarga el formulario y permite retomarlo.
+- Adoptantes sin mascotas propias no quedan bloqueados por el onboarding de primera mascota cuando existe una invitacion pendiente.
+- No se crea transferencia ni se modifica `pets.household_id`; aceptar custodia permanece en Foster-2A/5E.
+- Migracion local: `20260822143000_adoption_public_funnel_slice6_owner_conversion.sql`.
+- Pendiente: validaciones completas, dry-run y QA de Slices 4-6 en orden antes de aplicar remoto.

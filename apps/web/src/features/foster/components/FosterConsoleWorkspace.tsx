@@ -73,6 +73,7 @@ const publicRequestStatusLabels: Record<PublicAdoptionRequestStatus, string> = {
   expired: "Vencido",
   in_review: "En revision",
   invited_to_app: "Invitado a app",
+  converted_to_application: "Solicitud formal",
   preselected: "Preseleccionado",
   rejected: "Descartado",
   submitted: "Nuevo"

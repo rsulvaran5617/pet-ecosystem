@@ -19,8 +19,10 @@ interface UseCoreWorkspaceResult {
   isLoading: boolean;
   isSubmitting: boolean;
   isRecoverySession: boolean;
+  pendingAdoptionInviteToken: string | null;
   clearMessages: () => void;
   clearRecoverySession: () => void;
+  clearPendingAdoptionInvite: () => void;
   refresh: () => Promise<void>;
   runAction: <T>(action: () => Promise<T>, successMessage?: string, refreshAfter?: boolean) => Promise<T>;
 }
@@ -42,6 +44,7 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [pendingAdoptionInviteToken, setPendingAdoptionInviteToken] = useState<string | null>(null);
 
   async function refresh() {
     try {
@@ -115,6 +118,13 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
 
     async function handleIncomingUrl(nextUrl: string | null) {
       if (!nextUrl) {
+        return;
+      }
+
+      const adoptionInviteMatch = nextUrl.match(/^petecosystem:\/\/adoption\/invite\/([^/?#]+)/i);
+      if (adoptionInviteMatch?.[1]) {
+        setPendingAdoptionInviteToken(decodeURIComponent(adoptionInviteMatch[1]));
+        setInfoMessage("Invitacion de adopcion recibida. Inicia sesion como propietario para continuar.");
         return;
       }
 
@@ -201,12 +211,16 @@ export function useCoreWorkspace(): UseCoreWorkspaceResult {
     isLoading,
     isSubmitting,
     isRecoverySession,
+    pendingAdoptionInviteToken,
     clearMessages() {
       setErrorMessage(null);
       setInfoMessage(null);
     },
     clearRecoverySession() {
       setIsRecoverySession(false);
+    },
+    clearPendingAdoptionInvite() {
+      setPendingAdoptionInviteToken(null);
     },
     refresh,
     runAction

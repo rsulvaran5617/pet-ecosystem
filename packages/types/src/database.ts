@@ -1449,6 +1449,7 @@ export interface Database {
           opened_at: string | null;
           claimed_by_user_id: string | null;
           claimed_at: string | null;
+          formal_application_id: string | null;
           created_by_user_id: string;
           created_at: string;
           updated_at: string;
@@ -1467,6 +1468,7 @@ export interface Database {
           opened_at?: string | null;
           claimed_by_user_id?: string | null;
           claimed_at?: string | null;
+          formal_application_id?: string | null;
           created_by_user_id: string;
           created_at?: string;
           updated_at?: string;
@@ -2959,6 +2961,44 @@ export interface Database {
           protective_display_name: string | null;
           expires_at: string | null;
         }>;
+      };
+      claim_adoption_invite: {
+        Args: { raw_token: string };
+        Returns: Array<{
+          invite_id: string;
+          public_request_id: string;
+          listing_id: string;
+          invite_status: "claimed";
+          next_step: "create_household" | "complete_application" | "completed";
+          pet_name: string;
+          protective_display_name: string;
+          requester_name: string;
+          requester_email: string;
+          requester_phone: string | null;
+          requester_city: string | null;
+          housing_type: string | null;
+          has_children: boolean | null;
+          has_other_pets: boolean | null;
+          experience: string | null;
+          motivation: string;
+        }>;
+      };
+      convert_public_request_to_adoption_application: {
+        Args: {
+          target_invite_id: string;
+          target_applicant_household_id: string;
+          next_applicant_name: string;
+          next_applicant_email: string;
+          next_applicant_phone?: string | null;
+          next_housing_type: string;
+          next_has_children?: boolean | null;
+          next_has_other_pets?: boolean | null;
+          next_pet_experience: string;
+          next_motivation: string;
+          next_availability_notes?: string | null;
+          next_commitment_acknowledged: boolean;
+        };
+        Returns: Database["public"]["Tables"]["pet_adoption_applications"]["Row"];
       };
       create_pet_adoption_application: {
         Args: {

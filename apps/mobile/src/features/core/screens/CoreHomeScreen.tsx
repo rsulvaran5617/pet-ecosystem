@@ -44,6 +44,7 @@ import { HealthWorkspace } from "../../health/components/HealthWorkspace";
 import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
 import { useRemindersWorkspace } from "../../reminders/hooks/useRemindersWorkspace";
 import { AdoptionDiscoveryWorkspace } from "../../foster/components/AdoptionDiscoveryWorkspace";
+import { AdoptionInviteContinuation } from "../../foster/components/AdoptionInviteContinuation";
 import { MarketplaceWorkspace } from "../../marketplace/components/MarketplaceWorkspace";
 import { useMarketplaceWorkspace } from "../../marketplace/hooks/useMarketplaceWorkspace";
 import { ProvidersWorkspace, type ProviderWorkspaceSection } from "../../providers/components/ProvidersWorkspace";
@@ -1625,7 +1626,9 @@ export function CoreHomeScreen() {
     isLoading,
     isRecoverySession,
     isSubmitting,
+    pendingAdoptionInviteToken,
     clearMessages,
+    clearPendingAdoptionInvite,
     clearRecoverySession,
     refresh,
     runAction
@@ -1759,8 +1762,15 @@ export function CoreHomeScreen() {
     isOwnerMode &&
     !petsWorkspace.isLoading &&
     !isFosterOnboardingIntent &&
+    !pendingAdoptionInviteToken &&
     ownerHouseholdCount > 0 &&
     petsWorkspace.pets.length === 0;
+
+  useEffect(() => {
+    if (pendingAdoptionInviteToken && authState.isAuthenticated && isOwnerMode && !ownerNeedsHouseholdSetup) {
+      setActiveOwnerSection("adopcion");
+    }
+  }, [authState.isAuthenticated, isOwnerMode, ownerNeedsHouseholdSetup, pendingAdoptionInviteToken]);
   const setActiveOwnerPetFromSelection = (context: ActiveOwnerPetContext) => {
     setActiveOwnerPetContext(context);
     setPetHubContext(context);
@@ -2024,6 +2034,9 @@ export function CoreHomeScreen() {
         {configError ? <Notice message={configError} tone="error" /> : null}
         {!configError && errorMessage ? <Notice message={errorMessage} tone="error" /> : null}
         {!configError && infoMessage && !isRoleSwitchInfoMessage ? <Notice message={infoMessage} tone="info" /> : null}
+        {pendingAdoptionInviteToken && authState.isAuthenticated && !isOwnerMode ? (
+          <Notice message="Esta invitacion debe completarse en modo Propietario. Cambia el rol activo desde Cuenta." tone="info" />
+        ) : null}
         {authState.isAuthenticated &&
         snapshot &&
         isOwnerMode &&
@@ -3353,14 +3366,30 @@ export function CoreHomeScreen() {
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
         activeOwnerSection === "adopcion" ? (
-          <AdoptionDiscoveryWorkspace
-            enabled
-            onBackHome={() => setActiveOwnerSection("inicio")}
-            onOpenPetInvitations={() => {
-              setAccountFocusSection("petInvitations");
-              setActiveOwnerSection("cuenta");
-            }}
-          />
+          <>
+            {pendingAdoptionInviteToken && snapshot ? (
+              <AdoptionInviteContinuation
+                households={petsWorkspace.householdSnapshot?.households ?? []}
+                onClose={() => clearPendingAdoptionInvite()}
+                onComplete={() => void petsWorkspace.refresh()}
+                onCreateHousehold={() => {
+                  setAccountFocusSection(null);
+                  setActiveOwnerSection("cuenta");
+                  setExpandedAccountPanels((current) => ({ ...current, households: true }));
+                }}
+                profile={snapshot.profile}
+                token={pendingAdoptionInviteToken}
+              />
+            ) : null}
+            <AdoptionDiscoveryWorkspace
+              enabled
+              onBackHome={() => setActiveOwnerSection("inicio")}
+              onOpenPetInvitations={() => {
+                setAccountFocusSection("petInvitations");
+                setActiveOwnerSection("cuenta");
+              }}
+            />
+          </>
         ) : null}
         {authState.isAuthenticated &&
         isOwnerMode &&

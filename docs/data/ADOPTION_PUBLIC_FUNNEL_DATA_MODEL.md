@@ -139,6 +139,15 @@ Implementacion local Slice 5:
 - RLS permite lectura al hogar protector, claimant futuro y admin; anon no lee la tabla.
 - `resolve_adoption_invite` expone solo contexto publico minimo y marca apertura/expiracion.
 
+Implementacion local Slice 6:
+
+- `formal_application_id` enlaza opcionalmente la invitacion con la solicitud formal existente.
+- Claim exige usuario autenticado y coincidencia exacta normalizada con `recipient_email`.
+- Claim es idempotente para la misma cuenta y rechaza reutilizacion por otra cuenta.
+- `converted_to_application` registra que el contacto preliminar ya produjo una solicitud formal.
+- La conversion exige un household `owner` administrable y reutiliza `pet_adoption_applications`.
+- No se crea `pet_transfer_records` ni se modifica `pets.household_id`.
+
 Objetivo:
 
 Generar link seguro para que un interesado preseleccionado continue en app owner.

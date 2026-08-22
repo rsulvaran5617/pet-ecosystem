@@ -6,6 +6,8 @@ import type {
   ApplicationCommitmentDocumentUploadInput,
   AdoptionInviteContext,
   AdoptionInviteCreated,
+  ClaimedAdoptionInvite,
+  ConvertPublicRequestToAdoptionApplicationInput,
   CreateAdoptionInviteInput,
   CreateFosterPetExpenseInput,
   CreatePublicAdoptionRequestInput,
@@ -143,6 +145,10 @@ export interface FosterApiClient {
   updatePublicAdoptionRequestStatus(input: UpdatePublicAdoptionRequestStatusInput): Promise<PublicAdoptionRequest>;
   createAdoptionInvite(input: CreateAdoptionInviteInput): Promise<AdoptionInviteCreated>;
   resolveAdoptionInvite(token: string): Promise<AdoptionInviteContext>;
+  claimAdoptionInvite(token: string): Promise<ClaimedAdoptionInvite>;
+  convertPublicRequestToAdoptionApplication(
+    input: ConvertPublicRequestToAdoptionApplicationInput
+  ): Promise<PetAdoptionApplication>;
   listPendingPetAdoptionListingsForAdmin(): Promise<PetAdoptionListing[]>;
   createPetAdoptionApplication(input: PetAdoptionApplicationInput): Promise<PetAdoptionApplication>;
   listMyPetAdoptionApplications(): Promise<PetAdoptionApplication[]>;
@@ -198,6 +204,8 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("create_public_adoption_request") ||
     message.includes("create_adoption_invite") ||
     message.includes("resolve_adoption_invite") ||
+    message.includes("claim_adoption_invite") ||
+    message.includes("convert_public_request_to_adoption_application") ||
     message.includes("list_received_public_adoption_requests") ||
     message.includes("update_public_adoption_request_status") ||
     message.includes("list_pending_protective_public_profiles_for_admin") ||
@@ -1647,6 +1655,59 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         protectiveDisplayName: context.protective_display_name,
         status: context.invite_status
       };
+    },
+    async claimAdoptionInvite(token) {
+      const { data, error } = await supabase.rpc("claim_adoption_invite", { raw_token: token });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const claimed = data?.[0];
+      if (!claimed) {
+        fail(null, "No fue posible reclamar la invitacion.");
+      }
+
+      return {
+        experience: claimed.experience,
+        hasChildren: claimed.has_children,
+        hasOtherPets: claimed.has_other_pets,
+        housingType: claimed.housing_type,
+        inviteId: claimed.invite_id,
+        listingId: claimed.listing_id,
+        motivation: claimed.motivation,
+        nextStep: claimed.next_step,
+        petName: claimed.pet_name,
+        protectiveDisplayName: claimed.protective_display_name,
+        publicRequestId: claimed.public_request_id,
+        requesterCity: claimed.requester_city,
+        requesterEmail: claimed.requester_email,
+        requesterName: claimed.requester_name,
+        requesterPhone: claimed.requester_phone,
+        status: claimed.invite_status
+      };
+    },
+    async convertPublicRequestToAdoptionApplication(input) {
+      const { data, error } = await supabase.rpc("convert_public_request_to_adoption_application", {
+        target_invite_id: input.inviteId,
+        target_applicant_household_id: input.applicantHouseholdId,
+        next_applicant_name: input.applicantName,
+        next_applicant_email: input.applicantEmail,
+        next_applicant_phone: input.applicantPhone ?? null,
+        next_housing_type: input.housingType,
+        next_has_children: input.hasChildren ?? null,
+        next_has_other_pets: input.hasOtherPets ?? null,
+        next_pet_experience: input.petExperience,
+        next_motivation: input.motivation,
+        next_availability_notes: input.availabilityNotes ?? null,
+        next_commitment_acknowledged: input.commitmentAcknowledged
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapPetAdoptionApplication(data);
     },
     async listPendingPetAdoptionListingsForAdmin() {
       const { data, error } = await supabase.rpc("list_pending_pet_adoption_listings_for_admin", {});
