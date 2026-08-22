@@ -14,6 +14,8 @@ import type {
   ProtectiveHouseholdOrganizationType,
   ProtectivePublicProfile,
   ProtectivePublicProfileInput,
+  PublicAdoptionRequest,
+  PublicAdoptionRequestStatus,
   PetAdoptionApplication,
   PetAdoptionClosureDetail,
   PetAdoptionApplicationStatus,
@@ -36,7 +38,7 @@ import { getBrowserFosterApiClient, getBrowserPetsApiClient } from "../../core/s
 import { useFosterConsoleWorkspace } from "../hooks/useFosterConsoleWorkspace";
 
 type ApplicationStatusFilter = "all" | PetAdoptionApplicationStatus | "approved_without_transfer";
-type FosterConsoleSection = "panel" | "profile" | "pets" | "publications" | "requests" | "transfers";
+type FosterConsoleSection = "panel" | "profile" | "pets" | "publications" | "public-interest" | "requests" | "transfers";
 
 type MetricCard = {
   label: string;
@@ -64,6 +66,15 @@ const applicationStatusLabels: Record<PetAdoptionApplicationStatus, string> = {
 
 const defaultAdoptionRejectionMessage =
   "Gracias por tu interes y por abrir tu hogar a una mascota. En esta oportunidad la Familia Protectora decidio continuar el proceso con otra familia que se ajustaba mejor a las necesidades de la mascota. Agradecemos mucho tu disposicion y esperamos que pronto encuentres una mascota con la que puedas crear un vinculo especial.";
+
+const publicRequestStatusLabels: Record<PublicAdoptionRequestStatus, string> = {
+  cancelled: "Cancelado",
+  expired: "Vencido",
+  in_review: "En revision",
+  preselected: "Preseleccionado",
+  rejected: "Descartado",
+  submitted: "Nuevo"
+};
 
 const listingStatusLabels: Record<PetAdoptionListing["status"], string> = {
   adopted: "Adoptada",
@@ -986,6 +997,7 @@ export function FosterConsoleWorkspace() {
     profile,
     protectiveHouseholds,
     publicProfile,
+    publicRequests,
     refresh,
     reviewApplicationCommitmentDocument,
     removeAdoptionListingPhoto,
@@ -1005,7 +1017,8 @@ export function FosterConsoleWorkspace() {
     uploadAdoptionListingPhoto,
     uploadFosterPetAvatar,
     uploadPublicProfileLogo,
-    updateApplicationStatus
+    updateApplicationStatus,
+    updatePublicRequestStatus
   } = useFosterConsoleWorkspace();
   const [applicationStatusFilter, setApplicationStatusFilter] = useState<ApplicationStatusFilter>("all");
   const [applicationPetFilter, setApplicationPetFilter] = useState("all");
@@ -1014,6 +1027,8 @@ export function FosterConsoleWorkspace() {
   const [expandedListingId, setExpandedListingId] = useState<Uuid | null>(null);
   const [expandedTimelineItemId, setExpandedTimelineItemId] = useState<string | null>(null);
   const [rejectNote, setRejectNote] = useState(defaultAdoptionRejectionMessage);
+  const [expandedPublicRequestId, setExpandedPublicRequestId] = useState<Uuid | null>(null);
+  const [publicRequestNote, setPublicRequestNote] = useState("");
   const [kpiDocumentsByPetId, setKpiDocumentsByPetId] = useState<Record<string, PetDocument[]>>({});
   const [kpiExpensesByPetId, setKpiExpensesByPetId] = useState<Record<string, FosterPetExpense[]>>({});
   const [isLoadingKpiPrivateData, setIsLoadingKpiPrivateData] = useState(false);
@@ -1136,6 +1151,7 @@ export function FosterConsoleWorkspace() {
     { id: "profile", label: "Perfil", detail: "Identidad publica" },
     { id: "pets", label: "Mascotas", detail: "Bajo acogida", count: pets.length },
     { id: "publications", label: "Publicaciones", detail: "Vitrina y fotos", count: listings.length },
+    { id: "public-interest", label: "Interes publico", detail: "Contactos iniciales", count: publicRequests.length },
     { id: "requests", label: "Solicitudes", detail: "Pipeline adopcion", count: applications.length },
     { id: "transfers", label: "Transferencias", detail: "Custodia privada", count: transfers.length }
   ];
@@ -1447,6 +1463,21 @@ export function FosterConsoleWorkspace() {
                 )) : <EmptyState text="No hay transferencias privadas iniciadas." />}
               </div>
             </div>
+          ) : null}
+
+          {activeSection === "public-interest" ? (
+            <PublicInterestPanel
+              disabled={isSubmitting}
+              expandedRequestId={expandedPublicRequestId}
+              note={publicRequestNote}
+              onNoteChange={setPublicRequestNote}
+              onToggle={(requestId) => {
+                setExpandedPublicRequestId((current) => (current === requestId ? null : requestId));
+                setPublicRequestNote("");
+              }}
+              onUpdateStatus={updatePublicRequestStatus}
+              requests={publicRequests}
+            />
           ) : null}
 
           {activeSection === "requests" ? (
@@ -2656,6 +2687,7 @@ function FosterPetDocumentsBox({
               Cancelar
             </button>
           ) : null}
+
         </div>
       </form>
 
@@ -2713,6 +2745,104 @@ function FosterPetDocumentsBox({
           ))}
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function PublicInterestPanel({
+  disabled,
+  expandedRequestId,
+  note,
+  onNoteChange,
+  onToggle,
+  onUpdateStatus,
+  requests
+}: {
+  disabled: boolean;
+  expandedRequestId: Uuid | null;
+  note: string;
+  onNoteChange: (value: string) => void;
+  onToggle: (requestId: Uuid) => void;
+  onUpdateStatus: (
+    request: PublicAdoptionRequest,
+    status: Exclude<PublicAdoptionRequestStatus, "submitted" | "expired">,
+    notes?: string | null
+  ) => Promise<void>;
+  requests: PublicAdoptionRequest[];
+}) {
+  const sortedRequests = [...requests].sort(
+    (first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()
+  );
+
+  return (
+    <section style={styles.panel}>
+      <div style={styles.sectionHeader}>
+        <div>
+          <p style={styles.eyebrow}>Interes publico</p>
+          <h2 style={styles.sectionTitle}>Primeros contactos</h2>
+          <p style={styles.itemMeta}>Consultas breves recibidas desde fichas publicas. Aun no son solicitudes formales de adopcion.</p>
+        </div>
+        <span style={styles.countPill}>{requests.length} total</span>
+      </div>
+      <div style={styles.applicationAccordionList}>
+        {sortedRequests.length ? sortedRequests.map((request) => {
+          const isExpanded = expandedRequestId === request.id;
+
+          return (
+            <article key={request.id} style={isExpanded ? { ...styles.applicationAccordionCard, ...styles.applicationAccordionCardOpen } : styles.applicationAccordionCard}>
+              <button onClick={() => onToggle(request.id)} style={styles.applicationAccordionHeader} type="button">
+                <div style={styles.applicationCardTitle}>
+                  <strong style={styles.itemTitle}>{request.petName}</strong>
+                  <p style={styles.itemMeta}>{request.requesterName} · {request.requesterEmail}</p>
+                  <p style={styles.applicationSnippet}>{request.motivation}</p>
+                </div>
+                <div style={styles.applicationStatusStack}>
+                  <StatusBadge
+                    label={publicRequestStatusLabels[request.status]}
+                    tone={request.status === "preselected" ? "success" : request.status === "submitted" || request.status === "in_review" ? "warning" : "neutral"}
+                  />
+                  <span style={styles.itemMeta}>{formatDate(request.createdAt)}</span>
+                  <span style={styles.accordionChevron}>{isExpanded ? "Ocultar" : "Ver detalle"}</span>
+                </div>
+              </button>
+              {isExpanded ? (
+                <div style={styles.applicationAccordionBody}>
+                  <div style={styles.contextGrid}>
+                    <InfoTile label="Ciudad" value={request.requesterCity || "No indicada"} />
+                    <InfoTile label="Telefono" value={request.requesterPhone || "No indicado"} />
+                    <InfoTile label="Vivienda" value={request.housingType || "No indicada"} />
+                    <InfoTile label="Experiencia" value={request.experience || "No indicada"} />
+                  </div>
+                  <p style={styles.itemMeta}>Otras mascotas: {request.hasOtherPets ? "Si" : "No"} · Ninos en casa: {request.hasChildren ? "Si" : "No"}</p>
+                  <div style={styles.petActionsRow}>
+                    {request.status === "submitted" ? (
+                      <button disabled={disabled} onClick={() => void onUpdateStatus(request, "in_review")} style={styles.secondaryButtonCompact} type="button">Iniciar revision</button>
+                    ) : null}
+                    {request.status === "in_review" ? (
+                      <button disabled={disabled} onClick={() => void onUpdateStatus(request, "preselected", note)} style={styles.primaryButton} type="button">Preseleccionar</button>
+                    ) : null}
+                  </div>
+                  {request.status === "submitted" || request.status === "in_review" || request.status === "preselected" ? (
+                    <>
+                      <textarea
+                        aria-label="Nota interna del interes publico"
+                        onChange={(event) => onNoteChange(event.target.value)}
+                        placeholder="Nota interna o motivo para descartar"
+                        style={styles.textarea}
+                        value={note}
+                      />
+                      <button disabled={disabled || note.trim().length < 10} onClick={() => void onUpdateStatus(request, "rejected", note)} style={styles.dangerButton} type="button">Descartar contacto</button>
+                    </>
+                  ) : null}
+                  {request.status === "preselected" ? (
+                    <p style={styles.itemMeta}>Este contacto puede invitarse despues al proceso formal. No se ha creado una solicitud ni una transferencia.</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </article>
+          );
+        }) : <EmptyState text="Aun no hay contactos recibidos desde las fichas publicas." />}
+      </div>
     </section>
   );
 }

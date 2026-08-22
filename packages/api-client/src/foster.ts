@@ -5,6 +5,7 @@ import type {
   ApplicationCommitmentDocumentReviewInput,
   ApplicationCommitmentDocumentUploadInput,
   CreateFosterPetExpenseInput,
+  CreatePublicAdoptionRequestInput,
   CreatePetTransferInvitationInput,
   Database,
   FosterPetExpense,
@@ -25,6 +26,8 @@ import type {
   PetTransferRecord,
   PublicPetAdoptionMedia,
   PublicPetAdoptionProfile,
+  PublicAdoptionRequest,
+  PublicAdoptionRequestCreated,
   AdminProtectivePublicProfile,
   ProtectiveHouseholdProfile,
   ProtectiveHouseholdProfileInput,
@@ -36,6 +39,7 @@ import type {
   ProtectivePublicProfileLogoUploadInput,
   ProtectivePublicProfileReviewInput,
   UpdateFosterPetExpenseInput,
+  UpdatePublicAdoptionRequestStatusInput,
   Uuid
 } from "@pet/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -89,6 +93,9 @@ type ProtectiveAdoptionCommitmentTemplateRow =
 type ApplicationCommitmentDocumentRow =
   Database["public"]["Tables"]["pet_adoption_application_commitment_documents"]["Row"];
 type FosterPetExpenseRow = Database["public"]["Tables"]["foster_pet_expenses"]["Row"];
+type PublicAdoptionRequestRow =
+  Database["public"]["Functions"]["list_received_public_adoption_requests"]["Returns"][number];
+type PublicAdoptionRequestBaseRow = Database["public"]["Tables"]["adoption_public_requests"]["Row"];
 
 const protectiveHouseholdLogosBucketId = "protective-household-logos";
 const fosterAdoptionDocumentsBucketId = "foster-adoption-documents";
@@ -128,6 +135,9 @@ export interface FosterApiClient {
   listPublishedPetAdoptionListings(): Promise<PetAdoptionListing[]>;
   getPetAdoptionListingDetail(listingId: Uuid, visibility?: "owner" | "public"): Promise<PetAdoptionListing | null>;
   getPublicPetAdoptionListingBySlug(slug: string): Promise<PublicPetAdoptionProfile | null>;
+  createPublicAdoptionRequest(input: CreatePublicAdoptionRequestInput): Promise<PublicAdoptionRequestCreated>;
+  listReceivedPublicAdoptionRequests(householdId?: Uuid | null): Promise<PublicAdoptionRequest[]>;
+  updatePublicAdoptionRequestStatus(input: UpdatePublicAdoptionRequestStatusInput): Promise<PublicAdoptionRequest>;
   listPendingPetAdoptionListingsForAdmin(): Promise<PetAdoptionListing[]>;
   createPetAdoptionApplication(input: PetAdoptionApplicationInput): Promise<PetAdoptionApplication>;
   listMyPetAdoptionApplications(): Promise<PetAdoptionApplication[]>;
@@ -178,6 +188,10 @@ function isMissingFosterSchemaError(error: { message: string } | null) {
     message.includes("submit_protective_public_profile") ||
     message.includes("review_protective_public_profile") ||
     message.includes("get_public_protective_profile_by_slug") ||
+    message.includes("adoption_public_requests") ||
+    message.includes("create_public_adoption_request") ||
+    message.includes("list_received_public_adoption_requests") ||
+    message.includes("update_public_adoption_request_status") ||
     message.includes("list_pending_protective_public_profiles_for_admin") ||
     message.includes("pet_transfer_records") ||
     message.includes("pet_custody_contexts") ||
@@ -574,6 +588,32 @@ function mapPetAdoptionApplication(row: PetAdoptionApplicationFunctionRow): PetA
     petSpecies: "pet_species" in row ? row.pet_species : "Mascota",
     petBreed: "pet_breed" in row ? row.pet_breed : null,
     protectiveHouseholdName: "protective_household_name" in row ? row.protective_household_name : "Familia protectora"
+  };
+}
+
+function mapPublicAdoptionRequest(row: PublicAdoptionRequestRow | PublicAdoptionRequestBaseRow): PublicAdoptionRequest {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    protectiveHouseholdId: row.protective_household_id,
+    petId: row.pet_id,
+    requesterName: row.requester_name,
+    requesterEmail: row.requester_email,
+    requesterPhone: row.requester_phone,
+    requesterCity: row.requester_city,
+    motivation: row.motivation,
+    experience: row.experience,
+    housingType: row.housing_type,
+    hasOtherPets: row.has_other_pets,
+    hasChildren: row.has_children,
+    privacyAcknowledgedAt: row.privacy_acknowledged_at,
+    status: row.status,
+    sourceUrl: row.source_url,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    listingTitle: "listing_title" in row ? row.listing_title : "Publicacion de adopcion",
+    listingSlug: "listing_slug" in row ? row.listing_slug : "",
+    petName: "pet_name" in row ? row.pet_name : "Mascota"
   };
 }
 
@@ -1488,6 +1528,67 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
       }
 
       return data?.[0] ? mapPublicPetAdoptionProfile(supabase, data[0]) : null;
+    },
+    async createPublicAdoptionRequest(input) {
+      const { data, error } = await supabase.rpc("create_public_adoption_request", {
+        target_listing_slug: input.listingSlug,
+        next_requester_name: input.requesterName,
+        next_requester_email: input.requesterEmail,
+        next_requester_phone: input.requesterPhone ?? null,
+        next_requester_city: input.requesterCity ?? null,
+        next_motivation: input.motivation,
+        next_experience: input.experience ?? null,
+        next_housing_type: input.housingType ?? null,
+        next_has_other_pets: input.hasOtherPets ?? null,
+        next_has_children: input.hasChildren ?? null,
+        next_privacy_acknowledged: input.privacyAcknowledged,
+        next_source_url: input.sourceUrl ?? null,
+        next_company_website: input.companyWebsite ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      const created = data?.[0];
+      if (!created) {
+        fail(null, "No fue posible registrar la solicitud inicial.");
+      }
+
+      return {
+        requestId: created.request_id,
+        status: created.request_status,
+        message: created.response_message
+      };
+    },
+    async listReceivedPublicAdoptionRequests(householdId) {
+      const { data, error } = await supabase.rpc("list_received_public_adoption_requests", {
+        target_household_id: householdId ?? null,
+        target_status: null
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return [];
+        }
+
+        fail(error, "No fue posible cargar el interes publico recibido.");
+      }
+
+      return (data ?? []).map(mapPublicAdoptionRequest);
+    },
+    async updatePublicAdoptionRequestStatus(input) {
+      const { data, error } = await supabase.rpc("update_public_adoption_request_status", {
+        target_request_id: input.requestId,
+        next_status: input.status,
+        notes: input.notes ?? null
+      });
+
+      if (error) {
+        failMissingFosterSchema(error);
+      }
+
+      return mapPublicAdoptionRequest(data);
     },
     async listPendingPetAdoptionListingsForAdmin() {
       const { data, error } = await supabase.rpc("list_pending_pet_adoption_listings_for_admin", {});

@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+# Handoff 2026-08-16 - ADOPTION-PUBLIC-FUNNEL Slice 2/3
+
+- Estado en `origin/master`: Slice 2 y Slice 3 implementados y pusheados.
+- Commits relevantes: `c1750f3 feat(foster): add public protective landing` y `526b723 feat(foster): enhance public adoption pet page`.
+- Slice 2 agrega `/protectoras/[slug]` como landing publica de Familia Protectora aprobada/publica. Usa perfil publico real, logo o iniciales, mision/historia, mascotas publicadas, datos de contacto/redes declarados y apoyo/donaciones solo como informacion declarada.
+- Slice 3 refuerza `/adopciones/[slug]` como ficha publica de mascota. Muestra galeria, historia, personalidad, salud publica resumida, requisitos, compatibilidad, ubicacion general, privacidad y enlace a la Familia Protectora.
+- Guardrails vigentes: no se muestran documentos privados, gastos, comprobantes, solicitudes, notas internas, datos de solicitantes, direcciones exactas ni mascotas privadas/no publicadas.
+- No hubo migraciones, cambios RLS, cambios Supabase remoto, pagos, marketplace comercial ni reglas de transferencia/adopcion.
+- Validaciones realizadas durante el cierre de Slice 3: `corepack pnpm --filter @pet/web lint`, `typecheck`, `build` y `git diff --check`.
+- Para ver cambios en `petecosyst.com`, actualizar la gota al ultimo `origin/master`.
+- Siguiente decision recomendada: cerrar SEO/metadata social para rutas publicas o avanzar con Slice 4: solicitud inicial publica ligera sin transferir custodia ni crear adopcion formal.
+
 # Handoff 2026-08-16 - Foster adoption listing permission repair
 
 - Se prepara migracion local `20260816110000_foster_adoption_listing_management_scope.sql` para corregir falsos bloqueos al completar/publicar fichas de adopcion desde Web Foster.
@@ -1696,3 +1708,9 @@ Al final:
 3. resumir evidencia tecnica/operativa pendiente o capturada
 4. recomendar si el siguiente frente puede ser Payments MVP+ o si falta cerrar smoke/evidencia
 ```
+# Handoff 2026-08-21 - Adoption Public Funnel Slice 4 local
+
+- Se implementa localmente `/adopciones/[petSlug]/solicitar` como formulario publico de interes inicial con consentimiento, honeypot, duplicados y rate limit server-side.
+- Nueva migracion local `20260821110000_adoption_public_funnel_slice4.sql`: `adoption_public_requests`, historial, RLS y RPCs de creacion/listado/cambio de estado.
+- Web Foster agrega `Interes publico` separado de `Solicitudes`: permite revisar, preseleccionar o descartar; no crea solicitud formal, transferencia ni cambia `pets.household_id`.
+- Pendiente: validaciones completas y dry-run. No aplicar remoto ni abrir Slice 5 sin aprobacion.

@@ -152,6 +152,12 @@ Estados:
 - Error de validacion.
 - Bloqueada por abuso/spam.
 
+Estado Slice 4:
+
+- Ruta implementada con formulario corto, validacion accesible, consentimiento y confirmacion responsable.
+- La Web Foster agrega `Interes publico` como bandeja separada del pipeline de solicitudes formales.
+- La familia puede iniciar revision, preseleccionar o descartar con nota; preseleccionar no envia invitacion ni mueve custodia.
+
 ### `/adoption-invite/[token]`
 
 Objetivo: conectar una preseleccion de la protectora con la app owner.

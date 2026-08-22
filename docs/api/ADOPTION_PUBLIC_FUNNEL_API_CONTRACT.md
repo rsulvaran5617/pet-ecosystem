@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL API Contract
 
-Contrato conceptual para el embudo publico de adopcion. No implica implementacion ni migracion inmediata.
+Contrato del embudo publico de adopcion. Slice 4 queda implementado localmente y pendiente de aplicacion remota controlada.
 
 ## Principios
 
@@ -178,6 +178,14 @@ Errores:
 - `listing_not_available`
 - `profile_not_public`
 - `validation_failed`
+
+Implementacion Slice 4:
+
+- RPC publica `create_public_adoption_request` para visitantes anonimos o autenticados.
+- API client `createPublicAdoptionRequest`.
+- RPC privada `list_received_public_adoption_requests` para miembros autorizados de la Familia Protectora.
+- RPC privada `update_public_adoption_request_status` para revision, preseleccion o descarte.
+- La operacion no crea `pet_adoption_applications`, `pet_transfer_records` ni cambia `pets.household_id`.
 - `duplicate_request`
 - `rate_limited`
 - `privacy_ack_required`

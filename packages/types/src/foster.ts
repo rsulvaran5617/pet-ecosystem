@@ -49,6 +49,13 @@ export type PetAdoptionApplicationStatus =
   | "rejected"
   | "approved"
   | "converted_to_transfer";
+export type PublicAdoptionRequestStatus =
+  | "submitted"
+  | "in_review"
+  | "preselected"
+  | "rejected"
+  | "cancelled"
+  | "expired";
 
 export interface ProtectiveHouseholdProfile extends TimestampedEntity {
   householdId: Uuid;
@@ -421,6 +428,56 @@ export interface PublicPetAdoptionProfile {
   petIsSterilized: boolean | null;
   media: PublicPetAdoptionMedia[];
   protectiveHousehold: PublicProtectiveHouseholdSummary;
+}
+
+export interface PublicAdoptionRequest extends TimestampedEntity {
+  id: Uuid;
+  listingId: Uuid;
+  protectiveHouseholdId: Uuid;
+  petId: Uuid;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone: string | null;
+  requesterCity: string | null;
+  motivation: string;
+  experience: string | null;
+  housingType: string | null;
+  hasOtherPets: boolean | null;
+  hasChildren: boolean | null;
+  privacyAcknowledgedAt: string;
+  status: PublicAdoptionRequestStatus;
+  sourceUrl: string | null;
+  listingTitle: string;
+  listingSlug: string;
+  petName: string;
+}
+
+export interface CreatePublicAdoptionRequestInput {
+  listingSlug: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterPhone?: string | null;
+  requesterCity?: string | null;
+  motivation: string;
+  experience?: string | null;
+  housingType?: string | null;
+  hasOtherPets?: boolean | null;
+  hasChildren?: boolean | null;
+  privacyAcknowledged: boolean;
+  sourceUrl?: string | null;
+  companyWebsite?: string | null;
+}
+
+export interface PublicAdoptionRequestCreated {
+  requestId: Uuid;
+  status: "submitted";
+  message: string;
+}
+
+export interface UpdatePublicAdoptionRequestStatusInput {
+  requestId: Uuid;
+  status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">;
+  notes?: string | null;
 }
 
 export interface PetAdoptionListingInput {

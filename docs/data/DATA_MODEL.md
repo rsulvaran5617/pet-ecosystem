@@ -114,6 +114,8 @@ Regla documental:
 
 ## Modelo V2.5 Foster/Adoption
 
+Slice 4 del embudo publico agrega localmente `adoption_public_requests` y `adoption_public_request_status_history` para captar y revisar interes anonimo. Estas entidades no sustituyen `pet_adoption_applications`, no crean transferencias y no cambian custodia.
+
 Modelo conceptual documental. No implementado y sin migraciones asociadas.
 
 Recomendacion:

@@ -2,6 +2,18 @@
 
 Landing publica de fundaciones y conversion responsable hacia app owner.
 
+## Estado operativo 2026-08-21
+
+- Slice 1 documental: completado como definicion de alcance, modelo conceptual, UX, contrato futuro y riesgos.
+- Slice 2 landing publica de Familia Protectora: implementado en `/protectoras/[slug]` con datos reales del perfil publico aprobado, mascotas publicadas, contacto/redes declaradas y bloque opcional de apoyo.
+- Slice 3 ficha publica de mascota: implementado en `/adopciones/[petSlug]` como pagina publica profesional con galeria, historia, personalidad, salud publica, requisitos, compatibilidad, ubicacion general y enlace de regreso a la Familia Protectora.
+- Slice 4 solicitud inicial publica: implementado localmente en `/adopciones/[petSlug]/solicitar`, con consentimiento, honeypot, controles de duplicados/rate limit y bandeja Web Foster `Interes publico` separada de solicitudes formales.
+- No se han creado migraciones para este frente publico, no se tocaron RLS ni Supabase remoto y no se expusieron documentos privados, gastos, comprobantes, solicitudes, notas internas ni direcciones exactas.
+- El cierre formal de adopcion sigue dentro del flujo autenticado owner/foster existente. La ficha publica orienta el interes, pero aun no captura una solicitud publica ligera.
+- Para verlo en produccion, la gota debe actualizarse al commit mas reciente de `origin/master`.
+
+Siguiente paso recomendado: validar Slice 4 en QA y aplicar su migracion de forma controlada. Slice 5, invitacion hacia app owner, permanece fuera de este cierre.
+
 ## Resumen ejecutivo
 
 ADOPTION-PUBLIC-FUNNEL propone una capa publica de captacion para Familias Protectoras y fundaciones, separada del cierre formal de adopcion. La landing publica aumenta visibilidad, difusion, confianza e interes inicial; la app mobile owner conserva el proceso responsable: cuenta, hogar, solicitud formal, aprobacion, transferencia y expediente.

@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL Data Model
 
-Modelo conceptual para el embudo publico de adopcion. Este documento no autoriza migraciones; define entidades propuestas y reutilizacion del modelo actual.
+Modelo del embudo publico de adopcion. Slice 4 prepara localmente las entidades de interes publico; la migracion no debe aplicarse remoto sin dry-run y aprobacion.
 
 ## Reutilizacion actual
 
@@ -118,9 +118,12 @@ Riesgos:
 - Datos personales sin cuenta.
 - Duplicados por mascota/email.
 
-MVP o futuro:
+Implementacion Slice 4:
 
-- MVP del Slice 4.
+- Estados implementados: `submitted`, `in_review`, `preselected`, `rejected`, `cancelled`, `expired`.
+- Los estados de conversion a owner/app quedan para Slice 5 y no se simulan en Slice 4.
+- La tabla no concede lectura directa anonima; la creacion publica ocurre por RPC validada.
+- `adoption_public_request_status_history` conserva cada transicion operativa.
 
 ### `adoption_invites`
 

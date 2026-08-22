@@ -512,3 +512,14 @@ Reglas conceptuales:
 - owner no debe verlas
 - no reemplazan chat ni soporte
 - deben quedar protegidas por RLS antes de aplicar migracion.
+
+## Adoption Public Funnel Slice 4
+
+La migracion local `20260821110000_adoption_public_funnel_slice4.sql` prepara:
+
+- `adoption_public_requests`: interes inicial enviado desde una ficha publica, con listing, hogar protector, mascota, contacto, motivacion, contexto basico, consentimiento y estado.
+- `adoption_public_request_status_history`: historial inmutable de transiciones del contacto.
+- RPC publica `create_public_adoption_request` con validacion de publicacion, consentimiento, honeypot, duplicados y rate limit.
+- RPCs autenticadas `list_received_public_adoption_requests` y `update_public_adoption_request_status` para la consola Foster.
+
+No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.

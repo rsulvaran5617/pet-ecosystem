@@ -11,6 +11,8 @@ import type {
   PetAdoptionApplicationStatusHistory,
   PetAdoptionListing,
   PetAdoptionListingMedia,
+  PublicAdoptionRequest,
+  PublicAdoptionRequestStatus,
   CreatePetInput,
   PetTransferRecord,
   PetSummary,
@@ -46,6 +48,7 @@ export type FosterConsoleHouseholdContext = {
   pets: PetSummary[];
   profile: ProtectiveHouseholdProfile | null;
   publicProfile: ProtectivePublicProfile | null;
+  publicRequests: PublicAdoptionRequest[];
   commitmentTemplate: ProtectiveAdoptionCommitmentTemplate | null;
   transfers: PetTransferRecord[];
 };
@@ -192,11 +195,12 @@ export function useFosterConsoleWorkspace() {
   );
 
   const loadHouseholdContext = useCallback(async (household: HouseholdSummary): Promise<FosterConsoleHouseholdContext> => {
-    const [profile, publicProfile, listings, applications, transfers, pets, commitmentTemplate] = await Promise.all([
+    const [profile, publicProfile, listings, applications, publicRequests, transfers, pets, commitmentTemplate] = await Promise.all([
       getBrowserFosterApiClient().getProtectiveHouseholdProfile(household.id),
       getBrowserFosterApiClient().getProtectivePublicProfile(household.id),
       getBrowserFosterApiClient().listMyPetAdoptionListings(household.id),
       getBrowserFosterApiClient().listReceivedPetAdoptionApplications(household.id),
+      getBrowserFosterApiClient().listReceivedPublicAdoptionRequests(household.id),
       getBrowserFosterApiClient().listOutgoingPetTransfers(household.id),
       getBrowserPetsApiClient().listHouseholdPets(household.id),
       getBrowserFosterApiClient().getProtectiveAdoptionCommitmentTemplate(household.id)
@@ -209,6 +213,7 @@ export function useFosterConsoleWorkspace() {
       pets,
       profile,
       publicProfile,
+      publicRequests,
       transfers
     };
   }, []);
@@ -727,6 +732,37 @@ export function useFosterConsoleWorkspace() {
     }
   }
 
+  async function updatePublicRequestStatus(
+    request: PublicAdoptionRequest,
+    status: Exclude<PublicAdoptionRequestStatus, "submitted" | "expired">,
+    notes?: string | null
+  ) {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+
+    try {
+      await getBrowserFosterApiClient().updatePublicAdoptionRequestStatus({
+        notes: notes?.trim() || null,
+        requestId: request.id,
+        status
+      });
+      await reloadSelectedHousehold();
+
+      if (mountedRef.current) {
+        setInfoMessage("Estado del interes publico actualizado.");
+      }
+    } catch (error) {
+      if (mountedRef.current) {
+        setErrorMessage(toHumanFosterError(error, "No fue posible actualizar el interes publico."));
+      }
+    } finally {
+      if (mountedRef.current) {
+        setIsSubmitting(false);
+      }
+    }
+  }
+
   async function uploadFosterPetAvatar(petId: Uuid, file: File) {
     const normalizedFile = normalizeAdoptionPhotoFile(file);
 
@@ -1025,6 +1061,7 @@ export function useFosterConsoleWorkspace() {
     profile: selectedContext?.profile ?? null,
     protectiveHouseholds,
     publicProfile: selectedContext?.publicProfile ?? null,
+    publicRequests: selectedContext?.publicRequests ?? [],
     refresh,
     reviewApplicationCommitmentDocument,
     selectedApplicationDetail,
@@ -1050,6 +1087,7 @@ export function useFosterConsoleWorkspace() {
     setAdoptionListingCover,
     transfers: selectedContext?.transfers ?? [],
     uploadAdoptionListingPhoto,
-    updateApplicationStatus
+    updateApplicationStatus,
+    updatePublicRequestStatus
   };
 }

@@ -13,6 +13,7 @@ import type {
   PetAdoptionListingReviewDecision,
   PetAdoptionShareStatus,
   PetAdoptionApplicationStatus,
+  PublicAdoptionRequestStatus,
   PetAdoptionListingStatus,
   PetAdoptionMediaReviewDecision,
   PetAdoptionMediaModerationStatus,
@@ -1364,6 +1365,72 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      adoption_public_requests: {
+        Row: {
+          id: string;
+          listing_id: string;
+          protective_household_id: string;
+          pet_id: string;
+          requester_name: string;
+          requester_email: string;
+          requester_phone: string | null;
+          requester_city: string | null;
+          motivation: string;
+          experience: string | null;
+          housing_type: string | null;
+          has_other_pets: boolean | null;
+          has_children: boolean | null;
+          privacy_acknowledged_at: string;
+          status: PublicAdoptionRequestStatus;
+          source_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          listing_id: string;
+          protective_household_id: string;
+          pet_id: string;
+          requester_name: string;
+          requester_email: string;
+          requester_phone?: string | null;
+          requester_city?: string | null;
+          motivation: string;
+          experience?: string | null;
+          housing_type?: string | null;
+          has_other_pets?: boolean | null;
+          has_children?: boolean | null;
+          privacy_acknowledged_at: string;
+          status?: PublicAdoptionRequestStatus;
+          source_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["adoption_public_requests"]["Insert"]>;
+        Relationships: [];
+      };
+      adoption_public_request_status_history: {
+        Row: {
+          id: string;
+          public_request_id: string;
+          from_status: PublicAdoptionRequestStatus | null;
+          to_status: PublicAdoptionRequestStatus;
+          changed_by_user_id: string | null;
+          change_reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          public_request_id: string;
+          from_status?: PublicAdoptionRequestStatus | null;
+          to_status: PublicAdoptionRequestStatus;
+          changed_by_user_id?: string | null;
+          change_reason?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["adoption_public_request_status_history"]["Insert"]>;
         Relationships: [];
       };
       protective_household_adoption_commitment_templates: {
@@ -2787,6 +2854,49 @@ export interface Database {
           target_listing_id: string;
         };
         Returns: boolean;
+      };
+      create_public_adoption_request: {
+        Args: {
+          target_listing_slug: string;
+          next_requester_name: string;
+          next_requester_email: string;
+          next_requester_phone?: string | null;
+          next_requester_city?: string | null;
+          next_motivation?: string;
+          next_experience?: string | null;
+          next_housing_type?: string | null;
+          next_has_other_pets?: boolean | null;
+          next_has_children?: boolean | null;
+          next_privacy_acknowledged?: boolean;
+          next_source_url?: string | null;
+          next_company_website?: string | null;
+        };
+        Returns: Array<{
+          request_id: string;
+          request_status: "submitted";
+          response_message: string;
+        }>;
+      };
+      list_received_public_adoption_requests: {
+        Args: {
+          target_household_id?: string | null;
+          target_status?: PublicAdoptionRequestStatus | null;
+        };
+        Returns: Array<
+          Database["public"]["Tables"]["adoption_public_requests"]["Row"] & {
+            listing_title: string;
+            listing_slug: string;
+            pet_name: string;
+          }
+        >;
+      };
+      update_public_adoption_request_status: {
+        Args: {
+          target_request_id: string;
+          next_status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["adoption_public_requests"]["Row"];
       };
       create_pet_adoption_application: {
         Args: {

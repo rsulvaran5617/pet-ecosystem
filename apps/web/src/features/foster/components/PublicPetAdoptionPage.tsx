@@ -206,7 +206,7 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
               ))}
           </div>
           <div className="hero-actions">
-            <a href={isAvailable ? "#adopcion-responsable" : "#estado"}>{isAvailable ? "Quiero adoptar" : "Ver estado"}</a>
+            <a href={isAvailable ? `/adopciones/${slug}/solicitar` : "#estado"}>{isAvailable ? "Quiero adoptar" : "Ver estado"}</a>
             <button onClick={handleShare} type="button">
               {shareLabel}
             </button>
@@ -259,8 +259,8 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
                   <span>Revisa la ficha publica y comparte la mascota si puede interesar a otra familia.</span>
                 </div>
                 <div>
-                  <strong>2. Contacta a la protectora</strong>
-                  <span>La coordinacion inicial depende de los datos publicos declarados por la organizacion.</span>
+                  <strong>2. Envia tu interes inicial</strong>
+                  <span>Comparte tus datos minimos para que la Familia Protectora pueda revisar tu solicitud.</span>
                 </div>
                 <div>
                   <strong>3. Continua en Pet Ecosystem</strong>
