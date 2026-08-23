@@ -5,54 +5,83 @@ import { useEffect, useState } from "react";
 
 import { getBrowserPetAlertApiClient } from "../../core/services/supabase-browser";
 import { PublicCommunityClaimPanel } from "./PublicCommunityClaimPanel";
+import styles from "./PublicCommunitySightingsPage.module.css";
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-PA", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Panama" }).format(new Date(value));
+  return new Intl.DateTimeFormat("es-PA", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "America/Panama"
+  }).format(new Date(value));
+}
+
+function statusLabel(status: PublicPetAlertCommunitySighting["status"]) {
+  if (status === "reunited") return "Reunida con su familia";
+  if (status === "closed") return "Reporte cerrado";
+  if (status === "owner_verified") return "Familia verificada";
+  if (status === "possible_owner_claim") return "Posible familia encontrada";
+  if (status === "sheltered_by_reporter") return "Bajo resguardo temporal";
+  return "Reporte activo";
 }
 
 export function PublicCommunitySightingsPage({ slug }: { slug?: string }) {
   const [reports, setReports] = useState<PublicPetAlertCommunitySighting[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activePhoto, setActivePhoto] = useState(0);
 
   useEffect(() => {
     const request = slug
       ? getBrowserPetAlertApiClient().getPetAlertCommunitySightingBySlug(slug).then((report) => report ? [report] : [])
       : getBrowserPetAlertApiClient().listPublicPetAlertCommunitySightings({ country: "PA" });
-    request.then(setReports).catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "No fue posible cargar PET ALERT.")).finally(() => setLoading(false));
+    request
+      .then(setReports)
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "No fue posible cargar PET ALERT."))
+      .finally(() => setLoading(false));
   }, [slug]);
 
   const report = slug ? reports[0] : null;
-  if (loading) return <main className="page"><section className="empty">Cargando reportes comunitarios...</section><style jsx>{styles}</style></main>;
-  if (error || (slug && !report)) return <main className="page"><section className="empty"><h1>Reporte no disponible</h1><p>{error ?? "Este reporte vencio o dejo de ser publico."}</p></section><style jsx>{styles}</style></main>;
+  if (loading) return <main className={styles.page}><section className={styles.state}>Cargando boletín comunitario...</section></main>;
+  if (error || (slug && !report)) return <main className={styles.page}><section className={styles.state}><h1>Reporte no disponible</h1><p>{error ?? "Este reporte venció o dejó de ser público."}</p><a href="/pet-alert">Volver a PET ALERT</a></section></main>;
+  if (!report) return <main className={styles.page}><section className={styles.state}><a href="/pet-alert">Abrir centro comunitario PET ALERT</a></section></main>;
+
+  const location = `${report.city}${report.region ? `, ${report.region}` : ""}`;
 
   return (
-    <main className="page">
-      <header className="hero">
-        <span>PET ALERT COMUNITARIO</span>
-        <h1>{report ? `${report.animalSpecies} visto en ${report.city}` : "Mascotas aparentemente perdidas"}</h1>
-        <p>{report ? "Este reporte comunitario no determina abandono ni propiedad." : "Reportes aproximados para ayudar a reunir mascotas con sus familias."}</p>
-        <div className="actions"><a href="/pet-alert/reportar-mascota-vista">Vi una mascota perdida</a>{slug ? <a className="secondary" href="/pet-alert">Ver reportes</a> : null}</div>
-      </header>
-      {report ? (
-        <section className="detail">
-          {report.photoUrls.length ? <div className="gallery">{report.photoUrls.map((url, index) => <img alt={`Mascota reportada, foto ${index + 1}`} key={url} src={url} />)}</div> : null}
-          <article><small>VISTA EN</small><h2>{report.city}{report.region ? `, ${report.region}` : ""}</h2><p>{formatDate(report.sightedAt)}</p>{report.locationReference ? <strong>Referencia aproximada: {report.locationReference}</strong> : null}</article>
-          <article><small>DESCRIPCION</small><h2>{report.animalSpecies}{report.apparentBreed ? ` - ${report.apparentBreed}` : ""}</h2><p>{report.observedSituation}</p></article>
-          {report.distinctiveMarks || report.collarDescription ? <article><small>COMO RECONOCERLA</small><p>{report.distinctiveMarks ?? report.collarDescription}</p></article> : null}
-          <aside><strong>Ayuda de forma segura</strong><p>No persigas a la mascota ni publiques domicilios. Una solicitud no demuestra propiedad ni transfiere custodia.</p></aside>
-          <PublicCommunityClaimPanel reportSlug={report.reportSlug} />
-        </section>
-      ) : (
-        <section className="grid">
-          {reports.length ? reports.map((item) => <a className="card" href={`/pet-alert/mascota-vista/${item.reportSlug}`} key={item.reportSlug}>{item.photoUrls[0] ? <img alt={`Mascota vista en ${item.city}`} src={item.photoUrls[0]} /> : null}<small>{formatDate(item.sightedAt)}</small><h2>{item.animalSpecies}{item.apparentBreed ? ` - ${item.apparentBreed}` : ""}</h2><strong>{item.city}{item.region ? `, ${item.region}` : ""}</strong><p>{item.observedSituation}</p><span>Ver reporte</span></a>) : <div className="empty">Aun no hay reportes comunitarios activos.</div>}
-        </section>
-      )}
-      <style jsx>{styles}</style>
+    <main className={styles.page}>
+      <nav className={styles.breadcrumb} aria-label="Navegación PET ALERT"><a href="/pet-alert">PET ALERT</a><span>/</span><span>Mascota vista</span></nav>
+      <section className={styles.hero}>
+        <div className={styles.mediaColumn}>
+          <div className={styles.mainPhoto}>
+            {report.photoUrls[activePhoto] ? <img alt={`${report.animalSpecies} visto en ${report.city}`} src={report.photoUrls[activePhoto]} /> : <div className={styles.noPhoto}>Este reporte no tiene fotografía.</div>}
+          </div>
+          {report.photoUrls.length > 1 ? <div className={styles.thumbnails} aria-label="Fotografías del reporte">{report.photoUrls.map((url, index) => <button aria-label={`Ver fotografía ${index + 1}`} aria-pressed={activePhoto === index} className={activePhoto === index ? styles.thumbnailActive : styles.thumbnail} key={url} onClick={() => setActivePhoto(index)} type="button"><img alt="" src={url} /></button>)}</div> : null}
+        </div>
+        <div className={styles.heroContent}>
+          <div className={styles.kicker}><span>PET ALERT COMUNITARIO</span><strong>{statusLabel(report.status)}</strong></div>
+          <h1>{report.animalSpecies}{report.apparentBreed ? ` · ${report.apparentBreed}` : ""}</h1>
+          <p className={styles.lead}>{report.observedSituation}</p>
+          <div className={styles.locationCard}>
+            <small>VISTA EN</small><strong>{location}, {report.country}</strong><span>{formatDate(report.sightedAt)}</span>
+            {report.locationReference ? <p>Referencia aproximada: {report.locationReference}</p> : null}
+          </div>
+          <div className={styles.actions}><a href="/pet-alert">Volver a boletines</a><a className={styles.reportAction} href="/pet-alert/reportar-mascota-vista">Vi una mascota perdida</a></div>
+        </div>
+      </section>
+      <section className={styles.content}>
+        <div className={styles.details}>
+          <header><span>DATOS PÚBLICOS</span><h2>Cómo reconocerla</h2></header>
+          <div className={styles.detailGrid}>
+            <article><small>ESPECIE Y RAZA APARENTE</small><strong>{report.animalSpecies}{report.apparentBreed ? ` · ${report.apparentBreed}` : ""}</strong></article>
+            <article><small>COLOR PRINCIPAL</small><strong>{report.primaryColor ?? "No indicado"}</strong></article>
+            <article><small>COLLAR O ACCESORIO</small><strong>{report.collarDescription ?? "No indicado"}</strong></article>
+            <article><small>SEÑAS DISTINTIVAS</small><strong>{report.distinctiveMarks ?? "No indicadas"}</strong></article>
+          </div>
+          {report.behaviorNotes ? <article className={styles.behavior}><small>COMPORTAMIENTO OBSERVADO</small><p>{report.behaviorNotes}</p></article> : null}
+        </div>
+        <aside className={styles.safety}><span>AYUDA SEGURA</span><h2>Ayuda sin exponerte</h2><ul><li>No persigas ni acorrales a la mascota.</li><li>No publiques domicilios ni información personal.</li><li>Este reporte no demuestra propiedad ni transfiere custodia.</li></ul></aside>
+      </section>
+      <section className={styles.claimWrap}><PublicCommunityClaimPanel reportSlug={report.reportSlug} /></section>
     </main>
   );
 }
-
-const styles = `
-  .page{background:#fff7ed;min-height:100vh;padding:28px 18px 60px}.hero,.grid,.detail,.empty{margin:auto;max-width:1080px}.hero{background:#9a3412;border-radius:28px;color:#fff;display:grid;gap:12px;padding:34px}.hero span,.card small,.detail small{font-size:11px;font-weight:900}.hero h1{font-size:clamp(32px,5vw,54px);letter-spacing:0;line-height:1.04;margin:0}.hero p{color:#ffedd5;font-size:17px;margin:0}.actions{display:flex;flex-wrap:wrap;gap:9px}.actions a{background:#fff;border-radius:999px;color:#9a3412;font-weight:900;padding:12px 16px;text-decoration:none}.actions .secondary{background:#ea580c;color:#fff}.grid{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));padding-top:22px}.card,.detail article,.detail aside,.empty{background:#fff;border:1px solid #fed7aa;border-radius:20px;color:#0f172a;padding:20px;text-decoration:none}.card{display:grid;gap:8px}.card>img{aspect-ratio:4/3;border-radius:14px;object-fit:cover;width:100%}.card h2,.detail h2{font-size:20px;margin:0}.card p,.detail p{color:#64748b;line-height:1.5;margin:0}.card span{color:#c2410c;font-weight:900}.detail{display:grid;gap:16px;grid-template-columns:repeat(2,minmax(0,1fr));padding-top:22px}.detail aside{background:#ffedd5}.gallery{display:grid;gap:10px;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))}.gallery img{aspect-ratio:4/3;border-radius:18px;object-fit:cover;width:100%}.empty{margin-top:30px;text-align:center}@media(max-width:720px){.page{padding:12px 10px 40px}.hero{padding:22px}.grid,.detail{grid-template-columns:1fr}.gallery{grid-template-columns:1fr}}
-`;

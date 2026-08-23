@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-23 - PET ALERT ficha comunitaria web
+
+- `/pet-alert/mascota-vista/[slug]` adopta CSS Modules para asegurar estilos consistentes en produccion.
+- La ficha prioriza foto completa sin recorte, miniaturas navegables, estado, ubicacion aproximada, senales distintivas y ayuda segura.
+- El contacto controlado se reorganiza con jerarquia clara y textos en espanol correctamente codificados.
+- No cambia API, Supabase, claims, privacidad, moderacion ni custodia.
+
 # Handoff 2026-08-23 - PET ALERT fotos publicas
 
 - El directorio y las fichas comunitarias dejan de consultar directamente la tabla protegida de media.

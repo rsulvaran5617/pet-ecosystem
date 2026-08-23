@@ -153,6 +153,8 @@ Todas incluyen compartir, reportar abuso, estado visible y aviso de seguridad. U
 El formulario `Vi una mascota perdida` permite agregar hasta tres fotos opcionales desde camara o galeria, previsualizarlas y quitarlas antes de publicar. La portada aparece en listados mobile/web y la ficha publica presenta la galeria.
 # Slice 7B - Centro comunitario
 
+La ficha comunitaria `/pet-alert/mascota-vista/[slug]` usa una composicion de boletin: fotografia principal sin recorte, miniaturas cuando existen varias imagenes, estado y zona general, datos para reconocerla, recomendaciones de seguridad y contacto controlado separado del contenido publico.
+
 `/pet-alert` funciona como centro de consulta, no como feed social. Prioriza busqueda y escaneo:
 
 - pestanas `Extraviadas`, `Mascotas vistas` y `Encontradas`;

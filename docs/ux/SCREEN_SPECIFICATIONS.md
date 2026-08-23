@@ -313,6 +313,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - El copy aclara que el claim no prueba propiedad ni transfiere custodia.
 # Web publica - PET ALERT Comunidad
 
+- Ficha `mascota-vista/[slug]`: imagen completa con `contain`, galeria navegable, datos publicos jerarquizados y panel de contacto que conserva consentimiento y senales privadas.
+
 - Ruta: `/pet-alert`.
 - Audiencia: publico general, sin autenticacion para consulta.
 - Contenido: boletines sanitizados de mascotas extraviadas, vistas y encontradas.
