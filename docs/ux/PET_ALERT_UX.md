@@ -151,3 +151,12 @@ Todas incluyen compartir, reportar abuso, estado visible y aviso de seguridad. U
 ## Slice 7A fotos comunitarias
 
 El formulario `Vi una mascota perdida` permite agregar hasta tres fotos opcionales desde camara o galeria, previsualizarlas y quitarlas antes de publicar. La portada aparece en listados mobile/web y la ficha publica presenta la galeria.
+# Slice 7B - Centro comunitario
+
+`/pet-alert` funciona como centro de consulta, no como feed social. Prioriza busqueda y escaneo:
+
+- pestanas `Extraviadas`, `Mascotas vistas` y `Encontradas`;
+- buscador por datos publicos y filtros plegables de ciudad/especie;
+- cards responsivas con estado, zona, fecha de actualizacion y CTA `Ver boletin`;
+- estados de carga, error y vacio con recuperacion clara;
+- acciones separadas para reportar una mascota propia o una mascota vista.

@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-23 - PET ALERT Slice 7B aplicado
+
+- `/pet-alert` se reorganiza como centro comunitario publico con vistas de mascotas `Extraviadas`, `Mascotas vistas` y `Encontradas`.
+- La nueva RPC sanitizada `list_public_pet_alert_directory` agrega busqueda, filtros y paginacion sin exponer PII, coordenadas ni IDs internos.
+- Las fichas publicas existentes por slug, reportes, claims, moderacion, ownership y custodia no cambian.
+- Migracion `20260823230000_pet_alert_slice7b_public_directory.sql` aplicada en Supabase remoto tras confirmar que era la unica pendiente.
+- Dry-run posterior sin migraciones pendientes. La web queda lista para despliegue y QA visual en `/pet-alert`.
+
 # Handoff 2026-08-22 - ADOPTION-PUBLIC-FUNNEL Slice 8
 
 - Migracion `20260822170000_adoption_public_funnel_slice8_metrics.sql` aplicada en Supabase remoto el 2026-08-23.

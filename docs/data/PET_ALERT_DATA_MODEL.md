@@ -144,3 +144,6 @@ El estado efectivo puede derivarse al leer mientras no exista scheduler. Un job 
 - Galeria opcional de hasta tres imagenes por reporte comunitario.
 - Conserva reporte/slug, ruta privada, MIME, tamano, orden y actor creador.
 - No contiene coordenadas ni cambia ownership o custodia. La posicion cero es portada.
+# Proyeccion publica Slice 7B
+
+El centro comunitario no agrega una tabla duplicada. `list_public_pet_alert_directory` compone una proyeccion de solo lectura desde `pet_alert_lost_pets` y `pet_alert_community_sightings`, limitada a contenido compartible, vigente y no pausado. Los estados se agrupan en `active` y `found` exclusivamente para presentacion publica.

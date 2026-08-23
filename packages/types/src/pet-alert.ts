@@ -37,6 +37,36 @@ export type PetAlertModerationReason =
   | "animal_safety"
   | "other";
 export type PetAlertModerationAction = "flag" | "restore" | "close" | "reject_claim" | "dismiss";
+export type PetAlertPublicDirectoryView = "lost" | "seen" | "found";
+export type PetAlertPublicEventType = "lost_pet" | "community_sighting";
+export type PetAlertPublicStatusGroup = "active" | "found";
+
+export interface PublicPetAlertDirectoryEvent {
+  eventType: PetAlertPublicEventType;
+  publicSlug: string;
+  publicPath: string;
+  status: PetAlertLostPetStatus | PetAlertCommunityStatus;
+  statusGroup: PetAlertPublicStatusGroup;
+  title: string;
+  species: string;
+  breed: string | null;
+  city: string;
+  region: string | null;
+  country: string;
+  occurredAt: string;
+  publishedAt: string;
+  updatedAt: string;
+  summary: string;
+  locationReference: string | null;
+  photoUrl: string | null;
+}
+
+export interface PublicPetAlertDirectoryPage {
+  items: PublicPetAlertDirectoryEvent[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 export interface PetAlertLostPet extends TimestampedEntity {
   id: Uuid;

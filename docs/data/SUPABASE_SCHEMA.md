@@ -567,3 +567,8 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - `pet_alert_community_sighting_media`: hasta tres fotos opcionales por reporte comunitario.
 - Bucket privado `pet-alert-media`; JPG, PNG y WebP, maximo 10 MB por archivo.
 - Migracion aplicada remoto: `20260823223000_pet_alert_slice7a_community_photos.sql`.
+# PET ALERT Slice 7B
+
+- RPC publica: `list_public_pet_alert_directory(text, text, text, text, integer, integer)`.
+- No crea tablas ni modifica entidades transaccionales.
+- Migracion aplicada remoto: `20260823230000_pet_alert_slice7b_public_directory.sql`.

@@ -135,3 +135,13 @@ Slice 6 implementa `reportPetAlertContent`, `listPetAlertModerationQueue`, `mode
 - claim aceptado no cambia `pets.household_id`;
 - `flagged` desaparece de lectura publica;
 - reintentos no duplican mutaciones.
+# Slice 7B - Directorio publico
+
+`list_public_pet_alert_directory(filter_view, filter_query, filter_city, filter_species, result_limit, result_offset)` devuelve una pagina sanitizada de eventos publicos PET ALERT.
+
+- `filter_view`: `lost`, `seen` o `found`.
+- Busqueda: nombre publico, especie, raza, ciudad, region y resumen publico.
+- Salida: tipo de evento, slug/ruta publica, estado agrupado, titulo, especie/raza, zona general, fechas publicas, resumen y total paginado.
+- No devuelve IDs internos, ownership, usuario, contacto, coordenadas ni datos privados.
+
+El API client expone `listPublicPetAlertDirectory` y firma temporalmente la primera foto de reportes comunitarios cuando existe.

@@ -311,3 +311,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - El reclamante ve estado `En revision`, `Contacto autorizado` o `No aprobada` sin exponer informacion previa a la decision.
 - Mobile `Vi una mascota perdida > Tus reportes` muestra las solicitudes recibidas dentro de cada reporte y acciones `Autorizar contacto` / `Rechazar`.
 - El copy aclara que el claim no prueba propiedad ni transfiere custodia.
+# Web publica - PET ALERT Comunidad
+
+- Ruta: `/pet-alert`.
+- Audiencia: publico general, sin autenticacion para consulta.
+- Contenido: boletines sanitizados de mascotas extraviadas, vistas y encontradas.
+- Acciones: buscar, filtrar, cargar mas, abrir ficha, reportar mascota vista y entrar a la app para reportar mascota propia.
+- Privacidad: nunca mostrar coordenadas, domicilio, contacto privado, usuario, household ni IDs internos.

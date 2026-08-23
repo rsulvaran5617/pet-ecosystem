@@ -4,7 +4,7 @@
 
 `slice_7a_community_photos_applied`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slices 4, 5 y 6 estan aplicados remoto. Slice 7A agrega localmente fotos comunitarias opcionales. Notificaciones remotas todavia no existen.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slices 4, 5, 6, 7A y 7B estan aplicados remoto. Notificaciones remotas todavia no existen.
 
 ## Alcance aprobado para diseno
 
@@ -84,3 +84,11 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - Los archivos viven en el bucket privado `pet-alert-media` y la metadata en `pet_alert_community_sighting_media`.
 - Mobile y web usan URLs firmadas temporales. La visibilidad hereda el estado y moderacion del reporte.
 - No se solicita GPS y la UI advierte que no deben fotografiarse personas, placas ni domicilios.
+
+## Slice 7B centro comunitario publico
+
+- `/pet-alert` unifica la consulta publica en tres vistas: `Extraviadas`, `Mascotas vistas` y `Encontradas`.
+- La proyeccion publica se obtiene exclusivamente mediante `list_public_pet_alert_directory`; no abre lectura directa de tablas sensibles.
+- Permite buscar por nombre, especie, raza o zona, filtrar por ciudad/especie y paginar resultados.
+- Cada resultado enlaza a su ficha publica existente. No cambia reportes, claims, moderacion, ownership ni custodia.
+- No expone usuario, household, coordenadas, contacto privado, direccion exacta ni identificadores internos.

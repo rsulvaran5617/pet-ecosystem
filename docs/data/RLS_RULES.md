@@ -317,3 +317,8 @@ No implementar tablas sensibles sin definir su politica RLS.
 - Solo reportante propietario o admin puede insertar/eliminar metadata y objetos del reporte.
 - La base limita la galeria a tres y valida reporte, slug y ruta.
 - Anon solo lee media cuando el reporte es compartible y visible; el bucket permanece privado.
+# PET ALERT Slice 7B
+
+- La consulta del directorio publico se realiza mediante una funcion `security definer` con columnas explicitas y alcance sanitizado.
+- `anon` y `authenticated` solo reciben eventos con `share_enabled`, estados publicables y vigencia valida.
+- No se otorga acceso adicional a tablas de ownership, contactos, claims, avistamientos privados ni moderacion.
