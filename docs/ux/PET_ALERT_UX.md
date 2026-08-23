@@ -95,6 +95,8 @@ Explica que el reporte no determina abandono ni propiedad. Al publicar entrega e
 
 No muestra datos del reportante antes de una decision autorizada.
 
+Slice 5 implementa la primera version sin adjuntos: la ficha comunitaria ofrece `¿Crees que es tu mascota?`, exige login, sena privada y consentimiento. El autor revisa solicitudes dentro de `Tus reportes` mobile y autoriza o rechaza el contacto. Una solicitud no acredita propiedad ni entrega custodia.
+
 ## Paginas publicas
 
 - `/pet-alert`: entrada y explicacion de ambos recorridos.

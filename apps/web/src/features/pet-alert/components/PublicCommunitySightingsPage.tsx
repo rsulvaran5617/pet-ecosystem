@@ -4,6 +4,7 @@ import type { PublicPetAlertCommunitySighting } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getBrowserPetAlertApiClient } from "../../core/services/supabase-browser";
+import { PublicCommunityClaimPanel } from "./PublicCommunityClaimPanel";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-PA", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Panama" }).format(new Date(value));
@@ -38,7 +39,8 @@ export function PublicCommunitySightingsPage({ slug }: { slug?: string }) {
           <article><small>VISTA EN</small><h2>{report.city}{report.region ? `, ${report.region}` : ""}</h2><p>{formatDate(report.sightedAt)}</p>{report.locationReference ? <strong>Referencia aproximada: {report.locationReference}</strong> : null}</article>
           <article><small>DESCRIPCION</small><h2>{report.animalSpecies}{report.apparentBreed ? ` - ${report.apparentBreed}` : ""}</h2><p>{report.observedSituation}</p></article>
           {report.distinctiveMarks || report.collarDescription ? <article><small>COMO RECONOCERLA</small><p>{report.distinctiveMarks ?? report.collarDescription}</p></article> : null}
-          <aside><strong>Ayuda de forma segura</strong><p>No persigas a la mascota ni publiques domicilios. Si la reconoces como tuya, el reclamo controlado se habilitara en el siguiente slice.</p></aside>
+          <aside><strong>Ayuda de forma segura</strong><p>No persigas a la mascota ni publiques domicilios. Una solicitud no demuestra propiedad ni transfiere custodia.</p></aside>
+          <PublicCommunityClaimPanel reportSlug={report.reportSlug} />
         </section>
       ) : (
         <section className="grid">

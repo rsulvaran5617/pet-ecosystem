@@ -71,6 +71,18 @@ Estados: `new`, `reviewed`, `possible_lead`, `discarded`, `flagged`.
 - `reviewed_by`, `reviewed_at`, `decision_reason`
 - `created_at`, `updated_at`
 
+Slice 5 materializa esta entidad con snapshots privados del reclamante y del reportante. El snapshot del reportante solo se completa al aprobar y solo se devuelve al reclamante aprobado mediante RPC. Indices parciales impiden mas de un claim activo por usuario/reporte y mas de un claim aprobado por reporte.
+
+### `pet_alert_community_claim_history`
+
+- `id uuid` PK
+- `claim_id uuid` FK con borrado restringido
+- `old_status`, `new_status`
+- `changed_by_user_id`
+- `reason`, `created_at`
+
+Registra creacion, revision y cancelacion mediante RPCs; los clientes no escriben directamente.
+
 Un usuario no puede mantener mas de un claim operativo por reporte.
 
 ### `pet_alert_status_history`

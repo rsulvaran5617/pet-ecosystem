@@ -299,3 +299,9 @@ No implementar tablas sensibles sin definir su politica RLS.
 - El reportante y admin pueden leer la fila privada; visitantes solo reciben proyecciones sanitizadas por RPC.
 - Los DTO publicos excluyen `reporter_user_id`, contacto, coordenadas y auditoria.
 - El cierre solo corresponde al reportante autenticado; moderacion admin avanzada queda para Slice 6.
+# PET ALERT Slice 5
+
+- `pet_alert_community_claims` y su historial no permiten escritura directa; todas las mutaciones pasan por RPCs `security definer` con actor validado.
+- El reclamante ve sus solicitudes; el autor del reporte ve las solicitudes recibidas; admin puede auditar.
+- El contacto del reportante se proyecta al reclamante solo cuando el claim fue aprobado.
+- `anon` no puede crear ni leer claims.

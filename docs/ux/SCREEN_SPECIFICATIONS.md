@@ -302,3 +302,9 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - commerce
 - pharmacy
 - telecare
+# PET ALERT Slice 5
+
+- La ficha web `/pet-alert/mascota-vista/[slug]` muestra `¿Crees que es tu mascota?`; sin sesion dirige al acceso y con sesion solicita una sena privada y consentimiento de contacto.
+- El reclamante ve estado `En revision`, `Contacto autorizado` o `No aprobada` sin exponer informacion previa a la decision.
+- Mobile `Vi una mascota perdida > Tus reportes` muestra las solicitudes recibidas dentro de cada reporte y acciones `Autorizar contacto` / `Rechazar`.
+- El copy aclara que el claim no prueba propiedad ni transfiere custodia.

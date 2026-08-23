@@ -1763,3 +1763,9 @@ Al final:
 - Web agrega `/pet-alert`, `/pet-alert/reportar-mascota-vista` y `/pet-alert/mascota-vista/[slug]`.
 - No se crean mascotas, hogares, claims, adopciones, transferencias ni contacto entre partes. Siguiente slice: claim autenticado y contacto controlado.
 - Migracion aplicada remoto con dry-run posterior limpio; el cierre se versiona junto con mobile, web, tipos, API y documentacion.
+# Handoff 2026-08-23 - PET ALERT Slice 5 aplicado remoto
+
+- Implementacion local de reclamo autenticado sobre reportes comunitarios, sin cambio de ownership ni custodia.
+- Nueva migracion `20260823183000_pet_alert_slice5_controlled_claims.sql`: claims, historial, RLS, RPCs, limites de frecuencia y contacto controlado.
+- Web publica agrega solicitud segura y seguimiento; mobile permite al reportante aprobar/rechazar solicitudes recibidas.
+- Migracion aplicada remoto tras confirmar por dry-run que era la unica pendiente; dry-run posterior sin migraciones pendientes.

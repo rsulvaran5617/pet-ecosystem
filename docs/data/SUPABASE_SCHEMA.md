@@ -549,3 +549,9 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - `public.pet_alert_community_sightings`: reportes comunitarios autenticados, compartibles mediante DTO sanitizado y con expiracion obligatoria.
 - `public.pet_alert_community_sighting_history`: historial append-only de altas y cierres.
 - RPCs: `create_pet_alert_community_sighting`, `get_public_pet_alert_community_sighting_by_slug`, `list_public_pet_alert_community_sightings`, `list_my_pet_alert_community_sightings`, `close_pet_alert_community_sighting`.
+# PET ALERT Slice 5
+
+- `pet_alert_community_claims`: solicitud autenticada de coincidencia sobre un reporte comunitario, datos privados del reclamante, decision y snapshot de contacto autorizado.
+- `pet_alert_community_claim_history`: historial inmutable de estados del claim.
+- RPCs: `create_pet_alert_community_claim`, `list_my_pet_alert_community_claims`, `list_claims_for_my_pet_alert_community_sightings`, `review_pet_alert_community_claim`, `cancel_pet_alert_community_claim`.
+- Migracion aplicada remoto: `20260823183000_pet_alert_slice5_controlled_claims.sql`.

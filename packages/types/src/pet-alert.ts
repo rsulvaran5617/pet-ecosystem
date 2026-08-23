@@ -26,6 +26,7 @@ export type PetAlertCommunityStatus =
 export type PetAlertApparentSize = "small" | "medium" | "large" | "unknown";
 export type PetAlertApparentSex = "female" | "male" | "unknown";
 export type PetAlertCommunityCloseReason = "reunited" | "animal_left_area" | "duplicate" | "closed_other";
+export type PetAlertCommunityClaimStatus = "pending" | "approved" | "rejected" | "cancelled";
 
 export interface PetAlertLostPet extends TimestampedEntity {
   id: Uuid;
@@ -204,4 +205,34 @@ export interface CreatePetAlertCommunitySightingInput {
   locationReference?: string | null;
   locationPrecision?: "approximate" | "city";
   shareEnabled?: boolean;
+}
+
+export interface PetAlertCommunityClaim extends TimestampedEntity {
+  id: Uuid;
+  communitySightingId: Uuid;
+  reportSlug: string;
+  claimantUserId: Uuid;
+  status: PetAlertCommunityClaimStatus;
+  claimedPetId: Uuid | null;
+  claimantName: string;
+  claimantEmail: string;
+  claimantPhone: string | null;
+  privateDetails: string;
+  lostAt: string | null;
+  lostCity: string | null;
+  contactConsent: boolean;
+  authorizedReporterName: string | null;
+  authorizedReporterEmail: string | null;
+  authorizedReporterPhone: string | null;
+  reviewedAt: string | null;
+  decisionReason: string | null;
+}
+
+export interface CreatePetAlertCommunityClaimInput {
+  reportSlug: string;
+  claimedPetId?: Uuid | null;
+  privateDetails: string;
+  lostAt?: string | null;
+  lostCity?: string | null;
+  contactConsent: boolean;
 }

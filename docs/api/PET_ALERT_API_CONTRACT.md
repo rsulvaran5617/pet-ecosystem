@@ -51,6 +51,16 @@ La creacion valida pet, household, permisos, elegibilidad y unicidad activa en u
 
 Slice 4 implementa solo `createPetAlertCommunitySighting`, `getPetAlertCommunitySightingBySlug`, `listPetAlertCommunitySightings` y cierre propio. La creacion exige sesion y aplica limite server-side de tres reportes por hora. Claims, token anonimo y contacto controlado permanecen diferidos a Slice 5.
 
+## Slice 5 reclamo controlado
+
+- `createPetAlertCommunityClaim(input)`: exige sesion, consentimiento, sena privada y reporte operativo; maximo cinco solicitudes por 24 horas.
+- `listMyPetAlertCommunityClaims()`: seguimiento del reclamante; contacto del reportante solo aparece con estado `approved`.
+- `listClaimsForMyPetAlertCommunitySightings()`: bandeja privada del autor del reporte.
+- `reviewPetAlertCommunityClaim(id, approved|rejected, reason?)`: decision exclusiva del autor del reporte.
+- `cancelPetAlertCommunityClaim(id)`: cancelacion exclusiva del reclamante mientras esta pendiente.
+
+Ninguna operacion cambia `pets.household_id`, custodia o propiedad. No existe lectura publica de claims.
+
 ## Moderacion
 
 - `reportPetAlertContent(target, reason)`

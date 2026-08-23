@@ -2,8 +2,11 @@ import type {
   CreatePetAlertLostPetInput,
   CreatePetAlertLostPetSightingInput,
   CreatePetAlertCommunitySightingInput,
+  CreatePetAlertCommunityClaimInput,
   PetAlertCommunityCloseReason,
   PetAlertCommunitySighting,
+  PetAlertCommunityClaim,
+  PetAlertCommunityClaimStatus,
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
@@ -116,6 +119,29 @@ interface CommunitySightingRow {
   updated_at?: string;
 }
 
+interface CommunityClaimRow {
+  id: string;
+  community_sighting_id: string;
+  report_slug: string;
+  claimant_user_id: string;
+  status: PetAlertCommunityClaimStatus;
+  claimed_pet_id: string | null;
+  claimant_name: string;
+  claimant_email: string;
+  claimant_phone: string | null;
+  private_details: string;
+  lost_at: string | null;
+  lost_city: string | null;
+  contact_consent: boolean;
+  authorized_reporter_name: string | null;
+  authorized_reporter_email: string | null;
+  authorized_reporter_phone: string | null;
+  reviewed_at: string | null;
+  decision_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PetAlertApiClient {
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
@@ -136,6 +162,11 @@ export interface PetAlertApiClient {
   listPublicPetAlertCommunitySightings(filters?: { city?: string | null; country?: string | null; limit?: number }): Promise<PublicPetAlertCommunitySighting[]>;
   listMyPetAlertCommunitySightings(): Promise<PetAlertCommunitySighting[]>;
   closePetAlertCommunitySighting(reportId: Uuid, reason: PetAlertCommunityCloseReason): Promise<PetAlertCommunitySighting>;
+  createPetAlertCommunityClaim(input: CreatePetAlertCommunityClaimInput): Promise<PetAlertCommunityClaim>;
+  listMyPetAlertCommunityClaims(): Promise<PetAlertCommunityClaim[]>;
+  listClaimsForMyPetAlertCommunitySightings(): Promise<PetAlertCommunityClaim[]>;
+  reviewPetAlertCommunityClaim(claimId: Uuid, status: "approved" | "rejected", reason?: string | null): Promise<PetAlertCommunityClaim>;
+  cancelPetAlertCommunityClaim(claimId: Uuid): Promise<PetAlertCommunityClaim>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -270,6 +301,31 @@ function mapPublicCommunitySighting(row: CommunitySightingRow): PublicPetAlertCo
     locationReference: report.locationReference,
     publishedAt: report.publishedAt,
     expiresAt: report.expiresAt
+  };
+}
+
+function mapCommunityClaim(row: CommunityClaimRow): PetAlertCommunityClaim {
+  return {
+    id: row.id,
+    communitySightingId: row.community_sighting_id,
+    reportSlug: row.report_slug,
+    claimantUserId: row.claimant_user_id,
+    status: row.status,
+    claimedPetId: row.claimed_pet_id,
+    claimantName: row.claimant_name,
+    claimantEmail: row.claimant_email,
+    claimantPhone: row.claimant_phone,
+    privateDetails: row.private_details,
+    lostAt: row.lost_at,
+    lostCity: row.lost_city,
+    contactConsent: row.contact_consent,
+    authorizedReporterName: row.authorized_reporter_name,
+    authorizedReporterEmail: row.authorized_reporter_email,
+    authorizedReporterPhone: row.authorized_reporter_phone,
+    reviewedAt: row.reviewed_at,
+    decisionReason: row.decision_reason,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 
@@ -442,6 +498,42 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       });
       if (error || !data) fail(error, "No fue posible cerrar el reporte comunitario.");
       return mapCommunitySighting(data as CommunitySightingRow);
+    },
+    async createPetAlertCommunityClaim(input) {
+      const { data, error } = await supabase.rpc("create_pet_alert_community_claim", {
+        target_report_slug: input.reportSlug,
+        target_claimed_pet_id: input.claimedPetId ?? null,
+        next_private_details: input.privateDetails,
+        next_lost_at: input.lostAt ?? null,
+        next_lost_city: input.lostCity ?? null,
+        next_contact_consent: input.contactConsent
+      });
+      if (error || !data) fail(error, "No fue posible enviar la solicitud de contacto.");
+      return mapCommunityClaim(data as CommunityClaimRow);
+    },
+    async listMyPetAlertCommunityClaims() {
+      const { data, error } = await supabase.rpc("list_my_pet_alert_community_claims");
+      if (error) fail(error, "No fue posible cargar tus solicitudes.");
+      return ((data ?? []) as CommunityClaimRow[]).map(mapCommunityClaim);
+    },
+    async listClaimsForMyPetAlertCommunitySightings() {
+      const { data, error } = await supabase.rpc("list_claims_for_my_pet_alert_community_sightings");
+      if (error) fail(error, "No fue posible cargar las solicitudes recibidas.");
+      return ((data ?? []) as CommunityClaimRow[]).map(mapCommunityClaim);
+    },
+    async reviewPetAlertCommunityClaim(claimId, status, reason = null) {
+      const { data, error } = await supabase.rpc("review_pet_alert_community_claim", {
+        target_claim_id: claimId,
+        next_status: status,
+        next_decision_reason: reason
+      });
+      if (error || !data) fail(error, "No fue posible revisar la solicitud.");
+      return mapCommunityClaim(data as CommunityClaimRow);
+    },
+    async cancelPetAlertCommunityClaim(claimId) {
+      const { data, error } = await supabase.rpc("cancel_pet_alert_community_claim", { target_claim_id: claimId });
+      if (error || !data) fail(error, "No fue posible cancelar la solicitud.");
+      return mapCommunityClaim(data as CommunityClaimRow);
     }
   };
 }

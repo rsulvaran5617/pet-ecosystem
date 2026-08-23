@@ -1,4 +1,4 @@
-import type { PetAlertApparentSex, PetAlertApparentSize, PetAlertCommunitySighting, PublicPetAlertCommunitySighting } from "@pet/types";
+import type { PetAlertApparentSex, PetAlertApparentSize, PetAlertCommunityClaim, PetAlertCommunitySighting, PublicPetAlertCommunitySighting } from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Share, Text, TextInput, View } from "react-native";
@@ -102,17 +102,20 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reports, setReports] = useState<PublicPetAlertCommunitySighting[]>([]);
   const [myReports, setMyReports] = useState<PetAlertCommunitySighting[]>([]);
+  const [receivedClaims, setReceivedClaims] = useState<PetAlertCommunityClaim[]>([]);
 
   const load = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [publicReports, ownReports] = await Promise.all([
+      const [publicReports, ownReports, claims] = await Promise.all([
         getMobilePetAlertApiClient().listPublicPetAlertCommunitySightings({ country: "PA" }),
-        getMobilePetAlertApiClient().listMyPetAlertCommunitySightings()
+        getMobilePetAlertApiClient().listMyPetAlertCommunitySightings(),
+        getMobilePetAlertApiClient().listClaimsForMyPetAlertCommunitySightings()
       ]);
       setReports(publicReports);
       setMyReports(ownReports);
+      setReceivedClaims(claims);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible cargar PET ALERT.");
     } finally {
@@ -212,6 +215,17 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
               <Text style={{ color: "#9a3412", fontSize: 12, fontWeight: "900" }}>{report.animalSpecies} - {report.city}</Text>
               <Text style={{ color: colorTokens.mutedStrong, fontSize: 10 }}>{publicStatusLabel(report.status)}</Text>
               {operationalStatuses.has(report.status) ? <Pressable onPress={() => Alert.alert("Cerrar reporte", "Confirma por que deseas cerrarlo.", [{ text: "Cancelar", style: "cancel" }, { text: "Se reunio con su familia", onPress: () => void getMobilePetAlertApiClient().closePetAlertCommunitySighting(report.id, "reunited").then(load) }, { text: "Ya no esta en la zona", onPress: () => void getMobilePetAlertApiClient().closePetAlertCommunitySighting(report.id, "animal_left_area").then(load) }])}><Text style={{ color: "#9a3412", fontSize: 10, fontWeight: "900" }}>Cerrar reporte</Text></Pressable> : null}
+              {receivedClaims.filter((claim) => claim.communitySightingId === report.id).map((claim) => (
+                <View key={claim.id} style={{ backgroundColor: "#ffffff", borderRadius: 12, gap: 6, marginTop: 7, padding: 10 }}>
+                  <Text style={{ color: colorTokens.ink, fontSize: 11, fontWeight: "900" }}>Solicitud de {claim.claimantName}</Text>
+                  <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, lineHeight: 14 }}>{claim.privateDetails}</Text>
+                  <Text style={{ color: "#9a3412", fontSize: 10, fontWeight: "800" }}>{claim.status === "pending" ? "Pendiente de tu revision" : claim.status === "approved" ? "Contacto autorizado" : "Solicitud rechazada"}</Text>
+                  {claim.status === "pending" ? <View style={{ flexDirection: "row", gap: 7 }}>
+                    <Pressable accessibilityRole="button" onPress={() => void getMobilePetAlertApiClient().reviewPetAlertCommunityClaim(claim.id, "approved").then(load)} style={{ backgroundColor: colorTokens.accent, borderRadius: 999, paddingHorizontal: 11, paddingVertical: 8 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "900" }}>Autorizar contacto</Text></Pressable>
+                    <Pressable accessibilityRole="button" onPress={() => void getMobilePetAlertApiClient().reviewPetAlertCommunityClaim(claim.id, "rejected", "La informacion no permite confirmar una coincidencia.").then(load)} style={{ borderColor: colorTokens.line, borderRadius: 999, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8 }}><Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "900" }}>Rechazar</Text></Pressable>
+                  </View> : null}
+                </View>
+              ))}
             </View>
           ))}
         </View>

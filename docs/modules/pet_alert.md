@@ -2,9 +2,9 @@
 
 ## Estado
 
-`slice_4_community_sighting_applied_remote`
+`slice_5_controlled_claims_applied_remote`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slice 4 esta aplicado remoto para reportes comunitarios autenticados. Notificaciones remotas todavia no existen.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slice 4 esta aplicado remoto para reportes comunitarios autenticados. Slice 5 esta aplicado remoto para reclamo autenticado y contacto controlado. Notificaciones remotas todavia no existen.
 
 ## Alcance aprobado para diseno
 
@@ -40,9 +40,18 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 - Estado activo con compartir texto seguro, refrescar avistamientos y marcar encontrada.
 - No aparece en hogares protectores ni mascotas `in_memory`.
 
+## Slice 5 reclamo y contacto controlado
+
+- Una persona autenticada puede indicar que reconoce una mascota de un reporte comunitario.
+- El claim exige una sena privada, consentimiento de contacto y aplica rate limit server-side.
+- Solo existe una solicitud activa por usuario/reporte y una aprobada por reporte.
+- El autor del reporte revisa en mobile y decide aprobar o rechazar.
+- El contacto del reportante solo se proyecta al reclamante despues de aprobar.
+- No cambia ownership, no transfiere custodia y no mezcla PET ALERT con Foster.
+
 ## Proximo slice
 
-Slice 5: reclamo autenticado y contacto controlado. No cambia ownership, no transfiere custodia y no revela al reportante antes de una decision autorizada.
+QA integral de Slices 1A-5 y definicion de moderacion administrativa antes de abrir fotos comunitarias, escritura anonima o notificaciones push.
 
 ## Slice 3 ficha publica
 
