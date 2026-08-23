@@ -2,9 +2,9 @@
 
 ## Estado
 
-`designed_not_implemented`
+`slice_1a_local_not_applied`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. No existen todavia tablas, RPCs, UI, paginas publicas ni notificaciones remotas de este modulo.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A prepara localmente tablas, RLS, tipos y API del flujo owner. No se ha aplicado remoto y todavia no existen UI, paginas publicas ni notificaciones remotas.
 
 ## Alcance aprobado para diseno
 
@@ -33,4 +33,4 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 
 ## Proximo slice
 
-PET ALERT Slice 1A: modelo, RLS, tipos y API base del flujo "Mi mascota se perdio", sin UI y con dry-run remoto solamente.
+Auditar y aplicar de forma controlada PET ALERT Slice 1A. Despues corresponde Slice 2: UI mobile owner para "Mi mascota se perdio".

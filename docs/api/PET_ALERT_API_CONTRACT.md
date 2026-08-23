@@ -23,12 +23,15 @@ Incluye slug, estado, descripcion, situacion, zona general, fecha aproximada y m
 - `getPetAlertLostPetBySlug(slug)`
 - `listPetAlertLostPetsForPet(petId)`
 - `listActivePetAlertLostPetsForHousehold(householdId)`
+- `publishPetAlertLostPet(id)`
 - `updatePetAlertLostPet(id, patch)`
 - `closePetAlertLostPet(id, reason)`
 - `markPetAlertLostPetFound(id, source)`
 - `createPetAlertLostPetSighting(slug, input)`
 - `listSightingsForPetAlertLostPet(alertId)`
 - `updatePetAlertLostPetSightingStatus(id, status)`
+
+En Slice 1A, crear avistamientos requiere sesion autenticada. La concesion a `anon` se difiere hasta que Slice 3 incorpore rate limiting/captcha y moderacion publica.
 
 La creacion valida pet, household, permisos, elegibilidad y unicidad activa en una transaccion.
 

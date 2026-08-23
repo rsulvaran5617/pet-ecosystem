@@ -20,6 +20,7 @@ export * from "./foster";
 export * from "./marketplace";
 export * from "./providers";
 export * from "./pets";
+export * from "./pet-alert";
 export * from "./reminders";
 export * from "./messaging";
 export * from "./reviews";
