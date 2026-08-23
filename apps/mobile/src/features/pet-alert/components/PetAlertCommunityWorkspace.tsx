@@ -131,8 +131,16 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
   }, [load]);
 
   async function submit() {
-    if (!form.species.trim() || !form.city.trim() || form.observedSituation.trim().length < 10) {
-      setErrorMessage("Indica especie, ciudad y una descripcion breve de lo observado.");
+    if (!form.species.trim()) {
+      setErrorMessage("Indica la especie de la mascota que observaste.");
+      return;
+    }
+    if (!form.city.trim()) {
+      setErrorMessage("Indica la ciudad donde viste a la mascota.");
+      return;
+    }
+    if (form.observedSituation.trim().length < 10) {
+      setErrorMessage("Describe lo que observaste con al menos 10 caracteres.");
       return;
     }
     setIsSaving(true);
@@ -280,7 +288,12 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
           <Field label="COLLAR O SENAS DISTINTIVAS" multiline onChange={(value) => setForm((current) => ({ ...current, distinctiveMarks: value }))} value={form.distinctiveMarks} />
           <Field label="CIUDAD" onChange={(value) => setForm((current) => ({ ...current, city: value }))} value={form.city} />
           <Field label="ZONA O REFERENCIA APROXIMADA" onChange={(value) => setForm((current) => ({ ...current, locationReference: value }))} value={form.locationReference} />
-          <Field label="QUE OBSERVASTE" multiline onChange={(value) => setForm((current) => ({ ...current, observedSituation: value }))} value={form.observedSituation} />
+          <View style={{ gap: 4 }}>
+            <Field label="QUE OBSERVASTE (MINIMO 10 CARACTERES)" multiline onChange={(value) => setForm((current) => ({ ...current, observedSituation: value }))} value={form.observedSituation} />
+            <Text style={{ color: form.observedSituation.trim().length >= 10 ? colorTokens.accentDark : colorTokens.muted, fontSize: 10, textAlign: "right" }}>
+              {form.observedSituation.trim().length}/10 minimo
+            </Text>
+          </View>
           <Pressable accessibilityRole="button" disabled={isSaving} onPress={() => void submit()} style={{ alignItems: "center", backgroundColor: "#c2410c", borderRadius: 999, minHeight: 46, justifyContent: "center" }}>
             {isSaving ? <ActivityIndicator color="#ffffff" /> : <Text style={{ color: "#ffffff", fontSize: 12, fontWeight: "900" }}>Publicar reporte comunitario</Text>}
           </Pressable>
