@@ -1755,3 +1755,11 @@ Al final:
 - El contacto del reportante se envia solo con consentimiento explicito.
 - Mobile comparte ahora el enlace publico real en `https://petecosyst.com/pet-alert/mascota-perdida/{slug}`.
 - Fuera de alcance: reporte comunitario independiente, captcha/rate limiting anonimo, moderacion y push.
+# Handoff 2026-08-23 - PET ALERT Slice 4 comunitario
+
+- Se implementa localmente el reporte separado `Vi una mascota aparentemente perdida` para usuarios autenticados.
+- Migracion local `20260823153000_pet_alert_slice4_community_sightings.sql`: reporte, historial, RLS, RPCs sanitizadas, cierre propio y limite de tres altas por hora.
+- Mobile owner agrega entrada desde Inicio, formulario manual, reportes propios/recientes y cierre; sin GPS, mapa, foto ni direccion exacta.
+- Web agrega `/pet-alert`, `/pet-alert/reportar-mascota-vista` y `/pet-alert/mascota-vista/[slug]`.
+- No se crean mascotas, hogares, claims, adopciones, transferencias ni contacto entre partes. Siguiente slice: claim autenticado y contacto controlado.
+- Migracion aplicada remoto con dry-run posterior limpio; el cierre se versiona junto con mobile, web, tipos, API y documentacion.

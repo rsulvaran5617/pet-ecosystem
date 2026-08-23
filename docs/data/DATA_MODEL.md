@@ -285,3 +285,9 @@ Decision pendiente antes de aplicar remoto:
 # Adoption public funnel Slice 8
 
 `adoption_funnel_events` conserva solamente nombre de evento, household protector, publicacion opcional y fecha. Las conversiones sensibles se derivan de las tablas Foster existentes y no duplican PII.
+# PET ALERT comunitario Slice 4
+
+- `pet_alert_community_sightings` representa observaciones de animales aparentemente perdidos sin `pet_id` ni presuncion de ownership.
+- Mantiene reportante autenticado en dato privado, slug publico, descripcion aparente, zona manual aproximada, expiracion de 30 dias y cierre logico.
+- `pet_alert_community_sighting_history` conserva transiciones auditables; no se elimina evidencia desde cliente.
+- No crea hogares, mascotas, adopciones, reservas, chats ni transferencias.

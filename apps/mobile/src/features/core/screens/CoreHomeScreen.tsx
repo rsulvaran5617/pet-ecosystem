@@ -53,6 +53,7 @@ import { useBookingsWorkspace } from "../../bookings/hooks/useBookingsWorkspace"
 import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
 import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
 import { SupportWorkspace } from "../../support/components/SupportWorkspace";
+import { PetAlertCommunityWorkspace } from "../../pet-alert/components/PetAlertCommunityWorkspace";
 
 type RegisterFormState = {
   email: string;
@@ -89,7 +90,7 @@ type PaymentFormState = Omit<AddPaymentMethodInput, "expMonth" | "expYear"> & {
   expYear: string;
 };
 
-type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta" | "adopcion";
+type OwnerSectionId = "inicio" | "mascotas" | "buscar" | "reservas" | "mensajes" | "cuenta" | "adopcion" | "pet-alert";
 type PetHubPanel = "detalle" | "salud" | "documentos" | "recordatorios" | "gastos";
 type ProviderSectionId = ProviderWorkspaceSection | "mensajes" | "cuenta";
 type FosterSectionId = "inicio" | "acogida" | "publicaciones" | "solicitudes" | "cuenta";
@@ -109,6 +110,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
   { id: "buscar", label: "Buscar", description: "Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar." },
   { id: "adopcion", label: "Mascotas que buscan hogar", description: "Conoce mascotas publicadas por familias protectoras." },
+  { id: "pet-alert", label: "PET ALERT", description: "Reporta una mascota aparentemente perdida sin exponerte." },
   { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
@@ -117,7 +119,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
 const ownerSectionLookup = Object.fromEntries(
   ownerSections.map((section) => [section.id, section])
 ) as Record<OwnerSectionId, (typeof ownerSections)[number]>;
-const ownerBottomSections = ownerSections.filter((section) => section.id !== "adopcion");
+const ownerBottomSections = ownerSections.filter((section) => section.id !== "adopcion" && section.id !== "pet-alert");
 
 const providerSections: Array<{ description: string; id: ProviderSectionId; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Estado operativo, checklist y reservas que requieren accion." },
@@ -1005,6 +1007,7 @@ function OwnerHome({
   householdName,
   onNavigate,
   onOpenAdoption,
+  onOpenPetAlert,
   onOpenReminders,
   onSelectPet,
   ownerFirstName,
@@ -1017,6 +1020,7 @@ function OwnerHome({
   householdName: string;
   onNavigate: (section: OwnerSectionId) => void;
   onOpenAdoption: () => void;
+  onOpenPetAlert: () => void;
   onOpenReminders: (petId: Uuid | null) => void;
   onSelectPet: (petId: Uuid) => void;
   ownerFirstName: string;
@@ -1201,6 +1205,33 @@ function OwnerHome({
           >
             <Text style={{ color: "#ffffff", fontSize: 11, fontWeight: "900" }}>{primaryAction.cta}</Text>
           </View>
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityLabel="Reportar una mascota aparentemente perdida"
+        accessibilityRole="button"
+        onPress={onOpenPetAlert}
+        style={{
+          alignItems: "center",
+          backgroundColor: "#fff7ed",
+          borderColor: "#fed7aa",
+          borderRadius: 18,
+          borderWidth: 1,
+          flexDirection: "row",
+          gap: 10,
+          padding: 12,
+          ...visualTokens.mobile.softShadow
+        }}
+      >
+        <View style={{ alignItems: "center", backgroundColor: "#ffedd5", borderRadius: 15, height: 36, justifyContent: "center", width: 36 }}>
+          <OwnerLineIcon color="#c2410c" name="shield" size={19} />
+        </View>
+        <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
+          <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>Vi una mascota perdida</Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>Crea un reporte comunitario seguro y aproximado.</Text>
+        </View>
+        <View style={{ backgroundColor: "#c2410c", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 }}>
+          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Reportar</Text>
         </View>
       </Pressable>
 
@@ -3267,6 +3298,7 @@ export function CoreHomeScreen() {
               onOpenAdoption={() => {
                 setActiveOwnerSection("adopcion");
               }}
+              onOpenPetAlert={() => setActiveOwnerSection("pet-alert")}
               onOpenReminders={(petId) => {
                 if (petId) {
                   const reminderPet = petsWorkspace.pets.find((pet) => pet.id === petId);
@@ -3390,6 +3422,14 @@ export function CoreHomeScreen() {
               }}
             />
           </>
+        ) : null}
+        {authState.isAuthenticated &&
+        isOwnerMode &&
+        !ownerNeedsHouseholdSetup &&
+        !ownerNeedsProtectiveHouseholdSetup &&
+        !ownerNeedsFirstPetSetup &&
+        activeOwnerSection === "pet-alert" ? (
+          <PetAlertCommunityWorkspace onBack={() => setActiveOwnerSection("inicio")} />
         ) : null}
         {authState.isAuthenticated &&
         isOwnerMode &&

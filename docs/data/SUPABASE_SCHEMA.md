@@ -544,3 +544,8 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - `adoption_funnel_events`: eventos publicos permitidos sin PII, asociados a Familia Protectora y opcionalmente a publicacion.
 - RPC publica `record_public_adoption_funnel_event` valida slug y evento.
 - RPC autenticada `get_adoption_funnel_metrics` devuelve agregados por household y periodo.
+# PET ALERT Slice 4
+
+- `public.pet_alert_community_sightings`: reportes comunitarios autenticados, compartibles mediante DTO sanitizado y con expiracion obligatoria.
+- `public.pet_alert_community_sighting_history`: historial append-only de altas y cierres.
+- RPCs: `create_pet_alert_community_sighting`, `get_public_pet_alert_community_sighting_by_slug`, `list_public_pet_alert_community_sightings`, `list_my_pet_alert_community_sightings`, `close_pet_alert_community_sighting`.

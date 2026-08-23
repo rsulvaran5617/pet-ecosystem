@@ -2,9 +2,9 @@
 
 ## Estado
 
-`slice_3_public_alert_implemented`
+`slice_4_community_sighting_applied_remote`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Notificaciones remotas todavia no existen.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slice 4 esta aplicado remoto para reportes comunitarios autenticados. Notificaciones remotas todavia no existen.
 
 ## Alcance aprobado para diseno
 
@@ -42,7 +42,7 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 
 ## Proximo slice
 
-Slice 4: reporte comunitario de una mascota aparentemente perdida, separado del flujo owner. No habilitar insercion anonima sin rate limiting, captcha y moderacion.
+Slice 5: reclamo autenticado y contacto controlado. No cambia ownership, no transfiere custodia y no revela al reportante antes de una decision autorizada.
 
 ## Slice 3 ficha publica
 
@@ -52,3 +52,11 @@ Slice 4: reporte comunitario de una mascota aparentemente perdida, separado del 
 - `/pet-alert/mascota-perdida/[slug]/avistamiento` exige sesion autenticada antes del envio.
 - El contacto del reportante solo se comparte si marca consentimiento explicito.
 - El owner comparte desde mobile el enlace real de la ficha publica.
+
+## Slice 4 reporte comunitario
+
+- Nueva entidad separada `pet_alert_community_sightings`; no crea `pets`, hogares, adopciones ni transferencias.
+- Solo usuarios autenticados publican y pueden cerrar sus reportes; el backend limita a tres altas por hora.
+- Mobile owner ofrece `Vi una mascota perdida` desde Inicio, con reporte manual sin GPS, mapa ni direccion exacta.
+- `/pet-alert` lista DTOs sanitizados; `/pet-alert/reportar-mascota-vista` crea con sesion y `/pet-alert/mascota-vista/[slug]` muestra la ficha compartible.
+- La primera version no carga fotos ni expone identidad/contacto del reportante. Escritura anonima, claims y moderacion avanzada quedan diferidos.

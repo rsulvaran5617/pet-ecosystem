@@ -293,3 +293,9 @@ No implementar tablas sensibles sin definir su politica RLS.
 
 - Visitantes no leen `adoption_funnel_events`; solo registran eventos permitidos mediante RPC con slugs publicos validos.
 - Miembros autorizados del household protector y platform admin pueden consultar eventos; las metricas se entregan agregadas mediante RPC.
+# PET ALERT comunitario Slice 4
+
+- No existe escritura directa sobre reportes ni historial; las mutaciones pasan por RPC `security definer` con actor autenticado.
+- El reportante y admin pueden leer la fila privada; visitantes solo reciben proyecciones sanitizadas por RPC.
+- Los DTO publicos excluyen `reporter_user_id`, contacto, coordenadas y auditoria.
+- El cierre solo corresponde al reportante autenticado; moderacion admin avanzada queda para Slice 6.

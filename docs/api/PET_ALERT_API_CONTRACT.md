@@ -49,6 +49,8 @@ La creacion valida pet, household, permisos, elegibilidad y unicidad activa en u
 - `listClaimsForCommunitySighting(id)` restringido
 - `reviewPetAlertCommunityClaim(id, decision, reason)` admin
 
+Slice 4 implementa solo `createPetAlertCommunitySighting`, `getPetAlertCommunitySightingBySlug`, `listPetAlertCommunitySightings` y cierre propio. La creacion exige sesion y aplica limite server-side de tres reportes por hora. Claims, token anonimo y contacto controlado permanecen diferidos a Slice 5.
+
 ## Moderacion
 
 - `reportPetAlertContent(target, reason)`

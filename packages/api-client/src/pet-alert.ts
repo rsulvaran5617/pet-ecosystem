@@ -1,11 +1,15 @@
 import type {
   CreatePetAlertLostPetInput,
   CreatePetAlertLostPetSightingInput,
+  CreatePetAlertCommunitySightingInput,
+  PetAlertCommunityCloseReason,
+  PetAlertCommunitySighting,
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
   PetAlertSightingStatus,
   PublicPetAlertLostPet,
+  PublicPetAlertCommunitySighting,
   UpdatePetAlertLostPetInput,
   Uuid
 } from "@pet/types";
@@ -83,6 +87,35 @@ interface SightingRow {
   updated_at: string;
 }
 
+interface CommunitySightingRow {
+  id?: string;
+  report_slug: string;
+  reporter_user_id?: string;
+  status: PetAlertCommunitySighting["status"];
+  animal_species: string;
+  apparent_breed: string | null;
+  apparent_size: PetAlertCommunitySighting["apparentSize"];
+  apparent_sex: PetAlertCommunitySighting["apparentSex"];
+  primary_color: string | null;
+  collar_description: string | null;
+  distinctive_marks: string | null;
+  behavior_notes: string | null;
+  observed_situation: string;
+  sighted_at: string;
+  city: string;
+  region: string | null;
+  country: string;
+  location_reference: string | null;
+  location_precision?: PetAlertCommunitySighting["locationPrecision"];
+  share_enabled?: boolean;
+  published_at: string;
+  closed_at?: string | null;
+  expires_at: string;
+  close_reason?: PetAlertCommunityCloseReason | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface PetAlertApiClient {
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
@@ -98,6 +131,11 @@ export interface PetAlertApiClient {
     sightingId: Uuid,
     status: PetAlertSightingStatus
   ): Promise<PetAlertLostPetSighting>;
+  createPetAlertCommunitySighting(input: CreatePetAlertCommunitySightingInput): Promise<PetAlertCommunitySighting>;
+  getPetAlertCommunitySightingBySlug(reportSlug: string): Promise<PublicPetAlertCommunitySighting | null>;
+  listPublicPetAlertCommunitySightings(filters?: { city?: string | null; country?: string | null; limit?: number }): Promise<PublicPetAlertCommunitySighting[]>;
+  listMyPetAlertCommunitySightings(): Promise<PetAlertCommunitySighting[]>;
+  closePetAlertCommunitySighting(reportId: Uuid, reason: PetAlertCommunityCloseReason): Promise<PetAlertCommunitySighting>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -177,6 +215,61 @@ function mapSighting(row: SightingRow): PetAlertLostPetSighting {
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function mapCommunitySighting(row: CommunitySightingRow): PetAlertCommunitySighting {
+  return {
+    id: row.id ?? "",
+    reportSlug: row.report_slug,
+    reporterUserId: row.reporter_user_id ?? "",
+    status: row.status,
+    animalSpecies: row.animal_species,
+    apparentBreed: row.apparent_breed,
+    apparentSize: row.apparent_size,
+    apparentSex: row.apparent_sex,
+    primaryColor: row.primary_color,
+    collarDescription: row.collar_description,
+    distinctiveMarks: row.distinctive_marks,
+    behaviorNotes: row.behavior_notes,
+    observedSituation: row.observed_situation,
+    sightedAt: row.sighted_at,
+    city: row.city,
+    region: row.region,
+    country: row.country,
+    locationReference: row.location_reference,
+    locationPrecision: row.location_precision ?? "approximate",
+    shareEnabled: row.share_enabled ?? true,
+    publishedAt: row.published_at,
+    closedAt: row.closed_at ?? null,
+    expiresAt: row.expires_at,
+    closeReason: row.close_reason ?? null,
+    createdAt: row.created_at ?? row.published_at,
+    updatedAt: row.updated_at ?? row.published_at
+  };
+}
+
+function mapPublicCommunitySighting(row: CommunitySightingRow): PublicPetAlertCommunitySighting {
+  const report = mapCommunitySighting(row);
+  return {
+    reportSlug: report.reportSlug,
+    status: report.status,
+    animalSpecies: report.animalSpecies,
+    apparentBreed: report.apparentBreed,
+    apparentSize: report.apparentSize,
+    apparentSex: report.apparentSex,
+    primaryColor: report.primaryColor,
+    collarDescription: report.collarDescription,
+    distinctiveMarks: report.distinctiveMarks,
+    behaviorNotes: report.behaviorNotes,
+    observedSituation: report.observedSituation,
+    sightedAt: report.sightedAt,
+    city: report.city,
+    region: report.region,
+    country: report.country,
+    locationReference: report.locationReference,
+    publishedAt: report.publishedAt,
+    expiresAt: report.expiresAt
   };
 }
 
@@ -297,6 +390,58 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       });
       if (error || !data) fail(error, "No fue posible actualizar el avistamiento.");
       return mapSighting(data as SightingRow);
+    },
+    async createPetAlertCommunitySighting(input) {
+      const { data, error } = await supabase.rpc("create_pet_alert_community_sighting", {
+        next_animal_species: input.animalSpecies,
+        next_apparent_breed: input.apparentBreed ?? null,
+        next_apparent_size: input.apparentSize ?? "unknown",
+        next_apparent_sex: input.apparentSex ?? "unknown",
+        next_primary_color: input.primaryColor ?? null,
+        next_collar_description: input.collarDescription ?? null,
+        next_distinctive_marks: input.distinctiveMarks ?? null,
+        next_behavior_notes: input.behaviorNotes ?? null,
+        next_observed_situation: input.observedSituation,
+        next_sighted_at: input.sightedAt,
+        next_city: input.city,
+        next_region: input.region ?? null,
+        next_country: input.country,
+        next_location_reference: input.locationReference ?? null,
+        next_location_precision: input.locationPrecision ?? "approximate",
+        next_share_enabled: input.shareEnabled ?? true
+      });
+      if (error || !data) fail(error, "No fue posible publicar el reporte comunitario.");
+      return mapCommunitySighting(data as CommunitySightingRow);
+    },
+    async getPetAlertCommunitySightingBySlug(reportSlug) {
+      const { data, error } = await supabase.rpc("get_public_pet_alert_community_sighting_by_slug", {
+        target_report_slug: reportSlug
+      });
+      if (error) fail(error, "No fue posible cargar el reporte comunitario.");
+      const row = (data as CommunitySightingRow[] | null)?.[0];
+      return row ? mapPublicCommunitySighting(row) : null;
+    },
+    async listPublicPetAlertCommunitySightings(filters = {}) {
+      const { data, error } = await supabase.rpc("list_public_pet_alert_community_sightings", {
+        filter_city: filters.city ?? null,
+        filter_country: filters.country ?? "PA",
+        result_limit: filters.limit ?? 30
+      });
+      if (error) fail(error, "No fue posible cargar los reportes comunitarios.");
+      return ((data ?? []) as CommunitySightingRow[]).map(mapPublicCommunitySighting);
+    },
+    async listMyPetAlertCommunitySightings() {
+      const { data, error } = await supabase.rpc("list_my_pet_alert_community_sightings");
+      if (error) fail(error, "No fue posible cargar tus reportes comunitarios.");
+      return ((data ?? []) as CommunitySightingRow[]).map(mapCommunitySighting);
+    },
+    async closePetAlertCommunitySighting(reportId, reason) {
+      const { data, error } = await supabase.rpc("close_pet_alert_community_sighting", {
+        target_report_id: reportId,
+        next_close_reason: reason
+      });
+      if (error || !data) fail(error, "No fue posible cerrar el reporte comunitario.");
+      return mapCommunitySighting(data as CommunitySightingRow);
     }
   };
 }

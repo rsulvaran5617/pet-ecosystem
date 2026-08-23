@@ -14,6 +14,18 @@ export type PetAlertSightingStatus = "new" | "reviewed" | "possible_lead" | "dis
 export type PetAlertLocationPrecision = "exact" | "approximate" | "city";
 export type PetAlertContactMode = "internal" | "whatsapp" | "phone" | "email" | "private";
 export type PetAlertCloseReason = "found_with_pet_alert" | "found_other_means" | "closed_not_found";
+export type PetAlertCommunityStatus =
+  | "sighting_open"
+  | "sheltered_by_reporter"
+  | "possible_owner_claim"
+  | "owner_verified"
+  | "reunited"
+  | "closed"
+  | "expired"
+  | "flagged";
+export type PetAlertApparentSize = "small" | "medium" | "large" | "unknown";
+export type PetAlertApparentSex = "female" | "male" | "unknown";
+export type PetAlertCommunityCloseReason = "reunited" | "animal_left_area" | "duplicate" | "closed_other";
 
 export interface PetAlertLostPet extends TimestampedEntity {
   id: Uuid;
@@ -141,4 +153,55 @@ export interface CreatePetAlertLostPetSightingInput {
   latitude?: number | null;
   longitude?: number | null;
   notes: string;
+}
+
+export interface PetAlertCommunitySighting extends TimestampedEntity {
+  id: Uuid;
+  reportSlug: string;
+  reporterUserId: Uuid;
+  status: PetAlertCommunityStatus;
+  animalSpecies: string;
+  apparentBreed: string | null;
+  apparentSize: PetAlertApparentSize;
+  apparentSex: PetAlertApparentSex;
+  primaryColor: string | null;
+  collarDescription: string | null;
+  distinctiveMarks: string | null;
+  behaviorNotes: string | null;
+  observedSituation: string;
+  sightedAt: string;
+  city: string;
+  region: string | null;
+  country: string;
+  locationReference: string | null;
+  locationPrecision: "approximate" | "city";
+  shareEnabled: boolean;
+  publishedAt: string;
+  closedAt: string | null;
+  expiresAt: string;
+  closeReason: PetAlertCommunityCloseReason | null;
+}
+
+export type PublicPetAlertCommunitySighting = Omit<
+  PetAlertCommunitySighting,
+  "closeReason" | "closedAt" | "createdAt" | "id" | "locationPrecision" | "reporterUserId" | "shareEnabled" | "updatedAt"
+>;
+
+export interface CreatePetAlertCommunitySightingInput {
+  animalSpecies: string;
+  apparentBreed?: string | null;
+  apparentSize?: PetAlertApparentSize;
+  apparentSex?: PetAlertApparentSex;
+  primaryColor?: string | null;
+  collarDescription?: string | null;
+  distinctiveMarks?: string | null;
+  behaviorNotes?: string | null;
+  observedSituation: string;
+  sightedAt: string;
+  city: string;
+  region?: string | null;
+  country: string;
+  locationReference?: string | null;
+  locationPrecision?: "approximate" | "city";
+  shareEnabled?: boolean;
 }
