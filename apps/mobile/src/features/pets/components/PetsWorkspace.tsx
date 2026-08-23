@@ -35,6 +35,7 @@ import { StatusChip } from "../../core/components/StatusChip";
 import { getMobileFosterApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 import { AdoptionApplicationsInbox } from "../../foster/components/AdoptionApplicationsInbox";
 import { usePetHealthSummary } from "../../health/hooks/usePetHealthSummary";
+import { PetAlertLostPetPanel } from "../../pet-alert/components/PetAlertLostPetPanel";
 import { usePetsWorkspace } from "../hooks/usePetsWorkspace";
 
 const inputStyle = {
@@ -2586,6 +2587,16 @@ export function PetsWorkspace({
                         <Text style={{ color: "#64748b", fontSize: 10, fontWeight: "700", lineHeight: 14 }}>{selectedPetPrimaryAction.description}</Text>
                       </View>
                     </Pressable>
+                  ) : null}
+                  {!selectedHouseholdIsProtective ? (
+                    <PetAlertLostPetPanel
+                      avatarUrl={selectedPetDetail.pet.avatarUrl}
+                      canManage={canEditSelectedHousehold}
+                      petId={selectedPetDetail.pet.id}
+                      petName={selectedPetDetail.pet.name}
+                      petSpecies={selectedPetDetail.pet.species}
+                      petStatus={selectedPetDetail.pet.status}
+                    />
                   ) : null}
                   {canEditSelectedHousehold ? (
                     <View

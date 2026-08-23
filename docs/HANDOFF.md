@@ -1739,3 +1739,11 @@ Al final:
 - No se crea transferencia ni se modifica `pets.household_id`; aceptar custodia permanece en Foster-2A/5E.
 - Migracion local: `20260822143000_adoption_public_funnel_slice6_owner_conversion.sql`.
 - Pendiente: validaciones completas, dry-run y QA de Slices 4-6 en orden antes de aplicar remoto.
+# Handoff 2026-08-23 - PET ALERT Slice 2 mobile owner
+
+- Se implemento en mobile owner el flujo contextual `Mi mascota se perdio` desde la ficha de una mascota activa.
+- El wizard conserva una decision principal por paso: ultimo avistamiento, zona aproximada, descripcion publica y vista previa.
+- Reutiliza `createPetAlertApiClient` y el backend Slice 1A ya aplicado: guardar borrador, publicar por 30 dias, listar avistamientos y marcar encontrada.
+- Privacidad: contacto interno, precision aproximada, sin GPS, mapa, direccion residencial, push ni nuevas migraciones.
+- La accion no aparece en hogares protectores ni mascotas `in_memory`.
+- Proximo slice recomendado: ficha publica y avistamientos protegidos; no abrir anonimo sin rate limiting/captcha y moderacion.

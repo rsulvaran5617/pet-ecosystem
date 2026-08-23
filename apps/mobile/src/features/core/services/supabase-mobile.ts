@@ -8,6 +8,7 @@ import {
   createHouseholdsApiClient,
   createMarketplaceApiClient,
   createMessagingApiClient,
+  createPetAlertApiClient,
   createPetsApiClient,
   createProvidersApiClient,
   createReviewsApiClient,
@@ -39,6 +40,7 @@ let mobileHealthApiClient: ReturnType<typeof createHealthApiClient> | null = nul
 let mobileRemindersApiClient: ReturnType<typeof createRemindersApiClient> | null = null;
 let mobileMarketplaceApiClient: ReturnType<typeof createMarketplaceApiClient> | null = null;
 let mobileMessagingApiClient: ReturnType<typeof createMessagingApiClient> | null = null;
+let mobilePetAlertApiClient: ReturnType<typeof createPetAlertApiClient> | null = null;
 let mobileReviewsApiClient: ReturnType<typeof createReviewsApiClient> | null = null;
 let mobileSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
 let mobileProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
@@ -237,6 +239,14 @@ export function getMobileMessagingApiClient() {
   }
 
   return mobileMessagingApiClient;
+}
+
+export function getMobilePetAlertApiClient() {
+  if (!mobilePetAlertApiClient) {
+    mobilePetAlertApiClient = createPetAlertApiClient(getMobileSupabaseClient());
+  }
+
+  return mobilePetAlertApiClient;
 }
 
 export function getMobileReviewsApiClient() {
