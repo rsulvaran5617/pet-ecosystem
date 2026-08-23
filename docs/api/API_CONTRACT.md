@@ -362,3 +362,7 @@ Foster-2A API client local:
 - `POST /admin/adoption-listings/{listingId}/approve` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/adoption-listings/{listingId}/reject` (V2.5 Foster/Adoption, propuesto)
 - `POST /admin/adoption-listings/{listingId}/pause` (V2.5 Foster/Adoption, propuesto)
+# Adoption public funnel Slice 8
+
+- `recordPublicAdoptionFunnelEvent`: registro no bloqueante de eventos publicos permitidos y sin PII.
+- `getAdoptionFunnelMetrics`: lectura autenticada y agregada por Familia Protectora, con periodo de 1 a 730 dias.

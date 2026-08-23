@@ -539,3 +539,8 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - RPCs autenticadas `claim_adoption_invite` y `convert_public_request_to_adoption_application`.
 - `adoption_public_requests.status` incorpora `converted_to_application`.
 - Claim exige correo destinatario y conversion exige hogar `owner` administrable.
+# Adoption public funnel Slice 8
+
+- `adoption_funnel_events`: eventos publicos permitidos sin PII, asociados a Familia Protectora y opcionalmente a publicacion.
+- RPC publica `record_public_adoption_funnel_event` valida slug y evento.
+- RPC autenticada `get_adoption_funnel_metrics` devuelve agregados por household y periodo.

@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-22 - ADOPTION-PUBLIC-FUNNEL Slice 8
+
+- Migracion `20260822170000_adoption_public_funnel_slice8_metrics.sql` aplicada en Supabase remoto el 2026-08-23.
+- Registra vistas y acciones publicas minimas sin PII; solicitudes, invitaciones, aplicaciones y adopciones se derivan de datos transaccionales existentes.
+- Web Foster `Panel` incorpora un embudo agregado de 90 dias.
+- No mueve custodia, no cambia publicaciones y no toca Payments, booking, QR, evidencia ni provider.
+- La cola Adoption Public Funnel Slices 4, 5, 6 y 8 quedo aplicada; el dry-run posterior confirmo Supabase remoto al dia.
+
 # Handoff 2026-08-16 - ADOPTION-PUBLIC-FUNNEL Slice 2/3
 
 - Estado en `origin/master`: Slice 2 y Slice 3 implementados y pusheados.

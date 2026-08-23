@@ -169,6 +169,10 @@ export function PublicProtectiveLandingPage({ slug }: { slug: string }) {
         if (isMounted) {
           setProfile(publicProfile);
           setListings(visibleListings);
+          void client.recordPublicAdoptionFunnelEvent({
+            eventName: "protective_landing_viewed",
+            protectiveProfileSlug: slug
+          });
         }
       } catch (error) {
         if (isMounted) {
@@ -197,6 +201,10 @@ export function PublicProtectiveLandingPage({ slug }: { slug: string }) {
     const url = typeof window !== "undefined" ? window.location.href : "";
 
     try {
+      void getBrowserFosterApiClient().recordPublicAdoptionFunnelEvent({
+        eventName: "share_clicked",
+        protectiveProfileSlug: slug
+      });
       const browserNavigator =
         typeof navigator !== "undefined"
           ? (navigator as Navigator & {

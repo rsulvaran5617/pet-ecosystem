@@ -3,6 +3,7 @@
 import type {
   ApplicationCommitmentDocument,
   AdoptionInviteCreated,
+  AdoptionFunnelMetrics,
   AdoptionCommitmentDocumentStatus,
   HouseholdSummary,
   PetAdoptionApplication,
@@ -44,6 +45,7 @@ export type FosterConsoleApplicationDetail = {
 };
 
 export type FosterConsoleHouseholdContext = {
+  funnelMetrics: AdoptionFunnelMetrics;
   applications: PetAdoptionApplication[];
   listings: PetAdoptionListing[];
   pets: PetSummary[];
@@ -196,7 +198,7 @@ export function useFosterConsoleWorkspace() {
   );
 
   const loadHouseholdContext = useCallback(async (household: HouseholdSummary): Promise<FosterConsoleHouseholdContext> => {
-    const [profile, publicProfile, listings, applications, publicRequests, transfers, pets, commitmentTemplate] = await Promise.all([
+    const [profile, publicProfile, listings, applications, publicRequests, transfers, pets, commitmentTemplate, funnelMetrics] = await Promise.all([
       getBrowserFosterApiClient().getProtectiveHouseholdProfile(household.id),
       getBrowserFosterApiClient().getProtectivePublicProfile(household.id),
       getBrowserFosterApiClient().listMyPetAdoptionListings(household.id),
@@ -204,12 +206,14 @@ export function useFosterConsoleWorkspace() {
       getBrowserFosterApiClient().listReceivedPublicAdoptionRequests(household.id),
       getBrowserFosterApiClient().listOutgoingPetTransfers(household.id),
       getBrowserPetsApiClient().listHouseholdPets(household.id),
-      getBrowserFosterApiClient().getProtectiveAdoptionCommitmentTemplate(household.id)
+      getBrowserFosterApiClient().getProtectiveAdoptionCommitmentTemplate(household.id),
+      getBrowserFosterApiClient().getAdoptionFunnelMetrics(household.id)
     ]);
 
     return {
       applications,
       commitmentTemplate,
+      funnelMetrics,
       listings,
       pets,
       profile,
@@ -1080,6 +1084,7 @@ export function useFosterConsoleWorkspace() {
     createProtectiveHousehold,
     commitmentTemplate: selectedContext?.commitmentTemplate ?? null,
     errorMessage,
+    funnelMetrics: selectedContext?.funnelMetrics ?? null,
     infoMessage,
     isLoading,
     isSubmitting,

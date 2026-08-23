@@ -356,6 +356,8 @@ CTAs:
 
 ### Seguimiento de conversion
 
+Slice 8 agrega en `Web Foster > Panel` un bloque compacto `Embudo publico de adopcion` con metricas agregadas de los ultimos 90 dias. Debe explicar que no contiene identidad de visitantes y mantener `Interes publico` como bandeja operativa separada.
+
 Estados visibles:
 
 - Interes recibido.

@@ -53,7 +53,16 @@ export function PublicAdoptionRequestPage({ slug }: { slug: string }) {
     getBrowserFosterApiClient()
       .getPublicPetAdoptionListingBySlug(slug)
       .then((result) => {
-        if (mounted) setProfile(result?.listingStatus === "published" ? result : null);
+        if (mounted) {
+          const availableProfile = result?.listingStatus === "published" ? result : null;
+          setProfile(availableProfile);
+          if (availableProfile) {
+            void getBrowserFosterApiClient().recordPublicAdoptionFunnelEvent({
+              eventName: "public_request_started",
+              listingSlug: slug
+            });
+          }
+        }
       })
       .catch((error: unknown) => {
         if (mounted) setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir esta publicacion.");

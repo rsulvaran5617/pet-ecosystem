@@ -117,7 +117,15 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
 
       try {
         const result = await getBrowserFosterApiClient().getPublicPetAdoptionListingBySlug(slug);
-        if (isMounted) setProfile(result);
+        if (isMounted) {
+          setProfile(result);
+          if (result) {
+            void getBrowserFosterApiClient().recordPublicAdoptionFunnelEvent({
+              eventName: "pet_listing_viewed",
+              listingSlug: slug
+            });
+          }
+        }
       } catch (error) {
         if (isMounted) {
           setErrorMessage(error instanceof Error ? error.message : "No fue posible abrir esta ficha de adopcion.");
@@ -146,6 +154,10 @@ export function PublicPetAdoptionPage({ slug }: { slug: string }) {
     const url = typeof window !== "undefined" ? window.location.href : "";
 
     try {
+      void getBrowserFosterApiClient().recordPublicAdoptionFunnelEvent({
+        eventName: "share_clicked",
+        listingSlug: slug
+      });
       const browserNavigator =
         typeof navigator !== "undefined"
           ? (navigator as Navigator & { clipboard?: Clipboard; share?: (data: ShareData) => Promise<void> })

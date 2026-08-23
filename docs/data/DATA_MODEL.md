@@ -282,3 +282,6 @@ Decision pendiente antes de aplicar remoto:
 
 - confirmar si ese household historico debe convertirse a `protective` con backfill asistido.
 - si contiene mascotas propias y en acogida, crear hogar owner/protective separado y mover custodia solo mediante flujos Foster controlados.
+# Adoption public funnel Slice 8
+
+`adoption_funnel_events` conserva solamente nombre de evento, household protector, publicacion opcional y fecha. Las conversiones sensibles se derivan de las tablas Foster existentes y no duplican PII.

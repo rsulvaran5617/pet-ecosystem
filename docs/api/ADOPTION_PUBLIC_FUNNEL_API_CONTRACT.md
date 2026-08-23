@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL API Contract
 
-Contrato del embudo publico de adopcion. Slice 4 y Slice 5 quedan implementados localmente y pendientes de aplicacion remota controlada.
+Contrato del embudo publico de adopcion. Slices 4, 5, 6 y 8 quedan implementados y aplicados en Supabase remoto.
 
 ## Principios
 
@@ -44,6 +44,14 @@ Pendiente para hardening futuro:
 - Crear una operacion especifica `getPublicProtectiveLandingBySlug(slug)` que devuelva perfil + listings filtrados desde DB/RPC para evitar traer todas las publicaciones publicas cuando el volumen crezca.
 
 ## Operaciones propuestas
+
+### `recordPublicAdoptionFunnelEvent(input)`
+
+Registra una vista o accion publica permitida asociada a un slug valido. No recibe ni persiste PII y falla de forma no bloqueante en la UI publica.
+
+### `getAdoptionFunnelMetrics(householdId, periodDays = 90)`
+
+Devuelve agregados autorizados de landing, fichas, compartidos, formularios iniciados, intereses, preselecciones, invitaciones, aperturas, claims, solicitudes formales y adopciones cerradas. El periodo permitido es de 1 a 730 dias.
 
 ### `getPublicProtectiveLandingBySlug(slug)`
 

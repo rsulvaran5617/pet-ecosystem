@@ -477,6 +477,33 @@ export interface PublicAdoptionRequestCreated {
   message: string;
 }
 
+export type AdoptionFunnelPublicEventName =
+  | "protective_landing_viewed"
+  | "pet_listing_viewed"
+  | "share_clicked"
+  | "public_request_started";
+
+export interface AdoptionFunnelMetrics {
+  periodDays: number;
+  landingViews: number;
+  listingViews: number;
+  shareClicks: number;
+  requestStarts: number;
+  publicRequests: number;
+  preselectedRequests: number;
+  invitesCreated: number;
+  invitesOpened: number;
+  invitesClaimed: number;
+  formalApplications: number;
+  adoptionsClosed: number;
+}
+
+export interface RecordPublicAdoptionFunnelEventInput {
+  eventName: AdoptionFunnelPublicEventName;
+  protectiveProfileSlug?: string | null;
+  listingSlug?: string | null;
+}
+
 export interface UpdatePublicAdoptionRequestStatusInput {
   requestId: Uuid;
   status: Extract<PublicAdoptionRequestStatus, "in_review" | "preselected" | "rejected" | "cancelled">;

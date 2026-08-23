@@ -989,6 +989,7 @@ export function FosterConsoleWorkspace() {
     createFosterPet,
     createAdoptionInvite,
     errorMessage,
+    funnelMetrics,
     infoMessage,
     isLoading,
     isSubmitting,
@@ -1335,6 +1336,29 @@ export function FosterConsoleWorkspace() {
           ) : null}
 
           <div className="foster-web-kpi-dashboard" style={styles.kpiDashboard}>
+            {funnelMetrics ? (
+              <section style={styles.kpiSection}>
+                <div style={styles.sectionHeaderCompact}>
+                  <div>
+                    <h3 style={styles.kpiSectionTitle}>Embudo publico de adopcion</h3>
+                    <p style={styles.kpiSectionDetail}>Actividad agregada de los ultimos {funnelMetrics.periodDays} dias, sin datos personales de visitantes.</p>
+                  </div>
+                </div>
+                <div className="foster-web-kpi-grid" style={styles.metricGrid}>
+                  {[
+                    { label: "Visitas a la familia", value: funnelMetrics.landingViews, detail: "Landing publica" },
+                    { label: "Vistas de mascotas", value: funnelMetrics.listingViews, detail: "Fichas publicas" },
+                    { label: "Intereses recibidos", value: funnelMetrics.publicRequests, detail: `${funnelMetrics.requestStarts} formulario(s) abierto(s)` },
+                    { label: "Preseleccionados", value: funnelMetrics.preselectedRequests, detail: "Contactos evaluados" },
+                    { label: "Invitaciones", value: funnelMetrics.invitesCreated, detail: `${funnelMetrics.invitesOpened} enlace(s) abierto(s)` },
+                    { label: "Solicitudes formales", value: funnelMetrics.formalApplications, detail: `${funnelMetrics.invitesClaimed} invitacion(es) reclamada(s)` },
+                    { label: "Adopciones cerradas", value: funnelMetrics.adoptionsClosed, detail: "Transferencias aceptadas" }
+                  ].map((metric) => (
+                    <FosterKpiCard card={metric} key={metric.label} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
             {fosterKpiSections.map((section) => (
               <FosterKpiSection key={section.title} section={section} />
             ))}

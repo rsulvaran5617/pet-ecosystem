@@ -6,6 +6,7 @@ import type {
   ApplicationCommitmentDocumentUploadInput,
   AdoptionInviteContext,
   AdoptionInviteCreated,
+  AdoptionFunnelMetrics,
   ClaimedAdoptionInvite,
   ConvertPublicRequestToAdoptionApplicationInput,
   CreateAdoptionInviteInput,
@@ -33,6 +34,7 @@ import type {
   PublicPetAdoptionProfile,
   PublicAdoptionRequest,
   PublicAdoptionRequestCreated,
+  RecordPublicAdoptionFunnelEventInput,
   AdminProtectivePublicProfile,
   ProtectiveHouseholdProfile,
   ProtectiveHouseholdProfileInput,
@@ -141,6 +143,8 @@ export interface FosterApiClient {
   getPetAdoptionListingDetail(listingId: Uuid, visibility?: "owner" | "public"): Promise<PetAdoptionListing | null>;
   getPublicPetAdoptionListingBySlug(slug: string): Promise<PublicPetAdoptionProfile | null>;
   createPublicAdoptionRequest(input: CreatePublicAdoptionRequestInput): Promise<PublicAdoptionRequestCreated>;
+  recordPublicAdoptionFunnelEvent(input: RecordPublicAdoptionFunnelEventInput): Promise<void>;
+  getAdoptionFunnelMetrics(householdId: Uuid, periodDays?: number): Promise<AdoptionFunnelMetrics>;
   listReceivedPublicAdoptionRequests(householdId?: Uuid | null): Promise<PublicAdoptionRequest[]>;
   updatePublicAdoptionRequestStatus(input: UpdatePublicAdoptionRequestStatusInput): Promise<PublicAdoptionRequest>;
   createAdoptionInvite(input: CreateAdoptionInviteInput): Promise<AdoptionInviteCreated>;
@@ -1575,6 +1579,50 @@ export function createFosterApiClient(supabase: FosterSupabaseClient): FosterApi
         requestId: created.request_id,
         status: created.request_status,
         message: created.response_message
+      };
+    },
+    async recordPublicAdoptionFunnelEvent(input) {
+      const { error } = await supabase.rpc("record_public_adoption_funnel_event", {
+        next_event_name: input.eventName,
+        target_protective_profile_slug: input.protectiveProfileSlug ?? null,
+        target_listing_slug: input.listingSlug ?? null
+      });
+
+      if (error && !isMissingFosterSchemaError(error)) {
+        fail(error, "No fue posible registrar la metrica publica.");
+      }
+    },
+    async getAdoptionFunnelMetrics(householdId, periodDays = 90) {
+      const { data, error } = await supabase.rpc("get_adoption_funnel_metrics", {
+        target_household_id: householdId,
+        period_days: periodDays
+      });
+
+      if (error) {
+        if (isMissingFosterSchemaError(error)) {
+          return {
+            adoptionsClosed: 0, formalApplications: 0, invitesClaimed: 0, invitesCreated: 0,
+            invitesOpened: 0, landingViews: 0, listingViews: 0, periodDays,
+            preselectedRequests: 0, publicRequests: 0, requestStarts: 0, shareClicks: 0
+          };
+        }
+        fail(error, "No fue posible cargar las metricas del embudo de adopcion.");
+      }
+
+      const metrics = data?.[0];
+      return {
+        adoptionsClosed: Number(metrics?.adoptions_closed ?? 0),
+        formalApplications: Number(metrics?.formal_applications ?? 0),
+        invitesClaimed: Number(metrics?.invites_claimed ?? 0),
+        invitesCreated: Number(metrics?.invites_created ?? 0),
+        invitesOpened: Number(metrics?.invites_opened ?? 0),
+        landingViews: Number(metrics?.landing_views ?? 0),
+        listingViews: Number(metrics?.listing_views ?? 0),
+        periodDays,
+        preselectedRequests: Number(metrics?.preselected_requests ?? 0),
+        publicRequests: Number(metrics?.public_requests ?? 0),
+        requestStarts: Number(metrics?.request_starts ?? 0),
+        shareClicks: Number(metrics?.share_clicks ?? 0)
       };
     },
     async listReceivedPublicAdoptionRequests(householdId) {

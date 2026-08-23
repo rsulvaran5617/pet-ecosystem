@@ -1476,6 +1476,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["adoption_invites"]["Insert"]>;
         Relationships: [];
       };
+      adoption_funnel_events: {
+        Row: {
+          id: string;
+          event_name: "protective_landing_viewed" | "pet_listing_viewed" | "share_clicked" | "public_request_started";
+          protective_household_id: string;
+          listing_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_name: "protective_landing_viewed" | "pet_listing_viewed" | "share_clicked" | "public_request_started";
+          protective_household_id: string;
+          listing_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["adoption_funnel_events"]["Insert"]>;
+        Relationships: [];
+      };
       protective_household_adoption_commitment_templates: {
         Row: {
           id: string;
@@ -2918,6 +2936,33 @@ export interface Database {
           request_id: string;
           request_status: "submitted";
           response_message: string;
+        }>;
+      };
+      record_public_adoption_funnel_event: {
+        Args: {
+          next_event_name: "protective_landing_viewed" | "pet_listing_viewed" | "share_clicked" | "public_request_started";
+          target_protective_profile_slug?: string | null;
+          target_listing_slug?: string | null;
+        };
+        Returns: undefined;
+      };
+      get_adoption_funnel_metrics: {
+        Args: {
+          target_household_id: string;
+          period_days?: number;
+        };
+        Returns: Array<{
+          landing_views: number;
+          listing_views: number;
+          share_clicks: number;
+          request_starts: number;
+          public_requests: number;
+          preselected_requests: number;
+          invites_created: number;
+          invites_opened: number;
+          invites_claimed: number;
+          formal_applications: number;
+          adoptions_closed: number;
         }>;
       };
       list_received_public_adoption_requests: {

@@ -289,3 +289,7 @@ No existe insercion directa de clientes; se registra desde RPCs administrativas 
 
 ## Regla de cambio
 No implementar tablas sensibles sin definir su politica RLS.
+# Adoption public funnel metrics
+
+- Visitantes no leen `adoption_funnel_events`; solo registran eventos permitidos mediante RPC con slugs publicos validos.
+- Miembros autorizados del household protector y platform admin pueden consultar eventos; las metricas se entregan agregadas mediante RPC.

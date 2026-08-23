@@ -1,6 +1,6 @@
 # ADOPTION-PUBLIC-FUNNEL Data Model
 
-Modelo del embudo publico de adopcion. Slice 4 prepara el interes publico y Slice 5 agrega localmente la invitacion segura hacia la app owner; sus migraciones no deben aplicarse remoto sin dry-run y aprobacion.
+Modelo del embudo publico de adopcion. Slices 4, 5, 6 y 8 estan aplicados remoto: interes publico, invitacion segura, conversion owner y metricas agregadas sin PII.
 
 ## Reutilizacion actual
 
@@ -306,9 +306,13 @@ Eventos sugeridos:
 - `application_completed_from_invite`
 - `adoption_transfer_accepted`
 
-MVP o futuro:
+Implementacion Slice 8:
 
-- Futuro o Slice 8. Puede comenzar con logs simples si no hay infraestructura de analytics.
+- Tabla minima sin PII: `id`, `event_name`, `protective_household_id`, `listing_id` opcional y `created_at`.
+- Eventos publicos permitidos: landing vista, ficha vista, compartir y formulario iniciado.
+- No guarda email, telefono, IP, direccion, user-agent ni identificadores publicitarios.
+- RLS permite lectura solo al household autorizado o admin; la escritura publica ocurre mediante RPC validada.
+- El resto del embudo se deriva de solicitudes, historial, invitaciones, solicitudes formales y transferencias existentes.
 
 ## Ajustes potenciales sobre tablas existentes
 

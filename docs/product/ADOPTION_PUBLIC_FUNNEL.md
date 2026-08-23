@@ -231,6 +231,14 @@ Estado implementado:
 
 - Visitas, solicitudes, invitaciones, instalaciones atribuidas, owners registrados, hogares creados y adopciones cerradas.
 
+Estado implementado localmente:
+
+- `adoption_funnel_events` registra exclusivamente vistas y acciones publicas permitidas, sin correo, telefono, IP ni direccion.
+- Las solicitudes, preselecciones, invitaciones, aperturas, claims, solicitudes formales y adopciones cerradas se calculan desde entidades transaccionales existentes.
+- `get_adoption_funnel_metrics` entrega agregados de 90 dias solo a miembros autorizados de la Familia Protectora o admin.
+- Web Foster muestra el embudo en `Panel`; no expone identidad de visitantes ni reemplaza la bandeja `Interes publico`.
+- La atribucion de instalacion exacta no se simula: el MVP usa apertura/claim de invitacion como conversion verificable hacia app owner.
+
 ## Criterios de aceptacion del frente
 
 - La fundacion obtiene una landing publica profesional y compartible.
