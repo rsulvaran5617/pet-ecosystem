@@ -70,6 +70,13 @@ Ninguna operacion cambia `pets.household_id`, custodia o propiedad. No existe le
 
 Slice 6 implementa `reportPetAlertContent`, `listPetAlertModerationQueue`, `moderatePetAlertContent` y `listPetAlertModerationHistory`. El reporte exige sesion; cola, historial completo y decision exigen rol global `admin`. Las acciones `flag`, `restore`, `close`, `reject_claim` y `dismiss` estan restringidas por tipo de objetivo y requieren justificacion.
 
+## Slice 7A fotos comunitarias
+
+- `uploadPetAlertCommunityPhoto` recibe reporte, nombre, MIME, bytes y orden `0..2`.
+- Solo acepta JPG, PNG o WebP de hasta 10 MB y exige que la sesion administre el reporte.
+- Las consultas publicas y propias adjuntan `photoUrls` firmadas y temporales.
+- Un fallo de media no duplica ni invalida el reporte textual ya creado.
+
 ## Contratos de error
 
 - `PET_ALERT_UNAUTHORIZED`

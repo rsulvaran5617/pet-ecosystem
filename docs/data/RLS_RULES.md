@@ -312,3 +312,8 @@ No implementar tablas sensibles sin definir su politica RLS.
 - El reclamante ve sus solicitudes; el autor del reporte ve las solicitudes recibidas; admin puede auditar.
 - El contacto del reportante se proyecta al reclamante solo cuando el claim fue aprobado.
 - `anon` no puede crear ni leer claims.
+## PET ALERT Slice 7A fotos comunitarias
+
+- Solo reportante propietario o admin puede insertar/eliminar metadata y objetos del reporte.
+- La base limita la galeria a tres y valida reporte, slug y ruta.
+- Anon solo lee media cuando el reporte es compartible y visible; el bucket permanece privado.

@@ -148,3 +148,6 @@ Todas incluyen compartir, reportar abuso, estado visible y aviso de seguridad. U
 - La vista previa coincide con los datos publicos.
 - Contacto y coordenadas exactas nunca aparecen por defecto.
 - Las fichas funcionan en pantallas pequenas y web responsive.
+## Slice 7A fotos comunitarias
+
+El formulario `Vi una mascota perdida` permite agregar hasta tres fotos opcionales desde camara o galeria, previsualizarlas y quitarlas antes de publicar. La portada aparece en listados mobile/web y la ficha publica presenta la galeria.

@@ -560,4 +560,10 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 
 - `pet_alert_moderation_cases` y `pet_alert_moderation_history`.
 - RPCs: `report_pet_alert_content`, `list_pet_alert_moderation_queue`, `moderate_pet_alert_content`, `list_pet_alert_moderation_history`.
-- Migracion local pendiente: `20260823210000_pet_alert_slice6_admin_moderation.sql`.
+- Migracion aplicada remoto: `20260823210000_pet_alert_slice6_admin_moderation.sql`.
+
+# PET ALERT Slice 7A
+
+- `pet_alert_community_sighting_media`: hasta tres fotos opcionales por reporte comunitario.
+- Bucket privado `pet-alert-media`; JPG, PNG y WebP, maximo 10 MB por archivo.
+- Migracion aplicada remoto: `20260823223000_pet_alert_slice7a_community_photos.sql`.

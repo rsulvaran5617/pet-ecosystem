@@ -1777,3 +1777,9 @@ Al final:
 - Admin suma seccion `PET ALERT` para pausar/restaurar/cerrar contenido, rechazar claims o descartar reportes con justificacion.
 - No cambia ownership, custodia, Foster, booking, Payments, QR, evidencia ni geolocalizacion.
 - Pendiente validacion final y dry-run; no aplicar remoto ni hacer commit/push sin aprobacion.
+# Handoff 2026-08-23 - PET ALERT Slice 6 y Slice 7A remotos
+
+- Slice 6 fue aplicado remoto; dry-run posterior limpio.
+- Slice 7A aplica remoto la migracion `20260823223000_pet_alert_slice7a_community_photos.sql`.
+- Mobile permite camara/galeria, preview y hasta tres fotos opcionales; API y web proyectan URLs firmadas.
+- Falta ejecutar QA fisica de permisos, formatos y carga parcial.

@@ -305,6 +305,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 # PET ALERT Slice 5
 
 - PET ALERT Slice 6: Admin suma navegacion `PET ALERT` con cola de contenido reportado, filtros, detalle, justificacion obligatoria y acciones contextuales. No transfiere propiedad ni custodia.
+- PET ALERT Slice 7A: el alta comunitaria admite hasta tres fotos opcionales desde camara o galeria, con preview y eliminacion previa. Listados muestran portada y la ficha publica web muestra galeria; no solicita GPS.
 
 - La ficha web `/pet-alert/mascota-vista/[slug]` muestra `¿Crees que es tu mascota?`; sin sesion dirige al acceso y con sesion solicita una sena privada y consentimiento de contacto.
 - El reclamante ve estado `En revision`, `Contacto autorizado` o `No aprobada` sin exponer informacion previa a la decision.

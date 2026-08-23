@@ -2,9 +2,9 @@
 
 ## Estado
 
-`slice_6_admin_moderation_local`
+`slice_7a_community_photos_applied`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slice 4 esta aplicado remoto para reportes comunitarios autenticados. Slice 5 esta aplicado remoto para reclamo autenticado y contacto controlado. Notificaciones remotas todavia no existen.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slices 4, 5 y 6 estan aplicados remoto. Slice 7A agrega localmente fotos comunitarias opcionales. Notificaciones remotas todavia no existen.
 
 ## Alcance aprobado para diseno
 
@@ -76,4 +76,11 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - Solo usuarios autenticados publican y pueden cerrar sus reportes; el backend limita a tres altas por hora.
 - Mobile owner ofrece `Vi una mascota perdida` desde Inicio, con reporte manual sin GPS, mapa ni direccion exacta.
 - `/pet-alert` lista DTOs sanitizados; `/pet-alert/reportar-mascota-vista` crea con sesion y `/pet-alert/mascota-vista/[slug]` muestra la ficha compartible.
-- La primera version no carga fotos ni expone identidad/contacto del reportante. Escritura anonima, claims y moderacion avanzada quedan diferidos.
+- La base del Slice 4 no cargaba fotos; Slice 7A las agrega sin exponer identidad/contacto del reportante. Escritura anonima sigue diferida.
+## Slice 7A fotos comunitarias
+
+- El reportante autenticado puede tomar una foto o elegirla de la galeria antes de publicar.
+- Cada reporte admite cero a tres imagenes JPG, PNG o WebP; el reporte sigue siendo valido sin fotos.
+- Los archivos viven en el bucket privado `pet-alert-media` y la metadata en `pet_alert_community_sighting_media`.
+- Mobile y web usan URLs firmadas temporales. La visibilidad hereda el estado y moderacion del reporte.
+- No se solicita GPS y la UI advierte que no deben fotografiarse personas, placas ni domicilios.

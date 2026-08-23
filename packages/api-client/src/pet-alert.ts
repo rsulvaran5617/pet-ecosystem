@@ -20,6 +20,7 @@ import type {
   PublicPetAlertLostPet,
   PublicPetAlertCommunitySighting,
   UpdatePetAlertLostPetInput,
+  UploadPetAlertCommunityPhotoInput,
   Uuid
 } from "@pet/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -148,6 +149,15 @@ interface CommunityClaimRow {
   updated_at: string;
 }
 
+interface CommunityMediaRow {
+  id: string;
+  community_sighting_id: string;
+  report_slug: string;
+  storage_bucket: string;
+  storage_path: string;
+  display_order: number;
+}
+
 interface ModerationCaseRow {
   case_id: string;
   target_type: PetAlertModerationTargetType;
@@ -191,6 +201,7 @@ export interface PetAlertApiClient {
     status: PetAlertSightingStatus
   ): Promise<PetAlertLostPetSighting>;
   createPetAlertCommunitySighting(input: CreatePetAlertCommunitySightingInput): Promise<PetAlertCommunitySighting>;
+  uploadPetAlertCommunityPhoto(input: UploadPetAlertCommunityPhotoInput): Promise<string>;
   getPetAlertCommunitySightingBySlug(reportSlug: string): Promise<PublicPetAlertCommunitySighting | null>;
   listPublicPetAlertCommunitySightings(filters?: { city?: string | null; country?: string | null; limit?: number }): Promise<PublicPetAlertCommunitySighting[]>;
   listMyPetAlertCommunitySightings(): Promise<PetAlertCommunitySighting[]>;
@@ -312,6 +323,7 @@ function mapCommunitySighting(row: CommunitySightingRow): PetAlertCommunitySight
     closedAt: row.closed_at ?? null,
     expiresAt: row.expires_at,
     closeReason: row.close_reason ?? null,
+    photoUrls: [],
     createdAt: row.created_at ?? row.published_at,
     updatedAt: row.updated_at ?? row.published_at
   };
@@ -337,8 +349,37 @@ function mapPublicCommunitySighting(row: CommunitySightingRow): PublicPetAlertCo
     country: report.country,
     locationReference: report.locationReference,
     publishedAt: report.publishedAt,
-    expiresAt: report.expiresAt
+    expiresAt: report.expiresAt,
+    photoUrls: report.photoUrls
   };
+}
+
+async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | PublicPetAlertCommunitySighting>(
+  supabase: PetAlertSupabaseClient,
+  reports: T[]
+): Promise<T[]> {
+  const reportSlugs = reports.map((report) => report.reportSlug);
+  if (!reportSlugs.length) return reports;
+
+  const { data, error } = await supabase
+    .from("pet_alert_community_sighting_media")
+    .select("id,community_sighting_id,report_slug,storage_bucket,storage_path,display_order")
+    .in("report_slug", reportSlugs)
+    .order("display_order", { ascending: true });
+  if (error) fail(error, "No fue posible cargar las fotos del reporte comunitario.");
+
+  const urlsBySlug = new Map<string, string[]>();
+  const signedMedia = await Promise.all(((data ?? []) as CommunityMediaRow[]).map(async (media) => {
+    const { data: signed, error: signedError } = await supabase.storage
+      .from(media.storage_bucket)
+      .createSignedUrl(media.storage_path, 60 * 15);
+    return signedError || !signed?.signedUrl ? null : { reportSlug: media.report_slug, url: signed.signedUrl };
+  }));
+  signedMedia.forEach((media) => {
+    if (media) urlsBySlug.set(media.reportSlug, [...(urlsBySlug.get(media.reportSlug) ?? []), media.url]);
+  });
+
+  return reports.map((report) => ({ ...report, photoUrls: urlsBySlug.get(report.reportSlug) ?? [] }));
 }
 
 function mapCommunityClaim(row: CommunityClaimRow): PetAlertCommunityClaim {
@@ -524,13 +565,49 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       if (error || !data) fail(error, "No fue posible publicar el reporte comunitario.");
       return mapCommunitySighting(data as CommunitySightingRow);
     },
+    async uploadPetAlertCommunityPhoto(input) {
+      if (input.displayOrder < 0 || input.displayOrder > 2) throw new Error("Solo puedes agregar hasta 3 fotos.");
+      if (!input.fileBytes.byteLength) throw new Error("La foto esta vacia.");
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) fail(authError, "Debes iniciar sesion para subir una foto.");
+
+      const extension = input.mimeType === "image/png" ? "png" : input.mimeType === "image/webp" ? "webp" : "jpg";
+      const storagePath = `${input.reportId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from("pet-alert-media").upload(
+        storagePath,
+        new Uint8Array(input.fileBytes),
+        { contentType: input.mimeType, upsert: false }
+      );
+      if (uploadError) fail(uploadError, "No fue posible subir la foto comunitaria.");
+
+      const { error } = await supabase.from("pet_alert_community_sighting_media").insert({
+        community_sighting_id: input.reportId,
+        report_slug: input.reportSlug,
+        storage_bucket: "pet-alert-media",
+        storage_path: storagePath,
+        file_name: input.fileName,
+        mime_type: input.mimeType,
+        file_size_bytes: input.fileBytes.byteLength,
+        display_order: input.displayOrder,
+        created_by_user_id: authData.user.id
+      });
+      if (error) {
+        await supabase.storage.from("pet-alert-media").remove([storagePath]).catch(() => undefined);
+        fail(error, "No fue posible registrar la foto comunitaria.");
+      }
+      const { data: signed, error: signedError } = await supabase.storage.from("pet-alert-media").createSignedUrl(storagePath, 60 * 15);
+      if (signedError || !signed?.signedUrl) fail(signedError, "La foto se guardo, pero no pudo abrirse.");
+      return signed.signedUrl;
+    },
     async getPetAlertCommunitySightingBySlug(reportSlug) {
       const { data, error } = await supabase.rpc("get_public_pet_alert_community_sighting_by_slug", {
         target_report_slug: reportSlug
       });
       if (error) fail(error, "No fue posible cargar el reporte comunitario.");
       const row = (data as CommunitySightingRow[] | null)?.[0];
-      return row ? mapPublicCommunitySighting(row) : null;
+      if (!row) return null;
+      const [report] = await attachCommunityPhotoUrls(supabase, [mapPublicCommunitySighting(row)]);
+      return report ?? null;
     },
     async listPublicPetAlertCommunitySightings(filters = {}) {
       const { data, error } = await supabase.rpc("list_public_pet_alert_community_sightings", {
@@ -539,12 +616,12 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
         result_limit: filters.limit ?? 30
       });
       if (error) fail(error, "No fue posible cargar los reportes comunitarios.");
-      return ((data ?? []) as CommunitySightingRow[]).map(mapPublicCommunitySighting);
+      return attachCommunityPhotoUrls(supabase, ((data ?? []) as CommunitySightingRow[]).map(mapPublicCommunitySighting));
     },
     async listMyPetAlertCommunitySightings() {
       const { data, error } = await supabase.rpc("list_my_pet_alert_community_sightings");
       if (error) fail(error, "No fue posible cargar tus reportes comunitarios.");
-      return ((data ?? []) as CommunitySightingRow[]).map(mapCommunitySighting);
+      return attachCommunityPhotoUrls(supabase, ((data ?? []) as CommunitySightingRow[]).map(mapCommunitySighting));
     },
     async closePetAlertCommunitySighting(reportId, reason) {
       const { data, error } = await supabase.rpc("close_pet_alert_community_sighting", {

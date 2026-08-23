@@ -191,6 +191,7 @@ export interface PetAlertCommunitySighting extends TimestampedEntity {
   closedAt: string | null;
   expiresAt: string;
   closeReason: PetAlertCommunityCloseReason | null;
+  photoUrls: string[];
 }
 
 export type PublicPetAlertCommunitySighting = Omit<
@@ -215,6 +216,15 @@ export interface CreatePetAlertCommunitySightingInput {
   locationReference?: string | null;
   locationPrecision?: "approximate" | "city";
   shareEnabled?: boolean;
+}
+
+export interface UploadPetAlertCommunityPhotoInput {
+  reportId: Uuid;
+  reportSlug: string;
+  fileName: string;
+  mimeType: "image/jpeg" | "image/png" | "image/webp";
+  fileBytes: ArrayBuffer;
+  displayOrder: number;
 }
 
 export interface PetAlertCommunityClaim extends TimestampedEntity {

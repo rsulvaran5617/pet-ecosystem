@@ -139,3 +139,8 @@ El estado efectivo puede derivarse al leer mientras no exista scheduler. Un job 
 - `pets.id` y `household_id` no cambian.
 - QR puede enlazar a PET ALERT en un slice posterior sin alterar su validacion actual.
 - No se copian documentos, vacunas, reservas, chats ni datos Foster.
+### `pet_alert_community_sighting_media`
+
+- Galeria opcional de hasta tres imagenes por reporte comunitario.
+- Conserva reporte/slug, ruta privada, MIME, tamano, orden y actor creador.
+- No contiene coordenadas ni cambia ownership o custodia. La posicion cero es portada.
