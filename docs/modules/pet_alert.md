@@ -2,9 +2,9 @@
 
 ## Estado
 
-`slice_2_mobile_owner_implemented`
+`slice_3_public_alert_implemented`
 
-PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`: borrador, vista previa, publicacion, estado activo, consulta de avistamientos y cierre como encontrada. Paginas publicas y notificaciones remotas todavia no existen.
+PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Notificaciones remotas todavia no existen.
 
 ## Alcance aprobado para diseno
 
@@ -42,4 +42,13 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 
 ## Proximo slice
 
-Slice 3: ficha publica de alerta y formulario protegido para reportar avistamientos. No habilitar insercion anonima sin rate limiting, captcha y moderacion.
+Slice 4: reporte comunitario de una mascota aparentemente perdida, separado del flujo owner. No habilitar insercion anonima sin rate limiting, captcha y moderacion.
+
+## Slice 3 ficha publica
+
+- `/pet-alert/mascota-perdida/[slug]` muestra exclusivamente el DTO publico sanitizado.
+- La ficha expone foto publica controlada, descripcion, zona aproximada, fecha, senas, comportamiento y nota medica explicitamente publica.
+- Nunca muestra `household_id`, coordenadas, direccion, contacto privado ni expediente.
+- `/pet-alert/mascota-perdida/[slug]/avistamiento` exige sesion autenticada antes del envio.
+- El contacto del reportante solo se comparte si marca consentimiento explicito.
+- El owner comparte desde mobile el enlace real de la ficha publica.

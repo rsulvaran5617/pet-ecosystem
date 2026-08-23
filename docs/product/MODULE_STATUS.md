@@ -39,7 +39,7 @@
 - `geo_marketplace_v2` -> `partial`
 - `pet_travel_passport_v2` -> `documented_on_hold`
 - `foster_adoption_v2_5` -> `partial`
-- `lost_pet_alerts_v2` -> `slice_2_mobile_owner_implemented`
+- `lost_pet_alerts_v2` -> `slice_3_public_alert_implemented`
 - `public_help_center` -> `closed_with_notes`
 - `pilot_mobile_qa_hardening` -> `closed_with_notes`
 - `clinic` -> `not_started`
@@ -111,7 +111,7 @@
 - REM-Time/LocalNotification: Recordatorios owner mobile incorpora hora opcional sobre `due_at`, flag `remind_time_enabled` y programacion local con `expo-notifications` cuando hay permisos. No es push remoto ni altera bookings/Payments/QR/evidencia/Foster.
 - Role-Foster-A queda publicado: se agrega rol global `protective_family` para diferenciar Familias Protectoras desde registro/cambio de modo, manteniendo permisos Foster reales en `household_type = protective` y perfil protector aprobado. No hay backfill ni conversion de hogares owner.
 - Role-Foster-B queda implementado localmente en mobile: `protective_family` usa shell Foster separado con Inicio, Acogida, Publicaciones, Solicitudes y Cuenta; `pet_owner` queda enfocado en hogares/mascotas propias, marketplace de servicios, reservas, mensajes y cuenta. Los workspaces mobile de hogares/mascotas se filtran por `household_type` segun rol activo. No requiere migracion.
-- PET ALERT tiene Slice 1A aplicado remoto y Slice 2 implementado en mobile owner para crear, publicar y cerrar alertas de mascotas registradas. La ficha publica, avistamientos comunitarios, moderacion y notificaciones push siguen diferidos a slices posteriores.
+- PET ALERT tiene Slice 1A aplicado remoto, Slice 2 mobile owner y Slice 3 de ficha publica con avistamiento autenticado. El reporte comunitario independiente, moderacion y notificaciones push siguen diferidos.
 - Public Help Center queda implementado como pagina estatica `/ayuda` enlazada desde la landing publica. Cubre manuales publicos para propietarios, proveedores, familias protectoras y adoptantes. El material de admin/soporte queda separado en `admin.petecosyst.com > Manual admin`, protegido por la compuerta de rol admin existente. No toca backend, Supabase, migraciones, RLS ni reglas de negocio. Capturas reales/PDF quedan como mejora posterior.
 - Health vaccine summary UX: ficha owner mobile/web deja de marcar vacunas `Al dia` solo por conteo y deriva el estado desde `next_due_on` como `Al dia`, `Por vencer`, `Vencida`, `Revisar` o `Sin registro`; sin cambios DB/API.
 - Health vaccine sticker evidence: owner mobile puede cargar foto/PDF del sticker desde una vacuna; se guarda como documento existente tipo `vaccination_record`, se muestra como soporte asociado y ahora se puede visualizar con ojo/editar vigencia documental con calendario desde Salud, sin migracion ni cambio de contrato.

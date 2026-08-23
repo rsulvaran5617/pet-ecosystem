@@ -9,6 +9,7 @@ import {
   createMarketplaceApiClient,
   createMessagingApiClient,
   createBookingOperationsApiClient,
+  createPetAlertApiClient,
   createPetsApiClient,
   createProvidersApiClient,
   createReviewsApiClient,
@@ -32,6 +33,7 @@ let browserReviewsApiClient: ReturnType<typeof createReviewsApiClient> | null = 
 let browserSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
 let browserProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
 let browserFosterApiClient: ReturnType<typeof createFosterApiClient> | null = null;
+let browserPetAlertApiClient: ReturnType<typeof createPetAlertApiClient> | null = null;
 
 function getEnvValue(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
   const value =
@@ -159,6 +161,14 @@ export function getBrowserFosterApiClient() {
   }
 
   return browserFosterApiClient;
+}
+
+export function getBrowserPetAlertApiClient() {
+  if (!browserPetAlertApiClient) {
+    browserPetAlertApiClient = createPetAlertApiClient(getBrowserSupabaseClient());
+  }
+
+  return browserPetAlertApiClient;
 }
 
 export function getBrowserRecoveryRedirectUrl() {

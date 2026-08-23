@@ -33,6 +33,8 @@ Incluye slug, estado, descripcion, situacion, zona general, fecha aproximada y m
 
 En Slice 1A, crear avistamientos requiere sesion autenticada. La concesion a `anon` se difiere hasta que Slice 3 incorpore rate limiting/captcha y moderacion publica.
 
+Slice 3 conserva deliberadamente este requisito: la ficha es anonima mediante `getPetAlertLostPetBySlug`, pero `createPetAlertLostPetSighting` solo se ejecuta con sesion autenticada. La apertura anonima queda diferida hasta contar con rate limiting, captcha y moderacion operativa.
+
 La creacion valida pet, household, permisos, elegibilidad y unicidad activa en una transaccion.
 
 ## Flujo B

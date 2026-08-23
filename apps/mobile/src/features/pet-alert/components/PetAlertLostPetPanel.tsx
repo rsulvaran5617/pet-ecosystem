@@ -401,8 +401,9 @@ export function PetAlertLostPetPanel({
 
   async function shareAlert() {
     if (!currentAlert) return;
+    const publicUrl = `https://petecosyst.com/pet-alert/mascota-perdida/${currentAlert.alertSlug}`;
     await Share.share({
-      message: `${petName} esta extraviada. Ultima vez vista en ${currentAlert.lastSeenCity}${currentAlert.lastSeenReference ? `, cerca de ${currentAlert.lastSeenReference}` : ""}. Si tienes informacion, comunicate de forma segura mediante Pet Ecosystem. Referencia: ${currentAlert.alertSlug}`,
+      message: `${petName} esta extraviada. Ultima vez vista en ${currentAlert.lastSeenCity}${currentAlert.lastSeenReference ? `, cerca de ${currentAlert.lastSeenReference}` : ""}. Si tienes informacion, usa PET ALERT: ${publicUrl}`,
       title: `PET ALERT: ${petName}`
     });
   }

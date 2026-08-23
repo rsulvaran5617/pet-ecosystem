@@ -1747,3 +1747,11 @@ Al final:
 - Privacidad: contacto interno, precision aproximada, sin GPS, mapa, direccion residencial, push ni nuevas migraciones.
 - La accion no aparece en hogares protectores ni mascotas `in_memory`.
 - Proximo slice recomendado: ficha publica y avistamientos protegidos; no abrir anonimo sin rate limiting/captcha y moderacion.
+# Handoff 2026-08-23 - PET ALERT Slice 3 ficha publica
+
+- Se agregaron rutas web `/pet-alert/mascota-perdida/[slug]` y `/pet-alert/mascota-perdida/[slug]/avistamiento`.
+- La ficha consume solo el DTO publico sanitizado y muestra zona aproximada, nunca coordenadas/contacto/expediente.
+- El formulario de avistamiento exige una sesion autenticada; no se ampliaron grants a `anon` ni se creo migracion.
+- El contacto del reportante se envia solo con consentimiento explicito.
+- Mobile comparte ahora el enlace publico real en `https://petecosyst.com/pet-alert/mascota-perdida/{slug}`.
+- Fuera de alcance: reporte comunitario independiente, captcha/rate limiting anonimo, moderacion y push.
