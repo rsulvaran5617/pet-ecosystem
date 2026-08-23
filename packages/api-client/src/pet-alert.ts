@@ -7,6 +7,12 @@ import type {
   PetAlertCommunitySighting,
   PetAlertCommunityClaim,
   PetAlertCommunityClaimStatus,
+  PetAlertModerationAction,
+  PetAlertModerationCase,
+  PetAlertModerationCaseStatus,
+  PetAlertModerationHistoryEntry,
+  PetAlertModerationReason,
+  PetAlertModerationTargetType,
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
@@ -142,6 +148,33 @@ interface CommunityClaimRow {
   updated_at: string;
 }
 
+interface ModerationCaseRow {
+  case_id: string;
+  target_type: PetAlertModerationTargetType;
+  target_id: string;
+  target_status: string;
+  target_title: string;
+  target_summary: string;
+  reason_code: PetAlertModerationReason;
+  report_details: string | null;
+  case_status: PetAlertModerationCaseStatus;
+  resolution_action: PetAlertModerationAction | null;
+  resolution_reason: string | null;
+  reported_at: string;
+  reviewed_at: string | null;
+}
+
+interface ModerationHistoryRow {
+  id: string;
+  moderation_case_id: string;
+  old_status: string | null;
+  new_status: string;
+  action: string;
+  reason: string | null;
+  changed_by_user_id: string;
+  created_at: string;
+}
+
 export interface PetAlertApiClient {
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
@@ -167,6 +200,10 @@ export interface PetAlertApiClient {
   listClaimsForMyPetAlertCommunitySightings(): Promise<PetAlertCommunityClaim[]>;
   reviewPetAlertCommunityClaim(claimId: Uuid, status: "approved" | "rejected", reason?: string | null): Promise<PetAlertCommunityClaim>;
   cancelPetAlertCommunityClaim(claimId: Uuid): Promise<PetAlertCommunityClaim>;
+  reportPetAlertContent(input: { targetType: PetAlertModerationTargetType; targetId: Uuid; reason: PetAlertModerationReason; details?: string | null }): Promise<Uuid>;
+  listPetAlertModerationQueue(status?: PetAlertModerationCaseStatus | "all"): Promise<PetAlertModerationCase[]>;
+  moderatePetAlertContent(caseId: Uuid, action: PetAlertModerationAction, reason: string): Promise<Uuid>;
+  listPetAlertModerationHistory(caseId: Uuid): Promise<PetAlertModerationHistoryEntry[]>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -326,6 +363,24 @@ function mapCommunityClaim(row: CommunityClaimRow): PetAlertCommunityClaim {
     decisionReason: row.decision_reason,
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function mapModerationCase(row: ModerationCaseRow): PetAlertModerationCase {
+  return {
+    id: row.case_id,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    targetStatus: row.target_status,
+    targetTitle: row.target_title,
+    targetSummary: row.target_summary,
+    reasonCode: row.reason_code,
+    reportDetails: row.report_details,
+    status: row.case_status,
+    resolutionAction: row.resolution_action,
+    resolutionReason: row.resolution_reason,
+    reportedAt: row.reported_at,
+    reviewedAt: row.reviewed_at
   };
 }
 
@@ -534,6 +589,44 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       const { data, error } = await supabase.rpc("cancel_pet_alert_community_claim", { target_claim_id: claimId });
       if (error || !data) fail(error, "No fue posible cancelar la solicitud.");
       return mapCommunityClaim(data as CommunityClaimRow);
+    },
+    async reportPetAlertContent(input) {
+      const { data, error } = await supabase.rpc("report_pet_alert_content", {
+        next_target_type: input.targetType,
+        next_target_id: input.targetId,
+        next_reason_code: input.reason,
+        next_report_details: input.details ?? null
+      });
+      if (error || !data) fail(error, "No fue posible reportar el contenido PET ALERT.");
+      return (data as { id: string }).id;
+    },
+    async listPetAlertModerationQueue(status = "open") {
+      const { data, error } = await supabase.rpc("list_pet_alert_moderation_queue", { filter_status: status });
+      if (error) fail(error, "No fue posible cargar la cola PET ALERT.");
+      return ((data ?? []) as ModerationCaseRow[]).map(mapModerationCase);
+    },
+    async moderatePetAlertContent(caseId, action, reason) {
+      const { data, error } = await supabase.rpc("moderate_pet_alert_content", {
+        target_case_id: caseId,
+        next_action: action,
+        next_resolution_reason: reason
+      });
+      if (error || !data) fail(error, "No fue posible moderar el contenido PET ALERT.");
+      return (data as { id: string }).id;
+    },
+    async listPetAlertModerationHistory(caseId) {
+      const { data, error } = await supabase.rpc("list_pet_alert_moderation_history", { target_case_id: caseId });
+      if (error) fail(error, "No fue posible cargar el historial de moderacion.");
+      return ((data ?? []) as ModerationHistoryRow[]).map((row) => ({
+        id: row.id,
+        moderationCaseId: row.moderation_case_id,
+        oldStatus: row.old_status,
+        newStatus: row.new_status,
+        action: row.action,
+        reason: row.reason,
+        changedByUserId: row.changed_by_user_id,
+        createdAt: row.created_at
+      }));
     }
   };
 }

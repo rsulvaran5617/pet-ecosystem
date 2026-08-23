@@ -105,6 +105,14 @@ Solo se inserta mediante mutaciones controladas.
 
 No guarda URLs firmadas persistentes. Bucket privado propuesto: `pet-alert-media`.
 
+### `pet_alert_moderation_cases`
+
+Objetivo tipado, reportante autenticado, motivo, estado `open | resolved | dismissed`, snapshot del estado previo y resolucion administrativa. Una unicidad parcial evita duplicar un caso abierto del mismo usuario sobre el mismo objetivo.
+
+### `pet_alert_moderation_history`
+
+Registra apertura y resolucion. Los clientes no insertan directamente y solo admin consulta el historial completo.
+
 ## Indices
 
 - slug unico y estado/publicacion para consultas publicas;

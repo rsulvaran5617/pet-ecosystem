@@ -293,4 +293,6 @@ Decision pendiente antes de aplicar remoto:
 - No crea hogares, mascotas, adopciones, reservas, chats ni transferencias.
 # PET ALERT Slice 5
 
+Slice 6 agrega `pet_alert_moderation_cases` y `pet_alert_moderation_history` para reportes autenticados, cola admin y decisiones auditables. La moderacion puede pausar, restaurar o cerrar publicaciones y rechazar claims, pero no cambia ownership ni custodia.
+
 `pet_alert_community_claims` vincula un usuario autenticado con un reporte comunitario sin modificar `pets`, hogares ni custodia. Conserva snapshots privados de contacto, una sola solicitud activa por usuario/reporte y una sola aprobada por reporte. `pet_alert_community_claim_history` audita cada transicion.

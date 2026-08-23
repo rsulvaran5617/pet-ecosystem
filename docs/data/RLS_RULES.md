@@ -301,6 +301,13 @@ No implementar tablas sensibles sin definir su politica RLS.
 - El cierre solo corresponde al reportante autenticado; moderacion admin avanzada queda para Slice 6.
 # PET ALERT Slice 5
 
+## Slice 6 admin y moderacion
+
+- El reportante autenticado solo lee sus propios casos; admin lee la cola completa.
+- El historial de moderacion es exclusivo de admin.
+- No hay mutacion directa: reportes y decisiones pasan por RPC `security definer`.
+- Solo `is_platform_admin(auth.uid())` puede aplicar decisiones.
+
 - `pet_alert_community_claims` y su historial no permiten escritura directa; todas las mutaciones pasan por RPCs `security definer` con actor validado.
 - El reclamante ve sus solicitudes; el autor del reporte ve las solicitudes recibidas; admin puede auditar.
 - El contacto del reportante se proyecta al reclamante solo cuando el claim fue aprobado.

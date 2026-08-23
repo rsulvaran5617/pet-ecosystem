@@ -97,6 +97,10 @@ No muestra datos del reportante antes de una decision autorizada.
 
 Slice 5 implementa la primera version sin adjuntos: la ficha comunitaria ofrece `¿Crees que es tu mascota?`, exige login, sena privada y consentimiento. El autor revisa solicitudes dentro de `Tus reportes` mobile y autoriza o rechaza el contacto. Una solicitud no acredita propiedad ni entrega custodia.
 
+## Slice 6 admin y moderacion
+
+Admin incorpora una seccion PET ALERT con filtros, lista compacta, detalle del contenido reportado y decisiones contextualizadas. Toda accion exige justificacion. Pausar retira contenido sensible sin borrarlo; restaurar, cerrar, rechazar solicitud y descartar se muestran solo cuando aplican.
+
 ## Paginas publicas
 
 - `/pet-alert`: entrada y explicacion de ambos recorridos.

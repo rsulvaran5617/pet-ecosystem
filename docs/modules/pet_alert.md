@@ -2,7 +2,7 @@
 
 ## Estado
 
-`slice_5_controlled_claims_applied_remote`
+`slice_6_admin_moderation_local`
 
 PET ALERT esta documentado como frente independiente para mascotas perdidas/vistas. Slice 1A de tablas, RLS, tipos y API owner esta aplicado remoto. Slice 2 agrega en mobile owner el recorrido guiado `Mi mascota se perdio`. Slice 3 agrega ficha publica web sanitizada y formulario de avistamiento protegido por sesion. Slice 4 esta aplicado remoto para reportes comunitarios autenticados. Slice 5 esta aplicado remoto para reclamo autenticado y contacto controlado. Notificaciones remotas todavia no existen.
 
@@ -51,7 +51,15 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 
 ## Proximo slice
 
-QA integral de Slices 1A-5 y definicion de moderacion administrativa antes de abrir fotos comunitarias, escritura anonima o notificaciones push.
+Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion QR no destructiva.
+
+## Slice 6 admin y moderacion
+
+- Usuarios autenticados reportan contenido con motivo estable y detalle opcional.
+- Solo admin consulta la cola completa y registra decisiones justificadas.
+- Admin puede pausar, restaurar o cerrar publicaciones y rechazar claims conflictivos.
+- Cada decision queda en historial y `audit_logs`.
+- No cambia ownership, custodia ni `pets.household_id`.
 
 ## Slice 3 ficha publica
 

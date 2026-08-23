@@ -304,6 +304,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - telecare
 # PET ALERT Slice 5
 
+- PET ALERT Slice 6: Admin suma navegacion `PET ALERT` con cola de contenido reportado, filtros, detalle, justificacion obligatoria y acciones contextuales. No transfiere propiedad ni custodia.
+
 - La ficha web `/pet-alert/mascota-vista/[slug]` muestra `¿Crees que es tu mascota?`; sin sesion dirige al acceso y con sesion solicita una sena privada y consentimiento de contacto.
 - El reclamante ve estado `En revision`, `Contacto autorizado` o `No aprobada` sin exponer informacion previa a la decision.
 - Mobile `Vi una mascota perdida > Tus reportes` muestra las solicitudes recibidas dentro de cada reporte y acciones `Autorizar contacto` / `Rechazar`.

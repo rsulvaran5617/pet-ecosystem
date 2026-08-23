@@ -1,6 +1,6 @@
 "use client";
 
-import { createCoreApiClient, createFosterApiClient, createProvidersApiClient, createSupportApiClient } from "@pet/api-client";
+import { createCoreApiClient, createFosterApiClient, createPetAlertApiClient, createProvidersApiClient, createSupportApiClient } from "@pet/api-client";
 import type { Database } from "@pet/types";
 import { createClient } from "@supabase/supabase-js";
 
@@ -9,6 +9,7 @@ let adminCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
 let adminFosterApiClient: ReturnType<typeof createFosterApiClient> | null = null;
 let adminSupportApiClient: ReturnType<typeof createSupportApiClient> | null = null;
 let adminProvidersApiClient: ReturnType<typeof createProvidersApiClient> | null = null;
+let adminPetAlertApiClient: ReturnType<typeof createPetAlertApiClient> | null = null;
 
 function getEnvValue(name: "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
   const value =
@@ -64,4 +65,12 @@ export function getAdminProvidersApiClient() {
   }
 
   return adminProvidersApiClient;
+}
+
+export function getAdminPetAlertApiClient() {
+  if (!adminPetAlertApiClient) {
+    adminPetAlertApiClient = createPetAlertApiClient(getAdminSupabaseClient());
+  }
+
+  return adminPetAlertApiClient;
 }

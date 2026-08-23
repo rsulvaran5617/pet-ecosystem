@@ -27,6 +27,16 @@ export type PetAlertApparentSize = "small" | "medium" | "large" | "unknown";
 export type PetAlertApparentSex = "female" | "male" | "unknown";
 export type PetAlertCommunityCloseReason = "reunited" | "animal_left_area" | "duplicate" | "closed_other";
 export type PetAlertCommunityClaimStatus = "pending" | "approved" | "rejected" | "cancelled";
+export type PetAlertModerationTargetType = "lost_pet_alert" | "community_sighting" | "community_claim";
+export type PetAlertModerationCaseStatus = "open" | "resolved" | "dismissed";
+export type PetAlertModerationReason =
+  | "sensitive_content"
+  | "false_information"
+  | "fraud"
+  | "harassment"
+  | "animal_safety"
+  | "other";
+export type PetAlertModerationAction = "flag" | "restore" | "close" | "reject_claim" | "dismiss";
 
 export interface PetAlertLostPet extends TimestampedEntity {
   id: Uuid;
@@ -235,4 +245,31 @@ export interface CreatePetAlertCommunityClaimInput {
   lostAt?: string | null;
   lostCity?: string | null;
   contactConsent: boolean;
+}
+
+export interface PetAlertModerationCase {
+  id: Uuid;
+  targetType: PetAlertModerationTargetType;
+  targetId: Uuid;
+  targetStatus: string;
+  targetTitle: string;
+  targetSummary: string;
+  reasonCode: PetAlertModerationReason;
+  reportDetails: string | null;
+  status: PetAlertModerationCaseStatus;
+  resolutionAction: PetAlertModerationAction | null;
+  resolutionReason: string | null;
+  reportedAt: string;
+  reviewedAt: string | null;
+}
+
+export interface PetAlertModerationHistoryEntry {
+  id: Uuid;
+  moderationCaseId: Uuid;
+  oldStatus: string | null;
+  newStatus: string;
+  action: string;
+  reason: string | null;
+  changedByUserId: Uuid;
+  createdAt: string;
 }

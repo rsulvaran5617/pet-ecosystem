@@ -1769,3 +1769,11 @@ Al final:
 - Nueva migracion `20260823183000_pet_alert_slice5_controlled_claims.sql`: claims, historial, RLS, RPCs, limites de frecuencia y contacto controlado.
 - Web publica agrega solicitud segura y seguimiento; mobile permite al reportante aprobar/rechazar solicitudes recibidas.
 - Migracion aplicada remoto tras confirmar por dry-run que era la unica pendiente; dry-run posterior sin migraciones pendientes.
+
+# Handoff 2026-08-23 - PET ALERT Slice 6 local
+
+- Migracion `20260823210000_pet_alert_slice6_admin_moderation.sql` agrega casos, historial, RLS y RPCs de moderacion.
+- Tipos/API agregan reporte autenticado, cola admin, historial y decisiones contextuales.
+- Admin suma seccion `PET ALERT` para pausar/restaurar/cerrar contenido, rechazar claims o descartar reportes con justificacion.
+- No cambia ownership, custodia, Foster, booking, Payments, QR, evidencia ni geolocalizacion.
+- Pendiente validacion final y dry-run; no aplicar remoto ni hacer commit/push sin aprobacion.

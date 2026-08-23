@@ -555,3 +555,9 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - `pet_alert_community_claim_history`: historial inmutable de estados del claim.
 - RPCs: `create_pet_alert_community_claim`, `list_my_pet_alert_community_claims`, `list_claims_for_my_pet_alert_community_sightings`, `review_pet_alert_community_claim`, `cancel_pet_alert_community_claim`.
 - Migracion aplicada remoto: `20260823183000_pet_alert_slice5_controlled_claims.sql`.
+
+# PET ALERT Slice 6
+
+- `pet_alert_moderation_cases` y `pet_alert_moderation_history`.
+- RPCs: `report_pet_alert_content`, `list_pet_alert_moderation_queue`, `moderate_pet_alert_content`, `list_pet_alert_moderation_history`.
+- Migracion local pendiente: `20260823210000_pet_alert_slice6_admin_moderation.sql`.

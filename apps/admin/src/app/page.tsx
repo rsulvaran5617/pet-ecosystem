@@ -9,14 +9,16 @@ import { getAdminCoreApiClient } from "../features/core/services/supabase-admin"
 import { AdminFosterWorkspace } from "../features/foster/components/AdminFosterWorkspace";
 import { AdminHelpWorkspace } from "../features/help/components/AdminHelpWorkspace";
 import { AdminProvidersWorkspace } from "../features/providers/components/AdminProvidersWorkspace";
+import { AdminPetAlertWorkspace } from "../features/pet-alert/components/AdminPetAlertWorkspace";
 import { AdminSupportWorkspace } from "../features/support/components/AdminSupportWorkspace";
 
-type AdminSection = "inicio" | "protectora" | "proveedores" | "soporte" | "manual";
+type AdminSection = "inicio" | "pet-alert" | "protectora" | "proveedores" | "soporte" | "manual";
 
 const adminSections: Array<{ description: string; id: AdminSection; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Colas accionables y siguiente decision." },
   { id: "proveedores", label: "Proveedores", description: "Revision de proveedores pendientes." },
   { id: "protectora", label: "Familias protectoras", description: "Revision de solicitudes de acogida." },
+  { id: "pet-alert", label: "PET ALERT", description: "Contenido reportado y seguridad comunitaria." },
   { id: "soporte", label: "Soporte", description: "Casos abiertos y resolucion basica." },
   { id: "manual", label: "Manual admin", description: "Guia interna de operacion y soporte." }
 ];
@@ -445,6 +447,7 @@ export default function AdminPage() {
               ) : null}
               {activeSection === "proveedores" ? <AdminProvidersWorkspace /> : null}
               {activeSection === "protectora" ? <AdminFosterWorkspace /> : null}
+              {activeSection === "pet-alert" ? <AdminPetAlertWorkspace /> : null}
               {activeSection === "soporte" ? <AdminSupportWorkspace /> : null}
               {activeSection === "manual" ? <AdminHelpWorkspace /> : null}
             </div>

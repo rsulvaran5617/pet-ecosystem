@@ -68,6 +68,8 @@ Ninguna operacion cambia `pets.household_id`, custodia o propiedad. No existe le
 - `moderatePetAlertContent(target, action, reason)` admin
 - `getPetAlertAuditHistory(target)` autorizado
 
+Slice 6 implementa `reportPetAlertContent`, `listPetAlertModerationQueue`, `moderatePetAlertContent` y `listPetAlertModerationHistory`. El reporte exige sesion; cola, historial completo y decision exigen rol global `admin`. Las acciones `flag`, `restore`, `close`, `reject_claim` y `dismiss` estan restringidas por tipo de objetivo y requieren justificacion.
+
 ## Contratos de error
 
 - `PET_ALERT_UNAUTHORIZED`
@@ -80,6 +82,9 @@ Ninguna operacion cambia `pets.household_id`, custodia o propiedad. No existe le
 - `PET_ALERT_CLAIM_ALREADY_ACTIVE`
 - `PET_ALERT_RATE_LIMITED`
 - `PET_ALERT_CONTENT_FLAGGED`
+- `PET_ALERT_MODERATION_ALREADY_OPEN`
+- `PET_ALERT_MODERATION_ALREADY_REVIEWED`
+- `PET_ALERT_MODERATION_REASON_REQUIRED`
 
 ## RLS propuesta
 
