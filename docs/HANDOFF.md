@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-23 - PET ALERT avatar de mascota owner
+
+- Los boletines públicos de mascotas registradas reutilizan la foto vigente del perfil como portada.
+- La metadata se proyecta con `list_public_pet_alert_lost_pet_media` y la imagen se entrega mediante URL firmada temporal del bucket privado `pet-avatars`.
+- La policy pública se limita a avatares vinculados a una alerta compartible, vigente o cerrada públicamente; no abre otros avatares ni datos del expediente.
+- La foto aparece en el centro `/pet-alert` y en `/pet-alert/mascota-perdida/[slug]`.
+- Migracion `20260823234500_pet_alert_public_pet_avatar.sql` aplicada en Supabase remoto; dry-run posterior sin pendientes.
+
 # Handoff 2026-08-23 - PET ALERT ficha comunitaria web
 
 - `/pet-alert/mascota-vista/[slug]` adopta CSS Modules para asegurar estilos consistentes en produccion.

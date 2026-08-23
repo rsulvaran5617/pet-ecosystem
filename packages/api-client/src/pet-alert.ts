@@ -81,6 +81,12 @@ interface PublicLostPetAlertRow {
   expires_at: string | null;
 }
 
+interface PublicLostPetMediaRow {
+  alert_slug: string;
+  storage_bucket: string;
+  storage_path: string;
+}
+
 interface SightingRow {
   id: string;
   alert_id: string;
@@ -433,6 +439,25 @@ async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | Pu
   return reports.map((report) => ({ ...report, photoUrls: urlsBySlug.get(report.reportSlug) ?? [] }));
 }
 
+async function getPublicLostPetPhotoUrlMap(
+  supabase: PetAlertSupabaseClient,
+  alertSlugs: string[]
+): Promise<Map<string, string>> {
+  if (!alertSlugs.length) return new Map();
+  const { data, error } = await supabase.rpc("list_public_pet_alert_lost_pet_media", {
+    target_alert_slugs: alertSlugs
+  });
+  if (error) fail(error, "No fue posible cargar las fotos de las mascotas extraviadas.");
+
+  const signedRows = await Promise.all(((data ?? []) as PublicLostPetMediaRow[]).map(async (media) => {
+    const { data: signed, error: signedError } = await supabase.storage
+      .from(media.storage_bucket)
+      .createSignedUrl(media.storage_path, 60 * 15);
+    return signedError || !signed?.signedUrl ? null : [media.alert_slug, signed.signedUrl] as const;
+  }));
+  return new Map(signedRows.filter((entry): entry is readonly [string, string] => entry !== null));
+}
+
 function mapCommunityClaim(row: CommunityClaimRow): PetAlertCommunityClaim {
   return {
     id: row.id,
@@ -517,7 +542,10 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       });
       if (error) fail(error, "No fue posible cargar la alerta PET ALERT.");
       const row = (data as PublicLostPetAlertRow[] | null)?.[0];
-      return row ? mapPublicAlert(row) : null;
+      if (!row) return null;
+      const alert = mapPublicAlert(row);
+      const photoBySlug = await getPublicLostPetPhotoUrlMap(supabase, [alert.alertSlug]);
+      return { ...alert, photoUrl: photoBySlug.get(alert.alertSlug) ?? null };
     },
     async listPetAlertLostPetsForPet(petId) {
       const { data, error } = await supabase.rpc("list_pet_alert_lost_pets_for_pet", { target_pet_id: petId });
@@ -684,7 +712,14 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
 
       const rows = (data ?? []) as PublicDirectoryRow[];
       const items = rows.map(mapPublicDirectoryEvent);
+      const lostItems = items.filter((item) => item.eventType === "lost_pet");
       const communityItems = items.filter((item) => item.eventType === "community_sighting");
+      if (lostItems.length) {
+        const photoBySlug = await getPublicLostPetPhotoUrlMap(supabase, lostItems.map((item) => item.publicSlug));
+        items.forEach((item) => {
+          if (item.eventType === "lost_pet") item.photoUrl = photoBySlug.get(item.publicSlug) ?? null;
+        });
+      }
       if (communityItems.length) {
         const reports = await attachCommunityPhotoUrls(
           supabase,

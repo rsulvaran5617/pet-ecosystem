@@ -147,3 +147,5 @@ Slice 6 implementa `reportPetAlertContent`, `listPetAlertModerationQueue`, `mode
 El API client expone `listPublicPetAlertDirectory` y firma temporalmente la primera foto de reportes comunitarios cuando existe.
 
 `list_public_pet_alert_community_media(target_report_slugs)` reemplaza la lectura publica directa de metadata. Solo devuelve referencias de storage para reportes compartibles y vigentes; el cliente genera URLs firmadas temporales.
+
+`list_public_pet_alert_lost_pet_media(target_alert_slugs)` proyecta exclusivamente el avatar del perfil asociado a una alerta pública válida. El API client firma temporalmente la imagen y la incorpora en la ficha y el directorio.
