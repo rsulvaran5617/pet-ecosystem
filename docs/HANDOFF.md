@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-08-23 - PET ALERT fotos publicas
+
+- El directorio y las fichas comunitarias dejan de consultar directamente la tabla protegida de media.
+- La RPC sanitizada `list_public_pet_alert_community_media` proyecta solo bucket/path de fotos asociadas a reportes publicos vigentes; las URLs siguen siendo firmadas y temporales.
+- Los reportes antiguos sin fotos muestran `Sin fotografia disponible` en vez de una inicial que pudiera confundirse con una imagen.
+- Migracion `20260823233000_pet_alert_public_media_projection.sql` aplicada en Supabase remoto; dry-run posterior sin pendientes.
+
 # Handoff 2026-08-23 - PET ALERT Slice 7B aplicado
 
 - `/pet-alert` se reorganiza como centro comunitario publico con vistas de mascotas `Extraviadas`, `Mascotas vistas` y `Encontradas`.

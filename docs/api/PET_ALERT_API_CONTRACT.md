@@ -145,3 +145,5 @@ Slice 6 implementa `reportPetAlertContent`, `listPetAlertModerationQueue`, `mode
 - No devuelve IDs internos, ownership, usuario, contacto, coordenadas ni datos privados.
 
 El API client expone `listPublicPetAlertDirectory` y firma temporalmente la primera foto de reportes comunitarios cuando existe.
+
+`list_public_pet_alert_community_media(target_report_slugs)` reemplaza la lectura publica directa de metadata. Solo devuelve referencias de storage para reportes compartibles y vigentes; el cliente genera URLs firmadas temporales.

@@ -414,11 +414,9 @@ async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | Pu
   const reportSlugs = reports.map((report) => report.reportSlug);
   if (!reportSlugs.length) return reports;
 
-  const { data, error } = await supabase
-    .from("pet_alert_community_sighting_media")
-    .select("id,community_sighting_id,report_slug,storage_bucket,storage_path,display_order")
-    .in("report_slug", reportSlugs)
-    .order("display_order", { ascending: true });
+  const { data, error } = await supabase.rpc("list_public_pet_alert_community_media", {
+    target_report_slugs: reportSlugs
+  });
   if (error) fail(error, "No fue posible cargar las fotos del reporte comunitario.");
 
   const urlsBySlug = new Map<string, string[]>();

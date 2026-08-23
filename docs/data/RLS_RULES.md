@@ -322,3 +322,4 @@ No implementar tablas sensibles sin definir su politica RLS.
 - La consulta del directorio publico se realiza mediante una funcion `security definer` con columnas explicitas y alcance sanitizado.
 - `anon` y `authenticated` solo reciben eventos con `share_enabled`, estados publicables y vigencia valida.
 - No se otorga acceso adicional a tablas de ownership, contactos, claims, avistamientos privados ni moderacion.
+- La galeria publica se consulta mediante `list_public_pet_alert_community_media`; no depende de lectura REST directa sobre la tabla de metadata.
