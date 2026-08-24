@@ -94,3 +94,4 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - No expone usuario, household, coordenadas, contacto privado, direccion exacta ni identificadores internos.
 - Las fotos comunitarias se resuelven mediante una proyeccion RPC sanitizada y URLs firmadas; un reporte sin media conserva un estado explicito sin imagen.
 - Las alertas de mascotas owner usan como portada el avatar actual del perfil mediante URL firmada temporal, sin duplicar archivos ni publicar el bucket completo.
+- El directorio encuadra cada portada completa dentro de un marco uniforme y evita recortes destructivos ante distintas proporciones de imagen.

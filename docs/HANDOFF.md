@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-08-23 - PET ALERT encuadre de portadas
+
+- El centro publico `/pet-alert` muestra las fotografias completas dentro de un marco estable, sin recorte agresivo ni deformacion.
+- Se preservan las proporciones originales con `object-fit: contain`, centrado y fondo neutro para absorber formatos verticales, horizontales o cuadrados.
+- No cambia API, Supabase, privacidad, estados ni navegacion de los boletines.
+
 # Handoff 2026-08-23 - PET ALERT avatar de mascota owner
 
 - Los boletines públicos de mascotas registradas reutilizan la foto vigente del perfil como portada.
