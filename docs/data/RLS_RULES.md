@@ -324,3 +324,4 @@ No implementar tablas sensibles sin definir su politica RLS.
 - No se otorga acceso adicional a tablas de ownership, contactos, claims, avistamientos privados ni moderacion.
 - La galeria publica se consulta mediante `list_public_pet_alert_community_media`; no depende de lectura REST directa sobre la tabla de metadata.
 - `pet-avatars` conserva carácter privado. La policy `pet_alert_avatars_objects_select_public` permite leer solo el objeto que corresponde al perfil de una mascota con alerta pública compartible.
+- Las fotos PET ALERT publicas se autorizan en Storage mediante helpers `security definer` acotados al bucket, path y estado compartible. Esto permite lectura anonima por URL firmada sin conceder lectura directa de tablas operativas.

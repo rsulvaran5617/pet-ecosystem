@@ -1,5 +1,34 @@
 # HANDOFF.md
 
+# Handoff 2026-08-24 - PET ALERT cartel publico con QR
+
+- `/pet-alert/mascota-perdida/[slug]` incorpora QR visible hacia la URL publica canonica de la alerta.
+- La persona puede compartir un cartel vertical, descargar una version para redes o descargar un cartel de proporcion A4 para impresion.
+- El cartel se genera en el navegador con foto, nombre, estado, zona aproximada, ultimo avistamiento y referencia publica; no contiene contacto, direccion, coordenadas ni IDs internos.
+- El QR permanece estable y la ficha de destino refleja cambios de estado sin reimprimir el cartel.
+- `navigator.share` comparte el archivo cuando esta disponible; otros navegadores descargan el PNG como fallback.
+- No hay tracking de escaneos, nueva API, migracion ni cambios de privacidad en este slice.
+
+# Handoff 2026-08-24 - PET ALERT fotos en navegador anonimo
+
+- Diagnostico confirmado: el computador autenticado generaba URLs firmadas, pero un telefono sin sesion fallaba porque una policy de Storage consultaba directamente una tabla operativa no legible por `anon`.
+- La migracion `20260824100000_pet_alert_anon_storage_policy_fix.sql` reemplaza esa consulta por `is_pet_alert_community_media_public`, helper `security definer` limitado a bucket, path, publicacion compartible, vigencia y estado permitido.
+- No hace publico el bucket, no concede lectura directa de reportes y no cambia ownership, moderacion, claims ni contacto privado.
+- Migracion aplicada en Supabase remoto; dry-run posterior sin pendientes.
+- Verificacion tecnica anonima correcta: 2/2 portadas de `Extraviadas` firmadas y el reporte de `Mascotas vistas` con media firmado sin sesion.
+- QA visual requerido: abrir `/pet-alert` en modo incognito o telefono sin sesion y confirmar fotos en `Extraviadas`, `Mascotas vistas` y sus fichas.
+
+# Handoff 2026-08-23 - PET ALERT cierre de fotos publicas owner
+
+- `master` esta sincronizado con `origin/master` en `35e81b6 fix(pet-alert): preserve bulletin photo framing`.
+- La migracion `20260823234500_pet_alert_public_pet_avatar.sql` esta aplicada en Supabase remoto y el dry-run posterior no muestra pendientes.
+- Las alertas owner reutilizan el avatar vigente de la mascota mediante URL firmada temporal; no duplican la imagen dentro de PET ALERT.
+- El directorio `/pet-alert` usa un marco uniforme con `object-fit: contain`, centrado y fondo neutro para evitar deformacion o recorte adicional.
+- Diagnostico QA Bailey: la portada sigue mostrando tela porque ese contenido ya forma parte del archivo guardado como avatar; no es un recorte nuevo del directorio. Debe actualizarse la foto desde `Mascotas > Bailey`, centrando la mascota en el editor cuadrado.
+- Despues de cambiar el avatar, PET ALERT lo hereda automaticamente. La URL firmada puede requerir recarga forzada o hasta 15 minutos para renovarse.
+- Validaciones cerradas: web lint, web typecheck, web build y `git diff --check`.
+- Archivos locales `app.json` y `docs/delivery/onlyoneaccess.txt` permanecen sin rastrear y fuera de commits.
+
 # Handoff 2026-08-23 - PET ALERT encuadre de portadas
 
 - El centro publico `/pet-alert` muestra las fotografias completas dentro de un marco estable, sin recorte agresivo ni deformacion.

@@ -112,6 +112,14 @@ Admin incorpora una seccion PET ALERT con filtros, lista compacta, detalle del c
 
 Todas incluyen compartir, reportar abuso, estado visible y aviso de seguridad. Una ficha cerrada permanece consultable con datos reducidos y sin CTA operativo.
 
+### Cartel publico con QR
+
+- La ficha owner permite compartir o descargar un cartel que codifica exclusivamente su URL publica sanitizada.
+- El formato para imprimir conserva proporcion A4 y el formato para redes usa composicion vertical; ambos incluyen foto, nombre, zona aproximada, estado, ultimo avistamiento y QR.
+- El mismo QR permanece estable durante el ciclo de la alerta y la ficha refleja el estado vigente, incluida la confirmacion de encontrada o cierre.
+- El cartel no incorpora telefono, correo, domicilio, coordenadas, IDs internos ni expediente medico privado.
+- Si el navegador no admite compartir archivos, la accion descarga la imagen como fallback.
+
 ## Mobile propuesto
 
 - Home PET ALERT.

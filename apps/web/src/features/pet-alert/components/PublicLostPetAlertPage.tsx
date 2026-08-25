@@ -4,6 +4,7 @@ import type { PublicPetAlertLostPet } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getBrowserPetAlertApiClient } from "../../core/services/supabase-browser";
+import { PetAlertPublicPoster } from "./PetAlertPublicPoster";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-PA", {
@@ -79,6 +80,7 @@ export function PublicLostPetAlertPage({ slug }: { slug: string }) {
   }
 
   const isOperational = ["active", "sighting_received", "possible_match"].includes(alert.status);
+  const publicUrl = `https://petecosyst.com/pet-alert/mascota-perdida/${slug}`;
 
   return (
     <main className="page">
@@ -111,6 +113,16 @@ export function PublicLostPetAlertPage({ slug }: { slug: string }) {
             <article className="card"><h2>Comportamiento</h2><p>{alert.behaviorNotes ?? "No hay indicaciones publicas adicionales."}</p></article>
             {alert.medicalPublicNotes ? <article className="card"><h2>Informacion de cuidado</h2><p>{alert.medicalPublicNotes}</p></article> : null}
           </div>
+          <PetAlertPublicPoster
+            alertUrl={publicUrl}
+            city={`${alert.lastSeenCity}${alert.lastSeenRegion ? `, ${alert.lastSeenRegion}` : ""}`}
+            description={alert.publicDescription}
+            lastSeenLabel={formatDate(alert.lastSeenAt)}
+            petName={alert.petName}
+            photoUrl={alert.photoUrl}
+            reference={alert.lastSeenReference}
+            statusLabel={statusLabel(alert.status)}
+          />
         </div>
         <aside className="safety">
           <h2>Ayuda de forma segura</h2>

@@ -95,3 +95,5 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - Las fotos comunitarias se resuelven mediante una proyeccion RPC sanitizada y URLs firmadas; un reporte sin media conserva un estado explicito sin imagen.
 - Las alertas de mascotas owner usan como portada el avatar actual del perfil mediante URL firmada temporal, sin duplicar archivos ni publicar el bucket completo.
 - El directorio encuadra cada portada completa dentro de un marco uniforme y evita recortes destructivos ante distintas proporciones de imagen.
+- Las portadas se resuelven tambien en navegadores anonimos: las policies de Storage validan el objeto publico mediante helpers acotados y no dependen de una sesion autenticada.
+- La ficha publica owner genera un QR estable hacia su slug y carteles PNG para impresion o redes; no crea tracking, URLs alternas ni datos publicos adicionales.
