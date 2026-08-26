@@ -397,6 +397,134 @@ Si no existe proveedor transaccional, Pet Alert 8B queda bloqueado hasta selecci
 - Rechazo y cierre requieren motivo interno; copy publico no revela datos del denunciante.
 - Limites iniciales sugeridos: tres challenges/hora/correo, cinco/dia/red truncada y dos boletines activos/correo, sujetos a QA.
 
+### Propuesta futura: moderacion automatica de imagenes
+
+Estado: **pendiente de aprobacion para diseno e implementacion**. No forma parte de Pet Alert 8B activo y no existe integracion con un proveedor de moderacion de imagenes.
+
+Objetivo futuro: reducir el riesgo de publicar imagenes ofensivas, violentas, sexuales, fraudulentas o ajenas al proposito de Pet Alert sin sustituir la revision humana.
+
+Arquitectura recomendada:
+
+1. recibir la imagen en almacenamiento privado y mantenerla fuera de toda proyeccion publica;
+2. validar firma/MIME real, extension, tamano, dimensiones y decodificacion segura;
+3. reprocesar la imagen para retirar EXIF y otros metadatos antes de exponerla;
+4. enviar una version reducida desde backend/Edge Function a un proveedor de moderacion aprobado;
+5. clasificar el resultado como riesgo bajo, ambiguo o alto;
+6. enviar riesgo bajo y ambiguo a revision admin, destacando los casos ambiguos;
+7. bloquear temporalmente riesgo alto hasta una decision humana;
+8. conservar auditoria de proveedor, version del modelo, categorias, puntajes y decision final sin guardar secretos ni respuestas innecesarias;
+9. mantener en la ficha publica un mecanismo posterior para reportar contenido no detectado.
+
+Reglas de seguridad:
+
+- ninguna clave del proveedor puede residir en web o mobile;
+- no publicar automaticamente una imagen antes de completar controles tecnicos y moderacion;
+- no usar el resultado automatico como unica decision ante fotos legitimas de rescate, heridas o atencion veterinaria;
+- definir timeouts, reintentos acotados y comportamiento fail-closed;
+- establecer retencion y minimizacion de las copias enviadas al proveedor;
+- validar legalmente tratamiento internacional de imagenes y terminos del proveedor;
+- medir falsos positivos y falsos negativos antes de habilitar rechazo automatico.
+
+Alternativas a evaluar en una decision tecnica posterior: OpenAI Moderation para texto e imagen, Google Cloud Vision SafeSearch o Amazon Rekognition Content Moderation. La seleccion debe comparar cobertura, privacidad, residencia de datos, costo, latencia, disponibilidad regional y trazabilidad.
+
+Criterio de entrada: aprobar proveedor, politica de contenido, umbrales, tratamiento de casos ambiguos, retencion y UX de apelacion. Hasta entonces, se mantiene la moderacion administrativa obligatoria de Pet Alert 8B.
+
+### Propuesta de UX futura: Admin > Pet Alert > Moderacion de contenido
+
+Estado: **diseno pendiente de aprobacion**. Esta seccion no existe todavia en Admin y no debe confundirse con la cola actual que revisa el reporte externo completo.
+
+Objetivo: concentrar en Pet Ecosystem Admin la decision humana sobre imagenes nuevas y contenido publico denunciado, usando la clasificacion automatica solo como evidencia auxiliar.
+
+#### Navegacion
+
+- entrada lateral: `Pet Alert`;
+- vista secundaria: `Moderacion de contenido`;
+- contador visible de casos pendientes;
+- separacion clara respecto de `Reportes externos`, `Claims` y otras decisiones operativas.
+
+#### Bandejas
+
+1. `Imagenes nuevas`: archivos privados que esperan decision antes de publicarse.
+2. `Requieren atencion`: resultados ambiguos o de riesgo alto detectados automaticamente.
+3. `Contenido reportado`: imagenes publicadas denunciadas por la comunidad.
+4. `Resueltos`: historial read-only con filtros por fecha, resultado y moderador.
+
+#### Resumen de cada caso
+
+- miniatura protegida mediante URL firmada temporal;
+- tipo de origen: owner registrado, propietario externo o reporte comunitario;
+- identificador interno del reporte y fecha de carga;
+- estado de publicacion actual;
+- resultado automatico resumido: `sin senales`, `revisar` o `riesgo alto`;
+- categorias y puntajes del proveedor, sin presentar el resultado como una certeza;
+- cantidad de denuncias comunitarias cuando aplique;
+- alerta si el archivo ya fue reemplazado, retirado o moderado.
+
+La lista no debe mostrar correo, telefono, direccion, tokens ni otros datos privados. El contacto solo se consulta dentro del detalle cuando sea necesario y el rol lo permita.
+
+#### Detalle de moderacion
+
+- visor de imagen con controles seguros y sin URL publica permanente;
+- contexto minimo del reporte para interpretar fotos legitimas de rescate o atencion veterinaria;
+- resultado automatico, proveedor, version del modelo y hora de evaluacion;
+- historial de decisiones y denuncias;
+- nota interna obligatoria para rechazar, bloquear o escalar;
+- advertencia visible de que la clasificacion automatica puede producir falsos positivos.
+
+#### Acciones
+
+- `Aprobar`: habilita la imagen para continuar el flujo de publicacion.
+- `Solicitar reemplazo`: conserva el reporte y bloquea solo la imagen observada.
+- `Rechazar imagen`: impide su publicacion; exige motivo.
+- `Bloquear reporte`: pausa todo el reporte por riesgo grave; exige confirmacion y motivo.
+- `Escalar`: asigna el caso a revision superior sin publicar ni rechazar.
+- `Restaurar`: disponible solo sobre contenido retirado por moderacion y con justificacion.
+
+Las acciones deben ser idempotentes, ejecutarse server-side y verificar nuevamente estado/version para evitar que dos administradores resuelvan el mismo caso simultaneamente.
+
+#### Estados futuros sugeridos
+
+- `pending_automated_scan`;
+- `pending_human_review`;
+- `needs_replacement`;
+- `approved`;
+- `rejected`;
+- `blocked`;
+- `escalated`;
+- `restored`.
+
+La definicion final debe evitar duplicar estados del reporte canonico: estos estados describen el caso de moderacion de media, no el ciclo completo de `pet_alert_lost_pets`.
+
+#### Auditoria y seguridad
+
+- acceso exclusivo para roles admin autorizados;
+- storage privado y URLs firmadas de corta duracion;
+- ninguna credencial del proveedor en cliente o logs;
+- registro de actor, accion, motivo, timestamp y version previa/posterior;
+- redaccion de PII en listados y telemetria;
+- rechazo y bloqueo siempre con motivo estructurado y nota interna;
+- metricas agregadas sin PII sobre tiempos, apelaciones y falsos positivos;
+- mecanismo de apelacion o reemplazo antes de cerrar definitivamente un reporte legitimo;
+- comportamiento fail-closed si el analisis o storage no estan disponibles.
+
+#### Copy recomendado
+
+- Pendiente: `La imagen esta esperando revision antes de publicarse.`
+- Reemplazo: `Necesitamos otra fotografia para continuar con tu reporte.`
+- Rechazo neutral: `Esta fotografia no cumple las normas de contenido de Pet Ecosystem.`
+- Escalado: `El contenido requiere una revision adicional.`
+
+#### Criterios de aceptacion futuros
+
+- ninguna imagen nueva se hace publica antes de una decision permitida por la politica aprobada;
+- admin puede distinguir imagenes nuevas, ambiguas y denunciadas;
+- toda accion sensible exige motivo y queda auditada;
+- una imagen rechazada puede reemplazarse sin perder el resto del reporte;
+- la cola no filtra PII ni expone URLs permanentes;
+- dos decisiones concurrentes no producen estados contradictorios;
+- el sistema conserva revision humana para imagenes de rescate potencialmente sensibles;
+- el reportante recibe mensajes claros y no tecnicos.
+
 ## 13. Deteccion de duplicados
 
 Calcular candidatos por:

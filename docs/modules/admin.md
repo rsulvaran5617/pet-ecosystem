@@ -15,12 +15,20 @@ Permitir la operacion minima de plataforma requerida por el MVP.
 - moderacion avanzada de reviews
 - asignaciones operativas
 - disputas
+- moderacion automatica de imagenes Pet Alert y su bandeja especializada; queda documentada como propuesta futura pendiente de aprobacion
 
 ## Dependencias
 - providers
 - bookings
 - support
 - audit_logs
+- pet_alert
+
+## Propuesta futura - Moderacion de contenido Pet Alert
+
+Pet Ecosystem Admin es la superficie recomendada para la decision humana sobre imagenes de Pet Alert. El diseno futuro separa imagenes nuevas, resultados automaticos ambiguos o de riesgo alto, contenido denunciado y casos resueltos. La clasificacion automatica es evidencia auxiliar y nunca reemplaza la autorizacion administrativa en el primer release.
+
+La especificacion completa de bandejas, estados, acciones, permisos, auditoria y criterios de aceptacion se mantiene en `docs/modules/pet_alert_external_owner_reports.md`. No existe implementacion activa, proveedor seleccionado ni cambios de Supabase asociados a esta propuesta.
 
 ## Entidades
 - `provider_documents`

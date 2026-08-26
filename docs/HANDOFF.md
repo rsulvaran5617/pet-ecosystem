@@ -1866,3 +1866,11 @@ Al final:
 - Slice 7A aplica remoto la migracion `20260823223000_pet_alert_slice7a_community_photos.sql`.
 - Mobile permite camara/galeria, preview y hasta tres fotos opcionales; API y web proyectan URLs firmadas.
 - Falta ejecutar QA fisica de permisos, formatos y carga parcial.
+
+# Handoff 2026-08-26 - PET ALERT 8B y propuesta de moderacion automatica
+
+- Pet Alert 8B queda versionado en `274ff41` y su migracion `20260826100000_pet_alert_slice8b_external_owner_reports.sql` fue aplicada remoto con dry-run posterior limpio.
+- El formulario externo todavia requiere configurar Turnstile/Resend/pepper/origenes permitidos y desplegar `pet-alert-external-report`; no asumir que esta operativo solo por existir la migracion.
+- Se documento una propuesta futura para moderacion automatica de imagenes antes de publicarlas: storage privado, validacion tecnica, retiro de EXIF, clasificacion server-side, revision humana y reporte comunitario posterior.
+- La propuesta futura ahora define tambien `Admin > Pet Alert > Moderacion de contenido`: bandejas de imagenes nuevas, casos de riesgo, denuncias y resueltos; visor seguro, solicitud de reemplazo, rechazo, bloqueo, escalamiento y auditoria. No esta implementada.
+- La propuesta no esta aprobada ni implementada. No hay proveedor seleccionado, claves configuradas, cambios de DB ni rechazo automatico activo.
