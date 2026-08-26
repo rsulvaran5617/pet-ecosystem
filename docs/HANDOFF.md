@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-08-25 - PET ALERT 8A reporte externo documentado
+
+- Se diseno el flujo para que un propietario no registrado pueda reportar su mascota sin crear cuenta, pero solo publicar tras verificar correo.
+- La arquitectura recomendada conserva `pet_alert_lost_pets` como boletin canonico y aisla PII, OTP y tokens en entidades privadas.
+- No se implementaron codigo, migraciones, RLS, contratos ni cambios remotos.
+- Pet Alert 8B queda condicionado a seleccionar correo transaccional, CAPTCHA y politica legal de retencion/consentimiento.
+- Documento principal: `docs/modules/pet_alert_external_owner_reports.md`.
+
 # Handoff 2026-08-24 - PET ALERT cartel publico con QR
 
 - `/pet-alert/mascota-perdida/[slug]` incorpora QR visible hacia la URL publica canonica de la alerta.

@@ -53,6 +53,15 @@ PET ALERT esta documentado como frente independiente para mascotas perdidas/vist
 
 Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion QR no destructiva.
 
+## Pet Alert 8 - propietario externo (diseno)
+
+- Se diseno el reporte de mascota extraviada por una persona no registrada, sin habilitar escritura anonima todavia.
+- La decision recomendada reutiliza `pet_alert_lost_pets` como boletin canonico y separa contacto, OTP y acceso privado en entidades no publicas.
+- Publicar exigira correo verificado; esto no equivale a validar propiedad.
+- El reporte externo reutilizara directorio, ficha publica, avistamientos, moderacion, media y QR actuales.
+- La implementacion queda condicionada a seleccionar correo transaccional, CAPTCHA y politica legal de retencion.
+- Diseno completo: `docs/modules/pet_alert_external_owner_reports.md`.
+
 ## Slice 6 admin y moderacion
 
 - Usuarios autenticados reportan contenido con motivo estable y detalle opcional.
