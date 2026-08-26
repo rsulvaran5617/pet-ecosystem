@@ -1,5 +1,11 @@
 # PET ALERT 8 - Reporte externo de mascota extraviada
 
+## Estado de implementacion 8B
+
+Implementado localmente y pendiente de despliegue controlado. La implementacion adopta Resend para correo transaccional, Cloudflare Turnstile para antiabuso, Edge Function como unica puerta publica y moderacion admin obligatoria. No crea cuentas Auth y falla cerrada si falta configuracion de seguridad.
+
+El primer release emite un token privado de administracion una sola vez, pero su recuperacion y las acciones de editar, retirar o marcar encontrada se difieren a PET ALERT 8C.
+
 ## 1. Resumen ejecutivo
 
 PET ALERT 8 extiende el centro comunitario para que una persona que no tiene cuenta en Pet Ecosystem pueda reportar la perdida de su propia mascota. El reporte no exige registro previo, pero no puede publicarse hasta verificar un correo y superar controles basicos contra abuso.

@@ -296,3 +296,9 @@ Decision pendiente antes de aplicar remoto:
 Slice 6 agrega `pet_alert_moderation_cases` y `pet_alert_moderation_history` para reportes autenticados, cola admin y decisiones auditables. La moderacion puede pausar, restaurar o cerrar publicaciones y rechazar claims, pero no cambia ownership ni custodia.
 
 `pet_alert_community_claims` vincula un usuario autenticado con un reporte comunitario sin modificar `pets`, hogares ni custodia. Conserva snapshots privados de contacto, una sola solicitud activa por usuario/reporte y una sola aprobada por reporte. `pet_alert_community_claim_history` audita cada transicion.
+# PET ALERT 8B - identidad externa
+
+- `pet_alert_lost_pets.source_type` distingue `registered_pet` y `external_owner` sin duplicar el boletin publico.
+- Para `external_owner`, `pet_id`, `household_id` y `created_by_user_id` son nulos y `external_reporter_id` es obligatorio.
+- `pet_alert_external_reporters` aisla contacto y consentimientos; `pet_alert_external_verification_challenges` conserva solo hashes OTP; `pet_alert_external_access_tokens` conserva solo hashes de tokens privados.
+- Las fotos siguen en el bucket privado `pet-alert-media` y se proyectan publicamente solo despues de aprobacion.

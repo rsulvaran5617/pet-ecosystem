@@ -38,3 +38,6 @@ enable_signup = true
 
 [realtime]
 enabled = true
+
+[functions.pet-alert-external-report]
+verify_jwt = false

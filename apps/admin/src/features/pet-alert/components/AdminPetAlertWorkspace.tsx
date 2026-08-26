@@ -1,6 +1,6 @@
 "use client";
 
-import type { PetAlertModerationAction, PetAlertModerationCase, PetAlertModerationCaseStatus } from "@pet/types";
+import type { PetAlertExternalReportDecision, PetAlertExternalReportReview, PetAlertModerationAction, PetAlertModerationCase, PetAlertModerationCaseStatus } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
 
 import { getAdminPetAlertApiClient } from "../../core/services/supabase-admin";
@@ -52,6 +52,10 @@ export function AdminPetAlertWorkspace() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [externalReports, setExternalReports] = useState<PetAlertExternalReportReview[]>([]);
+  const [externalDecision, setExternalDecision] = useState<PetAlertExternalReportDecision>("approve");
+  const [externalReason, setExternalReason] = useState("");
+  const [externalBusyId, setExternalBusyId] = useState<string | null>(null);
 
   const selectedCase = useMemo(() => cases.find((item) => item.id === selectedId) ?? cases[0] ?? null, [cases, selectedId]);
 
@@ -69,9 +73,38 @@ export function AdminPetAlertWorkspace() {
     }
   }
 
+  async function refreshExternalReports() {
+    try {
+      setExternalReports(await getAdminPetAlertApiClient().listPendingExternalPetAlertReports());
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No fue posible cargar los reportes externos.");
+    }
+  }
+
   useEffect(() => {
     void refresh();
+    void refreshExternalReports();
   }, [filter]);
+
+  async function reviewExternal(report: PetAlertExternalReportReview) {
+    if (externalReason.trim().length < 5) {
+      setError("Explica la decisión del reporte externo en al menos 5 caracteres.");
+      return;
+    }
+    setExternalBusyId(report.alertId);
+    setError(null);
+    setMessage(null);
+    try {
+      await getAdminPetAlertApiClient().reviewExternalPetAlertReport(report.alertId, externalDecision, externalReason.trim());
+      setExternalReason("");
+      setMessage(externalDecision === "approve" ? "Reporte externo publicado." : "Reporte externo rechazado.");
+      await refreshExternalReports();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "No fue posible revisar el reporte externo.");
+    } finally {
+      setExternalBusyId(null);
+    }
+  }
 
   async function submitModeration() {
     if (!selectedCase) return;
@@ -116,6 +149,29 @@ export function AdminPetAlertWorkspace() {
 
       {error ? <div style={{ ...cardStyle, color: "#991b1b", borderColor: "#fecaca" }}>{error}</div> : null}
       {message ? <div style={{ ...cardStyle, color: "#166534", borderColor: "#bbf7d0" }}>{message}</div> : null}
+
+      <section style={cardStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+          <div><strong>Reportes de propietarios sin cuenta</strong><p style={{ margin: "4px 0 0", color: "#52525b", fontSize: "12px" }}>Correo verificado; publicación pendiente de revisión y evidencia fotográfica.</p></div>
+          <button onClick={() => void refreshExternalReports()} style={inputStyle} type="button">Actualizar</button>
+        </div>
+        {externalReports.length ? externalReports.map((report) => (
+          <article key={report.alertId} style={{ ...inputStyle, display: "grid", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+              <div><strong>{report.petName}</strong><div style={{ color: "#52525b", fontSize: "12px" }}>{report.petSpecies}{report.petBreed ? ` · ${report.petBreed}` : ""} · {report.city}, {report.country}</div></div>
+              <span style={{ color: "#92400e", fontSize: "11px", fontWeight: 800 }}>Pendiente de revisión</span>
+            </div>
+            <p style={{ margin: 0, lineHeight: 1.5 }}>{report.publicDescription}</p>
+            {report.photoUrl ? <img alt={`Foto de ${report.petName}`} src={report.photoUrl} style={{ width: "min(100%, 420px)", aspectRatio: "4 / 3", objectFit: "contain", background: "#f1f5f9", borderRadius: "8px" }}/> : <div style={{ color: "#991b1b", fontSize: "12px" }}>Sin foto disponible. No debe aprobarse.</div>}
+            <div style={{ background: "#f8fafc", borderRadius: "8px", padding: "10px", fontSize: "12px" }}><strong>Contacto privado:</strong> {report.contactName} · {report.contactEmail}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "180px minmax(0,1fr) auto", gap: "8px" }}>
+              <select onChange={(event) => setExternalDecision(event.target.value as PetAlertExternalReportDecision)} style={inputStyle} value={externalDecision}><option value="approve">Aprobar y publicar</option><option value="reject">Rechazar</option></select>
+              <input onChange={(event) => setExternalReason(event.target.value)} placeholder="Justificación obligatoria" style={inputStyle} value={externalReason}/>
+              <button disabled={externalBusyId === report.alertId} onClick={() => void reviewExternal(report)} style={{ ...inputStyle, background: "#0f766e", color: "white", fontWeight: 800 }} type="button">{externalBusyId === report.alertId ? "Guardando..." : "Registrar"}</button>
+            </div>
+          </article>
+        )) : <p style={{ margin: 0, color: "#52525b" }}>No hay reportes externos esperando revisión.</p>}
+      </section>
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(260px,0.8fr) minmax(0,1.2fr)", gap: "16px", alignItems: "start" }}>
         <aside style={cardStyle}>

@@ -2,11 +2,16 @@ import type { TimestampedEntity, Uuid } from "./base";
 
 export type PetAlertLostPetStatus =
   | "draft"
+  | "pending_verification"
+  | "pending_review"
   | "active"
   | "sighting_received"
   | "possible_match"
   | "found"
   | "closed"
+  | "paused"
+  | "withdrawn"
+  | "rejected"
   | "expired"
   | "flagged";
 
@@ -40,6 +45,7 @@ export type PetAlertModerationAction = "flag" | "restore" | "close" | "reject_cl
 export type PetAlertPublicDirectoryView = "lost" | "seen" | "found";
 export type PetAlertPublicEventType = "lost_pet" | "community_sighting";
 export type PetAlertPublicStatusGroup = "active" | "found";
+export type PetAlertLostPetSource = "registered_pet" | "external_owner";
 
 export interface PublicPetAlertDirectoryEvent {
   eventType: PetAlertPublicEventType;
@@ -70,9 +76,11 @@ export interface PublicPetAlertDirectoryPage {
 
 export interface PetAlertLostPet extends TimestampedEntity {
   id: Uuid;
-  petId: Uuid;
-  householdId: Uuid;
-  createdByUserId: Uuid;
+  petId: Uuid | null;
+  householdId: Uuid | null;
+  createdByUserId: Uuid | null;
+  sourceType: PetAlertLostPetSource;
+  externalReporterId: Uuid | null;
   status: PetAlertLostPetStatus;
   alertSlug: string;
   petName: string;
@@ -96,6 +104,27 @@ export interface PetAlertLostPet extends TimestampedEntity {
   expiresAt: string | null;
   closeReason: PetAlertCloseReason | null;
 }
+
+export interface PetAlertExternalReportReview {
+  alertId: Uuid;
+  alertSlug: string;
+  petName: string;
+  petSpecies: string;
+  petBreed: string | null;
+  lastSeenAt: string;
+  city: string;
+  region: string | null;
+  country: string;
+  locationReference: string | null;
+  publicDescription: string;
+  distinctiveMarks: string | null;
+  contactName: string;
+  contactEmail: string;
+  photoUrl: string | null;
+  submittedAt: string;
+}
+
+export type PetAlertExternalReportDecision = "approve" | "reject";
 
 export interface PublicPetAlertLostPet {
   alertSlug: string;

@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+# Handoff 2026-08-26 - PET ALERT 8B implementado localmente
+
+- `/pet-alert/reportar-mi-mascota` permite a un propietario sin cuenta preparar un reporte con 1-4 fotos, ubicacion aproximada, contacto privado y consentimientos.
+- La Edge Function `pet-alert-external-report` valida Cloudflare Turnstile, aplica limites por correo/huella de origen, envia OTP con Resend, consume el challenge atomicamente y usa service role solo en servidor.
+- Los reportes reutilizan `pet_alert_lost_pets`, nacen `pending_review` y no entran al directorio hasta aprobacion admin. La cola admin muestra foto, contenido y contacto privado; aprobar exige evidencia fotografica.
+- Migracion local: `20260826100000_pet_alert_slice8b_external_owner_reports.sql`. No fue aplicada remoto.
+- Pendiente antes de QA: configurar secretos/Turnstile, desplegar Edge Function, aplicar migracion tras confirmar dry-run unico y validar correo real/moderacion/publicacion.
+- Recuperacion, edicion, cierre y vinculacion a cuenta mediante token privado quedan diferidos a PET ALERT 8C.
+
+
 # Handoff 2026-08-25 - PET ALERT 8A reporte externo documentado
 
 - Se diseno el flujo para que un propietario no registrado pueda reportar su mascota sin crear cuenta, pero solo publicar tras verificar correo.

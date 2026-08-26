@@ -13,6 +13,8 @@ import type {
   PetAlertModerationHistoryEntry,
   PetAlertModerationReason,
   PetAlertModerationTargetType,
+  PetAlertExternalReportDecision,
+  PetAlertExternalReportReview,
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
@@ -32,9 +34,11 @@ type PetAlertSupabaseClient = SupabaseClient;
 
 interface LostPetAlertRow {
   id: string;
-  pet_id: string;
-  household_id: string;
-  created_by_user_id: string;
+  pet_id: string | null;
+  household_id: string | null;
+  created_by_user_id: string | null;
+  source_type?: PetAlertLostPet["sourceType"];
+  external_reporter_id?: string | null;
   status: PetAlertLostPet["status"];
   alert_slug: string;
   pet_name: string;
@@ -214,6 +218,26 @@ interface ModerationHistoryRow {
   created_at: string;
 }
 
+interface ExternalReportReviewRow {
+  alert_id: string;
+  alert_slug: string;
+  pet_name: string;
+  pet_species: string;
+  pet_breed: string | null;
+  last_seen_at: string;
+  city: string;
+  region: string | null;
+  country: string;
+  location_reference: string | null;
+  public_description: string;
+  distinctive_marks: string | null;
+  contact_name: string;
+  contact_email: string;
+  photo_storage_bucket: string | null;
+  photo_storage_path: string | null;
+  submitted_at: string;
+}
+
 export interface PetAlertApiClient {
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
@@ -252,6 +276,8 @@ export interface PetAlertApiClient {
   listPetAlertModerationQueue(status?: PetAlertModerationCaseStatus | "all"): Promise<PetAlertModerationCase[]>;
   moderatePetAlertContent(caseId: Uuid, action: PetAlertModerationAction, reason: string): Promise<Uuid>;
   listPetAlertModerationHistory(caseId: Uuid): Promise<PetAlertModerationHistoryEntry[]>;
+  listPendingExternalPetAlertReports(): Promise<PetAlertExternalReportReview[]>;
+  reviewExternalPetAlertReport(alertId: Uuid, decision: PetAlertExternalReportDecision, reason: string): Promise<PetAlertLostPet>;
 }
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
@@ -264,6 +290,8 @@ function mapAlert(row: LostPetAlertRow): PetAlertLostPet {
     petId: row.pet_id,
     householdId: row.household_id,
     createdByUserId: row.created_by_user_id,
+    sourceType: row.source_type ?? "registered_pet",
+    externalReporterId: row.external_reporter_id ?? null,
     status: row.status,
     alertSlug: row.alert_slug,
     petName: row.pet_name,
@@ -839,6 +867,43 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
         changedByUserId: row.changed_by_user_id,
         createdAt: row.created_at
       }));
+    },
+    async listPendingExternalPetAlertReports() {
+      const { data, error } = await supabase.rpc("list_pending_external_pet_alert_reports");
+      if (error) fail(error, "No fue posible cargar los reportes externos pendientes.");
+      const rows = (data ?? []) as ExternalReportReviewRow[];
+      return Promise.all(rows.map(async (row) => {
+        const signed = row.photo_storage_bucket && row.photo_storage_path
+          ? await supabase.storage.from(row.photo_storage_bucket).createSignedUrl(row.photo_storage_path, 60 * 10)
+          : null;
+        return {
+        alertId: row.alert_id,
+        alertSlug: row.alert_slug,
+        petName: row.pet_name,
+        petSpecies: row.pet_species,
+        petBreed: row.pet_breed,
+        lastSeenAt: row.last_seen_at,
+        city: row.city,
+        region: row.region,
+        country: row.country,
+        locationReference: row.location_reference,
+        publicDescription: row.public_description,
+        distinctiveMarks: row.distinctive_marks,
+        contactName: row.contact_name,
+        contactEmail: row.contact_email,
+        photoUrl: signed?.data?.signedUrl ?? null,
+        submittedAt: row.submitted_at
+        };
+      }));
+    },
+    async reviewExternalPetAlertReport(alertId, decision, reason) {
+      const { data, error } = await supabase.rpc("review_external_pet_alert_report", {
+        target_alert_id: alertId,
+        decision,
+        decision_reason: reason
+      });
+      if (error || !data) fail(error, "No fue posible revisar el reporte externo.");
+      return mapAlert(data as LostPetAlertRow);
     }
   };
 }

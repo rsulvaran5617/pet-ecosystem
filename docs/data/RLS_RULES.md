@@ -325,3 +325,10 @@ No implementar tablas sensibles sin definir su politica RLS.
 - La galeria publica se consulta mediante `list_public_pet_alert_community_media`; no depende de lectura REST directa sobre la tabla de metadata.
 - `pet-avatars` conserva carácter privado. La policy `pet_alert_avatars_objects_select_public` permite leer solo el objeto que corresponde al perfil de una mascota con alerta pública compartible.
 - Las fotos PET ALERT publicas se autorizan en Storage mediante helpers `security definer` acotados al bucket, path y estado compartible. Esto permite lectura anonima por URL firmada sin conceder lectura directa de tablas operativas.
+# PET ALERT 8B - escritura externa
+
+- `anon` y `authenticated` no tienen acceso directo a contactos, challenges ni tokens externos.
+- La escritura publica entra exclusivamente por Edge Function con Turnstile, limites, OTP hasheado y service role server-side.
+- El challenge se consume de forma atomica, expira en 10 minutos y limita intentos.
+- Los reportes externos nacen `pending_review`; solo un admin de plataforma puede aprobar o rechazar con motivo.
+- La aprobacion exige al menos una foto publica asociada. Contacto, correo, hashes y tokens nunca entran en RPC publicas ni directorio.

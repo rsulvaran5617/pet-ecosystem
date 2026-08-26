@@ -13,6 +13,14 @@ Centralizar las variables realmente usadas por el baseline actual del MVP.
 - `SUPABASE_PROJECT_ID`
 - `SUPABASE_DB_PASSWORD`
 
+### PET ALERT 8B - reporte externo
+
+- Web publica: `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
+- Edge Function `pet-alert-external-report`: `RESEND_API_KEY`, `PET_ALERT_FROM_EMAIL`, `PET_ALERT_OTP_PEPPER`, `PET_ALERT_TURNSTILE_SECRET_KEY` y `PET_ALERT_ALLOWED_ORIGINS`.
+- `PET_ALERT_ALLOWED_ORIGINS` es una lista separada por comas (por ejemplo `https://petecosyst.com,http://localhost:3000`).
+- `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se consumen exclusivamente dentro de la Edge Function. Nunca deben usar el prefijo `NEXT_PUBLIC_` ni almacenarse en el cliente.
+- Si falta cualquiera de estas variables, el alta externa falla cerrada. No existe bypass de CAPTCHA, OTP o moderacion.
+
 ## Variables QA / smoke
 
 - `QA_OWNER_EMAIL`

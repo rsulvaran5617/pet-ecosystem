@@ -320,3 +320,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Contenido: boletines sanitizados de mascotas extraviadas, vistas y encontradas.
 - Acciones: buscar, filtrar, cargar mas, abrir ficha, reportar mascota vista y entrar a la app para reportar mascota propia.
 - Privacidad: nunca mostrar coordenadas, domicilio, contacto privado, usuario, household ni IDs internos.
+# PET ALERT 8B - Reportar mi mascota sin cuenta
+
+- `/pet-alert/reportar-mi-mascota` usa cuatro pasos: mascota y fotos, extravio aproximado, contacto privado/consentimiento y verificacion/revision.
+- Exige 1-4 fotos, evita direcciones exactas, explica que verificar correo no acredita propiedad y confirma que la publicacion queda en revision.
+- Admin PET ALERT incorpora una cola separada con foto, contenido publico y contacto privado para aprobar/rechazar con justificacion.

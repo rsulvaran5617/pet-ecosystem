@@ -572,3 +572,9 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - RPC publica: `list_public_pet_alert_directory(text, text, text, text, integer, integer)`.
 - No crea tablas ni modifica entidades transaccionales.
 - Migracion aplicada remoto: `20260823230000_pet_alert_slice7b_public_directory.sql`.
+# PET ALERT 8B
+
+- Migracion local `20260826100000_pet_alert_slice8b_external_owner_reports.sql`.
+- Amplia `pet_alert_lost_pets` de forma compatible y agrega `pet_alert_external_reporters`, `pet_alert_external_verification_challenges` y `pet_alert_external_access_tokens`.
+- Agrega consumo atomico de challenge, creacion transaccional de reporte externo, cola admin y revision aprobar/rechazar.
+- Edge Function publica: `pet-alert-external-report` con `verify_jwt = false`; todas las escrituras privilegiadas usan service role solo en servidor.

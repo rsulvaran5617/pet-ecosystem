@@ -366,3 +366,10 @@ Foster-2A API client local:
 
 - `recordPublicAdoptionFunnelEvent`: registro no bloqueante de eventos publicos permitidos y sin PII.
 - `getAdoptionFunnelMetrics`: lectura autenticada y agregada por Familia Protectora, con periodo de 1 a 730 dias.
+# PET ALERT 8B - propietario externo
+
+- `POST /functions/v1/pet-alert-external-report` con JSON solicita un codigo al correo despues de validar Turnstile, consentimiento y limites por correo/origen.
+- El mismo endpoint con `multipart/form-data` consume atomicamente el codigo, valida 1-4 fotos y crea el boletin canonico en `pending_review`.
+- No crea cuenta Supabase Auth, no publica inmediatamente y no expone service role al navegador.
+- `list_pending_external_pet_alert_reports()` y `review_external_pet_alert_report(...)` son contratos exclusivos de administracion autenticada.
+- El token privado de administracion se emite una sola vez; recuperacion, edicion y cierre externo quedan para un slice posterior.

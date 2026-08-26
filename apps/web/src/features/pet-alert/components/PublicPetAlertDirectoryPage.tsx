@@ -88,7 +88,7 @@ export function PublicPetAlertDirectoryPage() {
         </div>
         <div className="headerActions">
           <a className="primary" href="/pet-alert/reportar-mascota-vista">Vi una mascota perdida</a>
-          <a className="secondary" href="/app">Reportar mi mascota</a>
+          <a className="secondary" href="/pet-alert/reportar-mi-mascota">Reportar mi mascota</a>
         </div>
       </header>
 
