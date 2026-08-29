@@ -52,6 +52,21 @@ function Resolve-EnvValue {
   throw "Missing required environment variable: $Key"
 }
 
+function Resolve-OptionalEnvValue {
+  param(
+    [string]$Key,
+    [hashtable[]]$Sources
+  )
+
+  foreach ($source in $Sources) {
+    if ($source.ContainsKey($Key) -and $source[$Key]) {
+      return $source[$Key]
+    }
+  }
+
+  return ""
+}
+
 if (!(Get-Command ssh -ErrorAction SilentlyContinue)) {
   throw "ssh is not available in this shell."
 }
@@ -72,21 +87,31 @@ function Invoke-RemoteScript {
 
 $rootEnv = Read-EnvFile ".env.local"
 $webEnv = Read-EnvFile "apps/web/.env.local"
+$webProductionEnv = Read-EnvFile "apps/web/.env.production.local"
 $adminEnv = Read-EnvFile "apps/admin/.env.local"
 
-$supabaseUrl = Resolve-EnvValue "NEXT_PUBLIC_SUPABASE_URL" @($webEnv, $adminEnv, $rootEnv)
-$supabaseAnonKey = Resolve-EnvValue "NEXT_PUBLIC_SUPABASE_ANON_KEY" @($webEnv, $adminEnv, $rootEnv)
+$envSources = @($webProductionEnv, $webEnv, $adminEnv, $rootEnv)
+$supabaseUrl = Resolve-EnvValue "NEXT_PUBLIC_SUPABASE_URL" $envSources
+$supabaseAnonKey = Resolve-EnvValue "NEXT_PUBLIC_SUPABASE_ANON_KEY" $envSources
+$androidBetaUrl = Resolve-OptionalEnvValue "NEXT_PUBLIC_ANDROID_BETA_URL" $envSources
+$iosTestFlightUrl = Resolve-OptionalEnvValue "NEXT_PUBLIC_IOS_TESTFLIGHT_URL" $envSources
+$webAppUrl = Resolve-OptionalEnvValue "NEXT_PUBLIC_WEB_APP_URL" $envSources
+$betaSupportEmail = Resolve-OptionalEnvValue "NEXT_PUBLIC_BETA_SUPPORT_EMAIL" $envSources
 
 $envProduction = @"
 NEXT_PUBLIC_SUPABASE_URL=$supabaseUrl
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$supabaseAnonKey
+NEXT_PUBLIC_ANDROID_BETA_URL=$androidBetaUrl
+NEXT_PUBLIC_IOS_TESTFLIGHT_URL=$iosTestFlightUrl
+NEXT_PUBLIC_WEB_APP_URL=$webAppUrl
+NEXT_PUBLIC_BETA_SUPPORT_EMAIL=$betaSupportEmail
 NEXT_TELEMETRY_DISABLED=1
 "@
 
 Write-Host "Deploying Pet Ecosystem to $SshTarget"
 Write-Host "Remote path: $RemotePath"
 Write-Host "Domains: $RootDomain, $AdminDomain"
-Write-Host "Supabase env values loaded locally and will not be printed."
+Write-Host "Supabase and beta env values loaded locally and will not be printed."
 
 $remoteBootstrap = @"
 set -euo pipefail

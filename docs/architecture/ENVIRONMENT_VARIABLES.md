@@ -8,6 +8,10 @@ Centralizar las variables realmente usadas por el baseline actual del MVP.
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_ANDROID_BETA_URL`
+- `NEXT_PUBLIC_IOS_TESTFLIGHT_URL`
+- `NEXT_PUBLIC_WEB_APP_URL`
+- `NEXT_PUBLIC_BETA_SUPPORT_EMAIL`
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_PROJECT_ID`
@@ -20,6 +24,14 @@ Centralizar las variables realmente usadas por el baseline actual del MVP.
 - `PET_ALERT_ALLOWED_ORIGINS` es una lista separada por comas (por ejemplo `https://petecosyst.com,http://localhost:3000`).
 - `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se consumen exclusivamente dentro de la Edge Function. Nunca deben usar el prefijo `NEXT_PUBLIC_` ni almacenarse en el cliente.
 - Si falta cualquiera de estas variables, el alta externa falla cerrada. No existe bypass de CAPTCHA, OTP o moderacion.
+
+### Acceso beta publico
+
+- `NEXT_PUBLIC_ANDROID_BETA_URL`: enlace privado de Firebase App Distribution.
+- `NEXT_PUBLIC_IOS_TESTFLIGHT_URL`: enlace de invitacion de TestFlight.
+- `NEXT_PUBLIC_WEB_APP_URL`: entrada a la experiencia web.
+- `NEXT_PUBLIC_BETA_SUPPORT_EMAIL`: correo opcional mostrado en `/beta`.
+- Son destinos publicos, nunca secretos. La pagina y las rutas `/beta/{android|ios|web}` fallan cerradas si falta una URL o si no usa protocolo HTTP(S).
 
 ## Variables QA / smoke
 

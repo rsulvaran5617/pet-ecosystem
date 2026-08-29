@@ -1874,3 +1874,11 @@ Al final:
 - Se documento una propuesta futura para moderacion automatica de imagenes antes de publicarlas: storage privado, validacion tecnica, retiro de EXIF, clasificacion server-side, revision humana y reporte comunitario posterior.
 - La propuesta futura ahora define tambien `Admin > Pet Alert > Moderacion de contenido`: bandejas de imagenes nuevas, casos de riesgo, denuncias y resueltos; visor seguro, solicitud de reemplazo, rechazo, bloqueo, escalamiento y auditoria. No esta implementada.
 - La propuesta no esta aprobada ni implementada. No hay proveedor seleccionado, claves configuradas, cambios de DB ni rechazo automatico activo.
+
+# Handoff 2026-08-29 - Acceso beta publico
+
+- Web incorpora `/beta` como entrada unica mobile-first para Android, iPhone y Web, junto con redirecciones limpias `/beta/android`, `/beta/ios` y `/beta/web`.
+- Los destinos se configuran por variables `NEXT_PUBLIC_*`, solo aceptan HTTP(S), fallan cerrados y conservan `source`/UTM sin aceptar redirects arbitrarios.
+- Produccion queda preparada para `https://petecosyst.com/beta`: Android apunta al release privado vigente de Firebase App Distribution y Web a `/app`.
+- iPhone aparece como `Proximamente` hasta obtener un enlace TestFlight `https://testflight.apple.com/join/...`; subir un build a App Store Connect no genera por si solo ese enlace publico.
+- `scripts/deploy-droplet.ps1` transporta la configuracion beta local hacia `.env.production` remoto sin imprimir valores.
