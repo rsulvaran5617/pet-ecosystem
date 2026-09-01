@@ -41,5 +41,9 @@
 .disclaimer, .panelMessage { margin: 0; color: #52615e; font-size: 13px; line-height: 1.5; }
 .panelMessage { margin-top: 12px; font-weight: 700; }
 .textLink { color: #0f766e; font-size: 13px; font-weight: 700; }
+.writeRequest { display: grid; gap: 10px; padding: 15px; border: 1px solid #cfe0dc; border-radius: 8px; background: #f8fffd; }
+.writeRequest h3, .writeRequest p { margin: 0; }
+.checkLabel { display: flex !important; grid-template-columns: none; align-items: center; gap: 9px !important; font-weight: 600 !important; }
+.checkLabel input { width: 18px; min-height: 18px; }
 @media (max-width: 680px) { .shell { width: min(100% - 20px, 1080px); padding-top: 10px; } .header { display: grid; padding: 20px; } .access { min-width: 0; } .identity, .grid { grid-template-columns: 1fr; } .section { padding: 16px; } }
 @media (max-width: 680px) { .professionalHeading { display: grid; } .professionalHeading .secondaryButton { width: 100%; } }

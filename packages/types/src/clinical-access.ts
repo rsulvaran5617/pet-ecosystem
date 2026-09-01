@@ -56,6 +56,22 @@ export interface UpsertClinicalProfessionalProfileInput {
   providerOrganizationId?: Uuid | null;
 }
 
+export type ClinicalWriteScope = "create_encounter" | "record_diagnosis" | "record_vaccine" | "record_recommendation" | "record_treatment" | "upload_clinical_document";
+export type ClinicalWriteRequestStatus = "requested" | "approved" | "rejected" | "revoked" | "expired" | "completed";
+
+export interface ClinicalWriteRequest {
+  id: Uuid;
+  professionalName?: string;
+  professionalType?: ClinicalProfessionalType;
+  organizationName?: string | null;
+  requestedScopes: ClinicalWriteScope[];
+  requestNote: string | null;
+  status: ClinicalWriteRequestStatus;
+  requestedAt?: string;
+  expiresAt: string;
+  decisionNote: string | null;
+}
+
 export interface PetClinicalAccessGrant {
   id: Uuid;
   petId: Uuid;

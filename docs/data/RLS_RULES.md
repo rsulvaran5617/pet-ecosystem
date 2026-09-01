@@ -341,3 +341,4 @@ No implementar tablas sensibles sin definir su politica RLS.
 - La proyeccion anonima excluye token, household, owner, contacto, rutas de Storage y archivos. Cada apertura incrementa el contador y registra un evento auditable.
 - Clinical Access-2B no concede acceso directo a tablas profesionales: el usuario opera su perfil mediante RPC, Admin recibe una proyeccion privada y las notas de revision no se entregan al solicitante.
 - Vincular una organizacion exige `can_manage_provider_organization`; no acredita automaticamente al profesional ni concede acceso a otras cuentas de la organizacion.
+- Clinical Access-2C bloquea acceso directo a solicitudes/autorizaciones. Solicitar exige profesional verificado y grant vigente; decidir/revocar exige `can_edit_pet`, y los scopes aprobados deben ser subconjunto de los solicitados.

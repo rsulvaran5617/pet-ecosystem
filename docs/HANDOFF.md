@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-09-01 - Clinical Access-2C local
+
+- Profesional verificado solicita scopes desde el expediente web; el owner aprueba, rechaza o revoca desde Salud Mobile.
+- Solicitud y autorizacion quedan ligadas al QR, mascota, profesional y vencimiento; aprobar solo scopes solicitados se valida en servidor.
+- No existen encounters ni escritura de vacunas, diagnosticos o documentos en este slice.
+- Migracion local pendiente: `20260901150000_clinical_access_owner_consent.sql`.
+
 # Handoff 2026-09-01 - Clinical Access-2B local
 
 - La ficha web temporal permite iniciar sesion y registrar una identidad profesional para revision manual sin perder el contexto del QR.

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClinicalProfessionalContext, ClinicalProfessionalType } from "@pet/types";
+import type { ClinicalProfessionalContext, ClinicalProfessionalType, ClinicalWriteRequest, ClinicalWriteScope } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getBrowserClinicalAccessApiClient, getBrowserCoreApiClient } from "../../core/services/supabase-browser";
@@ -23,6 +23,11 @@ const statusCopy = {
   suspended: "La verificacion profesional esta suspendida. El acceso permanece en modo de solo lectura.",
   expired: "La verificacion profesional vencio. El acceso permanece en modo de solo lectura."
 } as const;
+const scopeOptions: Array<{ value: ClinicalWriteScope; label: string }> = [
+  { value: "create_encounter", label: "Registrar atencion" }, { value: "record_diagnosis", label: "Registrar diagnostico" },
+  { value: "record_vaccine", label: "Registrar vacuna" }, { value: "record_recommendation", label: "Agregar indicaciones" },
+  { value: "record_treatment", label: "Registrar tratamiento" }, { value: "upload_clinical_document", label: "Adjuntar documento clinico" }
+];
 
 export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +39,9 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [context, setContext] = useState<ClinicalProfessionalContext | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState<string | null>(null);
+  const [writeRequest, setWriteRequest] = useState<ClinicalWriteRequest | null>(null);
+  const [requestedScopes, setRequestedScopes] = useState<ClinicalWriteScope[]>(["create_encounter"]);
+  const [requestNote, setRequestNote] = useState("");
 
   async function loadIdentity() {
     const auth = await getBrowserCoreApiClient().getAuthState();
@@ -44,7 +52,9 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
     }
     await getBrowserClinicalAccessApiClient().getAuthenticatedClinicalAccessContext(token);
     const nextContext = await getBrowserClinicalAccessApiClient().getMyClinicalProfessionalContext();
+    const nextRequest = await getBrowserClinicalAccessApiClient().getMyClinicalWriteRequest(token);
     setContext(nextContext);
+    setWriteRequest(nextRequest);
     if (nextContext.profile) {
       setForm({
         professionalName: nextContext.profile.professionalName,
@@ -106,6 +116,17 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
     }
   }
 
+  async function requestWriteAccess() {
+    if (!requestedScopes.length) { setMessage("Selecciona al menos una accion."); return; }
+    setIsSubmitting(true); setMessage(null);
+    try {
+      await getBrowserClinicalAccessApiClient().requestClinicalWriteAccess(token, requestedScopes, requestNote);
+      setWriteRequest(await getBrowserClinicalAccessApiClient().getMyClinicalWriteRequest(token));
+      setMessage("Solicitud enviada al responsable de la mascota.");
+    } catch { setMessage("No pudimos enviar la solicitud. Verifica que el acceso siga vigente."); }
+    finally { setIsSubmitting(false); }
+  }
+
   if (isLoading) return null;
   const profile = context?.profile ?? null;
   const editable = !profile || profile.verificationStatus === "draft" || profile.verificationStatus === "rejected";
@@ -136,6 +157,9 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
               <label>Organizacion opcional<select onChange={(event) => setForm((current) => ({ ...current, providerOrganizationId: event.target.value }))} value={form.providerOrganizationId}><option value="">Sin organizacion vinculada</option>{context?.organizationOptions.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}</select></label>
               <div className={styles.formActions}><button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void saveProfile()} type="button">Guardar borrador</button>{profile?.verificationStatus === "draft" ? <button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void submitProfile()} type="button">Enviar a revision</button> : null}</div>
             </>
+          ) : null}
+          {profile?.verificationStatus === "verified" ? (
+            writeRequest ? <div className={styles.verificationNotice}><strong>Solicitud: {writeRequest.status === "requested" ? "En espera" : writeRequest.status === "approved" ? "Aprobada" : writeRequest.status === "rejected" ? "No aprobada" : writeRequest.status === "revoked" ? "Revocada" : "Cerrada"}</strong><span>Este slice aun no permite registrar informacion clinica.</span></div> : <div className={styles.writeRequest}><h3>Solicitar permiso para registrar atencion</h3><p>El owner vera exactamente las acciones seleccionadas antes de decidir.</p>{scopeOptions.map((option) => <label className={styles.checkLabel} key={option.value}><input checked={requestedScopes.includes(option.value)} onChange={() => setRequestedScopes((current) => current.includes(option.value) ? current.filter((scope) => scope !== option.value) : [...current, option.value])} type="checkbox" />{option.label}</label>)}<label>Nota opcional<textarea maxLength={800} onChange={(event) => setRequestNote(event.target.value)} rows={3} value={requestNote} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestWriteAccess()} type="button">Enviar solicitud al owner</button></div>
           ) : null}
           <p className={styles.disclaimer}>La verificacion de plataforma no sustituye las acreditaciones exigidas por la autoridad competente. Este acceso sigue siendo solo de lectura.</p>
         </div>

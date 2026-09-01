@@ -1,4 +1,4 @@
-import type { CreatedPetClinicalAccess, PetClinicalAccessDuration, PetClinicalAccessGrant } from "@pet/types";
+import type { ClinicalWriteRequest, ClinicalWriteScope, CreatedPetClinicalAccess, PetClinicalAccessDuration, PetClinicalAccessGrant } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -11,6 +11,7 @@ const durations: Array<{ value: PetClinicalAccessDuration; label: string }> = [
   { value: "1_week", label: "1 semana" }
 ];
 const publicWebOrigin = "https://petecosyst.com";
+const scopeLabels: Record<ClinicalWriteScope, string> = { create_encounter: "Registrar atencion", record_diagnosis: "Diagnostico", record_vaccine: "Vacuna", record_recommendation: "Indicaciones", record_treatment: "Tratamiento", upload_clinical_document: "Documento clinico" };
 
 function formatExpiration(value: string) {
   return new Intl.DateTimeFormat("es-PA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -23,6 +24,7 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [writeRequests, setWriteRequests] = useState<ClinicalWriteRequest[]>([]);
   const accessUrl = useMemo(() => createdAccess ? `${publicWebOrigin}/clinical-access/${createdAccess.token}` : null, [createdAccess]);
 
   useEffect(() => {
@@ -30,8 +32,8 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
     setCreatedAccess(null);
     setIsLoading(true);
     setErrorMessage(null);
-    void getMobileClinicalAccessApiClient().listPetClinicalAccessGrants(petId)
-      .then((grants) => { if (active) setActiveGrant(grants.find((grant) => grant.status === "active") ?? null); })
+    void Promise.all([getMobileClinicalAccessApiClient().listPetClinicalAccessGrants(petId), getMobileClinicalAccessApiClient().listPetClinicalWriteRequests(petId)])
+      .then(([grants, requests]) => { if (active) { setActiveGrant(grants.find((grant) => grant.status === "active") ?? null); setWriteRequests(requests); } })
       .catch(() => { if (active) setErrorMessage("No pudimos consultar los accesos temporales."); })
       .finally(() => { if (active) setIsLoading(false); });
     return () => { active = false; };
@@ -66,6 +68,22 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
     }
   }
 
+  async function reviewRequest(request: ClinicalWriteRequest, decision: "approved" | "rejected") {
+    setIsSubmitting(true); setErrorMessage(null);
+    try {
+      await getMobileClinicalAccessApiClient().reviewClinicalWriteRequest(request.id, decision, decision === "approved" ? request.requestedScopes : undefined);
+      setWriteRequests(await getMobileClinicalAccessApiClient().listPetClinicalWriteRequests(petId));
+    } catch { setErrorMessage("No pudimos responder la solicitud. Actualiza e intenta nuevamente."); }
+    finally { setIsSubmitting(false); }
+  }
+
+  async function revokeWriteRequest(request: ClinicalWriteRequest) {
+    setIsSubmitting(true); setErrorMessage(null);
+    try { await getMobileClinicalAccessApiClient().revokeClinicalWriteAuthorization(request.id); setWriteRequests(await getMobileClinicalAccessApiClient().listPetClinicalWriteRequests(petId)); }
+    catch { setErrorMessage("No pudimos revocar la autorizacion."); }
+    finally { setIsSubmitting(false); }
+  }
+
   return (
     <View style={{ borderRadius: 16, borderWidth: 1, borderColor: "rgba(15,118,110,0.2)", backgroundColor: "#f0fdfa", padding: 14, gap: 12 }}>
       <View style={{ gap: 3 }}>
@@ -93,6 +111,16 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
           <Pressable disabled={isSubmitting} onPress={() => void revokeAccess()} style={{ borderRadius: 999, borderWidth: 1, borderColor: "#dc2626", paddingHorizontal: 16, paddingVertical: 10, opacity: isSubmitting ? 0.6 : 1 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>{isSubmitting ? "Cerrando..." : "Revocar acceso"}</Text></Pressable>
         </View>
       ) : null}
+      {writeRequests.filter((request) => request.status === "requested" || request.status === "approved").map((request) => (
+        <View key={request.id} style={{ borderRadius: 12, borderWidth: 1, borderColor: request.status === "requested" ? "#f59e0b" : "#0f766e", backgroundColor: "#ffffff", padding: 12, gap: 8 }}>
+          <Text style={{ color: "#1c1917", fontWeight: "900" }}>{request.status === "requested" ? "Solicitud profesional" : "Autorizacion activa"}</Text>
+          <Text style={{ color: "#334155", fontWeight: "700" }}>{request.professionalName}{request.organizationName ? ` - ${request.organizationName}` : ""}</Text>
+          <Text style={{ color: "#475569", fontSize: 12, lineHeight: 17 }}>{request.requestedScopes.map((scope) => scopeLabels[scope]).join(" · ")}</Text>
+          {request.requestNote ? <Text style={{ color: "#475569", fontSize: 12 }}>{request.requestNote}</Text> : null}
+          <Text style={{ color: "#64748b", fontSize: 11 }}>Vence {formatExpiration(request.expiresAt)}. Puedes revocar el permiso en cualquier momento.</Text>
+          {request.status === "requested" ? <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}><Pressable disabled={isSubmitting} onPress={() => void reviewRequest(request, "approved")} style={{ borderRadius: 999, backgroundColor: "#0f766e", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#fff", fontWeight: "800" }}>Aprobar</Text></Pressable><Pressable disabled={isSubmitting} onPress={() => void reviewRequest(request, "rejected")} style={{ borderRadius: 999, borderWidth: 1, borderColor: "#b91c1c", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>Rechazar</Text></Pressable></View> : <Pressable disabled={isSubmitting} onPress={() => void revokeWriteRequest(request)} style={{ alignSelf: "flex-start", borderRadius: 999, borderWidth: 1, borderColor: "#b91c1c", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>Revocar permiso</Text></Pressable>}
+        </View>
+      ))}
     </View>
   );
 }

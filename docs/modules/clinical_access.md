@@ -90,6 +90,8 @@ Implementacion local:
 
 El profesional verificado solicita un alcance. El owner aprueba o rechaza desde Mobile con identidad, clinica, mascota, vigencia y acciones visibles. La autorizacion es revocable y no reutilizable para otra mascota.
 
+Implementacion local: solicitudes granulares vinculadas al grant, mascota y profesional; revision owner con scopes solicitados; autorizacion temporal y revocacion inmediata. No habilita todavia formularios ni mutaciones clinicas.
+
 ### 2D - Anexos clinicos
 
 El profesional autorizado crea una atencion append-only con hallazgos, diagnosticos, vacunas, indicaciones, tratamientos y documentos. No modifica registros historicos.

@@ -2,6 +2,8 @@ import type {
   AdminClinicalProfessionalSummary,
   AuthenticatedClinicalAccessContext,
   ClinicalProfessionalContext,
+  ClinicalWriteRequest,
+  ClinicalWriteScope,
   CreatedPetClinicalAccess,
   Database,
   PetClinicalAccessDuration,
@@ -95,6 +97,29 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
         next_verification_expires_at: expiresAt ?? null
       });
       if (error) fail(error, "No fue posible revisar la identidad profesional.");
+    },
+    async requestClinicalWriteAccess(token: string, scopes: ClinicalWriteScope[], note?: string | null) {
+      const { data, error } = await supabase.rpc("request_clinical_write_access", { raw_token: token, next_scopes: scopes, next_note: note ?? null });
+      if (error || !data) fail(error, "No fue posible solicitar autorizacion.");
+      return data;
+    },
+    async getMyClinicalWriteRequest(token: string) {
+      const { data, error } = await supabase.rpc("get_my_clinical_write_request", { raw_token: token });
+      if (error) fail(error, "No fue posible consultar la solicitud.");
+      return data as unknown as ClinicalWriteRequest | null;
+    },
+    async listPetClinicalWriteRequests(petId: Uuid) {
+      const { data, error } = await supabase.rpc("list_pet_clinical_write_requests", { target_pet_id: petId });
+      if (error) fail(error, "No fue posible consultar las solicitudes.");
+      return (data ?? []).map((row): ClinicalWriteRequest => ({ id: row.id, professionalName: row.professional_name, professionalType: row.professional_type, organizationName: row.organization_name, requestedScopes: row.requested_scopes as ClinicalWriteScope[], requestNote: row.request_note, status: row.status as ClinicalWriteRequest["status"], requestedAt: row.requested_at, expiresAt: row.expires_at, decisionNote: row.decision_note }));
+    },
+    async reviewClinicalWriteRequest(requestId: Uuid, decision: "approved" | "rejected", scopes?: ClinicalWriteScope[], note?: string | null) {
+      const { error } = await supabase.rpc("review_clinical_write_request", { target_request_id: requestId, decision, next_approved_scopes: scopes ?? null, next_decision_note: note ?? null });
+      if (error) fail(error, "No fue posible responder la solicitud.");
+    },
+    async revokeClinicalWriteAuthorization(requestId: Uuid, reason?: string | null) {
+      const { error } = await supabase.rpc("revoke_clinical_write_authorization", { target_request_id: requestId, reason: reason ?? null });
+      if (error) fail(error, "No fue posible revocar la autorizacion.");
     },
     async createPetClinicalAccess(petId: Uuid, durationCode: PetClinicalAccessDuration) {
       const { data, error } = await supabase.rpc("create_pet_clinical_access", {

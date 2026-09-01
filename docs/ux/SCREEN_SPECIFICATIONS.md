@@ -334,3 +334,4 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Un acceso invalido, vencido o revocado usa un estado generico sin revelar si el token existio.
 - Clinical Access-2B agrega `Identificarme como profesional` despues de la identidad de la mascota. Login, borrador y estado de verificacion viven en la misma ficha y nunca muestran formularios de escritura.
 - Admin incorpora `Profesionales` para revisar referencia de licencia, jurisdiccion y organizacion declarada; rechazo y suspension exigen justificacion.
+- 2C permite al profesional verificado seleccionar acciones y solicitar permiso; Owner Mobile > Salud muestra profesional, clinica, alcance, vencimiento y acciones Aprobar/Rechazar/Revocar.
