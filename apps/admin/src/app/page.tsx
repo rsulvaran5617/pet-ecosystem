@@ -10,15 +10,17 @@ import { AdminFosterWorkspace } from "../features/foster/components/AdminFosterW
 import { AdminHelpWorkspace } from "../features/help/components/AdminHelpWorkspace";
 import { AdminProvidersWorkspace } from "../features/providers/components/AdminProvidersWorkspace";
 import { AdminPetAlertWorkspace } from "../features/pet-alert/components/AdminPetAlertWorkspace";
+import { AdminClinicalProfessionalsWorkspace } from "../features/clinical-access/components/AdminClinicalProfessionalsWorkspace";
 import { AdminSupportWorkspace } from "../features/support/components/AdminSupportWorkspace";
 
-type AdminSection = "inicio" | "pet-alert" | "protectora" | "proveedores" | "soporte" | "manual";
+type AdminSection = "inicio" | "pet-alert" | "protectora" | "proveedores" | "profesionales" | "soporte" | "manual";
 
 const adminSections: Array<{ description: string; id: AdminSection; label: string }> = [
   { id: "inicio", label: "Inicio", description: "Colas accionables y siguiente decision." },
   { id: "proveedores", label: "Proveedores", description: "Revision de proveedores pendientes." },
   { id: "protectora", label: "Familias protectoras", description: "Revision de solicitudes de acogida." },
   { id: "pet-alert", label: "PET ALERT", description: "Contenido reportado y seguridad comunitaria." },
+  { id: "profesionales", label: "Profesionales", description: "Verificacion de identidad de salud animal." },
   { id: "soporte", label: "Soporte", description: "Casos abiertos y resolucion basica." },
   { id: "manual", label: "Manual admin", description: "Guia interna de operacion y soporte." }
 ];
@@ -448,6 +450,7 @@ export default function AdminPage() {
               {activeSection === "proveedores" ? <AdminProvidersWorkspace /> : null}
               {activeSection === "protectora" ? <AdminFosterWorkspace /> : null}
               {activeSection === "pet-alert" ? <AdminPetAlertWorkspace /> : null}
+              {activeSection === "profesionales" ? <AdminClinicalProfessionalsWorkspace /> : null}
               {activeSection === "soporte" ? <AdminSupportWorkspace /> : null}
               {activeSection === "manual" ? <AdminHelpWorkspace /> : null}
             </div>

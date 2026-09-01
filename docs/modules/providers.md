@@ -97,6 +97,7 @@ Modelo recomendado CAP-0:
 ## Reglas
 - un proveedor opera dentro de una organizacion
 - solo organizaciones con `approval_status = approved` pueden publicarse en marketplace
+- la aprobacion comercial de una organizacion y la categoria `veterinary` no acreditan identidad profesional; Clinical Access usa una verificacion individual separada
 - la organizacion tambien debe tener `is_public = true`
 - el perfil publico debe tener `is_public = true`
 - marketplace solo expone servicios con `is_public = true` e `is_active = true`

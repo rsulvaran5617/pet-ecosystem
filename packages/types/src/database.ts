@@ -2423,6 +2423,53 @@ export interface Database {
         };
         Returns: Record<string, unknown>;
       };
+      get_my_clinical_professional_context: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      upsert_my_clinical_professional_profile: {
+        Args: {
+          next_professional_name: string;
+          next_professional_type: "veterinarian" | "veterinary_technician" | "other";
+          next_license_reference: string;
+          next_jurisdiction: string;
+          next_country_code?: string;
+          next_provider_organization_id?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      submit_my_clinical_professional_profile: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_clinical_access_authenticated_context: {
+        Args: { raw_token: string };
+        Returns: Record<string, unknown>;
+      };
+      list_pending_clinical_professionals_for_admin: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          id: string;
+          user_id: string;
+          professional_name: string;
+          professional_type: "veterinarian" | "veterinary_technician" | "other";
+          license_reference: string;
+          jurisdiction: string;
+          country_code: string;
+          organization_name: string | null;
+          verification_status: "draft" | "pending" | "verified" | "rejected" | "suspended" | "expired";
+          submitted_at: string | null;
+        }>;
+      };
+      review_clinical_professional_profile: {
+        Args: {
+          target_profile_id: string;
+          decision: "verified" | "rejected" | "suspended";
+          reason?: string | null;
+          next_verification_expires_at?: string | null;
+        };
+        Returns: undefined;
+      };
       switch_active_user_role: {
         Args: {
           next_role: CoreRole;

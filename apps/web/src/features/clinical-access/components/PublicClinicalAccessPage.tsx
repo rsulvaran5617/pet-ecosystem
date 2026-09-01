@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { getBrowserClinicalAccessApiClient } from "../../core/services/supabase-browser";
 import styles from "./PublicClinicalAccessPage.module.css";
+import { ProfessionalIdentityPanel } from "./ProfessionalIdentityPanel";
 
 function formatDate(value: string | null) {
   if (!value) return "No indicada";
@@ -48,6 +49,7 @@ export function PublicClinicalAccessPage({ token }: { token: string }) {
         <div><span>Sexo</span><strong>{record.pet.sex || "No indicado"}</strong></div>
         <div><span>Fecha de nacimiento</span><strong>{formatDate(record.pet.birthDate)}</strong></div>
       </section>
+      <ProfessionalIdentityPanel token={token} />
 
       {criticalConditions.length ? <section className={styles.alert}><span>Atencion clinica</span><h2>Condiciones criticas activas</h2>{criticalConditions.map((condition) => <article key={`${condition.name}-${condition.diagnosedOn ?? "active"}`}><strong>{condition.name}</strong>{condition.notes ? <p>{condition.notes}</p> : null}</article>)}</section> : null}
 

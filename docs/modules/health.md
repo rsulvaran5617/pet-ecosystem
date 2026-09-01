@@ -53,6 +53,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - la vista temporal incluye identidad basica, vacunas, alergias, condiciones y metadata documental; nunca expone archivos, rutas de Storage, datos del hogar ni acciones de escritura
 - cada creacion, consulta, vencimiento y revocacion queda auditable; el token aleatorio solo se entrega al owner al crearlo y en base de datos se conserva unicamente su hash
 - este slice no acredita identidad veterinaria ni permite incorporar datos clinicos; esas capacidades requieren un frente posterior de profesionales verificados y consentimiento por accion
+- `Clinical Access-2B` agrega identidad profesional autenticada y verificacion manual de plataforma, pero conserva el expediente completo en modo de solo lectura
 
 ## API conceptual
 - GET `/pets/{id}/health`

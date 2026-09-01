@@ -308,3 +308,5 @@ Slice 6 agrega `pet_alert_moderation_cases` y `pet_alert_moderation_history` par
 - `pet_clinical_access_grants` relaciona mascota, hogar y usuario autorizante con alcance `read_only`, duracion, estado, vencimiento y contador de aperturas. Persiste solo `token_hash`, nunca el token compartido.
 - `pet_clinical_access_events` registra creacion, consulta, vencimiento y revocacion para trazabilidad basica.
 - No crea profesional, consulta medica ni escritura clinica; esos conceptos quedan fuera de este slice.
+- `clinical_professional_profiles` agrega identidad profesional individual, referencia de licencia, jurisdiccion, vinculacion provider opcional y estado de verificacion separado de la aprobacion comercial.
+- `clinical_professional_verification_events` conserva las transiciones de borrador, envio y decision administrativa. Clinical Access-2B no crea encounters ni autorizaciones de escritura.

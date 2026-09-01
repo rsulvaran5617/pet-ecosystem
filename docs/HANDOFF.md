@@ -1,13 +1,21 @@
 # HANDOFF.md
 
-# Handoff 2026-09-01 - Clinical Access-1 local
+# Handoff 2026-09-01 - Clinical Access-2B local
+
+- La ficha web temporal permite iniciar sesion y registrar una identidad profesional para revision manual sin perder el contexto del QR.
+- Admin agrega la cola `Profesionales` para verificar, rechazar o suspender identidades; provider aprobado o servicio veterinario no implican acreditacion.
+- Toda la experiencia permanece `Solo lectura`: no existen solicitudes owner, consentimientos de escritura, encounters ni mutaciones de salud.
+- Migracion local pendiente: `20260901130000_clinical_access_professional_identity.sql`.
+- Riesgo pendiente antes de piloto: definir evidencia documental y procedimiento legal/operativo de verificacion profesional en Panama.
+
+# Handoff 2026-09-01 - Clinical Access-1 aplicado
 
 - Owner Mobile > Salud genera un QR temporal por 1 hora, 1 dia o 1 semana y permite compartir o revocar el acceso.
 - `/clinical-access/[token]` muestra en web una proyeccion sanitaria responsive y de solo lectura con alertas criticas, vacunas, alergias, condiciones y metadata documental.
 - La seguridad usa token aleatorio de 256 bits, hash en base, un solo acceso activo por mascota, expiracion, revocacion y eventos auditables.
 - No expone archivos, household, contacto ni rutas internas; tampoco acredita veterinarios ni permite escritura clinica.
-- Migracion local pendiente de aplicar: `20260901110000_clinical_access_read_only.sql`.
-- Validaciones y dry-run deben completarse antes de migracion remota, commit o builds distribuibles.
+- Migracion remota aplicada: `20260901110000_clinical_access_read_only.sql`.
+- El dry-run posterior confirmo la base remota al dia antes de iniciar Clinical Access-2B.
 
 # Handoff 2026-08-26 - PET ALERT 8B implementado localmente
 

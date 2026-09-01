@@ -3,6 +3,58 @@ import type { PetConditionStatus } from "./health";
 
 export type PetClinicalAccessDuration = "1_hour" | "1_day" | "1_week";
 export type PetClinicalAccessStatus = "active" | "revoked" | "expired";
+export type ClinicalProfessionalType = "veterinarian" | "veterinary_technician" | "other";
+export type ClinicalProfessionalVerificationStatus = "draft" | "pending" | "verified" | "rejected" | "suspended" | "expired";
+
+export interface ClinicalProfessionalProfile {
+  id: Uuid;
+  professionalName: string;
+  professionalType: ClinicalProfessionalType;
+  licenseReference: string;
+  jurisdiction: string;
+  countryCode: string;
+  providerOrganizationId: Uuid | null;
+  organizationName: string | null;
+  verificationStatus: ClinicalProfessionalVerificationStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  verifiedAt: string | null;
+  verificationExpiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClinicalProfessionalContext {
+  profile: ClinicalProfessionalProfile | null;
+  organizationOptions: Array<{ id: Uuid; name: string }>;
+}
+
+export interface AuthenticatedClinicalAccessContext {
+  expiresAt: string;
+  professional: null | Pick<ClinicalProfessionalProfile, "professionalName" | "professionalType" | "organizationName" | "verificationStatus" | "verificationExpiresAt">;
+}
+
+export interface AdminClinicalProfessionalSummary {
+  id: Uuid;
+  userId: Uuid;
+  professionalName: string;
+  professionalType: ClinicalProfessionalType;
+  licenseReference: string;
+  jurisdiction: string;
+  countryCode: string;
+  organizationName: string | null;
+  verificationStatus: ClinicalProfessionalVerificationStatus;
+  submittedAt: string | null;
+}
+
+export interface UpsertClinicalProfessionalProfileInput {
+  professionalName: string;
+  professionalType: ClinicalProfessionalType;
+  licenseReference: string;
+  jurisdiction: string;
+  countryCode: string;
+  providerOrganizationId?: Uuid | null;
+}
 
 export interface PetClinicalAccessGrant {
   id: Uuid;

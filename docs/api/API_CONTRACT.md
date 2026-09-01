@@ -380,3 +380,6 @@ Foster-2A API client local:
 - `list_pet_clinical_access_grants(target_pet_id)`: miembros con acceso a la mascota consultan vigencia, estado y conteo de aperturas, nunca el token.
 - `revoke_pet_clinical_access(target_grant_id)`: owner autorizado invalida inmediatamente el acceso.
 - `get_public_pet_clinical_access(raw_token)`: proyeccion publica temporal y sanitizada para la vista web; no devuelve archivos, datos del hogar, contactos ni identificadores internos.
+- `get_my_clinical_professional_context()`, `upsert_my_clinical_professional_profile(...)` y `submit_my_clinical_professional_profile()`: identidad propia y envio a revision sin escritura clinica.
+- `get_clinical_access_authenticated_context(raw_token)`: valida sesion/token y proyecta identidad profesional sanitizada.
+- `list_pending_clinical_professionals_for_admin()` y `review_clinical_professional_profile(...)`: cola y decision manual exclusivas de Admin.

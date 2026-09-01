@@ -581,6 +581,7 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 
 # Clinical Access-1
 
-- Migracion local `20260901110000_clinical_access_read_only.sql`.
+- Migracion `20260901110000_clinical_access_read_only.sql` aplicada al proyecto remoto.
 - Agrega `pet_clinical_access_grants`, `pet_clinical_access_events` y cuatro RPC para crear, listar, revocar y consultar una proyeccion temporal sanitizada.
-- La migracion no esta aplicada al proyecto remoto hasta completar revision y dry-run.
+- Clinical Access-1 esta aplicado remoto; Clinical Access-2B permanece local hasta completar revision y dry-run.
+- Migracion local Clinical Access-2B: `20260901130000_clinical_access_professional_identity.sql`; agrega perfiles/eventos profesionales y RPCs de autoservicio, contexto autenticado y revision Admin. Pendiente de aplicacion remota.

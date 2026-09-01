@@ -332,3 +332,5 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - El owner selecciona 1 hora, 1 dia o 1 semana, genera un QR y puede compartir el enlace o revocarlo.
 - `/clinical-access/[token]` es una vista web aislada, responsive y solo lectura: identifica mascota y vencimiento, resalta condiciones criticas y organiza alergias, vacunas, condiciones y referencias documentales.
 - Un acceso invalido, vencido o revocado usa un estado generico sin revelar si el token existio.
+- Clinical Access-2B agrega `Identificarme como profesional` despues de la identidad de la mascota. Login, borrador y estado de verificacion viven en la misma ficha y nunca muestran formularios de escritura.
+- Admin incorpora `Profesionales` para revisar referencia de licencia, jurisdiccion y organizacion declarada; rechazo y suspension exigen justificacion.
