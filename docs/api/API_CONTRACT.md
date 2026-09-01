@@ -384,3 +384,4 @@ Foster-2A API client local:
 - `get_clinical_access_authenticated_context(raw_token)`: valida sesion/token y proyecta identidad profesional sanitizada.
 - `list_pending_clinical_professionals_for_admin()` y `review_clinical_professional_profile(...)`: cola y decision manual exclusivas de Admin.
 - 2C: `request_clinical_write_access`, `get_my_clinical_write_request`, `list_pet_clinical_write_requests`, `review_clinical_write_request` y `revoke_clinical_write_authorization` gestionan consentimiento granular; no escriben contenido clinico.
+- 2D: `finalize_clinical_encounter(...)` crea de forma transaccional e idempotente una atencion final y sus entradas, validando profesional, consentimiento, scopes, vigencia y revocacion.

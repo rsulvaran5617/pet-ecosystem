@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-09-01 - Clinical Access-2D local
+
+- Un profesional verificado con autorizacion 2C aprobada puede finalizar una atencion web con resumen y entradas de diagnostico, vacuna, indicacion, tratamiento o hallazgo.
+- La operacion es transaccional, idempotente y append-only; no modifica las tablas owner ni permite editar/borrar historia.
+- `clinical_documents` queda modelado de forma privada, pero carga firmada, validacion de archivos y timeline owner quedan pendientes.
+- Migraciones remotas aplicadas en orden: `20260901150000_clinical_access_owner_consent.sql` y `20260901170000_clinical_access_append_only_encounters.sql`.
+
 # Handoff 2026-09-01 - Clinical Access-2C local
 
 - Profesional verificado solicita scopes desde el expediente web; el owner aprueba, rechaza o revoca desde Salud Mobile.

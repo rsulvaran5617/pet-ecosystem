@@ -42,6 +42,7 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [writeRequest, setWriteRequest] = useState<ClinicalWriteRequest | null>(null);
   const [requestedScopes, setRequestedScopes] = useState<ClinicalWriteScope[]>(["create_encounter"]);
   const [requestNote, setRequestNote] = useState("");
+  const [encounter, setEncounter] = useState({ attendedAt: new Date().toISOString().slice(0, 16), encounterType: "consultation", summary: "", entryType: "diagnosis", entryTitle: "", entryDetails: "" });
 
   async function loadIdentity() {
     const auth = await getBrowserCoreApiClient().getAuthState();
@@ -127,6 +128,17 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
     finally { setIsSubmitting(false); }
   }
 
+  async function finalizeEncounter() {
+    if (!writeRequest || !encounter.summary.trim()) { setMessage("Describe brevemente la atencion."); return; }
+    setIsSubmitting(true); setMessage(null);
+    try {
+      await getBrowserClinicalAccessApiClient().finalizeClinicalEncounter({ requestId: writeRequest.id, idempotencyKey: crypto.randomUUID(), attendedAt: new Date(encounter.attendedAt).toISOString(), encounterType: encounter.encounterType as "consultation", summary: encounter.summary, entries: encounter.entryTitle.trim() ? [{ type: encounter.entryType as "diagnosis", title: encounter.entryTitle, details: encounter.entryDetails }] : [] });
+      setWriteRequest(await getBrowserClinicalAccessApiClient().getMyClinicalWriteRequest(token));
+      setMessage("Atencion clinica registrada y cerrada.");
+    } catch { setMessage("No pudimos registrar la atencion. Revisa el alcance y la vigencia."); }
+    finally { setIsSubmitting(false); }
+  }
+
   if (isLoading) return null;
   const profile = context?.profile ?? null;
   const editable = !profile || profile.verificationStatus === "draft" || profile.verificationStatus === "rejected";
@@ -159,7 +171,7 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
             </>
           ) : null}
           {profile?.verificationStatus === "verified" ? (
-            writeRequest ? <div className={styles.verificationNotice}><strong>Solicitud: {writeRequest.status === "requested" ? "En espera" : writeRequest.status === "approved" ? "Aprobada" : writeRequest.status === "rejected" ? "No aprobada" : writeRequest.status === "revoked" ? "Revocada" : "Cerrada"}</strong><span>Este slice aun no permite registrar informacion clinica.</span></div> : <div className={styles.writeRequest}><h3>Solicitar permiso para registrar atencion</h3><p>El owner vera exactamente las acciones seleccionadas antes de decidir.</p>{scopeOptions.map((option) => <label className={styles.checkLabel} key={option.value}><input checked={requestedScopes.includes(option.value)} onChange={() => setRequestedScopes((current) => current.includes(option.value) ? current.filter((scope) => scope !== option.value) : [...current, option.value])} type="checkbox" />{option.label}</label>)}<label>Nota opcional<textarea maxLength={800} onChange={(event) => setRequestNote(event.target.value)} rows={3} value={requestNote} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestWriteAccess()} type="button">Enviar solicitud al owner</button></div>
+            writeRequest ? <><div className={styles.verificationNotice}><strong>Solicitud: {writeRequest.status === "requested" ? "En espera" : writeRequest.status === "approved" ? "Aprobada" : writeRequest.status === "rejected" ? "No aprobada" : writeRequest.status === "revoked" ? "Revocada" : "Cerrada"}</strong></div>{writeRequest.status === "approved" ? <div className={styles.writeRequest}><h3>Registrar atencion autorizada</h3><label>Fecha y hora<input onChange={(event) => setEncounter((current) => ({ ...current, attendedAt: event.target.value }))} type="datetime-local" value={encounter.attendedAt} /></label><label>Tipo<select onChange={(event) => setEncounter((current) => ({ ...current, encounterType: event.target.value }))} value={encounter.encounterType}><option value="consultation">Consulta</option><option value="vaccination">Vacunacion</option><option value="follow_up">Seguimiento</option><option value="emergency">Urgencia</option><option value="other">Otra</option></select></label><label>Resumen<textarea maxLength={2400} onChange={(event) => setEncounter((current) => ({ ...current, summary: event.target.value }))} required rows={4} value={encounter.summary} /></label><label>Entrada clinica opcional<select onChange={(event) => setEncounter((current) => ({ ...current, entryType: event.target.value }))} value={encounter.entryType}><option value="diagnosis">Diagnostico</option><option value="vaccine">Vacuna</option><option value="recommendation">Indicacion</option><option value="treatment">Tratamiento</option><option value="finding">Hallazgo</option></select></label><label>Titulo<input onChange={(event) => setEncounter((current) => ({ ...current, entryTitle: event.target.value }))} value={encounter.entryTitle} /></label><label>Detalle<textarea maxLength={4000} onChange={(event) => setEncounter((current) => ({ ...current, entryDetails: event.target.value }))} rows={3} value={encounter.entryDetails} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void finalizeEncounter()} type="button">Revisar y registrar atencion</button><p className={styles.disclaimer}>Al confirmar, el registro queda atribuido e inmutable.</p></div> : null}</> : <div className={styles.writeRequest}><h3>Solicitar permiso para registrar atencion</h3><p>El owner vera exactamente las acciones seleccionadas antes de decidir.</p>{scopeOptions.map((option) => <label className={styles.checkLabel} key={option.value}><input checked={requestedScopes.includes(option.value)} onChange={() => setRequestedScopes((current) => current.includes(option.value) ? current.filter((scope) => scope !== option.value) : [...current, option.value])} type="checkbox" />{option.label}</label>)}<label>Nota opcional<textarea maxLength={800} onChange={(event) => setRequestNote(event.target.value)} rows={3} value={requestNote} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestWriteAccess()} type="button">Enviar solicitud al owner</button></div>
           ) : null}
           <p className={styles.disclaimer}>La verificacion de plataforma no sustituye las acreditaciones exigidas por la autoridad competente. Este acceso sigue siendo solo de lectura.</p>
         </div>

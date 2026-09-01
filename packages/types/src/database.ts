@@ -2475,6 +2475,7 @@ export interface Database {
       list_pet_clinical_write_requests: { Args: { target_pet_id: string }; Returns: Array<{ id: string; professional_name: string; professional_type: "veterinarian" | "veterinary_technician" | "other"; organization_name: string | null; requested_scopes: string[]; request_note: string | null; status: string; requested_at: string; expires_at: string; decision_note: string | null }> };
       review_clinical_write_request: { Args: { target_request_id: string; decision: string; next_approved_scopes?: string[] | null; next_decision_note?: string | null }; Returns: undefined };
       revoke_clinical_write_authorization: { Args: { target_request_id: string; reason?: string | null }; Returns: undefined };
+      finalize_clinical_encounter: { Args: { target_request_id: string; next_idempotency_key: string; next_attended_at: string; next_encounter_type: string; next_summary: string; next_entries?: unknown }; Returns: string };
       switch_active_user_role: {
         Args: {
           next_role: CoreRole;

@@ -72,6 +72,10 @@ export interface ClinicalWriteRequest {
   decisionNote: string | null;
 }
 
+export type ClinicalEncounterType = "consultation" | "vaccination" | "follow_up" | "emergency" | "other";
+export type ClinicalEntryType = "diagnosis" | "vaccine" | "recommendation" | "treatment" | "finding";
+export interface FinalizeClinicalEncounterInput { requestId: Uuid; idempotencyKey: Uuid; attendedAt: string; encounterType: ClinicalEncounterType; summary: string; entries: Array<{ type: ClinicalEntryType; title: string; details?: string | null }> }
+
 export interface PetClinicalAccessGrant {
   id: Uuid;
   petId: Uuid;

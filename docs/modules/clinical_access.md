@@ -96,6 +96,8 @@ Implementacion local: solicitudes granulares vinculadas al grant, mascota y prof
 
 El profesional autorizado crea una atencion append-only con hallazgos, diagnosticos, vacunas, indicaciones, tratamientos y documentos. No modifica registros historicos.
 
+Implementacion local inicial: atencion finalizada e idempotente con entradas estructuradas append-only. `clinical_documents` queda modelado como metadata privada, pero la carga firmada y el escaneo de archivos permanecen pendientes antes de habilitar adjuntos.
+
 ### 2E - Historial y auditoria
 
 Owner, profesional autorizado y admin ven proyecciones acordes a su rol. Se muestran autor, organizacion, consentimiento, fechas, rectificaciones y eventos relevantes.

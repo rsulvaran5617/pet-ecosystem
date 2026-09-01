@@ -148,4 +148,5 @@
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare
 - Clinical Access-1: implementado y aplicado remoto; QR owner mobile y consulta web temporal de solo lectura.
 - Clinical Access-2B: identidad profesional y verificacion Admin implementadas y aplicadas remoto en modo solo lectura; QA pendiente.
-- Clinical Access-2C: consentimiento owner granular implementado localmente; no habilita escritura clinica. Migracion remota y QA pendientes.
+- Clinical Access-2C: consentimiento owner granular implementado y aplicado remoto.
+- Clinical Access-2D: registro web append-only de atenciones y entradas implementado y aplicado remoto; adjuntos firmados, timeline owner y QA permanecen pendientes.

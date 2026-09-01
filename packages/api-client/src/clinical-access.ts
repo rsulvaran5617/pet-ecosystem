@@ -4,6 +4,7 @@ import type {
   ClinicalProfessionalContext,
   ClinicalWriteRequest,
   ClinicalWriteScope,
+  FinalizeClinicalEncounterInput,
   CreatedPetClinicalAccess,
   Database,
   PetClinicalAccessDuration,
@@ -120,6 +121,11 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
     async revokeClinicalWriteAuthorization(requestId: Uuid, reason?: string | null) {
       const { error } = await supabase.rpc("revoke_clinical_write_authorization", { target_request_id: requestId, reason: reason ?? null });
       if (error) fail(error, "No fue posible revocar la autorizacion.");
+    },
+    async finalizeClinicalEncounter(input: FinalizeClinicalEncounterInput) {
+      const { data, error } = await supabase.rpc("finalize_clinical_encounter", { target_request_id: input.requestId, next_idempotency_key: input.idempotencyKey, next_attended_at: input.attendedAt, next_encounter_type: input.encounterType, next_summary: input.summary, next_entries: input.entries });
+      if (error || !data) fail(error, "No fue posible registrar la atencion clinica.");
+      return data;
     },
     async createPetClinicalAccess(petId: Uuid, durationCode: PetClinicalAccessDuration) {
       const { data, error } = await supabase.rpc("create_pet_clinical_access", {
