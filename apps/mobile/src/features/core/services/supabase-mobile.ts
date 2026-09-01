@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createBookingOperationsApiClient,
   createBookingsApiClient,
+  createClinicalAccessApiClient,
   createCoreApiClient,
   createFosterApiClient,
   createHealthApiClient,
@@ -37,6 +38,7 @@ let mobileBookingOperationsApiClient: ReturnType<typeof createBookingOperationsA
 let mobileHouseholdsApiClient: ReturnType<typeof createHouseholdsApiClient> | null = null;
 let mobilePetsApiClient: ReturnType<typeof createPetsApiClient> | null = null;
 let mobileHealthApiClient: ReturnType<typeof createHealthApiClient> | null = null;
+let mobileClinicalAccessApiClient: ReturnType<typeof createClinicalAccessApiClient> | null = null;
 let mobileRemindersApiClient: ReturnType<typeof createRemindersApiClient> | null = null;
 let mobileMarketplaceApiClient: ReturnType<typeof createMarketplaceApiClient> | null = null;
 let mobileMessagingApiClient: ReturnType<typeof createMessagingApiClient> | null = null;
@@ -239,6 +241,14 @@ export function getMobileMessagingApiClient() {
   }
 
   return mobileMessagingApiClient;
+}
+
+export function getMobileClinicalAccessApiClient() {
+  if (!mobileClinicalAccessApiClient) {
+    mobileClinicalAccessApiClient = createClinicalAccessApiClient(getMobileSupabaseClient());
+  }
+
+  return mobileClinicalAccessApiClient;
 }
 
 export function getMobilePetAlertApiClient() {

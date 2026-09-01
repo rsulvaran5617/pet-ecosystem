@@ -373,3 +373,10 @@ Foster-2A API client local:
 - No crea cuenta Supabase Auth, no publica inmediatamente y no expone service role al navegador.
 - `list_pending_external_pet_alert_reports()` y `review_external_pet_alert_report(...)` son contratos exclusivos de administracion autenticada.
 - El token privado de administracion se emite una sola vez; recuperacion, edicion y cierre externo quedan para un slice posterior.
+
+# Clinical Access-1 - expediente temporal
+
+- `create_pet_clinical_access(target_pet_id, next_duration_code)`: owner con permiso `edit` o `admin` crea un token temporal para 1 hora, 1 dia o 1 semana; reemplaza cualquier acceso activo previo de la mascota.
+- `list_pet_clinical_access_grants(target_pet_id)`: miembros con acceso a la mascota consultan vigencia, estado y conteo de aperturas, nunca el token.
+- `revoke_pet_clinical_access(target_grant_id)`: owner autorizado invalida inmediatamente el acceso.
+- `get_public_pet_clinical_access(raw_token)`: proyeccion publica temporal y sanitizada para la vista web; no devuelve archivos, datos del hogar, contactos ni identificadores internos.

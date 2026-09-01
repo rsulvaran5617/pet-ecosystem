@@ -325,3 +325,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - `/pet-alert/reportar-mi-mascota` usa cuatro pasos: mascota y fotos, extravio aproximado, contacto privado/consentimiento y verificacion/revision.
 - Exige 1-4 fotos, evita direcciones exactas, explica que verificar correo no acredita propiedad y confirma que la publicacion queda en revision.
 - Admin PET ALERT incorpora una cola separada con foto, contenido publico y contacto privado para aprobar/rechazar con justificacion.
+
+# Clinical Access-1
+
+- Owner Mobile > Salud muestra `Acceso temporal al expediente` solo a miembros con permiso de edicion.
+- El owner selecciona 1 hora, 1 dia o 1 semana, genera un QR y puede compartir el enlace o revocarlo.
+- `/clinical-access/[token]` es una vista web aislada, responsive y solo lectura: identifica mascota y vencimiento, resalta condiciones criticas y organiza alergias, vacunas, condiciones y referencias documentales.
+- Un acceso invalido, vencido o revocado usa un estado generico sin revelar si el token existio.

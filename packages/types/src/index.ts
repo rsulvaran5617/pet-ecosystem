@@ -6,6 +6,7 @@ export * from "./pets";
 export * from "./pet-alert";
 export * from "./pet-document-expiration";
 export * from "./health";
+export * from "./clinical-access";
 export * from "./reminders";
 export * from "./marketplace";
 export * from "./providers";

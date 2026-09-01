@@ -146,3 +146,4 @@
 - HEAD operativo publicado antes del handoff actual: `b978d3a`
 - pendientes restantes: `no bloqueantes`; Slice 8 del embudo publico queda implementado y aplicado remoto con metricas agregadas sin PII
 - fuera de alcance todavia: produccion comercial, pagos reales, clinic, commerce, pharmacy, finance, benefits y telecare
+- Clinical Access-1: implementado localmente para QA tecnica; QR owner mobile y consulta web temporal de solo lectura. Migracion remota pendiente.

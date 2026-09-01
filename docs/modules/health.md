@@ -25,7 +25,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - laboratorios
 - imagenes clinicas
 - incidentes
-- compartir expediente
+- edicion clinica por terceros; el acceso temporal de solo lectura se entrega como slice controlado posterior al MVP base
 
 ## Entidades
 - pet_vaccines
@@ -49,7 +49,10 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - owner mobile Salud permite consultar el sticker asociado desde la vacuna con accion de ojo y editar su vigencia documental con accion de calendario; estas acciones operan sobre `pet_documents` y no modifican `administered_on` ni `next_due_on`
 - owner mobile Salud valida antes de guardar que `next_due_on` no sea anterior a `administered_on`, mostrando un mensaje humano y evitando exponer errores tecnicos de constraints al usuario.
 - web owner presenta salud con selector compacto de hogares, carrusel superior de mascotas y ficha inferior por mascota con resumen, vacunas, alergias y condiciones en tarjetas compactas; los formularios de alta/edicion se abren bajo demanda desde acciones `+` o desde `Editar`
-- en MVP no existe share activo hacia proveedores o clinica
+- `Clinical Access-1` permite al owner generar desde mobile un enlace QR de solo lectura por 1 hora, 1 dia o 1 semana; la consulta ocurre exclusivamente en web y puede revocarse antes del vencimiento
+- la vista temporal incluye identidad basica, vacunas, alergias, condiciones y metadata documental; nunca expone archivos, rutas de Storage, datos del hogar ni acciones de escritura
+- cada creacion, consulta, vencimiento y revocacion queda auditable; el token aleatorio solo se entrega al owner al crearlo y en base de datos se conserva unicamente su hash
+- este slice no acredita identidad veterinaria ni permite incorporar datos clinicos; esas capacidades requieren un frente posterior de profesionales verificados y consentimiento por accion
 
 ## API conceptual
 - GET `/pets/{id}/health`

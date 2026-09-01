@@ -578,3 +578,9 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - Amplia `pet_alert_lost_pets` de forma compatible y agrega `pet_alert_external_reporters`, `pet_alert_external_verification_challenges` y `pet_alert_external_access_tokens`.
 - Agrega consumo atomico de challenge, creacion transaccional de reporte externo, cola admin y revision aprobar/rechazar.
 - Edge Function publica: `pet-alert-external-report` con `verify_jwt = false`; todas las escrituras privilegiadas usan service role solo en servidor.
+
+# Clinical Access-1
+
+- Migracion local `20260901110000_clinical_access_read_only.sql`.
+- Agrega `pet_clinical_access_grants`, `pet_clinical_access_events` y cuatro RPC para crear, listar, revocar y consultar una proyeccion temporal sanitizada.
+- La migracion no esta aplicada al proyecto remoto hasta completar revision y dry-run.

@@ -71,7 +71,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - mobile owner conserva el contexto activo de mascota en el shell de navegacion para que la ficha, salud, documentos, recordatorios, busqueda y preparacion de reservas no pierdan foco al moverse entre opciones del menu inferior
 - si la mascota activa deja de existir, cambia de hogar o queda inaccesible por permisos, el shell debe limpiar el contexto y volver a la experiencia normal sin romper la navegacion
 - web owner presenta la gestion de mascotas con selector de hogares compacto, carrusel superior de mascotas y ficha inferior de resumen/documentos para la mascota seleccionada; la edicion de datos maestros se abre bajo demanda desde el icono de lapiz de cada ficha o desde la accion de crear mascota
-- no se implementa `pet_timeline` ni `pet_document_shares` en este slice
+- no se implementa `pet_timeline` ni una comparticion permanente de archivos. `Clinical Access-1` solo proyecta metadata documental dentro de una consulta clinica temporal y revocable.
 
 ## Dependencias minimas
 - core

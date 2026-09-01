@@ -302,3 +302,9 @@ Slice 6 agrega `pet_alert_moderation_cases` y `pet_alert_moderation_history` par
 - Para `external_owner`, `pet_id`, `household_id` y `created_by_user_id` son nulos y `external_reporter_id` es obligatorio.
 - `pet_alert_external_reporters` aisla contacto y consentimientos; `pet_alert_external_verification_challenges` conserva solo hashes OTP; `pet_alert_external_access_tokens` conserva solo hashes de tokens privados.
 - Las fotos siguen en el bucket privado `pet-alert-media` y se proyectan publicamente solo despues de aprobacion.
+
+# Clinical Access-1
+
+- `pet_clinical_access_grants` relaciona mascota, hogar y usuario autorizante con alcance `read_only`, duracion, estado, vencimiento y contador de aperturas. Persiste solo `token_hash`, nunca el token compartido.
+- `pet_clinical_access_events` registra creacion, consulta, vencimiento y revocacion para trazabilidad basica.
+- No crea profesional, consulta medica ni escritura clinica; esos conceptos quedan fuera de este slice.

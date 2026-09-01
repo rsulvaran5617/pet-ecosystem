@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-09-01 - Clinical Access-1 local
+
+- Owner Mobile > Salud genera un QR temporal por 1 hora, 1 dia o 1 semana y permite compartir o revocar el acceso.
+- `/clinical-access/[token]` muestra en web una proyeccion sanitaria responsive y de solo lectura con alertas criticas, vacunas, alergias, condiciones y metadata documental.
+- La seguridad usa token aleatorio de 256 bits, hash en base, un solo acceso activo por mascota, expiracion, revocacion y eventos auditables.
+- No expone archivos, household, contacto ni rutas internas; tampoco acredita veterinarios ni permite escritura clinica.
+- Migracion local pendiente de aplicar: `20260901110000_clinical_access_read_only.sql`.
+- Validaciones y dry-run deben completarse antes de migracion remota, commit o builds distribuibles.
+
 # Handoff 2026-08-26 - PET ALERT 8B implementado localmente
 
 - `/pet-alert/reportar-mi-mascota` permite a un propietario sin cuenta preparar un reporte con 1-4 fotos, ubicacion aproximada, contacto privado y consentimientos.

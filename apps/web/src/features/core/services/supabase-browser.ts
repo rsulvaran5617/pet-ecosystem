@@ -2,6 +2,7 @@
 
 import {
   createBookingsApiClient,
+  createClinicalAccessApiClient,
   createCoreApiClient,
   createFosterApiClient,
   createHealthApiClient,
@@ -25,6 +26,7 @@ let browserBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null 
 let browserHouseholdsApiClient: ReturnType<typeof createHouseholdsApiClient> | null = null;
 let browserPetsApiClient: ReturnType<typeof createPetsApiClient> | null = null;
 let browserHealthApiClient: ReturnType<typeof createHealthApiClient> | null = null;
+let browserClinicalAccessApiClient: ReturnType<typeof createClinicalAccessApiClient> | null = null;
 let browserRemindersApiClient: ReturnType<typeof createRemindersApiClient> | null = null;
 let browserMarketplaceApiClient: ReturnType<typeof createMarketplaceApiClient> | null = null;
 let browserMessagingApiClient: ReturnType<typeof createMessagingApiClient> | null = null;
@@ -97,6 +99,14 @@ export function getBrowserHealthApiClient() {
   }
 
   return browserHealthApiClient;
+}
+
+export function getBrowserClinicalAccessApiClient() {
+  if (!browserClinicalAccessApiClient) {
+    browserClinicalAccessApiClient = createClinicalAccessApiClient(getBrowserSupabaseClient());
+  }
+
+  return browserClinicalAccessApiClient;
 }
 
 export function getBrowserRemindersApiClient() {

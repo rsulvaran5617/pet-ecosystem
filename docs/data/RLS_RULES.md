@@ -332,3 +332,10 @@ No implementar tablas sensibles sin definir su politica RLS.
 - El challenge se consume de forma atomica, expira en 10 minutos y limita intentos.
 - Los reportes externos nacen `pending_review`; solo un admin de plataforma puede aprobar o rechazar con motivo.
 - La aprobacion exige al menos una foto publica asociada. Contacto, correo, hashes y tokens nunca entran en RPC publicas ni directorio.
+
+# Clinical Access-1
+
+- Las tablas `pet_clinical_access_grants` y `pet_clinical_access_events` no admiten escritura directa desde clientes.
+- Miembros autenticados solo pueden consultar grants/eventos de mascotas alcanzadas por `can_view_pet`; crear y revocar exige `can_edit_pet`.
+- La consulta anonima ocurre exclusivamente mediante `get_public_pet_clinical_access`, validando un token aleatorio de 256 bits contra su hash, estado y vencimiento.
+- La proyeccion anonima excluye token, household, owner, contacto, rutas de Storage y archivos. Cada apertura incrementa el contador y registra un evento auditable.

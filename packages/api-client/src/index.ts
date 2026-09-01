@@ -15,6 +15,7 @@ export * from "./core";
 export * from "./bookings";
 export * from "./operations";
 export * from "./health";
+export * from "./clinical-access";
 export * from "./households";
 export * from "./foster";
 export * from "./marketplace";

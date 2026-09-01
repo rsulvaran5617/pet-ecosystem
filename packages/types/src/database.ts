@@ -2388,6 +2388,41 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      create_pet_clinical_access: {
+        Args: {
+          target_pet_id: string;
+          next_duration_code: "1_hour" | "1_day" | "1_week";
+        };
+        Returns: Record<string, unknown>;
+      };
+      list_pet_clinical_access_grants: {
+        Args: {
+          target_pet_id: string;
+        };
+        Returns: Array<{
+          id: string;
+          pet_id: string;
+          duration_code: "1_hour" | "1_day" | "1_week";
+          status: "active" | "revoked" | "expired";
+          expires_at: string;
+          revoked_at: string | null;
+          last_accessed_at: string | null;
+          access_count: number;
+          created_at: string;
+        }>;
+      };
+      revoke_pet_clinical_access: {
+        Args: {
+          target_grant_id: string;
+        };
+        Returns: undefined;
+      };
+      get_public_pet_clinical_access: {
+        Args: {
+          raw_token: string;
+        };
+        Returns: Record<string, unknown>;
+      };
       switch_active_user_role: {
         Args: {
           next_role: CoreRole;
