@@ -72,6 +72,7 @@ Permitir registrar mascotas dentro de un hogar, consultar su perfil resumen y ge
 - si la mascota activa deja de existir, cambia de hogar o queda inaccesible por permisos, el shell debe limpiar el contexto y volver a la experiencia normal sin romper la navegacion
 - web owner presenta la gestion de mascotas con selector de hogares compacto, carrusel superior de mascotas y ficha inferior de resumen/documentos para la mascota seleccionada; la edicion de datos maestros se abre bajo demanda desde el icono de lapiz de cada ficha o desde la accion de crear mascota
 - no se implementa `pet_timeline` ni una comparticion permanente de archivos. `Clinical Access-1` solo proyecta metadata documental dentro de una consulta clinica temporal y revocable.
+- Clinical Access-2E incorpora un timeline profesional separado del expediente owner editable. No cambia ownership, household ni las tablas owner de vacunas; una futura incorporacion de vacuna profesional requerira confirmacion e idempotencia explicitas.
 
 ## Dependencias minimas
 - core

@@ -2476,6 +2476,13 @@ export interface Database {
       review_clinical_write_request: { Args: { target_request_id: string; decision: string; next_approved_scopes?: string[] | null; next_decision_note?: string | null }; Returns: undefined };
       revoke_clinical_write_authorization: { Args: { target_request_id: string; reason?: string | null }; Returns: undefined };
       finalize_clinical_encounter: { Args: { target_request_id: string; next_idempotency_key: string; next_attended_at: string; next_encounter_type: string; next_summary: string; next_entries?: unknown }; Returns: string };
+      list_pet_clinical_timeline: { Args: { target_pet_id: string }; Returns: Array<Record<string, unknown>> };
+      list_my_professional_encounters: { Args: Record<string, never>; Returns: Array<Record<string, unknown>> };
+      prepare_clinical_document_upload: { Args: { target_encounter_id: string; next_idempotency_key: string; next_title: string; next_document_type: string; next_mime_type: string; next_file_size_bytes: number; next_checksum_sha256?: string | null }; Returns: Record<string, unknown> };
+      finalize_clinical_document_upload: { Args: { target_document_id: string }; Returns: undefined };
+      get_clinical_document_access: { Args: { target_document_id: string }; Returns: Record<string, unknown> };
+      create_clinical_entry_correction: { Args: { target_entry_id: string; target_request_id: string; next_title: string; next_details?: string | null; next_reason: string }; Returns: string };
+      list_clinical_audit_events_for_admin: { Args: Record<string, never>; Returns: Array<Record<string, unknown>> };
       switch_active_user_role: {
         Args: {
           next_role: CoreRole;

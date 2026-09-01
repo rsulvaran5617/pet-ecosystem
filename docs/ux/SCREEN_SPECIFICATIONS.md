@@ -333,5 +333,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - `/clinical-access/[token]` es una vista web aislada, responsive y solo lectura: identifica mascota y vencimiento, resalta condiciones criticas y organiza alergias, vacunas, condiciones y referencias documentales.
 - Un acceso invalido, vencido o revocado usa un estado generico sin revelar si el token existio.
 - Clinical Access-2B agrega `Identificarme como profesional` despues de la identidad de la mascota. Login, borrador y estado de verificacion viven en la misma ficha y nunca muestran formularios de escritura.
+- Clinical Access-2D usa revision previa y confirmacion explicita antes de incorporar una atencion. El formulario admite un documento opcional PDF/JPEG/PNG de hasta 15 MB cuando el owner autorizo ese scope.
+- Clinical Access-2E muestra `Historial profesional` en Owner Mobile/Web como acordeon de una sola atencion abierta, con atribucion, registros originales/rectificaciones, documentos y autorizacion. Admin muestra auditoria de eventos sin contenido clinico.
 - Admin incorpora `Profesionales` para revisar referencia de licencia, jurisdiccion y organizacion declarada; rechazo y suspension exigen justificacion.
 - 2C permite al profesional verificado seleccionar acciones y solicitar permiso; Owner Mobile > Salud muestra profesional, clinica, alcance, vencimiento y acciones Aprobar/Rechazar/Revocar.

@@ -10,6 +10,7 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { getMobileHealthApiClient, getMobilePetsApiClient } from "../../core/services/supabase-mobile";
 import { ClinicalAccessCard } from "./ClinicalAccessCard";
+import { ClinicalTimelineCard } from "./ClinicalTimelineCard";
 import { useHealthWorkspace } from "../hooks/useHealthWorkspace";
 
 const inputStyle = {
@@ -796,6 +797,7 @@ export function HealthWorkspace({
               </View>
 
               {canEdit ? <ClinicalAccessCard petId={selectedPet.id} petName={selectedPet.name} /> : null}
+              <ClinicalTimelineCard petId={selectedPet.id} />
 
               {activeHealthSection === "vaccine" ? <View style={cardStyle}>
                 <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>

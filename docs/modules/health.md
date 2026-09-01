@@ -54,6 +54,7 @@ Gestionar la salud base de la mascota dentro del alcance MVP.
 - cada creacion, consulta, vencimiento y revocacion queda auditable; el token aleatorio solo se entrega al owner al crearlo y en base de datos se conserva unicamente su hash
 - este slice no acredita identidad veterinaria ni permite incorporar datos clinicos; esas capacidades requieren un frente posterior de profesionales verificados y consentimiento por accion
 - `Clinical Access-2B` agrega identidad profesional autenticada y verificacion manual de plataforma, pero conserva el expediente completo en modo de solo lectura
+- `Clinical Access-2E` agrega en Salud el `Historial profesional` read-only para owner Mobile/Web. Las vacunas profesionales permanecen como entradas de origen en este timeline; no se duplican automaticamente en `pet_vaccines`.
 
 ## API conceptual
 - GET `/pets/{id}/health`

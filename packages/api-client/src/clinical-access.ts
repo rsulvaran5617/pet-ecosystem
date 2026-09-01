@@ -4,6 +4,10 @@ import type {
   ClinicalProfessionalContext,
   ClinicalWriteRequest,
   ClinicalWriteScope,
+  ClinicalAuditEvent,
+  ClinicalTimelineEncounter,
+  PrepareClinicalDocumentInput,
+  PreparedClinicalDocumentUpload,
   FinalizeClinicalEncounterInput,
   CreatedPetClinicalAccess,
   Database,
@@ -126,6 +130,53 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
       const { data, error } = await supabase.rpc("finalize_clinical_encounter", { target_request_id: input.requestId, next_idempotency_key: input.idempotencyKey, next_attended_at: input.attendedAt, next_encounter_type: input.encounterType, next_summary: input.summary, next_entries: input.entries });
       if (error || !data) fail(error, "No fue posible registrar la atencion clinica.");
       return data;
+    },
+    async listPetClinicalTimeline(petId: Uuid) {
+      const { data, error } = await supabase.rpc("list_pet_clinical_timeline", { target_pet_id: petId });
+      if (error) fail(error, "No fue posible consultar el historial profesional.");
+      return (data ?? []) as unknown as ClinicalTimelineEncounter[];
+    },
+    async listMyProfessionalEncounters() {
+      const { data, error } = await supabase.rpc("list_my_professional_encounters", {});
+      if (error) fail(error, "No fue posible consultar las atenciones registradas.");
+      return (data ?? []) as unknown as ClinicalTimelineEncounter[];
+    },
+    async prepareClinicalDocumentUpload(input: PrepareClinicalDocumentInput) {
+      const { data, error } = await supabase.rpc("prepare_clinical_document_upload", {
+        target_encounter_id: input.encounterId,
+        next_idempotency_key: input.idempotencyKey,
+        next_title: input.title,
+        next_document_type: input.documentType,
+        next_mime_type: input.mimeType,
+        next_file_size_bytes: input.fileSizeBytes,
+        next_checksum_sha256: input.checksumSha256 ?? null
+      });
+      if (error || !data) fail(error, "No fue posible preparar el documento clinico.");
+      return data as unknown as PreparedClinicalDocumentUpload;
+    },
+    async uploadPreparedClinicalDocument(prepared: PreparedClinicalDocumentUpload, file: Blob) {
+      const { error } = await supabase.storage.from(prepared.bucket).upload(prepared.path, file, { contentType: file.type, upsert: false });
+      if (error) fail(error, "No fue posible cargar el documento clinico.");
+      const { error: finalizeError } = await supabase.rpc("finalize_clinical_document_upload", { target_document_id: prepared.documentId });
+      if (finalizeError) fail(finalizeError, "El documento se cargo, pero no pudo confirmarse.");
+    },
+    async getClinicalDocumentAccess(documentId: Uuid) {
+      const { data, error } = await supabase.rpc("get_clinical_document_access", { target_document_id: documentId });
+      if (error || !data) fail(error, "No fue posible abrir el documento clinico.");
+      const access = data as unknown as { bucket: string; path: string };
+      const { data: signed, error: signedError } = await supabase.storage.from(access.bucket).createSignedUrl(access.path, 60 * 5);
+      if (signedError || !signed?.signedUrl) fail(signedError, "No fue posible abrir el documento clinico.");
+      return signed.signedUrl;
+    },
+    async createClinicalEntryCorrection(entryId: Uuid, requestId: Uuid, title: string, details: string | null, reason: string) {
+      const { data, error } = await supabase.rpc("create_clinical_entry_correction", { target_entry_id: entryId, target_request_id: requestId, next_title: title, next_details: details, next_reason: reason });
+      if (error || !data) fail(error, "No fue posible registrar la rectificacion.");
+      return data;
+    },
+    async listClinicalAuditEventsForAdmin() {
+      const { data, error } = await supabase.rpc("list_clinical_audit_events_for_admin", {});
+      if (error) fail(error, "No fue posible consultar la auditoria clinica.");
+      return (data ?? []) as unknown as ClinicalAuditEvent[];
     },
     async createPetClinicalAccess(petId: Uuid, durationCode: PetClinicalAccessDuration) {
       const { data, error } = await supabase.rpc("create_pet_clinical_access", {

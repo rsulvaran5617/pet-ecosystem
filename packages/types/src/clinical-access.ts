@@ -76,6 +76,76 @@ export type ClinicalEncounterType = "consultation" | "vaccination" | "follow_up"
 export type ClinicalEntryType = "diagnosis" | "vaccine" | "recommendation" | "treatment" | "finding";
 export interface FinalizeClinicalEncounterInput { requestId: Uuid; idempotencyKey: Uuid; attendedAt: string; encounterType: ClinicalEncounterType; summary: string; entries: Array<{ type: ClinicalEntryType; title: string; details?: string | null }> }
 
+export type ClinicalDocumentType = "prescription" | "lab_result" | "imaging_report" | "clinical_report" | "other";
+
+export interface ClinicalTimelineEntry {
+  id: Uuid;
+  type: ClinicalEntryType;
+  title: string;
+  details: string | null;
+  correctsEntryId: Uuid | null;
+  correctionReason: string | null;
+  createdAt: string;
+}
+
+export interface ClinicalTimelineDocument {
+  id: Uuid;
+  title: string;
+  type: ClinicalDocumentType;
+  mimeType: string;
+  fileSizeBytes: number;
+  createdAt: string;
+}
+
+export interface ClinicalAuthorizationHistoryItem {
+  requestId: Uuid;
+  requestedScopes: ClinicalWriteScope[];
+  approvedScopes: ClinicalWriteScope[];
+  requestedAt: string;
+  reviewedAt: string | null;
+  expiresAt: string;
+  revokedAt: string | null;
+  status: ClinicalWriteRequestStatus;
+}
+
+export interface ClinicalTimelineEncounter {
+  id: Uuid;
+  petId: Uuid;
+  petName: string;
+  attendedAt: string;
+  encounterType: ClinicalEncounterType;
+  summary: string;
+  status: "finalized" | "corrected";
+  finalizedAt: string;
+  professionalName: string;
+  organizationName: string | null;
+  entries: ClinicalTimelineEntry[];
+  documents: ClinicalTimelineDocument[];
+  authorization: ClinicalAuthorizationHistoryItem;
+}
+
+export interface PrepareClinicalDocumentInput {
+  encounterId: Uuid;
+  idempotencyKey: Uuid;
+  title: string;
+  documentType: ClinicalDocumentType;
+  mimeType: "application/pdf" | "image/jpeg" | "image/png";
+  fileSizeBytes: number;
+  checksumSha256?: string | null;
+}
+
+export interface PreparedClinicalDocumentUpload { documentId: Uuid; bucket: string; path: string }
+
+export interface ClinicalAuditEvent {
+  id: Uuid;
+  event: string;
+  occurredAt: string;
+  professionalName: string | null;
+  organizationName: string | null;
+  petReference: string | null;
+  authorizationStatus: string | null;
+}
+
 export interface PetClinicalAccessGrant {
   id: Uuid;
   petId: Uuid;

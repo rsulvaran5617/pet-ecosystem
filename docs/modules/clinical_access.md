@@ -96,7 +96,9 @@ Implementacion local: solicitudes granulares vinculadas al grant, mascota y prof
 
 El profesional autorizado crea una atencion append-only con hallazgos, diagnosticos, vacunas, indicaciones, tratamientos y documentos. No modifica registros historicos.
 
-Implementacion local inicial: atencion finalizada e idempotente con entradas estructuradas append-only. `clinical_documents` queda modelado como metadata privada, pero la carga firmada y el escaneo de archivos permanecen pendientes antes de habilitar adjuntos.
+Implementacion 2D/2E local: atencion finalizada e idempotente con entradas estructuradas append-only, revision explicita antes de confirmar, documentos en bucket privado y rectificaciones que preservan el original. La carga usa destino interno controlado, cuarentena `pending`, validacion de objeto y URL firmada de cinco minutos. El escaneo antimalware permanece como control de infraestructura pendiente antes de ampliar formatos o automatizar la publicacion de archivos.
+
+El owner consulta un timeline de solo lectura en Salud (Mobile/Web), con atribucion profesional, organizacion, autorizacion, entradas, documentos y rectificaciones. El profesional obtiene comprobante de su atencion; Admin solo recibe eventos sanitizados y no contenido clinico.
 
 ### 2E - Historial y auditoria
 

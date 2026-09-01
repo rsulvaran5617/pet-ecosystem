@@ -1,6 +1,6 @@
 "use client";
 
-import type { AdminClinicalProfessionalSummary } from "@pet/types";
+import type { AdminClinicalProfessionalSummary, ClinicalAuditEvent } from "@pet/types";
 import { useEffect, useState } from "react";
 
 import { getAdminClinicalAccessApiClient } from "../../core/services/supabase-admin";
@@ -22,13 +22,16 @@ export function AdminClinicalProfessionalsWorkspace() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [auditEvents, setAuditEvents] = useState<ClinicalAuditEvent[]>([]);
+  const [auditFilter, setAuditFilter] = useState("");
   const selected = profiles.find((profile) => profile.id === selectedId) ?? null;
 
   async function refresh() {
     setIsLoading(true);
     try {
-      const rows = await getAdminClinicalAccessApiClient().listClinicalProfessionalsForAdmin();
+      const [rows, events] = await Promise.all([getAdminClinicalAccessApiClient().listClinicalProfessionalsForAdmin(), getAdminClinicalAccessApiClient().listClinicalAuditEventsForAdmin()]);
       setProfiles(rows);
+      setAuditEvents(events);
       setSelectedId((current) => rows.some((row) => row.id === current) ? current : rows[0]?.id ?? null);
     } catch {
       setMessage("No fue posible consultar la cola profesional.");
@@ -83,6 +86,14 @@ export function AdminClinicalProfessionalsWorkspace() {
               {selected.verificationStatus === "pending" ? <><button disabled={isSubmitting} onClick={() => void decide("verified")} type="button">Verificar identidad</button><button disabled={isSubmitting} onClick={() => void decide("rejected")} type="button">Rechazar</button></> : <button disabled={isSubmitting} onClick={() => void decide("suspended")} type="button">Suspender verificacion</button>}
             </div>
           </> : <p style={{ color: "#52615e" }}>Selecciona un perfil para revisar sus datos declarados.</p>}
+        </div>
+      </div>
+      <div style={card}>
+        <div><span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, textTransform: "uppercase" }}>Auditoria</span><h2 style={{ margin: "5px 0" }}>Actividad clinica</h2><p style={{ margin: 0, color: "#52615e" }}>Eventos operativos sanitizados. Esta vista no expone contenido clinico ni documentos.</p></div>
+        <input aria-label="Filtrar auditoria clinica" onChange={(event) => setAuditFilter(event.target.value)} placeholder="Filtrar por profesional, organizacion o referencia" style={input} value={auditFilter} />
+        <div style={{ display: "grid", gap: "8px" }}>
+          {auditEvents.filter((event) => [event.professionalName, event.organizationName, event.petReference, event.event].some((value) => value?.toLowerCase().includes(auditFilter.toLowerCase()))).map((event) => <div key={event.id} style={{ ...input, display: "grid", gridTemplateColumns: "minmax(180px,1fr) repeat(3,minmax(120px,.7fr))", gap: "10px", alignItems: "center" }}><strong>{event.event.replaceAll("_", " ")}</strong><span>{event.professionalName ?? "Sin atribucion"}</span><span>{event.organizationName ?? "Independiente"}</span><span>{event.petReference ?? "Sin referencia"} · {new Intl.DateTimeFormat("es-PA", { dateStyle: "short", timeStyle: "short" }).format(new Date(event.occurredAt))}</span></div>)}
+          {!auditEvents.length ? <p style={{ color: "#52615e" }}>No hay eventos clinicos registrados.</p> : null}
         </div>
       </div>
     </section>

@@ -587,3 +587,4 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - Migracion Clinical Access-2B `20260901130000_clinical_access_professional_identity.sql` aplicada remoto; agrega perfiles/eventos profesionales y RPCs de autoservicio, contexto autenticado y revision Admin.
 - Migracion Clinical Access-2C `20260901150000_clinical_access_owner_consent.sql` aplicada remoto; agrega solicitudes y autorizaciones temporales.
 - Migracion Clinical Access-2D `20260901170000_clinical_access_append_only_encounters.sql` aplicada remoto; agrega atenciones, entradas y metadata documental append-only.
+- Migracion `20260901190000_clinical_access_documents_timeline.sql` aplicada remotamente: bucket privado `clinical-documents`, carga validada, rectificaciones, timeline owner/profesional y auditoria Admin sanitizada.

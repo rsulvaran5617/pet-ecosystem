@@ -9,6 +9,7 @@ import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
 import { getBrowserHealthApiClient } from "../../core/services/supabase-browser";
 import { useHealthWorkspace } from "../hooks/useHealthWorkspace";
+import { ClinicalTimelinePanel } from "./ClinicalTimelinePanel";
 
 const cardStyle: CSSProperties = {
   borderRadius: "18px",
@@ -428,6 +429,8 @@ export function HealthWorkspace({ enabled }: { enabled: boolean }) {
                     <span>Condiciones criticas: {selectedPetHealthDetail.dashboard.criticalConditionNames.join(", ") || "Ninguna"}</span>
                   </div>
                 </article>
+
+                <ClinicalTimelinePanel petId={selectedPet.id} />
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px", alignItems: "start", minWidth: 0 }}>
                   <HealthBlock title="Vacunas" count={selectedPetHealthDetail.vaccines.length} onAdd={canEdit ? openNewVaccineForm : undefined}>

@@ -376,6 +376,15 @@ Foster-2A API client local:
 
 # Clinical Access-1 - expediente temporal
 
+## Clinical Access-2D/2E
+
+- `finalize_clinical_encounter`: finalizacion transaccional e idempotente.
+- `prepare_clinical_document_upload` / `finalize_clinical_document_upload`: reserva un destino privado controlado y valida el objeto antes de marcarlo disponible.
+- `get_clinical_document_access`: valida acceso; el cliente genera una URL firmada corta sin exponer paths en DTO del timeline.
+- `create_clinical_entry_correction`: crea una entrada append-only enlazada al original y exige motivo/autorizacion compatible.
+- `list_pet_clinical_timeline` / `list_my_professional_encounters`: proyecciones read-only compartidas.
+- `list_clinical_audit_events_for_admin`: metadata operativa sanitizada, sin contenido clinico ni contacto owner.
+
 - `create_pet_clinical_access(target_pet_id, next_duration_code)`: owner con permiso `edit` o `admin` crea un token temporal para 1 hora, 1 dia o 1 semana; reemplaza cualquier acceso activo previo de la mascota.
 - `list_pet_clinical_access_grants(target_pet_id)`: miembros con acceso a la mascota consultan vigencia, estado y conteo de aperturas, nunca el token.
 - `revoke_pet_clinical_access(target_grant_id)`: owner autorizado invalida inmediatamente el acceso.

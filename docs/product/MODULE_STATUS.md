@@ -149,4 +149,5 @@
 - Clinical Access-1: implementado y aplicado remoto; QR owner mobile y consulta web temporal de solo lectura.
 - Clinical Access-2B: identidad profesional y verificacion Admin implementadas y aplicadas remoto en modo solo lectura; QA pendiente.
 - Clinical Access-2C: consentimiento owner granular implementado y aplicado remoto.
-- Clinical Access-2D: registro web append-only de atenciones y entradas implementado y aplicado remoto; adjuntos firmados, timeline owner y QA permanecen pendientes.
+- Clinical Access-2D: cierre aplicado remotamente con revision final, adjuntos privados y rectificaciones append-only; QA funcional pendiente.
+- Clinical Access-2E: timeline Owner Mobile/Web, comprobante profesional y auditoria Admin implementados y con backend aplicado; QA de superficies pendiente.

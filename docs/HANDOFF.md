@@ -1913,3 +1913,10 @@ Al final:
 - Produccion queda preparada para `https://petecosyst.com/beta`: Android apunta al release privado vigente de Firebase App Distribution y Web a `/app`.
 - iPhone aparece como `Proximamente` hasta obtener un enlace TestFlight `https://testflight.apple.com/join/...`; subir un build a App Store Connect no genera por si solo ese enlace publico.
 - `scripts/deploy-droplet.ps1` transporta la configuracion beta local hacia `.env.production` remoto sin imprimir valores.
+# Handoff 2026-09-01 - Clinical Access-2D/2E local
+
+- Cierre implementado y migracion remota aplicada; builds de distribucion se generan despues del commit de este frente.
+- Nueva migracion `20260901190000_clinical_access_documents_timeline.sql`: documentos privados, validacion de carga, rectificaciones, timeline y auditoria sanitizada.
+- Owner Mobile/Web obtiene `Historial profesional`; profesional revisa antes de confirmar y recibe comprobante; Admin supervisa metadata de eventos sin contenido clinico.
+- Las vacunas profesionales no se duplican en `pet_vaccines`. El escaneo antimalware y la promocion owner de vacunas quedan como slices posteriores.
+- Typecheck Mobile conserva el error previo ajeno en `PetAlertLostPetPanel.tsx` por etiquetas de estados faltantes.
