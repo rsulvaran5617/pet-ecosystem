@@ -23,6 +23,7 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - onboarding
 - registro
 - verificacion OTP manual
+- registro web conduce directamente a `Confirmar codigo`; esta opcion tambien permanece visible junto a registro/login para retomarla despues de recargar, con campo numerico de 6 digitos y reenvio controlado
 - login
 - recovery
 - pantalla de acceso mobile ordenada por pestañas: login por defecto, registro, OTP y recuperación ocultos hasta seleccionarlos

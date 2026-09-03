@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+# Handoff 2026-09-03 - Verificacion OTP visible en registro web
+
+- Se confirmo que Supabase envia un codigo de seis digitos y que el cliente web ya tenia soporte tecnico para validarlo, pero la vista estaba escondida fuera de la navegacion principal de acceso.
+- `/app` muestra ahora `Confirmar codigo` como tercera opcion visible junto a crear cuenta e iniciar sesion; el alta exitosa conduce directamente a esa vista y conserva el correo capturado.
+- El campo acepta solo seis digitos, habilita autocompletado OTP del navegador y permite reenviar el codigo sin aprobacion manual en Supabase.
+- No se modificaron Supabase, Auth settings, base de datos, RLS, roles ni contratos.
+
 # Handoff 2026-09-01 - Clinical Access-2D local
 
 - Un profesional verificado con autorizacion 2C aprobada puede finalizar una atencion web con resumen y entradas de diagnostico, vacuna, indicacion, tratamiento o hallazgo.

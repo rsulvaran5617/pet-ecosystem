@@ -995,15 +995,27 @@ function Button({
 }
 
 function Field({
+  autoComplete,
+  autoFocus = false,
+  inputMode,
   label,
+  maxLength,
   onChange,
+  pattern,
   placeholder,
+  required = false,
   type = "text",
   value
 }: {
+  autoComplete?: string;
+  autoFocus?: boolean;
+  inputMode?: "email" | "numeric" | "text";
   label: string;
+  maxLength?: number;
   onChange: (value: string) => void;
+  pattern?: string;
   placeholder?: string;
+  required?: boolean;
   type?: "email" | "number" | "password" | "text";
   value: string;
 }) {
@@ -1011,8 +1023,14 @@ function Field({
     <label style={{ display: "grid", gap: "6px" }}>
       <span style={fieldLabelStyle}>{label}</span>
       <input
+        autoComplete={autoComplete}
+        autoFocus={autoFocus}
+        inputMode={inputMode}
+        maxLength={maxLength}
         onChange={(event) => onChange(event.target.value)}
+        pattern={pattern}
         placeholder={placeholder}
+        required={required}
         type={type}
         value={value}
         style={controlStyle}
@@ -1440,7 +1458,8 @@ export function CoreExperienceScreen() {
                 >
                   {[
                     { label: "Crear cuenta", value: "register" as const },
-                    { label: "Iniciar sesion", value: "login" as const }
+                    { label: "Iniciar sesion", value: "login" as const },
+                    { label: "Confirmar codigo", value: "verify" as const }
                   ].map((option) => {
                     const isActive = authAccessPanel === option.value;
 
@@ -1476,18 +1495,25 @@ export function CoreExperienceScreen() {
                       clearMessages();
                       setVerifyForm((currentForm) => ({ ...currentForm, email: registerForm.email }));
                       setRecoverForm({ email: registerForm.email });
-                      void runAction(
-                        () =>
-                          getBrowserCoreApiClient().register({
-                            email: registerForm.email,
-                            password: registerForm.password,
-                            firstName: registerForm.firstName,
-                            lastName: registerForm.lastName,
-                            requestedRoles: [registerForm.role],
-                            emailRedirectTo: getBrowserRecoveryRedirectUrl()
-                          }),
-                        "Registro enviado. Revisa tu correo e ingresa el codigo para verificar tu cuenta."
-                      ).then(() => setAuthAccessPanel("verify"));
+                      void (async () => {
+                        try {
+                          await runAction(
+                            () =>
+                              getBrowserCoreApiClient().register({
+                                email: registerForm.email.trim(),
+                                password: registerForm.password,
+                                firstName: registerForm.firstName,
+                                lastName: registerForm.lastName,
+                                requestedRoles: [registerForm.role],
+                                emailRedirectTo: getBrowserRecoveryRedirectUrl()
+                              }),
+                            "Registro enviado. Escribe abajo el codigo de 6 digitos que recibiste por correo."
+                          );
+                          setAuthAccessPanel("verify");
+                        } catch {
+                          // runAction already exposes the user-facing error.
+                        }
+                      })();
                     }}
                     style={{ display: "grid", gap: "14px" }}
                   >
@@ -1528,25 +1554,6 @@ export function CoreExperienceScreen() {
                     <Button disabled={isSubmitting} type="submit">
                       Crear cuenta
                     </Button>
-                    <button
-                      onClick={() => {
-                        clearMessages();
-                        setAuthAccessPanel("verify");
-                        setVerifyForm((currentForm) => ({ ...currentForm, email: currentForm.email || registerForm.email }));
-                      }}
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        color: "#0f766e",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                        fontWeight: 800,
-                        justifySelf: "center"
-                      }}
-                      type="button"
-                    >
-                      Ya tengo un codigo de verificacion
-                    </button>
                   </form>
                 ) : null}
 
@@ -1610,30 +1617,65 @@ export function CoreExperienceScreen() {
                     onSubmit={(event) => {
                       event.preventDefault();
                       clearMessages();
-                      void runAction(
-                        () =>
-                          getBrowserCoreApiClient().verifyOtp({
-                            email: verifyForm.email,
-                            token: verifyForm.token
-                          }),
-                        "Verificacion de correo completada. Ya puedes iniciar sesion."
-                      ).then(() => setAuthAccessPanel("login"));
+                      void (async () => {
+                        try {
+                          await runAction(
+                            () =>
+                              getBrowserCoreApiClient().verifyOtp({
+                                email: verifyForm.email.trim(),
+                                token: verifyForm.token
+                              }),
+                            "Correo confirmado. Ya puedes iniciar sesion."
+                          );
+                          setLoginForm((currentForm) => ({ ...currentForm, email: verifyForm.email.trim() }));
+                          setAuthAccessPanel("login");
+                        } catch {
+                          // runAction already exposes the user-facing error.
+                        }
+                      })();
                     }}
                     style={{ display: "grid", gap: "14px" }}
                   >
                     <Field
                       label="Correo de verificacion"
                       onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, email: value }))}
+                      required
                       type="email"
                       value={verifyForm.email}
                     />
                     <Field
+                      autoComplete="one-time-code"
+                      autoFocus
+                      inputMode="numeric"
                       label="Codigo de 6 digitos"
-                      onChange={(value) => setVerifyForm((currentForm) => ({ ...currentForm, token: value }))}
+                      maxLength={6}
+                      onChange={(value) =>
+                        setVerifyForm((currentForm) => ({
+                          ...currentForm,
+                          token: value.replace(/\D/g, "").slice(0, 6)
+                        }))
+                      }
+                      pattern="[0-9]{6}"
+                      placeholder="000000"
+                      required
                       value={verifyForm.token}
                     />
                     <Button disabled={isSubmitting} type="submit">
                       Verificar codigo
+                    </Button>
+                    <Button
+                      disabled={isSubmitting || !verifyForm.email.trim()}
+                      onClick={() => {
+                        clearMessages();
+                        void runAction(
+                          () => getBrowserCoreApiClient().resendVerification({ email: verifyForm.email.trim() }),
+                          "Enviamos un nuevo codigo. Usa el ultimo correo recibido.",
+                          false
+                        ).catch(() => undefined);
+                      }}
+                      tone="secondary"
+                    >
+                      Reenviar codigo
                     </Button>
                     <Button disabled={isSubmitting} onClick={() => setAuthAccessPanel("login")} tone="secondary">
                       Volver a iniciar sesion
