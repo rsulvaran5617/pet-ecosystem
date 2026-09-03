@@ -1920,3 +1920,4 @@ Al final:
 - Owner Mobile/Web obtiene `Historial profesional`; profesional revisa antes de confirmar y recibe comprobante; Admin supervisa metadata de eventos sin contenido clinico.
 - Las vacunas profesionales no se duplican en `pet_vaccines`. El escaneo antimalware y la promocion owner de vacunas quedan como slices posteriores.
 - Typecheck Mobile conserva el error previo ajeno en `PetAlertLostPetPanel.tsx` por etiquetas de estados faltantes.
+- Correccion 2026-09-03: las policies Storage de documentos clinicos deben usar helpers `security definer`. La consulta directa a `clinical_documents` desde la policy afectaba la firma de avatares en buckets no relacionados con `permission denied`; se corrige en `20260903100000_clinical_document_storage_policy_isolation.sql`.
