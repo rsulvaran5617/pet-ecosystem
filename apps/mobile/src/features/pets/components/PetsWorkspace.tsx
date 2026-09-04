@@ -2367,7 +2367,7 @@ export function PetsWorkspace({
                           sex: petForm.sex ?? "unknown",
                           birthDate: petForm.birthDate || null,
                           isSterilized: petForm.isSterilized ?? null,
-                          fosterIntakeDate: selectedHouseholdIsProtective ? petForm.fosterIntakeDate || null : petForm.fosterIntakeDate ?? null,
+                          fosterIntakeDate: selectedHouseholdIsProtective ? petForm.fosterIntakeDate || null : null,
                           notes: petForm.notes?.trim() || null
                         } satisfies UpdatePetInput;
 

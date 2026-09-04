@@ -51,6 +51,12 @@ function isMissingSessionError(error: { message: string } | null) {
   return error?.message.toLowerCase().includes("auth session missing") ?? false;
 }
 
+function normalizeOptionalDate(value: string | null | undefined) {
+  const normalizedValue = value?.trim();
+
+  return normalizedValue || null;
+}
+
 async function getCurrentUser(supabase: PetsSupabaseClient) {
   const { data, error } = await supabase.auth.getUser();
 
@@ -290,10 +296,10 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         next_species: input.species,
         next_breed: input.breed ?? null,
         next_sex: input.sex ?? "unknown",
-        next_birth_date: input.birthDate ?? null,
+        next_birth_date: normalizeOptionalDate(input.birthDate),
         next_notes: input.notes ?? null,
         next_is_sterilized: input.isSterilized ?? null,
-        next_foster_intake_date: input.fosterIntakeDate ?? null
+        next_foster_intake_date: normalizeOptionalDate(input.fosterIntakeDate)
       });
 
       if (error) {
@@ -309,10 +315,10 @@ export function createPetsApiClient(supabase: PetsSupabaseClient): PetsApiClient
         next_species: input.species,
         next_breed: input.breed ?? null,
         next_sex: input.sex ?? "unknown",
-        next_birth_date: input.birthDate ?? null,
+        next_birth_date: normalizeOptionalDate(input.birthDate),
         next_notes: input.notes ?? null,
         next_is_sterilized: input.isSterilized ?? null,
-        next_foster_intake_date: input.fosterIntakeDate ?? null
+        next_foster_intake_date: normalizeOptionalDate(input.fosterIntakeDate)
       });
 
       if (error) {

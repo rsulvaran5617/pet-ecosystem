@@ -1,5 +1,11 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - Correccion de fecha al registrar mascota Owner
+
+- Diagnostico: una fecha de nacimiento valida podia fallar porque el formulario mobile Owner enviaba `fosterIntakeDate: ""`; PostgreSQL intentaba convertir esa cadena vacia al tipo `date`.
+- Mobile envia ahora `null` para el dato de acogida cuando el hogar es Owner y `packages/api-client` normaliza fechas opcionales vacias antes de invocar `create_pet` o `update_pet`.
+- No se modificaron Supabase, migraciones, RLS, roles ni datos del usuario afectado.
+
 # Handoff 2026-09-03 - Verificacion OTP visible en registro web
 
 - Se confirmo que Supabase envia un codigo de seis digitos y que el cliente web ya tenia soporte tecnico para validarlo, pero la vista estaba escondida fuera de la navegacion principal de acceso.
