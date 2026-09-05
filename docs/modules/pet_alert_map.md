@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_5_community_capture_implemented_local`
+`map_6_public_web_map_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -71,6 +71,26 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
   no invita a reenviar ni duplicar el reporte; informa que se guardo sin mapa.
 - No se agregaron migraciones ni dependencias nuevas. MAP-5 reutiliza
   `expo-location` de MAP-3 y la API del navegador.
+
+## MAP-6 implementado localmente
+
+- `/pet-alert` incorpora control segmentado `Lista | Mapa`; Lista sigue siendo
+  la vista inicial, canonica y fallback.
+- El mapa usa MapLibre GL y una URL de estilo configurable mediante
+  `NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL`; no usa tiles demo quemados en codigo.
+- Consume exclusivamente `list_public_pet_alert_map_points`, con los mismos
+  filtros de vista, busqueda, ciudad y especie que el directorio.
+- Al mover el mapa consulta por bounding box y limita la respuesta a 500 puntos.
+- Los puntos se agrupan mediante clustering; color y leyenda distinguen
+  extraviadas, vistas y encontradas.
+- Seleccionar un punto muestra foto, estado, nombre, especie, ciudad y CTA al
+  boletin publico. No se muestran coordenadas numericas.
+- Una lista accesible de puntos visibles complementa el canvas cartografico.
+- Registros heredados o sin ubicacion confirmada permanecen en Lista y no reciben
+  marcadores inventados.
+- Si falta configuracion o falla el proveedor, el mapa explica el problema sin
+  afectar busqueda, filtros ni boletines.
+- No se agregaron migraciones ni cambios de RLS/API. Se agrego `maplibre-gl` Web.
 
 ## 1. Resumen ejecutivo
 

@@ -12,6 +12,7 @@ Centralizar las variables realmente usadas por el baseline actual del MVP.
 - `NEXT_PUBLIC_IOS_TESTFLIGHT_URL`
 - `NEXT_PUBLIC_WEB_APP_URL`
 - `NEXT_PUBLIC_BETA_SUPPORT_EMAIL`
+- `NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL`
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_PROJECT_ID`
@@ -33,6 +34,13 @@ Centralizar las variables realmente usadas por el baseline actual del MVP.
 - `NEXT_PUBLIC_BETA_SUPPORT_EMAIL`: correo opcional mostrado en `/beta`.
 - Son destinos publicos, nunca secretos. La pagina y las rutas `/beta/{android|ios|web}` fallan cerradas si falta una URL o si no usa protocolo HTTP(S).
 
+### PET ALERT MAP-6
+
+- `NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL`: URL HTTPS de un estilo MapLibre autorizado para produccion.
+- Puede contener una clave publica restringida por dominio, pero nunca secretos administrativos o tokens con permisos de escritura.
+- Si falta o el proveedor no responde, `/pet-alert` conserva la vista Lista y muestra un fallback explicito en Mapa.
+- No usar `demotiles.maplibre.org` en produccion.
+
 ## Variables QA / smoke
 
 - `QA_OWNER_EMAIL`
@@ -49,7 +57,7 @@ La smoke de `packages/api-client/scripts/smoke` mantiene compatibilidad temporal
 
 ## Ubicacion recomendada
 
-- `apps/web/.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `apps/web/.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL`
 - `apps/admin/.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `apps/mobile/.env`: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - root `.env.local` o variables de shell: `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`, `QA_*`, `SMOKE_ARTIFACT_DIR`

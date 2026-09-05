@@ -137,3 +137,10 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - Avistamientos ligados a una alerta admiten ubicación privada confirmada, sin marcador público individual.
 - Rechazar geolocalización no bloquea ciudad, referencia ni descripción.
 - Un fallo del setter posterior no provoca reintentos que dupliquen el evento ya creado.
+
+## PET ALERT MAP-6 - mapa publico Web
+
+- El directorio permite alternar entre Lista y Mapa sin perder filtros.
+- El mapa consume solo coordenadas publicas generalizadas, agrupa puntos y abre una ficha compacta hacia el boletin.
+- Los eventos sin punto confirmado siguen disponibles exclusivamente en Lista.
+- La URL del estilo MapLibre es configurable y el fallo cartografico conserva el directorio operativo.

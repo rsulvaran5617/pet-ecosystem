@@ -1,10 +1,16 @@
 "use client";
 
 import type { PetAlertPublicDirectoryView, PublicPetAlertDirectoryEvent } from "@pet/types";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 import { getBrowserPetAlertApiClient } from "../../core/services/supabase-browser";
+
+const PublicPetAlertMap = dynamic(
+  () => import("./PublicPetAlertMap").then((module) => module.PublicPetAlertMap),
+  { loading: () => <div className="state">Preparando mapa comunitario...</div>, ssr: false }
+);
 
 const PAGE_SIZE = 18;
 const views: Array<{ id: PetAlertPublicDirectoryView; label: string; help: string }> = [
@@ -35,6 +41,7 @@ export function PublicPetAlertDirectoryPage() {
   const [speciesInput, setSpeciesInput] = useState("");
   const [filters, setFilters] = useState({ query: "", city: "", species: "" });
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [resultsMode, setResultsMode] = useState<"list" | "map">("list");
   const [items, setItems] = useState<PublicPetAlertDirectoryEvent[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -123,7 +130,12 @@ export function PublicPetAlertDirectoryPage() {
           ) : null}
         </form>
 
-        <div className="resultsHeader">
+        <div className="mode" aria-label="Vista de resultados">
+          <button aria-pressed={resultsMode === "list"} onClick={() => setResultsMode("list")} type="button">Lista</button>
+          <button aria-pressed={resultsMode === "map"} onClick={() => setResultsMode("map")} type="button">Mapa</button>
+        </div>
+
+        {resultsMode === "map" ? <PublicPetAlertMap city={filters.city} query={filters.query} species={filters.species} view={view}/> : <><div className="resultsHeader">
           <div><span className="eyebrow">RESULTADOS</span><h2>{views.find((option) => option.id === view)?.label}</h2></div>
           <span>{total} {total === 1 ? "boletín" : "boletines"}</span>
         </div>
@@ -154,9 +166,10 @@ export function PublicPetAlertDirectoryPage() {
             ))}
           </div>
         ) : null}
-        {items.length < total ? <button className="more" disabled={loadingMore} onClick={() => void load(items.length)} type="button">{loadingMore ? "Cargando..." : "Ver más boletines"}</button> : null}
+        {items.length < total ? <button className="more" disabled={loadingMore} onClick={() => void load(items.length)} type="button">{loadingMore ? "Cargando..." : "Ver más boletines"}</button> : null}</>}
       </section>
       <footer className="safety"><strong>Ayuda con responsabilidad.</strong><span>No publiques direcciones exactas ni datos personales. Ante riesgo inmediato, contacta a las autoridades o rescatistas locales.</span></footer>
+      <style jsx>{`.mode{background:#eef4f2;border-radius:8px;display:grid;gap:4px;grid-template-columns:1fr 1fr;margin:0 0 16px;padding:4px}.mode button{background:transparent;border:0;border-radius:6px;color:#53635f;font:inherit;font-size:12px;font-weight:900;padding:9px}.mode button[aria-pressed="true"]{background:#fff;color:#116e65;box-shadow:0 1px 4px rgba(20,60,54,.12)}`}</style>
       <style jsx>{styles}</style>
     </main>
   );

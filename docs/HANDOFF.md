@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-6 Web publico local
+
+- `/pet-alert` suma `Lista | Mapa` con MapLibre GL, clustering, bounding box, filtros compartidos y ficha compacta.
+- Solo usa `list_public_pet_alert_map_points`; no consulta tablas ni recibe coordenadas privadas.
+- Los boletines sin punto confirmado permanecen en Lista y nunca reciben una posicion inventada.
+- Configurar `NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL` con un estilo productivo; sin ella el mapa falla de forma controlada.
+- No hay migracion. MAP-6 queda sin commit, push ni despliegue web.
+
 # Handoff 2026-09-04 - PET ALERT MAP-5 comunidad local
 
 - Reportes comunitarios Mobile/Web permiten confirmar ubicación opcional y usan el punto público generalizado de MAP-2.

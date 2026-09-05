@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 export const metadata: Metadata = {
   title: "Pet Ecosystem",
