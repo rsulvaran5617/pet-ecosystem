@@ -15,6 +15,15 @@ function statusLabel(point: PublicPetAlertMapPoint) {
   return point.eventType === "community_sighting" ? "Vista recientemente" : "Extraviada";
 }
 
+function hasValidPublicLocation(point: PublicPetAlertMapPoint) {
+  return Number.isFinite(point.publicLatitude)
+    && Number.isFinite(point.publicLongitude)
+    && point.publicLatitude >= -90
+    && point.publicLatitude <= 90
+    && point.publicLongitude >= -180
+    && point.publicLongitude <= 180;
+}
+
 function toGeoJson(points: PublicPetAlertMapPoint[]): GeoJSON.FeatureCollection<GeoJSON.Point, MapFeatureProperties> {
   return {
     type: "FeatureCollection",
@@ -45,15 +54,18 @@ export function PublicPetAlertMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const pointsRef = useRef<PublicPetAlertMapPoint[]>([]);
+  const requestSequenceRef = useRef(0);
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [points, setPoints] = useState<PublicPetAlertMapPoint[]>([]);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const styleUrl = process.env.NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL?.trim() ?? "";
+  const usesDemoStyle = process.env.NODE_ENV === "production" && styleUrl.includes("demotiles.maplibre.org");
   const selected = points.find((point) => point.publicSlug === selectedSlug) ?? null;
 
   const load = useCallback(async (nextBounds: Bounds | null) => {
+    const requestSequence = ++requestSequenceRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -65,19 +77,25 @@ export function PublicPetAlertMap({
         species: species || null,
         view
       });
-      setPoints(result);
-      setSelectedSlug((current) => result.some((point) => point.publicSlug === current) ? current : result[0]?.publicSlug ?? null);
+      if (requestSequence !== requestSequenceRef.current) return;
+      const validPoints = result.filter(hasValidPublicLocation);
+      setPoints(validPoints);
+      setSelectedSlug((current) => validPoints.some((point) => point.publicSlug === current) ? current : null);
     } catch (reason) {
+      if (requestSequence !== requestSequenceRef.current) return;
       setError(reason instanceof Error ? reason.message : "No fue posible cargar el mapa comunitario.");
     } finally {
-      setLoading(false);
+      if (requestSequence === requestSequenceRef.current) setLoading(false);
     }
   }, [city, query, species, view]);
 
-  useEffect(() => { void load(bounds); }, [bounds, load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(bounds); }, bounds ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [bounds, load]);
 
   useEffect(() => {
-    if (!styleUrl || !containerRef.current || mapRef.current) return;
+    if (!styleUrl || usesDemoStyle || !containerRef.current || mapRef.current) return;
     const map = new maplibregl.Map({
       center: [-80.15, 8.65],
       container: containerRef.current,
@@ -112,7 +130,7 @@ export function PublicPetAlertMap({
     });
     map.on("error", () => setError("El proveedor cartografico no esta disponible. Puedes seguir usando la lista."));
     return () => { map.remove(); mapRef.current = null; };
-  }, [styleUrl]);
+  }, [styleUrl, usesDemoStyle]);
 
   const geoJson = useMemo(() => toGeoJson(points), [points]);
   useEffect(() => {
@@ -122,12 +140,13 @@ export function PublicPetAlertMap({
   }, [geoJson, points]);
 
   if (!styleUrl) return <div className={styles.state}><strong>Mapa no configurado en este ambiente.</strong><span>Puedes consultar todos los boletines desde la vista Lista.</span></div>;
+  if (usesDemoStyle) return <div className={styles.state}><strong>Mapa temporalmente no disponible.</strong><span>El proveedor cartografico de demostracion no se utiliza en produccion.</span><a href="/pet-alert">Ver boletines en lista</a></div>;
 
   return <section className={styles.shell} aria-label="Mapa publico de PET ALERT">
     <div className={styles.legend}><span><i className={`${styles.dot} ${styles.lost}`}/>Extraviada</span><span><i className={`${styles.dot} ${styles.seen}`}/>Vista</span><span><i className={`${styles.dot} ${styles.found}`}/>Encontrada</span></div>
-    <div className={styles.mapFrame}><div className={styles.overlay}>{loading ? "Actualizando puntos visibles..." : `${points.length} puntos aproximados en esta vista`}</div><div aria-label="Mapa interactivo con ubicaciones aproximadas" className={styles.map} ref={containerRef}/></div>
-    {error ? <div className={styles.state}><strong>No pudimos cargar el mapa.</strong><span>{error}</span><button onClick={() => void load(bounds)} type="button">Reintentar</button></div> : null}
-    {selected ? <article className={styles.selected}>{selected.photoUrl ? <img alt={selected.title} src={selected.photoUrl}/> : <span className={styles.placeholder}>Sin foto</span>}<div className={styles.selectedCopy}><small>{statusLabel(selected)}</small><strong>{selected.title}</strong><span>{selected.species} · {selected.city}</span></div><a href={selected.publicPath}>Ver boletin</a></article> : null}
-    {points.length ? <div className={styles.accessible}><h3>Puntos visibles</h3><div className={styles.pointList}>{points.slice(0, 12).map((point) => <button aria-pressed={point.publicSlug === selectedSlug} className={styles.point} key={`${point.eventType}-${point.publicSlug}`} onClick={() => setSelectedSlug(point.publicSlug)} type="button">{statusLabel(point)}: {point.title}</button>)}</div></div> : !loading && !error ? <div className={styles.state}><strong>No hay ubicaciones confirmadas en esta zona.</strong><span>Los boletines sin coordenadas permanecen disponibles en Lista.</span></div> : null}
+    <div className={styles.mapFrame}><div aria-live="polite" className={styles.overlay}>{loading ? "Actualizando puntos visibles..." : `${points.length} puntos aproximados en esta vista`}</div><div aria-label="Mapa interactivo con ubicaciones aproximadas. Usa la lista de puntos para una navegacion accesible." className={styles.map} ref={containerRef}/></div>
+    {error ? <div className={styles.state} role="alert"><strong>No pudimos cargar el mapa.</strong><span>{error}</span><div className={styles.stateActions}><button onClick={() => void load(bounds)} type="button">Reintentar</button><a href="/pet-alert">Usar vista Lista</a></div></div> : null}
+    {selected ? <article className={styles.selected}>{selected.photoUrl ? <img alt={selected.title} src={selected.photoUrl}/> : <span className={styles.placeholder}>Sin foto</span>}<div className={styles.selectedCopy}><small>{statusLabel(selected)}</small><strong>{selected.title}</strong><span>{selected.species} - {selected.city}</span></div><a href={selected.publicPath}>Ver boletin</a></article> : null}
+    {points.length ? <div className={styles.accessible}><h3>Puntos visibles</h3><div className={styles.pointList}>{points.slice(0, 12).map((point) => <button aria-pressed={point.publicSlug === selectedSlug} className={styles.point} key={`${point.eventType}-${point.publicSlug}`} onClick={() => setSelectedSlug(point.publicSlug)} type="button">{statusLabel(point)}: {point.title}</button>)}</div><ul className={styles.screenReaderPoints}>{points.map((point) => <li key={`accessible-${point.eventType}-${point.publicSlug}`}><a href={point.publicPath}>{statusLabel(point)}: {point.title}, {point.species}, {point.city}</a></li>)}</ul></div> : !loading && !error ? <div className={styles.state}><strong>No hay ubicaciones confirmadas en esta zona.</strong><span>Los boletines sin coordenadas permanecen disponibles en Lista.</span></div> : null}
   </section>;
 }

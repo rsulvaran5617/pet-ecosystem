@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-8 local
+
+- El mapa publico queda endurecido contra respuestas asincronas obsoletas y coordenadas fuera de rango.
+- Los cambios de limites se estabilizan antes de consultar, reduciendo llamadas durante movimientos consecutivos.
+- Todos los marcadores disponen de alternativa textual para tecnologia asistiva; carga y error se anuncian semanticamente.
+- Si falta el estilo, falla el proveedor o se intenta usar el estilo demo en produccion, la vista Lista permanece disponible.
+- No agrega migracion ni dependencias. MAP-8 queda pendiente de revision visual, commit, push y despliegue web.
+
 # Handoff 2026-09-04 - PET ALERT MAP-7 Admin local
 
 - Admin PET ALERT incorpora moderacion geografica separada para publicaciones extraviadas y comunitarias.

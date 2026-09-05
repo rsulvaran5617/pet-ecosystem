@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_7_admin_geographic_moderation_implemented_local`
+`map_8_qa_privacy_performance_hardening_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -109,6 +109,39 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
 - Los avistamientos ligados quedan fuera de esta cola porque no son marcadores
   publicos y su ubicacion permanece en el contexto privado de la familia.
 - Migracion local pendiente: `20260904170000_pet_alert_map7_admin_geographic_moderation.sql`.
+
+## MAP-8 implementado localmente
+
+MAP-8 cierra el frente con endurecimiento del mapa publico y una matriz de QA
+orientada a privacidad, resiliencia, accesibilidad y rendimiento:
+
+- respuestas antiguas de la RPC no pueden reemplazar una consulta mas reciente;
+- el cambio de limites del mapa se estabiliza durante 250 ms antes de consultar;
+- coordenadas no finitas o fuera de rango se descartan antes de crear GeoJSON;
+- todos los puntos visibles tienen un enlace descriptivo accesible, aunque la
+  banda visual conserve solo los primeros doce para evitar saturacion;
+- carga y conteo se anuncian con `aria-live`, y los errores usan `role=alert`;
+- ante error de mapa existe reintento y retorno explicito a la vista Lista;
+- un estilo de demostracion de MapLibre se rechaza en produccion;
+- boletines sin coordenadas continúan disponibles exclusivamente en Lista.
+
+No se agregan tablas, RPC, permisos ni dependencias en MAP-8. La migracion de
+MAP-7 sigue siendo la unica migracion local pendiente del frente.
+
+### Matriz QA de cierre
+
+| Caso | Resultado esperado |
+| --- | --- |
+| GPS rechazado o no disponible | El reporte textual continua sin bloqueo |
+| Registro heredado sin punto | Aparece en Lista y no genera marcador |
+| Coordenada publica invalida | El cliente la descarta sin romper el mapa |
+| Cambio rapido de filtros o limites | Solo la respuesta mas reciente modifica la vista |
+| Sin estilo cartografico | Se muestra fallback hacia Lista |
+| Estilo demo en produccion | Se bloquea y se ofrece Lista |
+| Error de tiles/RPC | Se informa, permite reintentar y mantiene acceso a Lista |
+| Navegacion asistida | Todos los marcadores tienen enlace textual descriptivo |
+| Consulta publica | No contiene IDs internos, contacto ni coordenadas privadas |
+| Moderacion geografica | Exige Admin, motivo y auditoria sin coordenadas |
 
 ## 1. Resumen ejecutivo
 
