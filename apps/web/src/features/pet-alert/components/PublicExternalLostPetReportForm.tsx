@@ -16,6 +16,8 @@ declare global {
 }
 
 const steps = ["Mascota", "Extravío", "Contacto", "Revisar"];
+type ConfirmedLocation = { latitude: number; longitude: number; accuracyMeters: number | null; capturedAt: string };
+
 const initial = {
   petName: "", petSpecies: "", petBreed: "", apparentSize: "unknown", apparentSex: "unknown", primaryColor: "",
   distinctiveMarks: "", behaviorNotes: "", medicalPublicNotes: "", lastSeenAt: "", lastSeenCity: "",
@@ -40,6 +42,9 @@ export function PublicExternalLostPetReportForm() {
   const [widgetId, setWidgetId] = useState<string | null>(null);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locationCandidate, setLocationCandidate] = useState<ConfirmedLocation | null>(null);
+  const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ reference: string; managementToken: string } | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
@@ -80,6 +85,32 @@ export function PublicExternalLostPetReportForm() {
     setError(null);
   }
 
+  function captureLocation() {
+    setError(null);
+    if (!navigator.geolocation) {
+      setError("Este navegador no permite obtener la ubicacion. Puedes continuar indicando la zona manualmente.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationCandidate({
+          accuracyMeters: Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : null,
+          capturedAt: new Date(position.timestamp).toISOString(),
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+        setConfirmedLocation(null);
+        setLocating(false);
+      },
+      () => {
+        setError("No pudimos obtener la ubicacion. Puedes continuar indicando la zona manualmente.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: false, maximumAge: 30_000, timeout: 12_000 }
+    );
+  }
+
   function next(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -111,7 +142,12 @@ export function PublicExternalLostPetReportForm() {
     setBusy(true); setError(null);
     try {
       const form = new FormData();
-      form.set("payload", JSON.stringify({ ...values, acceptedTerms, acceptedPrivacy }));
+      form.set("payload", JSON.stringify({
+        ...values,
+        acceptedTerms,
+        acceptedPrivacy,
+        location: confirmedLocation ? { ...confirmedLocation, source: "device" } : null
+      }));
       form.set("challengeId", challengeId);
       form.set("code", code);
       form.set("turnstileToken", turnstileToken);
@@ -147,13 +183,18 @@ export function PublicExternalLostPetReportForm() {
         <label className={styles.label}>Provincia o región<input maxLength={120} onChange={(e) => update("lastSeenRegion", e.target.value)} value={values.lastSeenRegion}/></label>
         <label className={styles.label}>País<input maxLength={80} onChange={(e) => update("lastSeenCountry", e.target.value)} value={values.lastSeenCountry}/></label>
         <label className={`${styles.label} ${styles.wide}`}>Zona de referencia aproximada<input maxLength={240} onChange={(e) => update("lastSeenReference", e.target.value)} value={values.lastSeenReference}/><span className={styles.help}>No publiques una dirección exacta.</span></label>
+        <section className={`${styles.location} ${styles.wide}`}>
+          <strong>Ubicacion opcional</strong>
+          <span className={styles.help}>Usala solo si estas en el lugar donde viste a tu mascota por ultima vez. El punto publico se desplazara para proteger tu privacidad.</span>
+          {locationCandidate ? <><span className={styles.locationStatus}>Ubicacion obtenida{locationCandidate.accuracyMeters ? ` con precision aproximada de ${Math.round(locationCandidate.accuracyMeters)} m` : ""}. Confirma que corresponde al lugar del extravio.</span><div className={styles.locationActions}><button className={styles.button} onClick={() => { setConfirmedLocation(locationCandidate); setLocationCandidate(null); }} type="button">Confirmar lugar</button><button className={`${styles.button} ${styles.secondary}`} onClick={() => setLocationCandidate(null)} type="button">Descartar</button></div></> : confirmedLocation ? <><span className={styles.locationConfirmed}>Lugar confirmado. Nunca publicaremos este punto exacto.</span><button className={`${styles.button} ${styles.secondary}`} onClick={captureLocation} type="button">Cambiar ubicacion</button></> : <button className={`${styles.button} ${styles.secondary}`} disabled={locating} onClick={captureLocation} type="button">{locating ? "Obteniendo ubicacion..." : "Usar ubicacion del dispositivo"}</button>}
+        </section>
         <label className={`${styles.label} ${styles.wide}`}>Descripción pública<textarea maxLength={1600} onChange={(e) => update("publicDescription", e.target.value)} rows={5} value={values.publicDescription}/></label>
       </div></> : null}
       {step === 2 ? <><h2>Contacto privado</h2><p className={styles.private}>Tu nombre y correo no se publicarán. Se usan para verificar y administrar el reporte.</p><div className={styles.grid}>
         <label className={styles.label}>Nombre y apellido<input maxLength={120} onChange={(e) => update("contactName", e.target.value)} value={values.contactName}/></label>
         <label className={styles.label}>Correo<input maxLength={254} onChange={(e) => update("email", e.target.value)} type="email" value={values.email}/></label>
       </div><div className={styles.checks}><label className={styles.check}><input checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} type="checkbox"/>Acepto el tratamiento de mis datos para gestionar esta alerta.</label><label className={styles.check}><input checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} type="checkbox"/>Declaro de buena fe que tengo relación legítima con la mascota y acepto la responsabilidad del contenido.</label></div></> : null}
-      {step === 3 ? <><h2>Revisa y verifica</h2><div className={styles.review}><div><strong>Mascota</strong><span>{values.petName} · {values.petSpecies}</span></div><div><strong>Última vez vista</strong><span>{values.lastSeenCity} · {values.lastSeenAt}</span></div><div><strong>Contacto privado</strong><span>{values.contactName} · {values.email}</span></div><div><strong>Fotos</strong><span>{photos.length} archivo(s)</span></div></div>
+      {step === 3 ? <><h2>Revisa y verifica</h2><div className={styles.review}><div><strong>Mascota</strong><span>{values.petName} · {values.petSpecies}</span></div><div><strong>Última vez vista</strong><span>{values.lastSeenCity} · {values.lastSeenAt}</span></div><div><strong>Ubicacion</strong><span>{confirmedLocation ? "Punto aproximado listo para publicar" : "Solo zona escrita"}</span></div><div><strong>Contacto privado</strong><span>{values.contactName} · {values.email}</span></div><div><strong>Fotos</strong><span>{photos.length} archivo(s)</span></div></div>
         <div className={styles.notice}>Verificar el correo no prueba propiedad. El reporte será revisado antes de publicarse.</div>
         {!siteKey ? (
           <div className={styles.error}>La validación de seguridad no está configurada.</div>

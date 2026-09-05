@@ -324,6 +324,8 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Privacidad: nunca mostrar coordenadas, domicilio, contacto privado, usuario, household ni IDs internos.
 # PET ALERT 8B - Reportar mi mascota sin cuenta
 
+- PET ALERT MAP-4 agrega en el paso de extravio una ubicacion opcional del navegador. Solo se solicita tras pulsar la accion, requiere confirmacion y tiene fallback completo a ciudad/referencia. La revision muestra `Punto aproximado listo para publicar` sin revelar coordenadas exactas.
+
 - `/pet-alert/reportar-mi-mascota` usa cuatro pasos: mascota y fotos, extravio aproximado, contacto privado/consentimiento y verificacion/revision.
 - Exige 1-4 fotos, evita direcciones exactas, explica que verificar correo no acredita propiedad y confirma que la publicacion queda en revision.
 - Admin PET ALERT incorpora una cola separada con foto, contenido publico y contacto privado para aprobar/rechazar con justificacion.

@@ -179,6 +179,28 @@ function validateReport(payload: JsonRecord) {
   return { petName, petSpecies, city, country, description, lastSeenAt: lastSeenAt.toISOString() };
 }
 
+function validateLocation(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object" || Array.isArray(value)) throw new Error("PET_ALERT_LOCATION_INVALID");
+  const location = value as JsonRecord;
+  const latitude = Number(location.latitude);
+  const longitude = Number(location.longitude);
+  const accuracyMeters = location.accuracyMeters === null || location.accuracyMeters === undefined
+    ? null
+    : Number(location.accuracyMeters);
+  const capturedAt = typeof location.capturedAt === "string" ? new Date(location.capturedAt) : new Date("invalid");
+  if (
+    location.source !== "device"
+    || !Number.isFinite(latitude) || latitude < -90 || latitude > 90
+    || !Number.isFinite(longitude) || longitude < -180 || longitude > 180
+    || (accuracyMeters !== null && (!Number.isFinite(accuracyMeters) || accuracyMeters < 0 || accuracyMeters > 100000))
+    || Number.isNaN(capturedAt.getTime())
+    || capturedAt.getTime() > Date.now() + 15 * 60 * 1000
+    || capturedAt.getTime() < Date.now() - 24 * 60 * 60 * 1000
+  ) throw new Error("PET_ALERT_LOCATION_INVALID");
+  return { latitude, longitude, accuracyMeters, capturedAt: capturedAt.toISOString(), source: "device" } as const;
+}
+
 async function submitReport(request: Request, origin: string) {
   const form = await request.formData();
   const payload = JSON.parse(String(form.get("payload") ?? "{}")) as JsonRecord;
@@ -188,6 +210,7 @@ async function submitReport(request: Request, origin: string) {
   if (!/^[0-9]{6}$/.test(code) || !/^[0-9a-f-]{36}$/.test(challengeId)) throw new Error("PET_ALERT_VERIFICATION_INVALID");
   if (!await verifyTurnstile(turnstileToken, request)) return json(origin, { ok: false, message: "No pudimos validar la solicitud." }, 400);
   const validated = validateReport(payload);
+  const location = validateLocation(payload.location);
   const files = form.getAll("photos").filter((item): item is File => item instanceof File);
   if (files.length < 1 || files.length > 4 || files.some((file) => !ALLOWED_MEDIA_TYPES.has(file.type) || file.size <= 0 || file.size > MAX_FILE_BYTES)) {
     return json(origin, { ok: false, message: "Agrega entre 1 y 4 fotos JPG, PNG o WebP de hasta 5 MB." }, 400);
@@ -224,6 +247,23 @@ async function submitReport(request: Request, origin: string) {
     next_privacy_version: PRIVACY_VERSION
   });
   if (alertError || !alert?.id) throw new Error("Unable to create external alert");
+
+  if (location) {
+    const { error: locationError } = await supabase.rpc("set_pet_alert_lost_pet_location", {
+      target_alert_id: alert.id,
+      next_latitude: location.latitude,
+      next_longitude: location.longitude,
+      next_accuracy_meters: location.accuracyMeters,
+      next_location_source: location.source,
+      next_captured_at: location.capturedAt,
+      next_public_location_visible: true
+    });
+    if (locationError) {
+      await supabase.from("pet_alert_status_history").delete().eq("lost_pet_alert_id", alert.id);
+      await supabase.from("pet_alert_lost_pets").delete().eq("id", alert.id);
+      throw new Error("Unable to store external alert location");
+    }
+  }
 
   const uploadedPaths: string[] = [];
   try {

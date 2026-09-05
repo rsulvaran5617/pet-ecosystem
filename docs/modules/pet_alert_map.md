@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_3_owner_mobile_implemented_local`
+`map_4_external_web_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -37,6 +37,22 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
 - La seleccion manual sobre un mapa y la busqueda geocodificada siguen pendientes
   hasta aprobar proveedor de tiles/geocodificacion para produccion.
 - MAP-3 no cambia alertas comunitarias, reporte externo, mapa web ni Admin.
+
+## MAP-4 implementado localmente
+
+- El reporte web de propietario externo ofrece captura opcional mediante la API
+  de geolocalizacion del navegador, solo despues de una accion explicita.
+- El usuario debe confirmar que se encuentra en el lugar del extravio; tambien
+  puede descartar la captura o continuar solo con ciudad y referencia.
+- La revision final informa si se enviara un punto aproximado o solo zona textual.
+- La Edge Function valida fuente, rangos, precision y vigencia de la captura y
+  nunca devuelve ni registra coordenadas en sus mensajes.
+- Tras verificar OTP y crear el reporte pendiente, la funcion invoca el setter
+  `service_role` de MAP-2. El servidor genera el punto publico generalizado.
+- Si falla la persistencia geografica, el reporte parcial se elimina antes de
+  procesar media o emitir el token privado de gestion.
+- No se agregaron tablas, migraciones, dependencias web ni lectura publica nueva.
+- La Edge Function modificada queda pendiente de despliegue remoto.
 
 ## 1. Resumen ejecutivo
 

@@ -122,3 +122,11 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - Negar el permiso no bloquea el reporte textual existente.
 - El cliente envia solo la coordenada privada al setter autenticado de MAP-2; el servidor decide el punto publico.
 - La seleccion manual cartografica permanece diferida hasta contar con proveedor productivo.
+
+## PET ALERT MAP-4 - reporte externo Web
+
+- El propietario sin cuenta puede capturar opcionalmente la ubicacion foreground desde un navegador compatible.
+- La captura requiere confirmacion; denegarla o descartarla conserva el flujo textual.
+- La Edge Function valida nuevamente el dato y usa el setter seguro de MAP-2 con `service_role`.
+- El reporte permanece en moderacion y solo puede aparecer en el mapa despues de ser aprobado.
+- No se exponen coordenadas privadas en respuestas, logs o contratos publicos.

@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-4 Web externo local
+
+- El wizard `/pet-alert/reportar-mi-mascota` permite capturar y confirmar ubicacion opcional sin bloquear el ingreso textual.
+- El dato exacto se envia solo en el payload privado final, despues de la confirmacion del usuario; la revision muestra un estado, no coordenadas.
+- La Edge Function valida el dato y usa el setter MAP-2 con `service_role`; solo el punto generalizado podra publicarse tras moderacion.
+- No hay migracion nueva. `pet-alert-external-report` queda pendiente de despliegue remoto y la web pendiente de despliegue habitual.
+- No se implementaron mapa visual, geocodificacion, comunidad, avistamientos ni Admin.
+
 # Handoff 2026-09-04 - PET ALERT MAP-3 Owner Mobile local
 
 - El paso `En que zona` permite obtener ubicacion foreground solo tras accion explicita y exige confirmacion antes de guardarla.

@@ -168,3 +168,14 @@ ciudad, especie, limites geograficos opcionales y un maximo efectivo de 500.
 Devuelve tipo, slug/ruta publica, estado, titulo, especie, ciudad, fecha y
 `public_latitude/public_longitude`. No devuelve IDs, coordenadas privadas,
 precision, fuente, contacto, household ni identidad del reportante.
+
+# PET ALERT MAP-4
+
+El `payload` multipart privado de `pet-alert-external-report` admite `location`
+opcional con `latitude`, `longitude`, `accuracyMeters`, `capturedAt` y fuente
+`device`. La Edge Function valida el objeto despues de OTP/Turnstile y lo envia
+a `set_pet_alert_lost_pet_location` usando `service_role`.
+
+Las respuestas de la funcion no contienen coordenadas. Una captura invalida o
+obsoleta se rechaza; omitirla conserva el contrato anterior. No se modifican las
+RPC de creacion ni las proyecciones publicas.
