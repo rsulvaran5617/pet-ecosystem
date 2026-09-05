@@ -144,3 +144,10 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - El mapa consume solo coordenadas publicas generalizadas, agrupa puntos y abre una ficha compacta hacia el boletin.
 - Los eventos sin punto confirmado siguen disponibles exclusivamente en Lista.
 - La URL del estilo MapLibre es configurable y el fallo cartografico conserva el directorio operativo.
+
+## PET ALERT MAP-7 - moderacion geografica Admin
+
+- Platform Admin consulta una cola geografica separada con coordenada privada sensible y punto publico generalizado.
+- Puede ocultar, restaurar o regenerar el punto publico con justificacion obligatoria.
+- Regenerar ocurre en servidor; Admin nunca selecciona manualmente el punto publico.
+- Las decisiones quedan auditadas sin coordenadas y no modifican el contenido ni estado del boletin.

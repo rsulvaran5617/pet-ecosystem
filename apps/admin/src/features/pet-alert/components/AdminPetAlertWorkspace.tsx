@@ -4,6 +4,7 @@ import type { PetAlertExternalReportDecision, PetAlertExternalReportReview, PetA
 import { useEffect, useMemo, useState } from "react";
 
 import { getAdminPetAlertApiClient } from "../../core/services/supabase-admin";
+import { AdminPetAlertGeographicWorkspace } from "./AdminPetAlertGeographicWorkspace";
 
 const statusLabels: Record<PetAlertModerationCaseStatus, string> = {
   open: "Pendiente",
@@ -149,6 +150,8 @@ export function AdminPetAlertWorkspace() {
 
       {error ? <div style={{ ...cardStyle, color: "#991b1b", borderColor: "#fecaca" }}>{error}</div> : null}
       {message ? <div style={{ ...cardStyle, color: "#166534", borderColor: "#bbf7d0" }}>{message}</div> : null}
+
+      <AdminPetAlertGeographicWorkspace />
 
       <section style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>

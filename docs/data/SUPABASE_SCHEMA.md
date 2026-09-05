@@ -595,3 +595,9 @@ La migracion `20260904130000_pet_alert_map2_secure_locations.sql` agrega metadat
 geografica, puntos PostGIS e indices GiST parciales a las tres entidades de
 eventos PET ALERT. Se separan coordenadas privadas confirmadas y coordenadas
 publicas generalizadas; no se crea una tabla publica duplicada.
+
+# PET ALERT MAP-7 (migracion local pendiente)
+
+`20260904170000_pet_alert_map7_admin_geographic_moderation.sql` agrega dos RPC
+administrativas para listar y moderar ubicaciones. No crea tablas ni cambia RLS;
+reutiliza `audit_logs`, `is_platform_admin` y la generalizacion de MAP-2.

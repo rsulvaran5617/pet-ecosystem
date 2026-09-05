@@ -179,3 +179,15 @@ a `set_pet_alert_lost_pet_location` usando `service_role`.
 Las respuestas de la funcion no contienen coordenadas. Una captura invalida o
 obsoleta se rechaza; omitirla conserva el contrato anterior. No se modifican las
 RPC de creacion ni las proyecciones publicas.
+
+# PET ALERT MAP-7
+
+`list_admin_pet_alert_geographic_locations(filter_target_type,
+filter_location_state, result_limit)` requiere `is_platform_admin(auth.uid())`.
+Devuelve el par privado y publico, metadata de captura y estado de visibilidad
+solo para operacion administrativa. No se concede a `anon`.
+
+`moderate_pet_alert_geographic_location(target_type, target_id,
+moderation_action, moderation_reason)` admite `hide | restore | regenerate` con
+motivo obligatorio. No acepta coordenadas publicas ni privadas. Regenerar usa la
+funcion server-side de MAP-2 y todas las acciones escriben auditoria sin puntos.

@@ -350,3 +350,10 @@ No implementar tablas sensibles sin definir su politica RLS.
 - Las mutaciones geograficas se realizan por RPC `security definer` con autorizacion explicita.
 - Anon y authenticated solo ejecutan `list_public_pet_alert_map_points`, cuya firma proyecta coordenadas generalizadas y datos publicos minimos.
 - La funcion de generalizacion no se concede a clientes; solo puede ejecutarla el backend controlado.
+
+# PET ALERT MAP-7
+
+- Las RPC geograficas Admin verifican `is_platform_admin(auth.uid())` dentro de funciones `security definer`.
+- `anon` no recibe permisos de ejecucion; `authenticated` solo supera la funcion cuando es platform admin.
+- La interfaz no actualiza tablas directamente ni permite enviar coordenadas publicas.
+- Auditoria registra actor, objetivo, accion, motivo y visibilidad, nunca coordenadas.

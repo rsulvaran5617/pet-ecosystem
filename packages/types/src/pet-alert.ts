@@ -47,6 +47,9 @@ export type PetAlertPublicEventType = "lost_pet" | "community_sighting";
 export type PetAlertPublicStatusGroup = "active" | "found";
 export type PetAlertLostPetSource = "registered_pet" | "external_owner";
 export type PetAlertLocationSource = "device" | "map" | "search" | "legacy_text";
+export type PetAlertGeographicTargetType = "lost_pet" | "community_sighting";
+export type PetAlertGeographicLocationState = "all" | "visible" | "hidden" | "missing";
+export type PetAlertGeographicModerationAction = "hide" | "restore" | "regenerate";
 
 export interface PetAlertLocationInput {
   latitude: number;
@@ -93,6 +96,25 @@ export interface PublicPetAlertMapFilters {
     maxLongitude: number;
   } | null;
   limit?: number;
+}
+
+export interface PetAlertAdminGeographicLocation {
+  targetType: PetAlertGeographicTargetType;
+  targetId: Uuid;
+  publicSlug: string;
+  status: string;
+  title: string;
+  species: string;
+  city: string;
+  privateLatitude: number | null;
+  privateLongitude: number | null;
+  publicLatitude: number | null;
+  publicLongitude: number | null;
+  accuracyMeters: number | null;
+  source: PetAlertLocationSource;
+  capturedAt: string | null;
+  publicLocationVisible: boolean;
+  updatedAt: string;
 }
 
 export interface PublicPetAlertDirectoryEvent {

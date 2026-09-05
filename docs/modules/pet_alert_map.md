@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_6_public_web_map_implemented_local`
+`map_7_admin_geographic_moderation_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -91,6 +91,24 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
 - Si falta configuracion o falla el proveedor, el mapa explica el problema sin
   afectar busqueda, filtros ni boletines.
 - No se agregaron migraciones ni cambios de RLS/API. Se agrego `maplibre-gl` Web.
+
+## MAP-7 implementado localmente
+
+- Admin PET ALERT incorpora una cola geografica separada de moderacion de
+  contenido, limitada a alertas extraviadas y reportes comunitarios.
+- `list_admin_pet_alert_geographic_locations` exige platform admin y devuelve
+  punto privado, punto publico, fuente, precision y fecha solo para operacion.
+- Los filtros distinguen tipo y estado `visible`, `hidden` o `missing`.
+- `moderate_pet_alert_geographic_location` permite ocultar, restaurar o regenerar
+  el punto publico con motivo obligatorio de al menos ocho caracteres.
+- Regenerar vuelve a ejecutar la generalizacion server-side; Admin no elige ni
+  envia la nueva coordenada publica.
+- Las acciones actualizan solo visibilidad/proyeccion geografica. No borran el
+  boletin, no cambian estado, ownership, contacto ni coordenada privada.
+- Cada decision queda en `audit_logs` sin copiar coordenadas al payload de auditoria.
+- Los avistamientos ligados quedan fuera de esta cola porque no son marcadores
+  publicos y su ubicacion permanece en el contexto privado de la familia.
+- Migracion local pendiente: `20260904170000_pet_alert_map7_admin_geographic_moderation.sql`.
 
 ## 1. Resumen ejecutivo
 

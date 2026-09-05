@@ -18,6 +18,10 @@ import type {
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
+  PetAlertAdminGeographicLocation,
+  PetAlertGeographicLocationState,
+  PetAlertGeographicModerationAction,
+  PetAlertGeographicTargetType,
   PetAlertLocationInput,
   PetAlertPrivateLocation,
   PetAlertSightingStatus,
@@ -218,6 +222,25 @@ interface PrivateLocationRow {
   public_location_visible: boolean;
 }
 
+interface AdminGeographicLocationRow {
+  target_type: PetAlertGeographicTargetType;
+  target_id: string;
+  public_slug: string;
+  status: string;
+  title: string;
+  species: string;
+  city: string;
+  private_latitude: number | null;
+  private_longitude: number | null;
+  public_latitude: number | null;
+  public_longitude: number | null;
+  location_accuracy_meters: number | null;
+  location_source: PetAlertAdminGeographicLocation["source"];
+  location_captured_at: string | null;
+  public_location_visible: boolean;
+  updated_at: string;
+}
+
 interface ModerationCaseRow {
   case_id: string;
   target_type: PetAlertModerationTargetType;
@@ -296,6 +319,17 @@ export interface PetAlertApiClient {
     offset?: number;
   }): Promise<PublicPetAlertDirectoryPage>;
   listPublicPetAlertMapPoints(filters?: PublicPetAlertMapFilters): Promise<PublicPetAlertMapPoint[]>;
+  listAdminPetAlertGeographicLocations(filters?: {
+    targetType?: PetAlertGeographicTargetType | "all";
+    locationState?: PetAlertGeographicLocationState;
+    limit?: number;
+  }): Promise<PetAlertAdminGeographicLocation[]>;
+  moderatePetAlertGeographicLocation(
+    targetType: PetAlertGeographicTargetType,
+    targetId: Uuid,
+    action: PetAlertGeographicModerationAction,
+    reason: string
+  ): Promise<void>;
   listMyPetAlertCommunitySightings(): Promise<PetAlertCommunitySighting[]>;
   closePetAlertCommunitySighting(reportId: Uuid, reason: PetAlertCommunityCloseReason): Promise<PetAlertCommunitySighting>;
   createPetAlertCommunityClaim(input: CreatePetAlertCommunityClaimInput): Promise<PetAlertCommunityClaim>;
@@ -340,6 +374,27 @@ function mapPublicMapPoint(row: PublicMapPointRow): PublicPetAlertMapPoint {
     publicLatitude: row.public_latitude,
     publicLongitude: row.public_longitude,
     photoUrl: null
+  };
+}
+
+function mapAdminGeographicLocation(row: AdminGeographicLocationRow): PetAlertAdminGeographicLocation {
+  return {
+    targetType: row.target_type,
+    targetId: row.target_id,
+    publicSlug: row.public_slug,
+    status: row.status,
+    title: row.title,
+    species: row.species,
+    city: row.city,
+    privateLatitude: row.private_latitude,
+    privateLongitude: row.private_longitude,
+    publicLatitude: row.public_latitude,
+    publicLongitude: row.public_longitude,
+    accuracyMeters: row.location_accuracy_meters,
+    source: row.location_source,
+    capturedAt: row.location_captured_at,
+    publicLocationVisible: row.public_location_visible,
+    updatedAt: row.updated_at
   };
 }
 
@@ -937,6 +992,24 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
         });
       }
       return points;
+    },
+    async listAdminPetAlertGeographicLocations(filters = {}) {
+      const { data, error } = await supabase.rpc("list_admin_pet_alert_geographic_locations", {
+        filter_target_type: filters.targetType ?? "all",
+        filter_location_state: filters.locationState ?? "all",
+        result_limit: Math.min(Math.max(filters.limit ?? 100, 1), 250)
+      });
+      if (error) fail(error, "No fue posible cargar la moderacion geografica PET ALERT.");
+      return ((data ?? []) as AdminGeographicLocationRow[]).map(mapAdminGeographicLocation);
+    },
+    async moderatePetAlertGeographicLocation(targetType, targetId, action, reason) {
+      const { error } = await supabase.rpc("moderate_pet_alert_geographic_location", {
+        target_type: targetType,
+        target_id: targetId,
+        moderation_action: action,
+        moderation_reason: reason
+      });
+      if (error) fail(error, "No fue posible registrar la decision geografica.");
     },
     async listMyPetAlertCommunitySightings() {
       const { data, error } = await supabase.rpc("list_my_pet_alert_community_sightings");

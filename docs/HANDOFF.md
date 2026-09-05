@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-7 Admin local
+
+- Admin PET ALERT incorpora moderacion geografica separada para publicaciones extraviadas y comunitarias.
+- Solo platform admin obtiene coordenadas privadas mediante RPC; anon y usuarios comunes no superan la autorizacion.
+- Ocultar/restaurar/regenerar exige motivo, no acepta coordenadas y deja auditoria sin datos geograficos.
+- No cambia estado, contenido, ownership ni ubicacion privada del boletin; pistas individuales quedan fuera.
+- Migracion local pendiente: `20260904170000_pet_alert_map7_admin_geographic_moderation.sql`. No se aplico remoto ni se hizo commit/push.
+
 # Handoff 2026-09-04 - PET ALERT MAP-6 Web publico local
 
 - `/pet-alert` suma `Lista | Mapa` con MapLibre GL, clustering, bounding box, filtros compartidos y ficha compacta.
