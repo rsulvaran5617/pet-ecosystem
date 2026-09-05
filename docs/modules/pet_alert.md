@@ -130,3 +130,10 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - La Edge Function valida nuevamente el dato y usa el setter seguro de MAP-2 con `service_role`.
 - El reporte permanece en moderacion y solo puede aparecer en el mapa despues de ser aprobado.
 - No se exponen coordenadas privadas en respuestas, logs o contratos publicos.
+
+## PET ALERT MAP-5 - comunidad y avistamientos
+
+- Reportes comunitarios Mobile/Web admiten ubicación opcional confirmada y publican solo el punto generalizado.
+- Avistamientos ligados a una alerta admiten ubicación privada confirmada, sin marcador público individual.
+- Rechazar geolocalización no bloquea ciudad, referencia ni descripción.
+- Un fallo del setter posterior no provoca reintentos que dupliquen el evento ya creado.

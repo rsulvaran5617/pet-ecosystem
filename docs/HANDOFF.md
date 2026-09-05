@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-5 comunidad local
+
+- Reportes comunitarios Mobile/Web permiten confirmar ubicación opcional y usan el punto público generalizado de MAP-2.
+- El avistamiento Web de una alerta puede guardar ubicación privada confirmada, pero no aparece como marcador público individual.
+- La geolocalización nunca bloquea el ingreso textual y un fallo posterior no induce a duplicar un evento ya creado.
+- Web reutiliza `ConfirmedBrowserLocation`; Mobile reutiliza `expo-location` instalado en MAP-3.
+- No hay migración, despliegue, commit ni push de MAP-5.
+
 # Handoff 2026-09-04 - PET ALERT MAP-4 Web externo local
 
 - El wizard `/pet-alert/reportar-mi-mascota` permite capturar y confirmar ubicacion opcional sin bloquear el ingreso textual.

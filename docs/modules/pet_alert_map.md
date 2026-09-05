@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_4_external_web_implemented_local`
+`map_5_community_capture_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -53,6 +53,24 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
   procesar media o emitir el token privado de gestion.
 - No se agregaron tablas, migraciones, dependencias web ni lectura publica nueva.
 - La Edge Function modificada queda pendiente de despliegue remoto.
+
+## MAP-5 implementado localmente
+
+- Mobile y Web permiten adjuntar ubicacion confirmada al reporte comunitario de
+  una mascota aparentemente perdida.
+- El formulario Web de avistamiento ligado a una alerta tambien ofrece captura
+  opcional mediante el mismo control reutilizable.
+- Todos los permisos se solicitan despues de una accion explicita; negar,
+  descartar o no disponer de geolocalizacion conserva el recorrido textual.
+- Los reportes comunitarios usan `set_pet_alert_community_sighting_location` y
+  habilitan su punto publico generalizado.
+- Los avistamientos ligados usan `set_pet_alert_lost_pet_sighting_location` con
+  `publicLocationVisible: false`: la ubicacion queda privada para el seguimiento
+  de la familia y no crea un marcador publico individual.
+- Si el evento principal se crea y luego falla el setter opcional, la interfaz
+  no invita a reenviar ni duplicar el reporte; informa que se guardo sin mapa.
+- No se agregaron migraciones ni dependencias nuevas. MAP-5 reutiliza
+  `expo-location` de MAP-3 y la API del navegador.
 
 ## 1. Resumen ejecutivo
 

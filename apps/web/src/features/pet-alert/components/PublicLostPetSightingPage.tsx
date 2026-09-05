@@ -4,6 +4,7 @@ import type { PublicPetAlertLostPet } from "@pet/types";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { getBrowserPetAlertApiClient, getBrowserSupabaseClient } from "../../core/services/supabase-browser";
+import { ConfirmedBrowserLocation, type ConfirmedBrowserLocationValue } from "./ConfirmedBrowserLocation";
 
 type FormState = {
   city: string;
@@ -41,6 +42,7 @@ export function PublicLostPetSightingPage({ slug }: { slug: string }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [location, setLocation] = useState<ConfirmedBrowserLocationValue | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,7 +88,7 @@ export function PublicLostPetSightingPage({ slug }: { slug: string }) {
 
     setIsSubmitting(true);
     try {
-      await getBrowserPetAlertApiClient().createPetAlertLostPetSighting({
+      const sightingId = await getBrowserPetAlertApiClient().createPetAlertLostPetSighting({
         alertSlug: slug,
         city: form.city,
         country: form.country,
@@ -99,7 +101,13 @@ export function PublicLostPetSightingPage({ slug }: { slug: string }) {
         reporterName: form.name || null,
         sightedAt: sightedAt.toISOString()
       });
-      setSuccessMessage("Informacion enviada. La familia revisara el avistamiento desde PET ALERT.");
+      const locationStored = location
+        ? await getBrowserPetAlertApiClient().setPetAlertLostPetSightingLocation(sightingId, {
+            ...location,
+            publicLocationVisible: false
+          }).then(() => true).catch(() => false)
+        : true;
+      setSuccessMessage(`Informacion enviada. La familia revisara el avistamiento desde PET ALERT.${locationStored ? "" : " El avistamiento se guardo sin el punto de mapa."}`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "No fue posible enviar el avistamiento.");
     } finally {
@@ -121,6 +129,7 @@ export function PublicLostPetSightingPage({ slug }: { slug: string }) {
             <div className="grid"><label>Fecha<input onChange={(e) => update("date",e.target.value)} required type="date" value={form.date}/></label><label>Hora<input onChange={(e) => update("time",e.target.value)} required type="time" value={form.time}/></label></div>
             <div className="grid"><label>Ciudad<input maxLength={120} onChange={(e) => update("city",e.target.value)} required value={form.city}/></label><label>Provincia o region<input maxLength={120} onChange={(e) => update("region",e.target.value)} value={form.region}/></label></div>
             <div className="grid"><label>Pais<input maxLength={2} onChange={(e) => update("country",e.target.value.toUpperCase())} required value={form.country}/></label><label>Referencia aproximada<input maxLength={180} onChange={(e) => update("reference",e.target.value)} placeholder="Ej. cerca del parque" value={form.reference}/></label></div>
+            <ConfirmedBrowserLocation onChange={setLocation}/>
             <label>¿Que observaste?<textarea maxLength={1200} minLength={10} onChange={(e) => update("notes",e.target.value)} required rows={5} value={form.notes}/></label>
             <div className="grid"><label>Tu nombre, opcional<input maxLength={120} onChange={(e) => update("name",e.target.value)} value={form.name}/></label><label>Contacto<input disabled={!form.contactConsent} maxLength={160} onChange={(e) => update("contact",e.target.value)} value={form.contact}/></label></div>
             <label className="consent"><input checked={form.contactConsent} onChange={(e) => update("contactConsent",e.target.checked)} type="checkbox"/><span>Autorizo compartir este contacto con la familia responsable de {alert.petName}. Si no lo autorizo, mi contacto permanece privado.</span></label>

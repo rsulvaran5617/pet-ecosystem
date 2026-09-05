@@ -1,6 +1,7 @@
 import type { PetAlertApparentSex, PetAlertApparentSize, PetAlertCommunityClaim, PetAlertCommunitySighting, PublicPetAlertCommunitySighting } from "@pet/types";
 import { colorTokens, visualTokens } from "@pet/ui";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, Share, Text, TextInput, View } from "react-native";
 
@@ -42,6 +43,7 @@ const initialForm: FormState = {
 
 const operationalStatuses = new Set(["sighting_open", "sheltered_by_reporter", "possible_owner_claim", "owner_verified"]);
 type PendingPhoto = { fileName: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; uri: string };
+type ConfirmedLocation = { accuracyMeters: number | null; capturedAt: string; latitude: number; longitude: number };
 
 function Choice({ label, onPress, selected }: { label: string; onPress: () => void; selected: boolean }) {
   return (
@@ -106,6 +108,9 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
   const [myReports, setMyReports] = useState<PetAlertCommunitySighting[]>([]);
   const [receivedClaims, setReceivedClaims] = useState<PetAlertCommunityClaim[]>([]);
   const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationCandidate, setLocationCandidate] = useState<ConfirmedLocation | null>(null);
+  const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -129,6 +134,30 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function captureCurrentLocation() {
+    setIsLocating(true);
+    setErrorMessage(null);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setErrorMessage("No se concedio acceso a la ubicacion. Puedes continuar indicando la zona manualmente.");
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setLocationCandidate({
+        accuracyMeters: position.coords.accuracy,
+        capturedAt: new Date(position.timestamp).toISOString(),
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      });
+      setConfirmedLocation(null);
+    } catch {
+      setErrorMessage("No pudimos obtener la ubicacion. Puedes continuar indicando la zona manualmente.");
+    } finally {
+      setIsLocating(false);
+    }
+  }
 
   async function submit() {
     if (!form.species.trim()) {
@@ -163,6 +192,13 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
         region: form.region,
         sightedAt: form.sightedAt
       });
+      const locationStored = confirmedLocation
+        ? await getMobilePetAlertApiClient().setPetAlertCommunitySightingLocation(created.id, {
+            ...confirmedLocation,
+            publicLocationVisible: true,
+            source: "device"
+          }).then(() => true).catch(() => false)
+        : true;
       let uploadedPhotos = 0;
       for (const [displayOrder, photo] of pendingPhotos.entries()) {
         try {
@@ -182,12 +218,15 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
       }
       setForm({ ...initialForm, sightedAt: new Date().toISOString() });
       setPendingPhotos([]);
+      setLocationCandidate(null);
+      setConfirmedLocation(null);
       setIsFormVisible(false);
       await load();
       const photoMessage = pendingPhotos.length && uploadedPhotos < pendingPhotos.length
         ? ` ${uploadedPhotos} de ${pendingPhotos.length} fotos pudieron cargarse.`
         : "";
-      Alert.alert("Reporte publicado", `Gracias. La ubicacion se muestra solo de forma aproximada.${photoMessage}`, [
+      const locationMessage = locationStored ? "" : " El reporte se guardo sin el punto de mapa.";
+      Alert.alert("Reporte publicado", `Gracias. La ubicacion se muestra solo de forma aproximada.${locationMessage}${photoMessage}`, [
         {
           text: "Compartir",
           onPress: () => void Share.share({ message: `Vi una mascota aparentemente perdida. Consulta PET ALERT: https://petecosyst.com/pet-alert/mascota-vista/${created.reportSlug}` })
@@ -259,7 +298,7 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
       {isFormVisible ? (
         <View style={{ backgroundColor: colorTokens.surface, borderRadius: 20, gap: 12, padding: 14, ...visualTokens.mobile.softShadow }}>
           <Text style={{ color: colorTokens.ink, fontSize: 17, fontWeight: "900" }}>Reporte seguro</Text>
-          <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>No indiques domicilios privados. No solicitamos GPS; las fotos son opcionales.</Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 11, lineHeight: 16 }}>No indiques domicilios privados. La ubicacion es opcional y las fotos tambien.</Text>
           <View style={{ gap: 8 }}>
             <View style={{ alignItems: "center", flexDirection: "row", justifyContent: "space-between" }}>
               <View style={{ flex: 1, gap: 2 }}>
@@ -288,6 +327,20 @@ export function PetAlertCommunityWorkspace({ onBack }: { onBack: () => void }) {
           <Field label="COLLAR O SENAS DISTINTIVAS" multiline onChange={(value) => setForm((current) => ({ ...current, distinctiveMarks: value }))} value={form.distinctiveMarks} />
           <Field label="CIUDAD" onChange={(value) => setForm((current) => ({ ...current, city: value }))} value={form.city} />
           <Field label="ZONA O REFERENCIA APROXIMADA" onChange={(value) => setForm((current) => ({ ...current, locationReference: value }))} value={form.locationReference} />
+          <View style={{ backgroundColor: "#f5fbfa", borderColor: "#b9dcd6", borderRadius: 14, borderWidth: 1, gap: 8, padding: 11 }}>
+            <Text style={{ color: colorTokens.ink, fontSize: 11, fontWeight: "900" }}>UBICACION OPCIONAL</Text>
+            <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 15 }}>Usala solo si estas en el lugar del avistamiento. Publicaremos un punto desplazado para proteger la privacidad.</Text>
+            {locationCandidate ? <>
+              <Text style={{ color: colorTokens.mutedStrong, fontSize: 10, fontWeight: "800", lineHeight: 15 }}>Ubicacion obtenida{locationCandidate.accuracyMeters ? ` con precision aproximada de ${Math.round(locationCandidate.accuracyMeters)} m` : ""}. Confirma que corresponde al evento.</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <Pressable accessibilityRole="button" onPress={() => { setConfirmedLocation(locationCandidate); setLocationCandidate(null); }} style={{ backgroundColor: colorTokens.accent, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 9 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "900" }}>Confirmar lugar</Text></Pressable>
+                <Pressable accessibilityRole="button" onPress={() => setLocationCandidate(null)} style={{ borderColor: colorTokens.accent, borderRadius: 999, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 }}><Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Descartar</Text></Pressable>
+              </View>
+            </> : confirmedLocation ? <>
+              <Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Lugar confirmado. Nunca publicaremos este punto exacto.</Text>
+              <Pressable accessibilityRole="button" onPress={() => void captureCurrentLocation()} style={{ alignSelf: "flex-start", borderColor: colorTokens.accent, borderRadius: 999, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 9 }}><Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>Cambiar ubicacion</Text></Pressable>
+            </> : <Pressable accessibilityRole="button" disabled={isLocating} onPress={() => void captureCurrentLocation()} style={{ alignSelf: "flex-start", borderColor: colorTokens.accent, borderRadius: 999, borderWidth: 1, opacity: isLocating ? 0.55 : 1, paddingHorizontal: 12, paddingVertical: 9 }}><Text style={{ color: colorTokens.accentDark, fontSize: 10, fontWeight: "900" }}>{isLocating ? "Obteniendo ubicacion..." : "Usar ubicacion del dispositivo"}</Text></Pressable>}
+          </View>
           <View style={{ gap: 4 }}>
             <Field label="QUE OBSERVASTE (MINIMO 10 CARACTERES)" multiline onChange={(value) => setForm((current) => ({ ...current, observedSituation: value }))} value={form.observedSituation} />
             <Text style={{ color: form.observedSituation.trim().length >= 10 ? colorTokens.accentDark : colorTokens.muted, fontSize: 10, textAlign: "right" }}>
