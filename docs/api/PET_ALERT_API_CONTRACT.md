@@ -149,3 +149,22 @@ El API client expone `listPublicPetAlertDirectory` y firma temporalmente la prim
 `list_public_pet_alert_community_media(target_report_slugs)` reemplaza la lectura publica directa de metadata. Solo devuelve referencias de storage para reportes compartibles y vigentes; el cliente genera URLs firmadas temporales.
 
 `list_public_pet_alert_lost_pet_media(target_alert_slugs)` proyecta exclusivamente el avatar del perfil asociado a una alerta pública válida. El API client firma temporalmente la imagen y la incorpora en la ficha y el directorio.
+# PET ALERT MAP-2
+
+Las ubicaciones se escriben despues de crear el evento mediante RPC dedicadas,
+evitando cambiar las firmas historicas:
+
+- `set_pet_alert_lost_pet_location`
+- `set_pet_alert_lost_pet_sighting_location`
+- `set_pet_alert_community_sighting_location`
+
+Entrada: ID privado autorizado, latitud/longitud confirmadas, precision opcional,
+fuente `device | map | search`, fecha de captura y preferencia de visibilidad.
+La respuesta autenticada devuelve la ubicacion privada del propio evento y su
+metadata; la coordenada generalizada no puede ser elegida por el cliente.
+
+`list_public_pet_alert_map_points` acepta vista `lost | seen | found`, texto,
+ciudad, especie, limites geograficos opcionales y un maximo efectivo de 500.
+Devuelve tipo, slug/ruta publica, estado, titulo, especie, ciudad, fecha y
+`public_latitude/public_longitude`. No devuelve IDs, coordenadas privadas,
+precision, fuente, contacto, household ni identidad del reportante.

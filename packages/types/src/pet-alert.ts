@@ -46,6 +46,54 @@ export type PetAlertPublicDirectoryView = "lost" | "seen" | "found";
 export type PetAlertPublicEventType = "lost_pet" | "community_sighting";
 export type PetAlertPublicStatusGroup = "active" | "found";
 export type PetAlertLostPetSource = "registered_pet" | "external_owner";
+export type PetAlertLocationSource = "device" | "map" | "search" | "legacy_text";
+
+export interface PetAlertLocationInput {
+  latitude: number;
+  longitude: number;
+  accuracyMeters?: number | null;
+  source: Exclude<PetAlertLocationSource, "legacy_text">;
+  capturedAt: string;
+  publicLocationVisible?: boolean;
+}
+
+export interface PetAlertPrivateLocation {
+  latitude: number;
+  longitude: number;
+  accuracyMeters: number | null;
+  source: Exclude<PetAlertLocationSource, "legacy_text">;
+  capturedAt: string;
+  publicLocationVisible: boolean;
+}
+
+export interface PublicPetAlertMapPoint {
+  eventType: PetAlertPublicEventType;
+  publicSlug: string;
+  publicPath: string;
+  status: string;
+  statusGroup: PetAlertPublicStatusGroup;
+  title: string;
+  species: string;
+  city: string;
+  occurredAt: string;
+  publicLatitude: number;
+  publicLongitude: number;
+  photoUrl: string | null;
+}
+
+export interface PublicPetAlertMapFilters {
+  view?: PetAlertPublicDirectoryView;
+  query?: string | null;
+  city?: string | null;
+  species?: string | null;
+  bounds?: {
+    minLatitude: number;
+    minLongitude: number;
+    maxLatitude: number;
+    maxLongitude: number;
+  } | null;
+  limit?: number;
+}
 
 export interface PublicPetAlertDirectoryEvent {
   eventType: PetAlertPublicEventType;

@@ -589,3 +589,9 @@ No crea solicitudes formales, transferencias ni cambios en `pets.household_id`.
 - Migracion Clinical Access-2D `20260901170000_clinical_access_append_only_encounters.sql` aplicada remoto; agrega atenciones, entradas y metadata documental append-only.
 - Migracion `20260901190000_clinical_access_documents_timeline.sql` aplicada remotamente: bucket privado `clinical-documents`, carga validada, rectificaciones, timeline owner/profesional y auditoria Admin sanitizada.
 - Migracion correctiva `20260903100000_clinical_document_storage_policy_isolation.sql`: aisla la evaluacion RLS del bucket clinico para no interferir con URLs firmadas de otros buckets privados.
+# PET ALERT MAP-2 (migracion local pendiente)
+
+La migracion `20260904130000_pet_alert_map2_secure_locations.sql` agrega metadata
+geografica, puntos PostGIS e indices GiST parciales a las tres entidades de
+eventos PET ALERT. Se separan coordenadas privadas confirmadas y coordenadas
+publicas generalizadas; no se crea una tabla publica duplicada.

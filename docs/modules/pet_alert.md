@@ -106,3 +106,11 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - El directorio encuadra cada portada completa dentro de un marco uniforme y evita recortes destructivos ante distintas proporciones de imagen.
 - Las portadas se resuelven tambien en navegadores anonimos: las policies de Storage validan el objeto publico mediante helpers acotados y no dependen de una sesion autenticada.
 - La ficha publica owner genera un QR estable hacia su slug y carteles PNG para impresion o redes; no crea tracking, URLs alternas ni datos publicos adicionales.
+
+## PET ALERT MAP-2 - base geografica segura
+
+- La ubicacion confirmada permanece privada y la publicacion usa un punto generalizado independiente.
+- La generalizacion ocurre en servidor con desplazamiento estable de 250 a 500 metros.
+- La lectura publica no devuelve IDs internos, contacto, ownership ni coordenadas privadas.
+- No hay todavia mapa visual, solicitud de GPS ni geocodificacion.
+- Migracion remota aplicada: `20260904130000_pet_alert_map2_secure_locations.sql`.

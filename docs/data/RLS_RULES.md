@@ -344,3 +344,9 @@ No implementar tablas sensibles sin definir su politica RLS.
 - Clinical Access-2C bloquea acceso directo a solicitudes/autorizaciones. Solicitar exige profesional verificado y grant vigente; decidir/revocar exige `can_edit_pet`, y los scopes aprobados deben ser subconjunto de los solicitados.
 - Clinical Access-2D/2E mantiene tablas clinicas sin CRUD cliente. Documentos privados permiten carga solo al autor profesional con autorizacion vigente y scope documental; lectura storage solo al household con `can_view_pet` o al profesional autor. Admin consulta eventos sanitizados por RPC y no descarga documentos rutinariamente.
 - Las policies de `clinical-documents` delegan sus joins sensibles en helpers `security definer`; esto evita que una policy de Storage exija privilegios directos sobre metadata clinica al evaluar objetos de buckets no relacionados como `pet-avatars`.
+# PET ALERT MAP-2
+
+- Las coordenadas privadas conservan las policies de ownership existentes y no tienen lectura anonima.
+- Las mutaciones geograficas se realizan por RPC `security definer` con autorizacion explicita.
+- Anon y authenticated solo ejecutan `list_public_pet_alert_map_points`, cuya firma proyecta coordenadas generalizadas y datos publicos minimos.
+- La funcion de generalizacion no se concede a clientes; solo puede ejecutarla el backend controlado.

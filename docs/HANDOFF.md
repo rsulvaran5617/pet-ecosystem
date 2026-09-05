@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-2 local
+
+- Se preparo la persistencia separada de coordenadas privadas y publicas para alertas Owner, avistamientos ligados y reportes comunitarios.
+- La coordenada publica se genera en servidor con desplazamiento de 250 a 500 metros y no puede ser enviada por el cliente.
+- Se agregaron setters autenticados y una RPC publica minima con filtros/bounds, sin IDs, contacto ni coordenadas privadas.
+- Tipos y API client quedaron listos; no se implemento mapa visual, GPS, permisos ni geocodificacion.
+- Migracion remota aplicada: `20260904130000_pet_alert_map2_secure_locations.sql`.
+
 # Handoff 2026-09-04 - Correccion de fecha al registrar mascota Owner
 
 - Diagnostico: una fecha de nacimiento valida podia fallar porque el formulario mobile Owner enviaba `fosterIntakeDate: ""`; PostgreSQL intentaba convertir esa cadena vacia al tipo `date`.

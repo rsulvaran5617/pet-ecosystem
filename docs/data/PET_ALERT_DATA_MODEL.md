@@ -147,3 +147,17 @@ El estado efectivo puede derivarse al leer mientras no exista scheduler. Un job 
 # Proyeccion publica Slice 7B
 
 El centro comunitario no agrega una tabla duplicada. `list_public_pet_alert_directory` compone una proyeccion de solo lectura desde `pet_alert_lost_pets` y `pet_alert_community_sightings`, limitada a contenido compartible, vigente y no pausado. Los estados se agrupan en `active` y `found` exclusivamente para presentacion publica.
+# PET ALERT MAP-2
+
+`pet_alert_lost_pets` y `pet_alert_lost_pet_sightings` conservan sus pares de
+coordenadas existentes como ubicacion privada. `pet_alert_community_sightings`
+agrega un par privado equivalente. Las tres entidades agregan:
+
+- `public_latitude/public_longitude`, generadas en servidor;
+- `location_accuracy_meters`, `location_source` y `location_captured_at`;
+- `public_location_visible`;
+- puntos PostGIS privados/publicos generados e indices GiST parciales publicos.
+
+Los checks exigen pares completos, rangos geograficos validos, fuente conocida y
+metadata de captura para ubicaciones confirmadas. Los registros anteriores usan
+`legacy_text`, no se geocodifican automaticamente y no aparecen en el mapa.

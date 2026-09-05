@@ -18,11 +18,15 @@ import type {
   PetAlertCloseReason,
   PetAlertLostPet,
   PetAlertLostPetSighting,
+  PetAlertLocationInput,
+  PetAlertPrivateLocation,
   PetAlertSightingStatus,
   PublicPetAlertLostPet,
   PublicPetAlertCommunitySighting,
   PublicPetAlertDirectoryEvent,
   PublicPetAlertDirectoryPage,
+  PublicPetAlertMapFilters,
+  PublicPetAlertMapPoint,
   PetAlertPublicDirectoryView,
   UpdatePetAlertLostPetInput,
   UploadPetAlertCommunityPhotoInput,
@@ -191,6 +195,29 @@ interface PublicDirectoryRow {
   total_count: number | string;
 }
 
+interface PublicMapPointRow {
+  event_type: PublicPetAlertMapPoint["eventType"];
+  public_slug: string;
+  public_path: string;
+  status: string;
+  status_group: PublicPetAlertMapPoint["statusGroup"];
+  title: string;
+  species: string;
+  city: string;
+  occurred_at: string;
+  public_latitude: number;
+  public_longitude: number;
+}
+
+interface PrivateLocationRow {
+  private_latitude: number;
+  private_longitude: number;
+  location_accuracy_meters: number | null;
+  location_source: PetAlertPrivateLocation["source"];
+  location_captured_at: string;
+  public_location_visible: boolean;
+}
+
 interface ModerationCaseRow {
   case_id: string;
   target_type: PetAlertModerationTargetType;
@@ -240,6 +267,7 @@ interface ExternalReportReviewRow {
 
 export interface PetAlertApiClient {
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
+  setPetAlertLostPetLocation(alertId: Uuid, input: PetAlertLocationInput): Promise<PetAlertPrivateLocation>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
   listPetAlertLostPetsForPet(petId: Uuid): Promise<PetAlertLostPet[]>;
   listActivePetAlertLostPetsForHousehold(householdId: Uuid): Promise<PetAlertLostPet[]>;
@@ -248,12 +276,14 @@ export interface PetAlertApiClient {
   closePetAlertLostPet(alertId: Uuid, reason: PetAlertCloseReason): Promise<PetAlertLostPet>;
   markPetAlertLostPetFound(alertId: Uuid, source: "pet_alert" | "other"): Promise<PetAlertLostPet>;
   createPetAlertLostPetSighting(input: CreatePetAlertLostPetSightingInput): Promise<Uuid>;
+  setPetAlertLostPetSightingLocation(sightingId: Uuid, input: PetAlertLocationInput): Promise<PetAlertPrivateLocation>;
   listSightingsForPetAlertLostPet(alertId: Uuid): Promise<PetAlertLostPetSighting[]>;
   updatePetAlertLostPetSightingStatus(
     sightingId: Uuid,
     status: PetAlertSightingStatus
   ): Promise<PetAlertLostPetSighting>;
   createPetAlertCommunitySighting(input: CreatePetAlertCommunitySightingInput): Promise<PetAlertCommunitySighting>;
+  setPetAlertCommunitySightingLocation(reportId: Uuid, input: PetAlertLocationInput): Promise<PetAlertPrivateLocation>;
   uploadPetAlertCommunityPhoto(input: UploadPetAlertCommunityPhotoInput): Promise<string>;
   getPetAlertCommunitySightingBySlug(reportSlug: string): Promise<PublicPetAlertCommunitySighting | null>;
   listPublicPetAlertCommunitySightings(filters?: { city?: string | null; country?: string | null; limit?: number }): Promise<PublicPetAlertCommunitySighting[]>;
@@ -265,6 +295,7 @@ export interface PetAlertApiClient {
     limit?: number;
     offset?: number;
   }): Promise<PublicPetAlertDirectoryPage>;
+  listPublicPetAlertMapPoints(filters?: PublicPetAlertMapFilters): Promise<PublicPetAlertMapPoint[]>;
   listMyPetAlertCommunitySightings(): Promise<PetAlertCommunitySighting[]>;
   closePetAlertCommunitySighting(reportId: Uuid, reason: PetAlertCommunityCloseReason): Promise<PetAlertCommunitySighting>;
   createPetAlertCommunityClaim(input: CreatePetAlertCommunityClaimInput): Promise<PetAlertCommunityClaim>;
@@ -282,6 +313,34 @@ export interface PetAlertApiClient {
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
   throw new Error(error?.message ?? fallbackMessage);
+}
+
+function mapPrivateLocation(row: PrivateLocationRow): PetAlertPrivateLocation {
+  return {
+    latitude: row.private_latitude,
+    longitude: row.private_longitude,
+    accuracyMeters: row.location_accuracy_meters,
+    source: row.location_source,
+    capturedAt: row.location_captured_at,
+    publicLocationVisible: row.public_location_visible
+  };
+}
+
+function mapPublicMapPoint(row: PublicMapPointRow): PublicPetAlertMapPoint {
+  return {
+    eventType: row.event_type,
+    publicSlug: row.public_slug,
+    publicPath: row.public_path,
+    status: row.status,
+    statusGroup: row.status_group,
+    title: row.title,
+    species: row.species,
+    city: row.city,
+    occurredAt: row.occurred_at,
+    publicLatitude: row.public_latitude,
+    publicLongitude: row.public_longitude,
+    photoUrl: null
+  };
 }
 
 function mapAlert(row: LostPetAlertRow): PetAlertLostPet {
@@ -564,6 +623,20 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       if (error || !data) fail(error, "No fue posible crear la alerta PET ALERT.");
       return mapAlert(data as LostPetAlertRow);
     },
+    async setPetAlertLostPetLocation(alertId, input) {
+      const { data, error } = await supabase.rpc("set_pet_alert_lost_pet_location", {
+        target_alert_id: alertId,
+        next_latitude: input.latitude,
+        next_longitude: input.longitude,
+        next_accuracy_meters: input.accuracyMeters ?? null,
+        next_location_source: input.source,
+        next_captured_at: input.capturedAt,
+        next_public_location_visible: input.publicLocationVisible ?? true
+      });
+      const row = (data as PrivateLocationRow[] | null)?.[0];
+      if (error || !row) fail(error, "No fue posible guardar la ubicacion de la alerta.");
+      return mapPrivateLocation(row);
+    },
     async getPetAlertLostPetBySlug(alertSlug) {
       const { data, error } = await supabase.rpc("get_public_pet_alert_lost_pet_by_slug", {
         target_alert_slug: alertSlug
@@ -637,6 +710,20 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       if (error || !data) fail(error, "No fue posible registrar el avistamiento.");
       return data as Uuid;
     },
+    async setPetAlertLostPetSightingLocation(sightingId, input) {
+      const { data, error } = await supabase.rpc("set_pet_alert_lost_pet_sighting_location", {
+        target_sighting_id: sightingId,
+        next_latitude: input.latitude,
+        next_longitude: input.longitude,
+        next_accuracy_meters: input.accuracyMeters ?? null,
+        next_location_source: input.source,
+        next_captured_at: input.capturedAt,
+        next_public_location_visible: input.publicLocationVisible ?? true
+      });
+      const row = (data as PrivateLocationRow[] | null)?.[0];
+      if (error || !row) fail(error, "No fue posible guardar la ubicacion del avistamiento.");
+      return mapPrivateLocation(row);
+    },
     async listSightingsForPetAlertLostPet(alertId) {
       const { data, error } = await supabase.rpc("list_pet_alert_lost_pet_sightings", { target_alert_id: alertId });
       if (error) fail(error, "No fue posible cargar los avistamientos.");
@@ -671,6 +758,20 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       });
       if (error || !data) fail(error, "No fue posible publicar el reporte comunitario.");
       return mapCommunitySighting(data as CommunitySightingRow);
+    },
+    async setPetAlertCommunitySightingLocation(reportId, input) {
+      const { data, error } = await supabase.rpc("set_pet_alert_community_sighting_location", {
+        target_report_id: reportId,
+        next_latitude: input.latitude,
+        next_longitude: input.longitude,
+        next_accuracy_meters: input.accuracyMeters ?? null,
+        next_location_source: input.source,
+        next_captured_at: input.capturedAt,
+        next_public_location_visible: input.publicLocationVisible ?? true
+      });
+      const row = (data as PrivateLocationRow[] | null)?.[0];
+      if (error || !row) fail(error, "No fue posible guardar la ubicacion del reporte comunitario.");
+      return mapPrivateLocation(row);
     },
     async uploadPetAlertCommunityPhoto(input) {
       if (input.displayOrder < 0 || input.displayOrder > 2) throw new Error("Solo puedes agregar hasta 3 fotos.");
@@ -780,6 +881,62 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       }
 
       return { items, total: Number(rows[0]?.total_count ?? 0), limit, offset };
+    },
+    async listPublicPetAlertMapPoints(filters = {}) {
+      const limit = Math.min(Math.max(filters.limit ?? 200, 1), 500);
+      const { data, error } = await supabase.rpc("list_public_pet_alert_map_points", {
+        filter_view: filters.view ?? "lost",
+        filter_query: filters.query ?? null,
+        filter_city: filters.city ?? null,
+        filter_species: filters.species ?? null,
+        bounds_min_latitude: filters.bounds?.minLatitude ?? null,
+        bounds_min_longitude: filters.bounds?.minLongitude ?? null,
+        bounds_max_latitude: filters.bounds?.maxLatitude ?? null,
+        bounds_max_longitude: filters.bounds?.maxLongitude ?? null,
+        result_limit: limit
+      });
+      if (error) fail(error, "No fue posible cargar las ubicaciones publicas PET ALERT.");
+
+      const points = ((data ?? []) as PublicMapPointRow[]).map(mapPublicMapPoint);
+      const lostPoints = points.filter((point) => point.eventType === "lost_pet");
+      const communityPoints = points.filter((point) => point.eventType === "community_sighting");
+      if (lostPoints.length) {
+        const photoBySlug = await getPublicLostPetPhotoUrlMap(supabase, lostPoints.map((point) => point.publicSlug));
+        points.forEach((point) => {
+          if (point.eventType === "lost_pet") point.photoUrl = photoBySlug.get(point.publicSlug) ?? null;
+        });
+      }
+      if (communityPoints.length) {
+        const reports = await attachCommunityPhotoUrls(
+          supabase,
+          communityPoints.map((point) => ({
+            reportSlug: point.publicSlug,
+            status: point.status as PetAlertCommunitySighting["status"],
+            animalSpecies: point.species,
+            apparentBreed: null,
+            apparentSize: "unknown" as const,
+            apparentSex: "unknown" as const,
+            primaryColor: null,
+            collarDescription: null,
+            distinctiveMarks: null,
+            behaviorNotes: null,
+            observedSituation: "",
+            sightedAt: point.occurredAt,
+            city: point.city,
+            region: null,
+            country: "PA",
+            locationReference: null,
+            publishedAt: point.occurredAt,
+            expiresAt: point.occurredAt,
+            photoUrls: []
+          }))
+        );
+        const photoBySlug = new Map(reports.map((report) => [report.reportSlug, report.photoUrls[0] ?? null]));
+        points.forEach((point) => {
+          if (point.eventType === "community_sighting") point.photoUrl = photoBySlug.get(point.publicSlug) ?? null;
+        });
+      }
+      return points;
     },
     async listMyPetAlertCommunitySightings() {
       const { data, error } = await supabase.rpc("list_my_pet_alert_community_sightings");
