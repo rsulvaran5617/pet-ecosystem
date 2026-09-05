@@ -114,3 +114,11 @@ Aplicar y validar Slice 6 antes de abrir historial en expediente o integracion Q
 - La lectura publica no devuelve IDs internos, contacto, ownership ni coordenadas privadas.
 - No hay todavia mapa visual, solicitud de GPS ni geocodificacion.
 - Migracion remota aplicada: `20260904130000_pet_alert_map2_secure_locations.sql`.
+
+## PET ALERT MAP-3 - captura Owner Mobile
+
+- El permiso de ubicacion se solicita solamente al pulsar la accion correspondiente.
+- La captura requiere confirmacion y puede descartarse antes de guardar.
+- Negar el permiso no bloquea el reporte textual existente.
+- El cliente envia solo la coordenada privada al setter autenticado de MAP-2; el servidor decide el punto publico.
+- La seleccion manual cartografica permanece diferida hasta contar con proveedor productivo.

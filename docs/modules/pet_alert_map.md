@@ -2,7 +2,7 @@
 
 ## Estado
 
-`map_2_applied_remote`
+`map_3_owner_mobile_implemented_local`
 
 Este documento conserva el diagnostico de MAP-1 y registra la implementacion
 local de MAP-2. MAP-2 prepara datos y contratos; no incluye mapa visual, captura
@@ -20,6 +20,23 @@ GPS, permisos del dispositivo, geocodificador ni dependencias cartograficas.
 - Los registros heredados usan `legacy_text` y quedan fuera del mapa hasta que
   su responsable confirme una ubicacion.
 - La migracion fue aplicada al ambiente Supabase vinculado el 2026-09-04.
+
+## MAP-3 implementado localmente
+
+- Owner Mobile ofrece `Usar ubicacion del dispositivo` dentro del paso de zona
+  del reporte de mascota extraviada.
+- El permiso foreground se solicita solo despues de esa accion explicita.
+- La captura es opcional: rechazo, error o indisponibilidad mantienen operativo
+  el ingreso manual de ciudad, region y referencia.
+- La coordenada obtenida no se guarda inmediatamente. El usuario confirma que
+  corresponde al lugar del ultimo avistamiento o la descarta.
+- Al guardar, el cliente envia la coordenada privada confirmada mediante
+  `set_pet_alert_lost_pet_location`; Supabase genera el punto publico desplazado.
+- La vista previa informa si el boletin tendra punto aproximado o solo zona textual.
+- Se agrego `expo-location` y su mensaje de permiso de uso en primer plano.
+- La seleccion manual sobre un mapa y la busqueda geocodificada siguen pendientes
+  hasta aprobar proveedor de tiles/geocodificacion para produccion.
+- MAP-3 no cambia alertas comunitarias, reporte externo, mapa web ni Admin.
 
 ## 1. Resumen ejecutivo
 

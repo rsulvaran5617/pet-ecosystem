@@ -50,6 +50,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite a Pet Ecosystem usar tu ubicacion solo cuando decidas confirmar donde viste por ultima vez a tu mascota."
+        }
+      ],
+      [
         "@maplibre/maplibre-react-native",
         {
           "android": {

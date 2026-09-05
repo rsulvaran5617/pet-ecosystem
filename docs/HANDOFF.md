@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-04 - PET ALERT MAP-3 Owner Mobile local
+
+- El paso `En que zona` permite obtener ubicacion foreground solo tras accion explicita y exige confirmacion antes de guardarla.
+- Rechazar permiso, descartar el punto o fallar la captura conserva el recorrido manual y no bloquea el reporte.
+- La coordenada exacta viaja por el setter autenticado de MAP-2; el boletin publico usa exclusivamente el punto generalizado por servidor.
+- `expo-location ~17.0.1` y el copy nativo de permiso fueron agregados; requiere nueva compilacion mobile para QA.
+- No se implementaron mapa visual, geocodificacion, reporte externo, comunidad, Admin ni web en MAP-3.
+
 # Handoff 2026-09-04 - PET ALERT MAP-2 local
 
 - Se preparo la persistencia separada de coordenadas privadas y publicas para alertas Owner, avistamientos ligados y reportes comunitarios.

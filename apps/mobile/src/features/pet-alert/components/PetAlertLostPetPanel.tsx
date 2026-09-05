@@ -6,12 +6,20 @@ import type {
   PetAlertLocationPrecision,
   Uuid
 } from "@pet/types";
+import * as Location from "expo-location";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, Share, Text, TextInput, View } from "react-native";
 
 import { getMobilePetAlertApiClient } from "../../core/services/supabase-mobile";
 
 type AlertStep = 1 | 2 | 3 | 4;
+
+type ConfirmedLocation = {
+  accuracyMeters: number | null;
+  capturedAt: string;
+  latitude: number;
+  longitude: number;
+};
 
 type AlertForm = {
   behaviorNotes: string;
@@ -41,8 +49,13 @@ const statusLabels: Record<PetAlertLostPet["status"], string> = {
   expired: "Vencida",
   flagged: "En revision",
   found: "Encontrada",
+  paused: "Pausada",
+  pending_review: "Pendiente de revision",
+  pending_verification: "Pendiente de verificacion",
   possible_match: "Posible coincidencia",
-  sighting_received: "Informacion recibida"
+  rejected: "Rechazada",
+  sighting_received: "Informacion recibida",
+  withdrawn: "Retirada"
 };
 
 const sightingStatusLabels: Record<PetAlertLostPetSighting["status"], string> = {
@@ -253,11 +266,14 @@ export function PetAlertLostPetPanel({
   const [alerts, setAlerts] = useState<PetAlertLostPet[]>([]);
   const [form, setForm] = useState<AlertForm>(emptyForm);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [sightings, setSightings] = useState<PetAlertLostPetSighting[]>([]);
   const [step, setStep] = useState<AlertStep>(1);
+  const [locationCandidate, setLocationCandidate] = useState<ConfirmedLocation | null>(null);
+  const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
 
   const currentAlert = useMemo(
     () => alerts.find((alert) => openStatuses.has(alert.status)) ?? null,
@@ -293,8 +309,42 @@ export function PetAlertLostPetPanel({
   useEffect(() => {
     setIsExpanded(false);
     setStep(1);
+    setLocationCandidate(null);
+    setConfirmedLocation(null);
     void load();
   }, [petId]);
+
+  async function captureCurrentLocation() {
+    setIsLocating(true);
+    setMessage(null);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setMessage("No se concedio acceso a la ubicacion. Puedes continuar indicando la zona manualmente.");
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setLocationCandidate({
+        accuracyMeters: position.coords.accuracy,
+        capturedAt: new Date(position.timestamp).toISOString(),
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      });
+      setConfirmedLocation(null);
+    } catch {
+      setMessage("No pudimos obtener la ubicacion. Puedes continuar indicando la zona manualmente.");
+    } finally {
+      setIsLocating(false);
+    }
+  }
+
+  function confirmLocation() {
+    if (!locationCandidate) return;
+    setConfirmedLocation(locationCandidate);
+    setLocationCandidate(null);
+    setMessage("Ubicacion confirmada. Publicaremos solo un punto aproximado, nunca este punto exacto.");
+  }
 
   function goNext() {
     const error = fieldError(form, step);
@@ -322,14 +372,25 @@ export function PetAlertLostPetPanel({
       let savedAlert: PetAlertLostPet;
       if (currentAlert) {
         savedAlert = await getMobilePetAlertApiClient().updatePetAlertLostPet(currentAlert.id, toInput(petId, form));
-        if (publish && savedAlert.status === "draft") {
-          savedAlert = await getMobilePetAlertApiClient().publishPetAlertLostPet(savedAlert.id);
-        }
       } else {
         savedAlert = await getMobilePetAlertApiClient().createPetAlertLostPet({
           ...toInput(petId, form),
-          publish
+          publish: false
         });
+      }
+
+      if (confirmedLocation) {
+        await getMobilePetAlertApiClient().setPetAlertLostPetLocation(savedAlert.id, {
+          accuracyMeters: confirmedLocation.accuracyMeters,
+          capturedAt: confirmedLocation.capturedAt,
+          latitude: confirmedLocation.latitude,
+          longitude: confirmedLocation.longitude,
+          publicLocationVisible: true,
+          source: "device"
+        });
+      }
+      if (publish && savedAlert.status === "draft") {
+        savedAlert = await getMobilePetAlertApiClient().publishPetAlertLostPet(savedAlert.id);
       }
       setAlerts((current) => [savedAlert, ...current.filter((alert) => alert.id !== savedAlert.id)]);
       setMessage(publish ? "PET ALERT publicada por 30 dias." : "Borrador guardado.");
@@ -517,6 +578,32 @@ export function PetAlertLostPetPanel({
                 </View>
                 <FormField label="Referencia publica aproximada" onChangeText={(reference) => setForm((current) => ({ ...current, reference }))} placeholder="Ej. cerca del parque" value={form.reference} />
                 <Text style={{ color: "#9a3412", fontSize: 10, lineHeight: 14 }}>No escribas tu direccion residencial ni una ubicacion exacta.</Text>
+                <View style={{ backgroundColor: "#ffffff", borderColor: "rgba(194,65,12,0.18)", borderRadius: 14, borderWidth: 1, gap: 8, padding: 11 }}>
+                  <Text style={{ color: "#7c2d12", fontSize: 11, fontWeight: "900" }}>Ubicacion opcional</Text>
+                  <Text style={{ color: "#64748b", fontSize: 10, lineHeight: 15 }}>
+                    Usala solo si estas en el lugar donde viste a {petName} por ultima vez. Primero podras revisarla y confirmarla.
+                  </Text>
+                  {locationCandidate ? (
+                    <View style={{ gap: 8 }}>
+                      <Text style={{ color: "#334155", fontSize: 10, fontWeight: "800" }}>
+                        Ubicacion obtenida{locationCandidate.accuracyMeters ? ` con precision aproximada de ${Math.round(locationCandidate.accuracyMeters)} m` : ""}. ¿Corresponde al lugar del evento?
+                      </Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        <ActionButton label="Confirmar lugar" onPress={confirmLocation} />
+                        <ActionButton label="Descartar" onPress={() => setLocationCandidate(null)} tone="secondary" />
+                      </View>
+                    </View>
+                  ) : confirmedLocation ? (
+                    <View style={{ gap: 8 }}>
+                      <Text style={{ color: "#0f766e", fontSize: 10, fontWeight: "900" }}>
+                        Lugar confirmado. El boletin mostrara un punto desplazado para proteger tu privacidad.
+                      </Text>
+                      <ActionButton label="Cambiar ubicacion" onPress={() => void captureCurrentLocation()} tone="secondary" />
+                    </View>
+                  ) : (
+                    <ActionButton disabled={isLocating} label={isLocating ? "Obteniendo ubicacion..." : "Usar ubicacion del dispositivo"} onPress={() => void captureCurrentLocation()} tone="secondary" />
+                  )}
+                </View>
               </View>
             ) : null}
             {step === 3 ? (
@@ -539,6 +626,9 @@ export function PetAlertLostPetPanel({
                 <Text style={{ color: "#334155", fontSize: 11, lineHeight: 16 }}>{form.publicDescription}</Text>
                 <Text style={{ color: "#9a3412", fontSize: 11, fontWeight: "800" }}>{form.city}{form.reference ? ` · ${form.reference}` : ""}</Text>
                 <Text style={{ color: "#64748b", fontSize: 10 }}>Contacto interno y ubicacion aproximada. Vigencia: 30 dias.</Text>
+                <Text style={{ color: confirmedLocation ? "#0f766e" : "#64748b", fontSize: 10, fontWeight: "800" }}>
+                  {confirmedLocation ? "Punto aproximado listo para publicar." : "Sin punto de mapa; la zona escrita seguira visible."}
+                </Text>
               </View>
             ) : null}
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
