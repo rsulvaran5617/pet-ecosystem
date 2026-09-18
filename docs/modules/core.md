@@ -107,3 +107,7 @@ Decision 2026-07-25:
 
 ## Regla de implementacion
 No duplicar autenticacion fuera de Supabase Auth y no avanzar desde este modulo a hogares, mascotas o pagos transaccionales.
+
+## Corrección web H07/H08 — 18/09/2026
+
+Las consolas owner/provider ajustan el contenedor y las etiquetas a pantallas estrechas y nombres/correos largos. No recortan el panel principal para ocultar el desbordamiento. Inicio y Ayuda usan CSS estático importado, evitando la discrepancia de texto style durante hidratación y conservando presentación sin JavaScript. Sin cambios de autenticación, roles ni API. Validado localmente en desarrollo y producción; publicación pendiente. Ver docs/audit/2026-09-17/CORRECCION_WEB.md.

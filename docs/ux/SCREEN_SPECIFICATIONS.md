@@ -354,3 +354,9 @@ Web /clinical-access/[token]: al confirmar una atención se congela la operació
 Mobile Salud > Acceso clínico > Historial de autorizaciones: una solicitud completed aún vigente permite Revocar permisos pendientes; explicar que conserva la atención e impide completar documentos pendientes. Tras revocar se muestra Permiso revocado. El backend verifica can_edit_pet y el estado vigente.
 
 Web probada localmente con subida real y respuesta perdida simulada. Pantalla nativa pendiente de QA en dispositivo y ambos clientes pendientes de publicación.
+
+## H07/H08 — consolas adaptables e hidratación pública, 18/09/2026
+
+Owner/provider web: cabecera, badges e identificadores largos deben permanecer dentro del ancho. Los paneles principales permiten contenido visible y sus columnas se ajustan al ancho; no usar overflow hidden para encubrir contenido fuera de pantalla. La tabla semanal de capacidad conserva scroll propio con nombre accesible y foco por teclado. Aviso de mensaje: tamaño border-box y ajuste de texto largo.
+
+Inicio y Ayuda conservan CSS importado y presentación sin JavaScript, con hidratación sin discrepancias. QA local en desarrollo y build de producción: 360, 390, 414 y 1440 px; prueba de cadenas largas; producción espera datos cargados. Sin equivalencia con pruebas nativas o del sitio desplegado. Evidencia en docs/audit/2026-09-17/CORRECCION_WEB.md.

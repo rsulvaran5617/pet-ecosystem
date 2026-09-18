@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-09-18 - Commit/push previo y corrección web H07/H08
+
+- Usuario pidió commit/push de lo pendiente y continuar H07/H08. fcdb056 enviado a origin/master: canvas descargable, informe/auditoría, H01-H06, migraciones y regresiones. PDFs/ZIPs incluidos expresamente. app.json y docs/delivery/onlyoneaccess.txt siguen ajenos y sin rastrear; no leer ni publicar el segundo.
+- H07: columnas minmax(0,1fr), minWidth/ajuste de texto en contenedor/badges/tarjetas, detalles apilados, selector acotado y aviso de mensajes border-box. Se retiró overflow hidden que recortaba paneles; heatmap con scroll propio y región enfocada/nombre accesible. Decoración landing acotada.
+- H08: CSS estático extraído de ProductLandingScreen/HelpCenterPage a hojas importadas. Sin nuevas dependencias, cambios de API/DB/roles ni mobile.
+- Desarrollo y producción local pasan 24 combinaciones de ancho/rol/ruta/texto/JS; producción espera carga de datos y selecciona negocio QA. Sin hidratación ni overflow; prueba explícita de ambos bordes y región desplazable. Avisos observados se comprueban y cierran antes de capturas. Build web, lint y tipos correctos. JSON/screenshots y CORRECCION_WEB.md documentan límites.
+- Cuentas QA configuradas contienen pruebas anteriores: no son DB vacía. Solo login/lecturas/selección local/logout; no reservas ni mensajes enviados. Texto de estrés y saludo anonimizado solo en DOM.
+- Los cambios H07/H08 y el cierre documental se guardan en un segundo commit separado de fcdb056; consultar git log para su identificador. No se ejecutó despliegue web ni distribución mobile. Push no implica despliegue. H04/H05 aún requieren publicar clientes y QA nativo. Auditoría permanece 45/110 parcial, 65 sin ejecución.
+- Próximo: despliegue de clientes y verificación de versión servida, pruebas nativas y ampliar funciones sin ejecución. No reabrir H01-H06 ni repetir migraciones aplicadas.
+
+
 # Handoff 2026-09-17 - H06 capacidad aplicada y probada en concurrencia
 
 - Continuación autorizada por usuario. Aplicada solo 20260918030000_provider_capacity_occupied_guard.sql tras baseline exacto y candidata en rollback; hash idéntico al probado. No commit/push ni deploy de clientes.

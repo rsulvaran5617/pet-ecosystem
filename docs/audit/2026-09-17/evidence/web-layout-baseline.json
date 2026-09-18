@@ -1,0 +1,672 @@
+{
+  "executedAt": "2026-09-18T13:09:09.556Z",
+  "mode": "baseline",
+  "public": [
+    {
+      "route": "/",
+      "publicStyle": {
+        "display": "grid",
+        "font": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "hydrationErrors": [],
+      "hydrationWarnings": 0,
+      "layouts": [
+        {
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 345,
+          "scrollWidth": 390,
+          "overflow": true,
+          "offenders": []
+        },
+        {
+          "width": 375,
+          "scrollWidth": 420,
+          "overflow": true,
+          "offenders": []
+        },
+        {
+          "width": 399,
+          "scrollWidth": 444,
+          "overflow": true,
+          "offenders": []
+        }
+      ]
+    },
+    {
+      "route": "/ayuda",
+      "publicStyle": {
+        "display": "flex",
+        "shellWidth": 375
+      },
+      "hydrationErrors": [],
+      "hydrationWarnings": 0,
+      "layouts": [
+        {
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "role": "provider",
+      "layouts": [
+        {
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 345,
+          "scrollWidth": 422,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 365
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 400
+            }
+          ]
+        },
+        {
+          "width": 375,
+          "scrollWidth": 422,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 400
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 422
+            }
+          ]
+        },
+        {
+          "width": 399,
+          "scrollWidth": 422,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "SECTION",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 403
+            },
+            {
+              "tag": "STRONG",
+              "className": "",
+              "right": 403
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 403
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 422
+            },
+            {
+              "tag": "SECTION",
+              "className": "",
+              "right": 422
+            }
+          ]
+        }
+      ],
+      "longText": [
+        {
+          "width": 345,
+          "scrollWidth": 2371,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 2371
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 826
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 365
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1605
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            }
+          ]
+        },
+        {
+          "width": 375,
+          "scrollWidth": 2371,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 2371
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 826
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1605
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2371
+            }
+          ]
+        },
+        {
+          "width": 399,
+          "scrollWidth": 2371,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 2371
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 826
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1605
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2349
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 2371
+            }
+          ]
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "role": "owner",
+      "layouts": [
+        {
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "width": 345,
+          "scrollWidth": 412,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 412
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 412
+            }
+          ]
+        },
+        {
+          "width": 375,
+          "scrollWidth": 412,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 412
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 384
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 412
+            }
+          ]
+        },
+        {
+          "width": 399,
+          "scrollWidth": 412,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 412
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 412
+            },
+            {
+              "tag": "SECTION",
+              "className": "",
+              "right": 412
+            },
+            {
+              "tag": "DIV",
+              "className": "owner-web-shell",
+              "right": 412
+            },
+            {
+              "tag": "ASIDE",
+              "className": "owner-web-sidebar",
+              "right": 403
+            },
+            {
+              "tag": "DIV",
+              "className": "owner-web-main",
+              "right": 403
+            },
+            {
+              "tag": "SECTION",
+              "className": "",
+              "right": 479
+            },
+            {
+              "tag": "SECTION",
+              "className": "",
+              "right": 479
+            }
+          ]
+        }
+      ],
+      "longText": [
+        {
+          "width": 345,
+          "scrollWidth": 3342,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 3342
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 832
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 391
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 550
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1794
+            }
+          ]
+        },
+        {
+          "width": 375,
+          "scrollWidth": 3342,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 3342
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 832
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 391
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 550
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1794
+            }
+          ]
+        },
+        {
+          "width": 399,
+          "scrollWidth": 3342,
+          "overflow": true,
+          "offenders": [
+            {
+              "tag": "HEADER",
+              "className": "",
+              "right": 3342
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "H1",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "P",
+              "className": "",
+              "right": 832
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 3314
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 550
+            },
+            {
+              "tag": "SPAN",
+              "className": "",
+              "right": 1794
+            },
+            {
+              "tag": "DIV",
+              "className": "",
+              "right": 3314
+            }
+          ]
+        }
+      ],
+      "runtimeErrors": []
+    }
+  ],
+  "limits": "Local web with QA login and read-only queries. No native runtime or deployed-site certification.",
+  "passed": false
+}

@@ -4,9 +4,9 @@ Abrir `INFORME_AUDITORIA.pdf` para lectura, `INFORME_AUDITORIA.html` para filtra
 
 Resultado: ocho hallazgos; 45 de 110 fichas con alguna evidencia funcional parcial y 65 sin ejecución. No es una certificación completa. La aplicación mobile exporta para Android/iOS, pero no se probaron dispositivos.
 
-Actualización: H01–H06 tienen correcciones aplicadas al servidor vinculado. Ver `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`. H04/H05 tienen clientes locales implementados y pruebas de recuperación web, con publicación y QA nativo pendientes; H06 pasó regresiones y dos carreras reales; H07/H08 siguen abiertos. Ver `CORRECCION_CAPACIDAD.md`. Los scripts originales conservan reproducciones del baseline, no el estado posterior a la corrección.
+Actualización: H01–H06 tienen correcciones aplicadas al servidor vinculado. Ver `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`. H04/H05 tienen clientes locales implementados y pruebas de recuperación web, con publicación y QA nativo pendientes; H06 pasó regresiones y dos carreras reales; H07/H08 están corregidos y validados en web local, pendientes de despliegue; ver `CORRECCION_WEB.md`. Ver `CORRECCION_CAPACIDAD.md`. Los scripts originales conservan reproducciones del baseline, no el estado posterior a la corrección.
 
-`Pet-Ecosystem-Auditoria-Roles.zip` contiene PDF, HTML, Markdown descargable, CSV y las notas `CORRECCION_CLINICA.md`  , `CORRECCION_REINTENTOS.md` y `CORRECCION_CAPACIDAD.md`. La evidencia detallada queda en `evidence/` y no forma parte del ZIP de lectura.
+`Pet-Ecosystem-Auditoria-Roles.zip` contiene PDF, HTML, Markdown descargable, CSV y las notas `CORRECCION_CLINICA.md`, `CORRECCION_REINTENTOS.md`, `CORRECCION_CAPACIDAD.md` y `CORRECCION_WEB.md`. La evidencia detallada queda en `evidence/` y no forma parte del ZIP de lectura.
 
 ## Regenerar el documento
 

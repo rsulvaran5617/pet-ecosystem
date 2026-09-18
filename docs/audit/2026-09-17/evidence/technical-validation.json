@@ -68,5 +68,15 @@
     "check": "Concurrencia H06",
     "result": "9/9 correctas",
     "scope": "Dos carreras en conexiones PostgreSQL reales, READ COMMITTED y espera por lock observada"
+  },
+  {
+    "check": "H07/H08 web local",
+    "result": "Correcto en desarrollo y producción",
+    "scope": "24 combinaciones por modo; producción con datos cargados, texto largo y rutas sin JavaScript"
+  },
+  {
+    "check": "Publicación web H07/H08",
+    "result": "Pendiente",
+    "scope": "Commit/push no sustituye despliegue ni verifica la versión servida"
   }
 ]

@@ -2,7 +2,7 @@
 
 **Corte: 17 de septiembre de 2026, Panamá.** Código local `1352e4c272d1475520a0409ad32e336967c343b0`. Pruebas API ejecutadas contra el backend configurado del proyecto; navegador contra la aplicación local. Los JSON registran fecha UTC del 18 de septiembre.
 
-**Actualización posterior: H01, H02 y H03 corregidos y verificados en el servidor vinculado.** Migración `20260918010000_clinical_write_authorization_revalidation.sql`, aplicada el 18/09/2026 a las 01:43 UTC. Pasaron 21 regresiones SQL locales y 12 comprobaciones remotas antes y después de aplicar. Los ocho hallazgos y su evidencia original se conservan abajo; H04/H05 tienen además corrección de servidor aplicada y clientes locales implementados, con publicación pendiente; H06 corregido en servidor y H07/H08 abiertos. Detalle en `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`.
+**Actualización posterior: H01, H02 y H03 corregidos y verificados en el servidor vinculado.** Migración `20260918010000_clinical_write_authorization_revalidation.sql`, aplicada el 18/09/2026 a las 01:43 UTC. Pasaron 21 regresiones SQL locales y 12 comprobaciones remotas antes y después de aplicar. Los ocho hallazgos y su evidencia original se conservan abajo; H04/H05 tienen además corrección de servidor aplicada y clientes locales implementados, con publicación pendiente; H06 corregido en servidor; H07/H08 corregidos localmente, publicación pendiente. Detalle en `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`.
 
 
 
@@ -16,7 +16,13 @@ El botón mobile de revocación residual está implementado, sin prueba en dispo
 
 La migración 20260918030000 bloquea cambios de capacidad inferiores a la ocupación por franja futura/en curso. Se reprodujo el fallo anterior; pasaron 16 pruebas con candidata dentro de rollback y las mismas 16 después de aplicar. Dos conexiones reales verificaron ambas carreras (reserva primero y edición primero), con 9 comprobaciones correctas y espera por lock observada. Las reservas QA quedaron canceladas, reglas desactivadas y proveedor privado.
 
-Sin cambios de pantallas ni nuevo binario para este control. Conserva excepciones por fecha e historial; la edición de excepciones y los cambios de horario/servicio no forman parte de este cierre. Evidencia en CORRECCION_CAPACIDAD.md. H07/H08 siguen abiertos; H04/H05 requieren publicación de clientes y QA nativo.
+Sin cambios de pantallas ni nuevo binario para este control. Conserva excepciones por fecha e historial; la edición de excepciones y los cambios de horario/servicio no forman parte de este cierre. Evidencia en CORRECCION_CAPACIDAD.md. H07/H08 corregidos localmente, publicación pendiente; H04/H05 requieren publicación de clientes y QA nativo.
+
+## Actualización H07/H08 — 18/09/2026: web corregida y validada localmente
+
+Corregidos el desbordamiento de cabeceras/paneles y el recorte del aviso de mensajes; la tabla de capacidad tiene scroll propio. Inicio y Ayuda usan CSS estático importado. Pasaron 24 combinaciones de página/rol/ancho/texto o JavaScript en desarrollo y producción local, con datos cargados en producción, sin errores de hidratación ni desbordamiento. Build, tipos y lint correctos. Ver CORRECCION_WEB.md.
+
+El trabajo previo H01–H06 y los documentos descargables quedaron en origin/master mediante fcdb056. H07/H08 requieren despliegue web; H04/H05 requieren publicación de clientes y QA nativo. Push de código no certifica la versión publicada. La cobertura sigue en 45/110 fichas parcialmente ejecutadas.
 
 ## Resultado principal
 
@@ -183,11 +189,11 @@ La documentación histórica mezcla estados de slices antiguos y actuales. Ejemp
 1. **Clínica, H01–H03 — servidor corregido:** controles y regresiones instalados; conservar prueba de concurrencia específica como pendiente.
 2. **Consentimiento y recuperación, H04–H05 — servidor corregido, clientes por publicar:** publicar web/mobile y validar revocación en dispositivo. Recuperación de adjunto probada en web local.
 3. **Capacidad, H06 — servidor corregido:** 16 regresiones y dos carreras reales pasaron; conservar cobertura de excepciones/horarios como pendiente.
-4. **Web, H07–H08:** resolver desbordamiento e hidratación; repetir revisión de navegador.
+4. **Web, H07–H08 — validado localmente:** desplegar y comprobar la versión publicada; regresiones de navegador y build pasaron.
 5. **Cobertura restante:** embudo público de adopción, compromisos, PET ALERT con OTP y moderación, documentos/Storage, QR operativo, mensajes/reviews/soporte y funciones de cuenta pendientes en la matriz.
 6. **Mobile real:** ejecutar recorridos por rol en un Android de pruebas y un entorno iOS, con cámara, notificaciones y permisos. Registrar versión exacta del binario.
 
-H01–H06 tienen correcciones de servidor aplicadas y comprobadas; los pasos de reproducción anteriores corresponden al baseline auditado. H04/H05 requieren publicación de clientes y prueba nativa. El siguiente bloque de código es H07/H08: adaptación de las consolas web e hidratación; después ampliar cobertura.
+H01–H06 tienen correcciones de servidor aplicadas y comprobadas; los pasos de reproducción anteriores corresponden al baseline auditado. H04/H05 requieren publicación de clientes y prueba nativa. H07/H08 están implementados y validados localmente. Sigue publicar clientes, verificar la versión desplegada y ampliar la cobertura pendiente.
 
 
 ## Validación técnica ejecutada
@@ -208,6 +214,8 @@ H01–H06 tienen correcciones de servidor aplicadas y comprobadas; los pasos de 
 | Publicación clientes H04/H05 | Pendiente | Build web y exports Android/iOS pasan; sin despliegue web ni distribución mobile |
 | Capacidad H06 remota | 16/16 antes y después | Trigger privado, reglas por slot, cancelación, historial, overrides, auditoría y RLS |
 | Concurrencia H06 | 9/9 correctas | Dos carreras en conexiones PostgreSQL reales, READ COMMITTED y espera por lock observada |
+| H07/H08 web local | Correcto en desarrollo y producción | 24 combinaciones por modo; producción con datos cargados, texto largo y rutas sin JavaScript |
+| Publicación web H07/H08 | Pendiente | Commit/push no sustituye despliegue ni verifica la versión servida |
 
 ## Resumen de cobertura de las 110 fichas
 

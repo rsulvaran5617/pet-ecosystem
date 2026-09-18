@@ -311,7 +311,7 @@ function OwnerWebShell({
 
           .owner-web-main {
             min-width: 0;
-            overflow: hidden;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .owner-web-dashboard-metrics {
@@ -351,6 +351,10 @@ function OwnerWebShell({
           }
 
           @media (max-width: 720px) {
+            .owner-web-dashboard-details {
+              grid-template-columns: minmax(0, 1fr) !important;
+            }
+
             .owner-web-dashboard-metrics {
               grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
@@ -450,7 +454,7 @@ function OwnerWebShell({
 
 function OwnerWebSection({ children, id }: { children: ReactNode; id: OwnerWebSectionId }) {
   return (
-    <section id={id} style={{ display: "grid", gap: "14px", scrollMarginTop: "18px" }}>
+    <section id={id} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", minWidth: 0, gap: "14px", scrollMarginTop: "18px" }}>
       {children}
     </section>
   );
@@ -523,6 +527,9 @@ function OwnerDashboardCard({ children }: { children: ReactNode }) {
         borderRadius: "14px",
         boxShadow: "0 10px 24px rgba(15, 23, 42, 0.055)",
         display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        minWidth: 0,
+        overflowWrap: "anywhere",
         gap: "11px",
         padding: "13px"
       }}
@@ -715,7 +722,7 @@ function OwnerDashboard({
   const ownerName = `${snapshot.profile.firstName} ${snapshot.profile.lastName}`.trim() || "Propietario";
 
   return (
-    <section style={{ display: "grid", gap: "14px" }}>
+    <section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", minWidth: 0, gap: "14px" }}>
       <OwnerDashboardCard>
         <div style={{ alignItems: "center", display: "flex", gap: "16px", justifyContent: "space-between", flexWrap: "wrap" }}>
           <div style={{ display: "grid", gap: "5px" }}>
@@ -849,7 +856,7 @@ function OwnerDashboard({
         </OwnerDashboardCard>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+      <div className="owner-web-dashboard-details" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px" }}>
         <OwnerDashboardCard>
           <strong style={{ color: "#0b163f", fontSize: "15px" }}>Salud y recordatorios</strong>
           <div style={{ display: "grid", gap: "8px" }}>
@@ -1229,9 +1236,11 @@ export function CoreExperienceScreen() {
         padding: `${spacingTokens.xl + 16}px ${spacingTokens.lg}px ${spacingTokens.xl * 2}px`
       }}
     >
-      <section style={{ width: "min(1180px, 100%)", margin: "0 auto", display: "grid", gap: "24px" }}>
+      <section style={{ width: "min(1180px, 100%)", margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "24px" }}>
         <header
           style={{
+            minWidth: 0,
+            overflowWrap: "anywhere",
             borderRadius: isProviderMode ? "18px" : "22px",
             padding: isProviderMode ? "16px 22px" : "24px 28px",
             background: "rgba(28, 25, 23, 0.92)",

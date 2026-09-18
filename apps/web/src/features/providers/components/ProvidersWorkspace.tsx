@@ -964,6 +964,8 @@ function ProviderMessageNoticeToast({
         background: "#fffdf8",
         border: "1px solid rgba(15, 118, 110, 0.22)",
         borderRadius: "16px",
+        boxSizing: "border-box",
+        overflowWrap: "anywhere",
         bottom: "22px",
         boxShadow: "0 18px 44px rgba(15, 23, 42, 0.18)",
         display: "grid",
@@ -1050,6 +1052,9 @@ function ProviderCard({
         borderRadius: "16px",
         boxShadow: "0 10px 26px rgba(15, 23, 42, 0.06)",
         display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr)",
+        minWidth: 0,
+        overflowWrap: "anywhere",
         gap: "12px",
         padding: "14px",
         ...style
@@ -1247,7 +1252,7 @@ function ProviderTopbar({
           {selectedName}
         </strong>
       </div>
-      <div style={{ alignItems: "center", display: "flex", gap: "6px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+      <div style={{ alignItems: "center", display: "flex", minWidth: 0, maxWidth: "100%", gap: "6px", justifyContent: "flex-end", flexWrap: "wrap" }}>
         <select
           aria-label="Seleccionar negocio activo"
           onChange={(event) => onSelectOrganization(event.target.value as Uuid)}
@@ -1260,6 +1265,7 @@ function ProviderTopbar({
             fontWeight: 800,
             minHeight: "26px",
             minWidth: "142px",
+            maxWidth: "100%",
             padding: "4px 8px"
           }}
           value={selectedOrganizationId ?? ""}
@@ -1321,7 +1327,7 @@ function ProviderShell({
 
           .provider-web-main {
             min-width: 0;
-            overflow: hidden;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .provider-web-nav-button:focus-visible {
@@ -1376,7 +1382,8 @@ function ProviderShell({
 
           @media (max-width: 720px) {
             .provider-web-dashboard-metrics,
-            .provider-web-dashboard-analytics {
+            .provider-web-dashboard-analytics,
+            .provider-web-dashboard-details {
               grid-template-columns: minmax(0, 1fr) !important;
             }
 
@@ -2376,7 +2383,7 @@ export function ProvidersWorkspace({
               />
             }
           >
-            <div id="provider-web-panel" style={{ display: activeProviderSectionId === "provider-web-panel" ? "grid" : "none", gap: "14px" }}>
+            <div id="provider-web-panel" style={{ display: activeProviderSectionId === "provider-web-panel" ? "grid" : "none", gridTemplateColumns: "minmax(0, 1fr)", minWidth: 0, gap: "14px" }}>
               <ProviderCard
                 style={{
                   background: "#f8fafc",
@@ -2591,7 +2598,7 @@ export function ProvidersWorkspace({
                       </strong>
                       <span style={{ color: "#667085", fontSize: "9px" }}>Reservas activas / cupos publicados</span>
                     </div>
-                    <div style={{ display: "grid", gap: "4px" }}>
+                    <div aria-label="Capacidad y ocupacion semanal" role="region" tabIndex={0} style={{ display: "grid", minWidth: 0, overflowX: "auto", gap: "4px" }}>
                       <div style={{ display: "grid", gap: "4px", gridTemplateColumns: "74px repeat(7, minmax(34px, 1fr))" }}>
                         <span />
                         {capacityHeatmapDays.map((day) => (
@@ -2640,7 +2647,7 @@ export function ProvidersWorkspace({
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                <div className="provider-web-dashboard-details" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>
                   <div style={{ background: "#ffffff", border: "1px solid rgba(15, 23, 42, 0.08)", borderRadius: "14px", display: "grid", gap: "10px", padding: "14px" }}>
                     <strong style={{ alignItems: "center", color: "#0b163f", display: "flex", fontSize: "9px", gap: "6px" }}>
                       <ProviderIcon name="service" size={16} />

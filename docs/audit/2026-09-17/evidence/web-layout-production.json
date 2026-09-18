@@ -1,0 +1,236 @@
+{
+  "executedAt": "2026-09-18T13:20:29.562Z",
+  "mode": "production",
+  "public": [
+    {
+      "route": "/",
+      "publicStyle": {
+        "display": "grid",
+        "font": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "hydrationErrors": [],
+      "hydrationWarnings": 0,
+      "layouts": [
+        {
+          "viewportWidth": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ]
+    },
+    {
+      "route": "/ayuda",
+      "publicStyle": {
+        "display": "flex",
+        "shellWidth": 375
+      },
+      "hydrationErrors": [],
+      "hydrationWarnings": 0,
+      "layouts": [
+        {
+          "viewportWidth": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "role": "provider",
+      "dataLoaded": true,
+      "layouts": [
+        {
+          "viewportWidth": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ],
+      "longText": [
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ],
+      "capacityScroll": {
+        "reachable": true,
+        "keyboardAccessible": true
+      },
+      "messageNotice": {
+        "observed": true,
+        "contained": true
+      },
+      "runtimeErrors": []
+    },
+    {
+      "role": "owner",
+      "dataLoaded": true,
+      "layouts": [
+        {
+          "viewportWidth": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ],
+      "longText": [
+        {
+          "viewportWidth": 360,
+          "width": 345,
+          "scrollWidth": 345,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false,
+          "offenders": []
+        },
+        {
+          "viewportWidth": 414,
+          "width": 399,
+          "scrollWidth": 399,
+          "overflow": false,
+          "offenders": []
+        }
+      ],
+      "capacityScroll": null,
+      "messageNotice": {
+        "observed": false
+      },
+      "runtimeErrors": []
+    }
+  ],
+  "limits": "Local web with QA login and read-only queries. No native runtime or deployed-site certification.",
+  "withoutJavaScript": [
+    {
+      "route": "/",
+      "styled": true,
+      "viewportWidth": 414,
+      "width": 399,
+      "scrollWidth": 399,
+      "overflow": false,
+      "offenders": []
+    },
+    {
+      "route": "/ayuda",
+      "styled": true,
+      "viewportWidth": 414,
+      "width": 399,
+      "scrollWidth": 399,
+      "overflow": false,
+      "offenders": []
+    }
+  ],
+  "passed": true
+}

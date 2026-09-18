@@ -26,6 +26,10 @@ export function StatusPill({ tone, label }: StatusPillProps) {
     <span
       style={{
         display: "inline-flex",
+        minWidth: 0,
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflowWrap: "anywhere",
         alignItems: "center",
         borderRadius: "999px",
         border: `1px solid ${palette[tone].border}`,
