@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-09-18T14:20:34.418078+00:00",
+  "buildId": "795bad45-4d7d-48c1-8d4f-2b889b5071df",
+  "commit": "a7b89d393dccc34d067066ce1521d6bffdb44593",
+  "artifact": "dist/pilot/android/pet-ecosystem-audit-a7b89d3-20260918.apk",
+  "bytes": 129567932,
+  "sha256": "66e0e6d34de8de87a05a82367b007031547fba2a78115a6e429b8f8b97629004",
+  "nativeRuntimeTested": false,
+  "zipCrcValid": true,
+  "EXPO_PUBLIC_SUPABASE_URL_matchesConfiguredBuild": true,
+  "EXPO_PUBLIC_SUPABASE_ANON_KEY_matchesConfiguredBuild": true,
+  "revocationActionPresent": true,
+  "package": "com.petecosystem.mobile",
+  "versionCode": "1",
+  "versionName": "0.0.0",
+  "signatureValid": true,
+  "passed": true
+}

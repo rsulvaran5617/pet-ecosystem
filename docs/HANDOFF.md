@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-18 - Commit/push y APK Android disponible
+
+- `5fd5ed8` enviado a origin/master con ampliación Core y seguimiento de publicación. Usuario autorizó commit/push y próximos pasos.
+- Build Android `795bad45-4d7d-48c1-8d4f-2b889b5071df` terminó 13:56:23 UTC. APK descargado: dist/pilot/android/pet-ecosystem-audit-a7b89d3-20260918.apk (129567932 bytes), SHA256 66e0e6d34de8de87a05a82367b007031547fba2a78115a6e429b8f8b97629004.
+- Verificador estático pasa: ZIP íntegro, firma válida, paquete com.petecosystem.mobile, versionName 0.0.0/versionCode 1, variables públicas Supabase coinciden con configuración local y acción Revocar permisos pendientes presente. No prueba ejecución ni compatibilidad con firmas previas.
+- ADB sin dispositivos, emulator -list-avds vacío. Solicitado teléfono QA USB; acceso SSH también pendiente. Protocolo concreto QA_ANDROID_RELEASE.md, evidencia android-artifact.json. No repetir build ni desinstalar automáticamente una app existente.
+- Informe PDF/HTML y paquete ZIP actualizados. La cobertura sigue 49/110 parcial, 61 sin ejecutar. No deploy web, distribución a testers, QA nativo ni build iOS en este bloque. Archivos ajenos conservados; APK permanece en dist ignorado por Git.
+
 # Handoff 2026-09-18 - Publicación bloqueada por SSH, Android en cola y Core ampliado
 
 - Usuario autorizó continuar publicación y auditoría. Commit a7b89d3 ya está en origin/master. Esta sesión no modificó producto ni DB.

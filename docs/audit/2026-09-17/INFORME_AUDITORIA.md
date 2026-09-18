@@ -2,6 +2,8 @@
 
 ## Actualización de publicación y aislamiento Core — 18/09/2026
 
+**Android actualizado:** build EAS `795bad45-4d7d-48c1-8d4f-2b889b5071df` terminado y APK descargado. Firma, integridad ZIP, identidad de paquete, configuración del backend y presencia de la acción H05 verificadas estáticamente. Sin dispositivo ni emulador configurado: instalación y QA nativo pendientes. Detalles y hash en `PUBLICACION_Y_CORE.md`; protocolo en `QA_ANDROID_RELEASE.md`.
+
 Se verificaron siete rutas públicas de https://petecosyst.com a 1440/390 px: todas devuelven HTTP 200. Inicio y Ayuda todavía sirven CSS inline y reproducen errores React; Inicio mide 420 px de documento a 390 px de viewport. Esto no valida H07/H08 como desplegados. La conexión SSH documentada fue rechazada por autenticación; no se modificó el servidor. Evidencia: `evidence/deployed-public-check.json`.
 
 Pasaron 40 comprobaciones de lectura/aislamiento Core con owner, provider, miembro y visitante: perfiles, preferencias, direcciones y métodos referenciales. Las direcciones y métodos existentes de owner/provider no son visibles a otras cuentas ni al visitante; el miembro no tiene filas propias en esas dos tablas y no se afirma aislamiento sobre fixtures inexistentes. Solo login/logout y SELECT; sin ediciones ni solicitudes de eliminación. Se añaden C04/C06/C07/C08 con cobertura parcial: **49/110 fichas con evidencia parcial, 61 sin ejecución**. UI, CRUD y pruebas nativas siguen pendientes. Evidencia: `evidence/core-read-isolation.json`.
