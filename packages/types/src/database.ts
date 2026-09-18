@@ -234,7 +234,7 @@ export interface Database {
       audit_logs: {
         Row: {
           id: string;
-          actor_user_id: string;
+          actor_user_id: string | null;
           entity_type: string;
           entity_id: string;
           action: string;
@@ -243,7 +243,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          actor_user_id: string;
+          actor_user_id: string | null;
           entity_type: string;
           entity_id: string;
           action: string;
@@ -252,7 +252,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          actor_user_id?: string;
+          actor_user_id?: string | null;
           entity_type?: string;
           entity_id?: string;
           action?: string;
@@ -375,7 +375,7 @@ export interface Database {
           booking_id: string;
           from_status: BookingStatus | null;
           to_status: BookingStatus;
-          changed_by_user_id: string;
+          changed_by_user_id: string | null;
           change_reason: string | null;
           created_at: string;
         };
@@ -384,7 +384,7 @@ export interface Database {
           booking_id: string;
           from_status?: BookingStatus | null;
           to_status: BookingStatus;
-          changed_by_user_id: string;
+          changed_by_user_id: string | null;
           change_reason?: string | null;
           created_at?: string;
         };
@@ -393,7 +393,7 @@ export interface Database {
           booking_id?: string;
           from_status?: BookingStatus | null;
           to_status?: BookingStatus;
-          changed_by_user_id?: string;
+          changed_by_user_id?: string | null;
           change_reason?: string | null;
           created_at?: string;
         };

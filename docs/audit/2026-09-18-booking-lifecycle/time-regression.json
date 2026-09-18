@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "checks": [
+    "Unapproved remains actionable before start",
+    "Unapproved expires exactly at start",
+    "Expired unapproved excluded from active counters",
+    "Multi-day service stays active after its start",
+    "Confirmed stays active until actual end",
+    "Confirmed requires closure exactly at end",
+    "Overdue confirmed excluded from upcoming",
+    "Timezone offsets refer to the same instant",
+    "completed remains terminal despite old date",
+    "completed excluded from upcoming",
+    "cancelled remains terminal despite old date",
+    "cancelled excluded from upcoming",
+    "expired remains terminal despite old date",
+    "expired excluded from upcoming",
+    "No arrival is not automatically no-show",
+    "Arrival without departure requires attention close",
+    "Departure requires administrative completion",
+    "Display classification does not mutate persisted status"
+  ]
+}

@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-09-18 - Ciclo temporal de reservas, primer bloque local
+
+- Usuario solicitó implementar la propuesta para citas vencidas. Primer bloque: expired para pending_approval al inicio, categoría visual pending_closure para confirmed después del fin, bandejas/filtros/contadores owner/provider web y mobile; historial conservado, sin cierre automático de confirmadas ni inferir ausencias.
+- Dos migraciones locales: 20260918150000_booking_expiration.sql (restricciones bookings/historial/chat, actor sistema nullable, índice, bloqueo de fila en approve, guard de plazo/terminalidad y barrido SECURITY DEFINER de 500 con SKIP LOCKED) y 20260918150100_booking_expiration_schedule.sql (pg_cron cada minuto). NO aplicadas remotamente ni cron activo. Primero publicar clientes y confirmar actualización del piloto; web SSH y dispositivo QA siguen pendientes.
+- Reglas temporales compartidas en packages/config/src/bookings.ts, reloj visual de 15s por app, estados/tipos compartidos ampliados. Detalle operacional distingue falta de llegada, cierre de atención y finalización. Confirmadas mantienen cierre explícito del proveedor. Errores nuevos traducidos en api-client.
+- Pasan 19 comprobaciones SQL PGlite, 18 temporales y 18 de navegador local. Una confirmada pasada del owner visible en bandeja; provider QA y expiradas sin filas. No se validaron transiciones remotas, scheduler real ni contención de dos conexiones. Se corrigió overflow del filtro owner; web a 1440/390 sin overflow en el recorrido final.
+- Typecheck/lint siete workspaces, build web y exports Android/iOS correctos. No APK nuevo ni QA nativo. a7b89d3 APK anterior NO contiene esta implementación.
+- Documentación de despliegue/alcance: docs/delivery/BOOKING_LIFECYCLE.md. Evidencia y runner web en docs/audit/2026-09-18-booking-lifecycle/. La matriz global de auditoría conserva su corte anterior.
+- Próximo bloque funcional: resultados Cliente no asistió / Servicio no prestado por proveedor con motivo y soporte; recordatorios 24h/revisión 72h. No implementados aquí. No marcar completadas citas no atendidas para vaciar la bandeja.
+- Usuario solicitó commit/push de este bloque; se entrega como commit separado del release Android anterior (consultar git log). Esto no activa migraciones ni publica clientes. Conservar app.json raíz y docs/delivery/onlyoneaccess.txt ajenos, no leer/publicar el segundo.
+
 # Handoff 2026-09-18 - Commit/push y APK Android disponible
 
 - `5fd5ed8` enviado a origin/master con ampliación Core y seguimiento de publicación. Usuario autorizó commit/push y próximos pasos.

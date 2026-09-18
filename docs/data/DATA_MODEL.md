@@ -311,3 +311,8 @@ Slice 6 agrega `pet_alert_moderation_cases` y `pet_alert_moderation_history` par
 - `clinical_professional_profiles` agrega identidad profesional individual, referencia de licencia, jurisdiccion, vinculacion provider opcional y estado de verificacion separado de la aprobacion comercial.
 - `clinical_professional_verification_events` conserva las transiciones de borrador, envio y decision administrativa. Clinical Access-2B no crea encounters ni autorizaciones de escritura.
 - Clinical Access-2D/2E usa `clinical_encounters` como cabecera finalizada, `clinical_entries` append-only con `corrects_entry_id` y motivo de rectificacion, y `clinical_documents` como metadata privada con estado de carga `pending|ready|failed`. Las proyecciones owner/profesional se sirven por RPC; no se concede CRUD directo.
+
+
+## Extension temporal de bookings - 2026-09-18
+
+Estado expired agregado localmente; pending_closure es una categoria de presentacion, no un estado persistido. confirmed no expira por tiempo. booking_status_history.changed_by_user_id y audit_logs.actor_user_id admiten null para identificar al sistema; audit_logs.context.actor_type=system en expiraciones. Ver BOOKING_LIFECYCLE.md; migraciones pendientes de aplicar. Esta seccion actualiza el baseline de cuatro estados descrito arriba.

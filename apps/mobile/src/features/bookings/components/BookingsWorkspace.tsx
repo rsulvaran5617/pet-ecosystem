@@ -1,6 +1,9 @@
-import { bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
+import { useBookingClock } from "../hooks/useBookingClock";
+import { getBookingDisplayStatus, bookingDisplayStatusLabels, isUpcomingBooking } from "@pet/config";
+import type { BookingDisplayStatus } from "@pet/config";
+import { formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions, productLocale, productTimeZone } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
-import type { BookingStatus, BookingSummary, MarketplaceServiceSelection, Uuid } from "@pet/types";
+import type { BookingSummary, MarketplaceServiceSelection, Uuid } from "@pet/types";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -85,18 +88,20 @@ const detailValueStyle = {
 
 export type BookingHubPanel = "detalle" | "chat" | "review" | "soporte";
 type BookingWorkspaceView = "historial" | "servicio" | "mascota" | "horario" | "metodo" | "preview" | "detalle";
-type BookingStatusFilter = "all" | "active" | BookingStatus;
+type BookingStatusFilter = "all" | "active" | BookingDisplayStatus;
 
 const bookingStatusFilters: Array<{ id: BookingStatusFilter; label: string }> = [
   { id: "active", label: "Activas" },
   { id: "all", label: "Todas" },
   { id: "pending_approval", label: "Pendientes" },
   { id: "confirmed", label: "Confirmadas" },
+  { id: "pending_closure", label: "Pendientes de cierre" },
+  { id: "expired", label: "Expiradas" },
   { id: "completed", label: "Completadas" },
   { id: "cancelled", label: "Canceladas" }
 ];
 
-function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
+function getStatusTone(status: BookingDisplayStatus) {
   if (status === "confirmed" || status === "completed") {
     return "active" as const;
   }
@@ -295,6 +300,9 @@ function getInitials(value: string) {
 }
 
 function getBookingGuidance(booking: BookingSummary) {
+  const displayStatus = getBookingDisplayStatus(booking);
+  if (displayStatus === "expired") return { action: "Expirada sin aprobacion", cta: "Ver historial", detail: "La hora de inicio paso sin confirmacion del proveedor." };
+  if (displayStatus === "pending_closure") return { action: "Pendiente de cierre", cta: "Ver atencion", detail: "El horario termino. Falta registrar el resultado; esto no indica inasistencia." };
   if (booking.status === "pending_approval") {
     return {
       action: "Esperando aprobacion",
@@ -363,7 +371,7 @@ function BookingHistoryCard({
             </Text>
           </View>
           <View style={{ maxWidth: 112 }}>
-            <StatusChip label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
+            <StatusChip label={bookingDisplayStatusLabels[getBookingDisplayStatus(booking)]} tone={getStatusTone(booking.status)} />
           </View>
         </View>
         <View
@@ -461,6 +469,7 @@ export function BookingsWorkspace({
   onOpenSupportForBooking?: (bookingId: Uuid) => void;
   onActivePetChange?: (context: { householdId: Uuid | null; petId: Uuid | null }) => void;
 }) {
+  useBookingClock();
   const {
     householdSnapshot,
     pets,
@@ -504,11 +513,11 @@ export function BookingsWorkspace({
     bookingStatusFilter === "all"
       ? bookings
       : bookingStatusFilter === "active"
-        ? bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed")
-        : bookings.filter((booking) => booking.status === bookingStatusFilter);
+        ? bookings.filter((booking) => isUpcomingBooking(booking))
+        : bookings.filter((booking) => getBookingDisplayStatus(booking) === bookingStatusFilter);
   const nextActiveBooking =
-    bookings.find((booking) => booking.status === "confirmed") ??
-    bookings.find((booking) => booking.status === "pending_approval") ??
+    bookings.find((booking) => getBookingDisplayStatus(booking) === "confirmed") ??
+    bookings.find((booking) => getBookingDisplayStatus(booking) === "pending_approval") ??
     null;
   const nextActiveBookingGuidance = nextActiveBooking ? getBookingGuidance(nextActiveBooking) : null;
   const activeStatusFilterLabel = bookingStatusFilters.find((filter) => filter.id === bookingStatusFilter)?.label.toLowerCase() ?? "reservas";
@@ -516,8 +525,8 @@ export function BookingsWorkspace({
     filter === "all"
       ? bookings.length
       : filter === "active"
-        ? bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed").length
-        : bookings.filter((booking) => booking.status === filter).length;
+        ? bookings.filter((booking) => isUpcomingBooking(booking)).length
+        : bookings.filter((booking) => getBookingDisplayStatus(booking) === filter).length;
   const bookingProgressState = getBookingProgressState({
     activeSelection,
     bookingView,
@@ -898,7 +907,7 @@ export function BookingsWorkspace({
                       {nextActiveBooking.serviceName}
                     </Text>
                   </View>
-                  <StatusChip label={bookingStatusLabels[nextActiveBooking.status]} tone={getStatusTone(nextActiveBooking.status)} />
+                  <StatusChip label={bookingDisplayStatusLabels[getBookingDisplayStatus(nextActiveBooking)]} tone={getStatusTone(nextActiveBooking.status)} />
                 </View>
                 <Text style={{ color: colorTokens.ink, fontSize: 11, fontWeight: "800", lineHeight: 15 }}>
                   {nextActiveBookingGuidance.action}
@@ -1006,7 +1015,7 @@ export function BookingsWorkspace({
                 </View>
                 <View style={{ borderTopWidth: 1, borderTopColor: colorTokens.line, paddingTop: 7, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 }}>
                   <Text style={{ color: colorTokens.muted, fontSize: 8, fontWeight: "800", lineHeight: 11, textTransform: "uppercase" }}>Estado</Text>
-                  <StatusChip label={bookingStatusLabels[selectedBookingDetail.booking.status]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
+                  <StatusChip label={bookingDisplayStatusLabels[getBookingDisplayStatus(selectedBookingDetail.booking)]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
                 </View>
               </View>
               <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
@@ -1038,6 +1047,7 @@ export function BookingsWorkspace({
               <BookingOperationsTimeline
                 bookingId={selectedBookingDetail.booking.id}
                 bookingStatus={selectedBookingDetail.booking.status}
+                scheduledEndAt={selectedBookingDetail.booking.scheduledEndAt}
                 context="owner"
                 enabled={selectedBookingDetail.booking.status === "confirmed" || selectedBookingDetail.booking.status === "completed"}
                 onOperationChanged={async () => {
@@ -1070,7 +1080,7 @@ export function BookingsWorkspace({
               {selectedBookingDetail.booking.status !== "cancelled" ? (
                 <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", justifyContent: "space-between" }}>
                   <DetailFooterButton
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !isUpcomingBooking(selectedBookingDetail.booking)}
                     label="Cancelar reserva"
                     onPress={() => {
                       void cancelBooking(selectedBookingDetail.booking.id).then(() => {

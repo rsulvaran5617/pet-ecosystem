@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checks": [
+    "Only past and boundary unapproved expire",
+    "Idempotent second sweep",
+    "Confirmed overdue and multi-day bookings remain confirmed",
+    "Chat accepts expired state",
+    "History uses system actor",
+    "Audit uses system actor without blaming owner",
+    "Stale approval cannot revive expired booking",
+    "Expired history cannot be overwritten by cancellation",
+    "Expired approval RPC returns terminal error",
+    "Approval retry is idempotent",
+    "Approval rejected before cron catches up",
+    "Foreign provider cannot approve",
+    "anon cannot execute global sweep",
+    "authenticated cannot execute global sweep",
+    "Service role may execute sweep",
+    "Sweep bounded to 500 rows",
+    "Next sweep drains backlog",
+    "Confirmed past booking still available for explicit closure",
+    "Future multi-day end does not cause expiration"
+  ],
+  "limits": "PGlite SQL regression; no pg_cron scheduler execution or multi-connection contention test."
+}

@@ -1,0 +1,19 @@
+{
+  "validatedAt": "2026-09-18T15:41:32.428788+00:00",
+  "sqlChecks": 19,
+  "timeChecks": 18,
+  "webChecks": 18,
+  "typecheck": "passed: seven workspaces",
+  "lint": "passed: seven workspaces; new tests checked separately",
+  "webProductionBuild": "passed",
+  "androidExport": "passed",
+  "iosExport": "passed",
+  "nativeDeviceTested": false,
+  "remoteMigrationsApplied": false,
+  "schedulerVerifiedRemotely": false,
+  "webDeployed": false,
+  "migrations": {
+    "20260918150000_booking_expiration.sql": "7c2ec07ba539f88a87abefc7e100fa18f50bf9b82f7010dc4acd24e4559d6174",
+    "20260918150100_booking_expiration_schedule.sql": "f529bd350951e1d9d7e435ba8aaa91c2e32e3d8241dda98ca18040f8de279f94"
+  }
+}

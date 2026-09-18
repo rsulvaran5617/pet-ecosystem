@@ -44,6 +44,12 @@ export interface BookingsApiClient {
 
 function fail(error: { message: string } | null, fallbackMessage: string): never {
   if (error) {
+    if (error.message === "Booking approval deadline has passed") {
+      throw new Error("La hora de inicio ya paso. Esta solicitud no puede aprobarse.");
+    }
+    if (error.message === "Expired bookings cannot be changed") {
+      throw new Error("La solicitud expiro sin aprobacion y permanece en el historial.");
+    }
     throw new Error(error.message);
   }
 

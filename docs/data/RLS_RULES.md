@@ -373,3 +373,8 @@ Revocar autorización completed requiere can_edit_pet, bloquea la solicitud y ma
 20260918030000 agrega guard_provider_rule_capacity() como trigger SECURITY DEFINER con search_path public y EXECUTE revocado a public/anon/authenticated. Mantiene las políticas de UPDATE de reglas; el guard consulta reservas sin quedar limitado por la visibilidad del actor para no subestimar ocupación. Los cambios reales de capacity aceptados registran actor, regla, organización, servicio y capacidad anterior/nueva mediante insert_audit_log. No amplía lectura de hogares ni de reservas para proveedores.
 
 La RPC de reserva mantiene su ACL y toma FOR SHARE sobre la regla. Se comprobó el trigger con SET ROLE authenticated y el bloqueo de edición por usuario ajeno, además de dos secuencias concurrentes a READ COMMITTED.
+
+
+## Expiracion de reservas - 2026-09-18
+
+No se amplian policies de lectura/escritura. expire_unapproved_bookings() solo se concede a service_role (y propietario de la funcion/cron); public, anon y authenticated no tienen EXECUTE. El sistema registra actor null; la lectura de auditoria sigue limitada por la policy existente a admin o actor, por lo que eventos de sistema son visibles al admin. Owner/provider consultan su historial por las policies de booking existentes.

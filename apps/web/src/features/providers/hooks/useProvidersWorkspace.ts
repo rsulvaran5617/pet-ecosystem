@@ -1,8 +1,10 @@
 "use client";
+import { getBookingDisplayStatus, isUpcomingBooking } from "@pet/config";
+import type { BookingDisplayStatus } from "@pet/config";
+
 
 import type {
   BookingDetail,
-  BookingStatus,
   BookingSummary,
   ChatThreadDetail,
   ChatThreadSummary,
@@ -35,7 +37,7 @@ export interface ProviderServiceRankingItem {
 
 export interface ProviderBusinessOverview {
   organization: ProviderOrganization;
-  bookingCounts: Record<BookingStatus, number>;
+  bookingCounts: Record<BookingDisplayStatus, number>;
   moneyIndicators: {
     completed: ProviderMoneyIndicator;
     pendingService: ProviderMoneyIndicator;
@@ -208,15 +210,17 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         organizationId: organization.id,
         includeCancelled: true
       });
-      const bookingCounts = bookings.reduce<Record<BookingStatus, number>>(
+      const bookingCounts = bookings.reduce<Record<BookingDisplayStatus, number>>(
         (counts, booking) => {
-          counts[booking.status] += 1;
+          counts[getBookingDisplayStatus(booking)] += 1;
           return counts;
         },
         {
           pending_approval: 0,
           confirmed: 0,
           completed: 0,
+          expired: 0,
+          pending_closure: 0,
           cancelled: 0
         }
       );
@@ -231,7 +235,7 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
           addBookingToMoneyIndicator(moneyIndicators.completed, booking);
         }
 
-        if (booking.status === "pending_approval" || booking.status === "confirmed") {
+        if (isUpcomingBooking(booking)) {
           addBookingToMoneyIndicator(moneyIndicators.pendingService, booking);
         }
 
@@ -290,8 +294,8 @@ export function useProvidersWorkspace(enabled: boolean): UseProvidersWorkspaceRe
         organization: detail.organization,
         bookingCounts,
         moneyIndicators,
-        pendingApprovalBookings: bookings.filter((booking) => booking.status === "pending_approval"),
-        activeCapacityBookings: bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed"),
+        pendingApprovalBookings: bookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_approval"),
+        activeCapacityBookings: bookings.filter((booking) => isUpcomingBooking(booking)),
         availabilityRules: detail.availabilityRules,
         serviceRanking,
         messageThreadCount: threads.filter((thread) => thread.providerOrganizationId === detail.organization.id && thread.lastMessageAt).length,

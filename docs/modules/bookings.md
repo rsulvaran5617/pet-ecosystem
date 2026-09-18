@@ -247,3 +247,8 @@ Riesgos:
 20260918030000 conserva create_booking_from_slot y su contrato, incorporando FOR SHARE sobre la regla antes del advisory lock por slot y la lectura de disponibilidad. A READ COMMITTED, si una reserva confirma primero, la edición espera y ve su ocupación; si la capacidad se reduce primero, la reserva espera y valida contra el nuevo límite. Se probaron ambas secuencias con conexiones PostgreSQL separadas y espera por lock observada.
 
 Un trigger en provider_availability_rules impide que capacity quede por debajo de cupos ocupados de una franja futura/en curso, usando los estados de booking_status_consumes_capacity y overrides por fecha. No modifica bookings pasados ni el flujo legacy create_booking. Evidencia: docs/audit/2026-09-17/CORRECCION_CAPACIDAD.md.
+
+
+## Ciclo de vida temporal del piloto - 2026-09-18
+
+Primer bloque implementado localmente: nuevo estado expired para solicitudes sin aprobar al llegar scheduled_start_at; barrido servidor cada minuto en lotes de 500, historial y auditoria de sistema. Las confirmed pasadas por scheduled_end_at se muestran como Pendientes de cierre sin alterar su estado. Filtros/contadores web y mobile comparten clasificacion temporal. Ver docs/delivery/BOOKING_LIFECYCLE.md para migraciones, limites, pruebas y despliegue pendiente. No implementar no_show, cierres por responsabilidad ni avisos 24/72 como si ya existieran.

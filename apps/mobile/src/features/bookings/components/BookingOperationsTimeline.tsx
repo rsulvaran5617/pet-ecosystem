@@ -1,4 +1,4 @@
-import { formatDateTimeLabel } from "@pet/config";
+import { formatDateTimeLabel, getBookingClosureLabel } from "@pet/config";
 import type { BookingOperationType, BookingOperationsTimeline as BookingOperationsTimelineData, BookingStatus, Uuid } from "@pet/types";
 import * as DocumentPicker from "expo-document-picker";
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
@@ -286,12 +286,14 @@ function getQrActionLabel(operationType: BookingOperationType) {
 export function BookingOperationsTimeline({
   bookingId,
   bookingStatus,
+  scheduledEndAt,
   context = "provider",
   enabled = true,
   onOperationChanged
 }: {
   bookingId: Uuid;
   bookingStatus?: BookingStatus;
+  scheduledEndAt?: string;
   context?: "owner" | "provider";
   enabled?: boolean;
   onOperationChanged?: () => Promise<void> | void;
@@ -488,6 +490,7 @@ export function BookingOperationsTimeline({
 
   return (
     <View style={containerStyle}>
+      {bookingStatus === "confirmed" && scheduledEndAt && Date.parse(scheduledEndAt) <= Date.now() ? <Text style={{ color: "#92400e", fontWeight: "700" }}>{getBookingClosureLabel(timeline)}. El horario termino; no implica inasistencia.</Text> : null}
       <View style={{ gap: 5 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <View style={{ flexDirection: "row", flex: 1, gap: 8, alignItems: "center" }}>

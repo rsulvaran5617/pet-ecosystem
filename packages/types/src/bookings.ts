@@ -1,7 +1,7 @@
 import type { IsoDateString, TimestampedEntity, Uuid } from "./base";
 
 export type BookingMode = "instant" | "approval_required";
-export type BookingStatus = "pending_approval" | "confirmed" | "completed" | "cancelled";
+export type BookingStatus = "pending_approval" | "confirmed" | "completed" | "cancelled" | "expired";
 export type BookingSlotStatus = "available" | "low_capacity" | "full" | "unavailable" | "expired";
 
 export interface BookingPaymentMethodSummary {
@@ -50,7 +50,7 @@ export interface BookingStatusChange {
   bookingId: Uuid;
   fromStatus: BookingStatus | null;
   toStatus: BookingStatus;
-  changedByUserId: Uuid;
+  changedByUserId: Uuid | null;
   changeReason: string | null;
   createdAt: IsoDateString;
 }

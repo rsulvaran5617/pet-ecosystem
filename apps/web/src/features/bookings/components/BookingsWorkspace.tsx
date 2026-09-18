@@ -1,4 +1,7 @@
 "use client";
+import { useBookingClock } from "../hooks/useBookingClock";
+import { getBookingDisplayStatus, bookingDisplayStatusLabels, isUpcomingBooking } from "@pet/config";
+import type { BookingDisplayStatus } from "@pet/config";
 
 import { bookingModeLabels, bookingStatusLabels, formatCurrencyAmount, formatDateTimeLabel, formatHouseholdPermissions } from "@pet/config";
 import type { BookingSlot, MarketplaceServiceSelection, Uuid } from "@pet/types";
@@ -8,7 +11,7 @@ import { CoreSection } from "../../core/components/CoreSection";
 import { StatusPill } from "../../core/components/StatusPill";
 import { useBookingsWorkspace } from "../hooks/useBookingsWorkspace";
 
-const cardStyle = { borderRadius: "20px", background: "rgba(247,242,231,0.78)", padding: "18px", display: "grid", gap: "12px" } as const;
+const cardStyle = { minWidth: 0, gridTemplateColumns: "minmax(0, 1fr)", borderRadius: "20px", background: "rgba(247,242,231,0.78)", padding: "18px", display: "grid", gap: "12px" } as const;
 const inputStyle = { borderRadius: "12px", border: "1px solid rgba(28,25,23,0.14)", padding: "10px 12px", background: "#fffdf8" } as const;
 const panelStyle = {
   ...cardStyle,
@@ -22,7 +25,7 @@ const railStyle = {
   border: "1px solid rgba(15,118,110,0.14)"
 } as const;
 
-function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
+function getStatusTone(status: BookingDisplayStatus) {
   if (status === "confirmed" || status === "completed") {
     return "active" as const;
   }
@@ -123,6 +126,8 @@ export function BookingsWorkspace({
   onOpenReviewForBooking?: (bookingId: Uuid) => void;
   onOpenSupportForBooking?: (bookingId: Uuid) => void;
 }) {
+  const [statusFilter, setStatusFilter] = useState<"all" | BookingDisplayStatus>("all");
+  useBookingClock();
   const {
     householdSnapshot,
     pets,
@@ -164,6 +169,7 @@ export function BookingsWorkspace({
   }, [bookingSlots]);
   const selectedDateSlots = selectedSlotDate ? slotsByDate[selectedSlotDate] ?? [] : [];
   const slotDates = Object.keys(slotsByDate);
+  const visibleBookings = bookings.filter((booking) => statusFilter === "all" || getBookingDisplayStatus(booking) === statusFilter);
   const activeStep = preview ? 4 : selectedBookingSlot ? 3 : selectedPetId ? 2 : activeSelection ? 1 : 0;
 
   useEffect(() => {
@@ -315,7 +321,7 @@ export function BookingsWorkspace({
 
             <div style={{ display: "grid", gap: "14px", alignContent: "start" }}>
               <article style={panelStyle}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", minWidth: 0, justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                   <h3 style={{ margin: 0, fontSize: "16px" }}>Horarios y cupos</h3>
                   <StatusPill label={selectedBookingSlot ? "horario elegido" : `${bookingSlots.length} cupo(s)`} tone={selectedBookingSlot ? "active" : "neutral"} />
                 </div>
@@ -469,14 +475,21 @@ export function BookingsWorkspace({
               </article>
 
               <article style={panelStyle}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
-                  <div>
+                <div style={{ display: "flex", flexWrap: "wrap", minWidth: 0, justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+                  <div style={{ minWidth: 0 }}>
                     <h3 style={{ margin: 0, fontSize: "16px" }}>Historial de reservas</h3>
                     <p style={{ margin: "6px 0 0", color: "#57534e", fontSize: "12px", lineHeight: 1.5 }}>
                       Consulta reservas anteriores solo cuando lo necesites.
                     </p>
                   </div>
-                  <StatusPill label={`${bookings.length} reserva(s)`} tone="neutral" />
+                  <label style={{ display: "grid", gap: 4, minWidth: 0, maxWidth: "100%" }}>
+                    Estado
+                    <select aria-label="Filtrar reservas por estado" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | BookingDisplayStatus)} style={{ ...inputStyle, minWidth: 0, maxWidth: "100%" }}>
+                      <option value="all">Todas</option>
+                      {Object.entries(bookingDisplayStatusLabels).map(([value, label]) => <option key={value} value={value}>{label} ({bookings.filter((booking) => getBookingDisplayStatus(booking) === value).length})</option>)}
+                    </select>
+                  </label>
+                  <StatusPill label={`${visibleBookings.length} reserva(s)`} tone="neutral" />
                 </div>
                 <div>
                   <Button onClick={() => setIsBookingHistoryOpen((current) => !current)} tone="secondary">
@@ -484,8 +497,8 @@ export function BookingsWorkspace({
                   </Button>
                 </div>
                 {isBookingHistoryOpen ? (
-                  bookings.length ? (
-                    bookings.map((booking) => (
+                  visibleBookings.length ? (
+                    visibleBookings.map((booking) => (
                     <button
                       key={booking.id}
                       onClick={() => void openBookingDetail(booking.id)}
@@ -494,7 +507,7 @@ export function BookingsWorkspace({
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                         <strong>{booking.serviceName}</strong>
-                        <StatusPill label={bookingStatusLabels[booking.status]} tone={getStatusTone(booking.status)} />
+                        <StatusPill label={bookingDisplayStatusLabels[getBookingDisplayStatus(booking)]} tone={getStatusTone(booking.status)} />
                       </div>
                       <div style={{ color: "#57534e" }}>
                         {booking.providerName} · {booking.petName}
@@ -504,7 +517,7 @@ export function BookingsWorkspace({
                     </button>
                     ))
                   ) : (
-                    <p style={{ margin: 0, color: "#57534e" }}>Todavia no hay reservas para el hogar y filtro de mascota actuales.</p>
+                    <p style={{ margin: 0, color: "#57534e" }}>No hay reservas para los filtros actuales.</p>
                   )
                 ) : null}
               </article>
@@ -513,7 +526,7 @@ export function BookingsWorkspace({
                 <article style={cardStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
                     <h3 style={{ margin: 0 }}>Detalle de la reserva</h3>
-                    <StatusPill label={bookingStatusLabels[selectedBookingDetail.booking.status]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
+                    <StatusPill label={bookingDisplayStatusLabels[getBookingDisplayStatus(selectedBookingDetail.booking)]} tone={getStatusTone(selectedBookingDetail.booking.status)} />
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "12px" }}>
                     <div style={inputStyle}>
@@ -553,7 +566,7 @@ export function BookingsWorkspace({
                       </div>
                     ))}
                   </div>
-                  {selectedBookingDetail.booking.status !== "cancelled" ? (
+                  {isUpcomingBooking(selectedBookingDetail.booking) ? (
                     <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                       <Button disabled={isSubmitting} onClick={() => void cancelBooking(selectedBookingDetail.booking.id)}>
                         Cancelar reserva

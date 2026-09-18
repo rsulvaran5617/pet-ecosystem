@@ -416,3 +416,8 @@ Sin cambios de DTOs o firmas. Servidor aplicado; clientes requieren publicación
 updateProviderAvailabilityRule conserva firma y DTO y actualiza provider_availability_rules bajo RLS. Una capacidad inferior a la ocupación de una franja futura/en curso es rechazada por el servidor con «No puedes reducir la capacidad por debajo de las reservas existentes.». La actualización es atómica y no modifica la regla al fallar. Cupos se calculan por franja y estado, con excepción por fecha cuando existe; las reservas canceladas no consumen.
 
 create_booking_from_slot conserva firma, retorno y permisos. Bloquea compartidamente la regla antes de consultar cupos para coordinar creación y edición. No cambia la política de cancelación, pagos, precios ni mascotas activas. Servidor instalado; no requiere actualizar los clientes para el control H06.
+
+
+## Bookings: vencimiento temporal - 2026-09-18
+
+BookingStatus agrega expired. BookingStatusChange.changedByUserId puede ser null para eventos del sistema. Las respuestas de reservas, chat y resenas comparten el tipo ampliado. approve_booking bloquea la fila antes de leer y rechaza transiciones despues del inicio con Booking approval deadline has passed; expired es terminal. La funcion expire_unapproved_bookings() retorna el numero de filas procesadas, no es RPC invocable por clientes anon/authenticated. confirmed pasada sigue confirmed en la API: las apps derivan pending_closure por scheduledEndAt. No nuevos endpoints cliente. Migraciones y publicacion pendientes.

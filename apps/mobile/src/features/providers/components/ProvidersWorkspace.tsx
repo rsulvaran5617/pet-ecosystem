@@ -1,3 +1,6 @@
+import { useBookingClock } from "../../bookings/hooks/useBookingClock";
+import { getBookingDisplayStatus, bookingDisplayStatusLabels, isUpcomingBooking } from "@pet/config";
+import type { BookingDisplayStatus } from "@pet/config";
 import * as DocumentPicker from "expo-document-picker";
 import {
   bookingStatusLabels,
@@ -108,7 +111,7 @@ type DocumentFormState = {
 export type ProviderWorkspaceSection = "inicio" | "negocio" | "servicios" | "disponibilidad" | "reservas" | "estado";
 type OrganizationView = "lista" | "crear" | "editar";
 type OrganizationListFilter = "all" | "active" | "approved" | "ready";
-type ProviderBookingStatusFilter = "all" | "pending_approval" | "confirmed" | "completed" | "cancelled";
+type ProviderBookingStatusFilter = "all" | BookingDisplayStatus;
 type PublicationStepId = "business" | "services" | "availability" | "documents";
 
 const emptyOrganizationForm: OrganizationFormState = {
@@ -556,6 +559,7 @@ export function ProvidersWorkspace({
     refresh,
     runAction
   } = useProvidersWorkspace(enabled && hasProviderRole);
+  const bookingNow = useBookingClock();
   const [organizationView, setOrganizationView] = useState<OrganizationView>("lista");
   const [organizationListFilter, setOrganizationListFilter] = useState<OrganizationListFilter>("all");
   const [isBusinessAccordionExpanded, setIsBusinessAccordionExpanded] = useState(true);
@@ -730,13 +734,15 @@ export function ProvidersWorkspace({
 
     return marks;
   }, [selectedAvailabilityDate, selectedAvailabilityRules]);
-  const pendingProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval");
-  const confirmedProviderBookings = providerBookings.filter((booking) => booking.status === "confirmed");
+  const pendingProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_approval");
+  const confirmedProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "confirmed");
+  const closureProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_closure");
+  const expiredProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "expired");
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
   const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
   const publicProviderServices = selectedServicios.filter((service) => service.isPublic);
   const activeProviderServices = selectedServicios.filter((service) => service.isActive);
-  const actionableProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed");
+  const actionableProviderBookings = providerBookings.filter((booking) => isUpcomingBooking(booking));
   const todayProviderBookings = providerBookings.filter((booking) => {
     const scheduledAt = new Date(booking.scheduledStartAt);
     const today = new Date();
@@ -760,8 +766,8 @@ export function ProvidersWorkspace({
     () =>
       providerBookingStatusFilter === "all"
         ? sortedProviderBookings
-        : sortedProviderBookings.filter((booking) => booking.status === providerBookingStatusFilter),
-    [providerBookingStatusFilter, sortedProviderBookings]
+        : sortedProviderBookings.filter((booking) => getBookingDisplayStatus(booking, bookingNow) === providerBookingStatusFilter),
+    [providerBookingStatusFilter, sortedProviderBookings, bookingNow]
   );
   const displayedProviderBookings =
     activeSection === "inicio" && providerBookingStatusFilter === "all"
@@ -776,6 +782,8 @@ export function ProvidersWorkspace({
     { label: "Todas", value: "all", count: providerBookings.length, tone: providerBookings.length ? "active" : "neutral" },
     { label: "Pendientes", value: "pending_approval", count: pendingProviderBookings.length, tone: pendingProviderBookings.length ? "pending" : "neutral" },
     { label: "Confirmadas", value: "confirmed", count: confirmedProviderBookings.length, tone: confirmedProviderBookings.length ? "active" : "neutral" },
+    { label: "Pendientes de cierre", value: "pending_closure", count: closureProviderBookings.length, tone: "pending" },
+    { label: "Expiradas", value: "expired", count: expiredProviderBookings.length, tone: "neutral" },
     { label: "Completadas", value: "completed", count: completedProviderBookings.length, tone: completedProviderBookings.length ? "active" : "neutral" },
     { label: "Canceladas", value: "cancelled", count: cancelledProviderBookings.length, tone: "neutral" }
   ];
@@ -798,7 +806,7 @@ export function ProvidersWorkspace({
   );
   const missingPublicationSteps = publicationSteps.filter((step) => !step.done).length;
   const completedPublicationSteps = publicationSteps.length - missingPublicationSteps;
-  const recommendedProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? dashboardProviderBookings[0] ?? null;
+  const recommendedProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? null;
   const navigateProviderSection = (section: ProviderWorkspaceSection) => {
     onNavigateSection?.(section);
   };
@@ -887,9 +895,9 @@ export function ProvidersWorkspace({
           </View>
           <View style={{ alignSelf: "flex-start" }}>
             <StatusChip
-              label={bookingStatusLabels[selectedProviderBookingDetail.booking.status]}
+              label={bookingDisplayStatusLabels[getBookingDisplayStatus(selectedProviderBookingDetail.booking)]}
               tone={
-                selectedProviderBookingDetail.booking.status === "pending_approval"
+                getBookingDisplayStatus(selectedProviderBookingDetail.booking) === "pending_approval"
                   ? "pending"
                   : selectedProviderBookingDetail.booking.status === "cancelled"
                     ? "neutral"
@@ -914,9 +922,9 @@ export function ProvidersWorkspace({
             }
           />
         </View>
-        {selectedProviderBookingDetail.booking.status === "pending_approval" || selectedProviderBookingDetail.booking.status === "confirmed" ? (
+        {getBookingDisplayStatus(selectedProviderBookingDetail.booking) === "pending_approval" || selectedProviderBookingDetail.booking.status === "confirmed" ? (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, width: "100%" }}>
-            {selectedProviderBookingDetail.booking.status === "pending_approval" ? (
+            {getBookingDisplayStatus(selectedProviderBookingDetail.booking) === "pending_approval" ? (
               <>
                 <Button disabled={isSubmitting} label="Aprobar" onPress={() => void approveProviderBooking(selectedProviderBookingDetail.booking.id)} />
                 <Button
@@ -950,6 +958,7 @@ export function ProvidersWorkspace({
         <BookingOperationsTimeline
           bookingId={selectedProviderBookingDetail.booking.id}
           bookingStatus={selectedProviderBookingDetail.booking.status}
+          scheduledEndAt={selectedProviderBookingDetail.booking.scheduledEndAt}
           context="provider"
           enabled={selectedProviderBookingDetail.booking.status === "confirmed"}
           onOperationChanged={() => refresh(selectedOrganizationId)}
@@ -2396,7 +2405,7 @@ export function ProvidersWorkspace({
                   {displayedProviderBookings.length ? (
                     <View style={{ gap: 8 }}>
                       <Text style={{ fontSize: 11, fontWeight: "800", color: colorTokens.muted, textTransform: "uppercase" }}>
-                        {providerBookingStatusFilter === "all" ? "Proximas reservas" : `Reservas ${activeProviderBookingFilterLabel.toLowerCase()}`}
+                        {providerBookingStatusFilter === "all" ? "Todas las reservas" : `Reservas ${activeProviderBookingFilterLabel.toLowerCase()}`}
                       </Text>
                       {displayedProviderBookings.map((booking) => (
                         <View
@@ -2422,7 +2431,7 @@ export function ProvidersWorkspace({
                             </View>
                             <View style={{ maxWidth: 118 }}>
                               <StatusChip
-                                label={bookingStatusLabels[booking.status]}
+                                label={bookingDisplayStatusLabels[getBookingDisplayStatus(booking)]}
                                 tone={booking.status === "pending_approval" ? "pending" : booking.status === "cancelled" ? "neutral" : "active"}
                               />
                             </View>

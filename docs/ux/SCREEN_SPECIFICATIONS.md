@@ -360,3 +360,8 @@ Web probada localmente con subida real y respuesta perdida simulada. Pantalla na
 Owner/provider web: cabecera, badges e identificadores largos deben permanecer dentro del ancho. Los paneles principales permiten contenido visible y sus columnas se ajustan al ancho; no usar overflow hidden para encubrir contenido fuera de pantalla. La tabla semanal de capacidad conserva scroll propio con nombre accesible y foco por teclado. Aviso de mensaje: tamaño border-box y ajuste de texto largo.
 
 Inicio y Ayuda conservan CSS importado y presentación sin JavaScript, con hidratación sin discrepancias. QA local en desarrollo y build de producción: 360, 390, 414 y 1440 px; prueba de cadenas largas; producción espera datos cargados. Sin equivalencia con pruebas nativas o del sitio desplegado. Evidencia en docs/audit/2026-09-17/CORRECCION_WEB.md.
+
+
+## Bookings: vencidas y pendientes de cierre - 2026-09-18
+
+Owner/provider web y mobile incorporan filtros Expiradas y Pendientes de cierre. No se ofrecen aprobaciones despues del inicio ni cancelacion de una expirada. Confirmadas despues de su hora final salen de proximas; se conserva acceso a detalle, soporte e historial y cierre explicito provider. Operaciones distingue sin llegada registrada, cierre de atencion pendiente y finalizacion pendiente, sin inferir inasistencia. Contadores e icono mobile excluyen expiradas y confirmadas pasadas de proximas/activas. Clasificacion refrescada cada 15 segundos aun sin eventos DB.

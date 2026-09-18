@@ -1,4 +1,8 @@
-﻿"use client";
+"use client";
+import { useBookingClock } from "../../bookings/hooks/useBookingClock";
+import { getBookingDisplayStatus, bookingDisplayStatusLabels, getBookingClosureLabel } from "@pet/config";
+import type { BookingDisplayStatus } from "@pet/config";
+
 
 import {
   bookingStatusLabels,
@@ -15,7 +19,6 @@ import type {
   BookingOperationsTimeline,
   BookingOperationalState,
   BookingSummary,
-  BookingStatus,
   ChatThreadSummary,
   BookingSlot,
   CreateProviderAvailabilityRuleInput,
@@ -1581,6 +1584,7 @@ export function ProvidersWorkspace({
     refresh,
     runAction
   } = useProvidersWorkspace(enabled && hasProviderRole);
+  useBookingClock();
   const [organizationMode, setOrganizationMode] = useState<"create" | "edit">("create");
   const [organizationForm, setOrganizationForm] = useState(emptyOrganizationForm);
   const [publicProfileForm, setPublicProfileForm] = useState(emptyPublicProfileForm);
@@ -1605,7 +1609,7 @@ export function ProvidersWorkspace({
   const [isLoadingCapacitySlots, setIsLoadingCapacitySlots] = useState(false);
   const [activeProviderSectionId, setActiveProviderSectionId] = useState<(typeof providerConsoleSections)[number]["id"]>("provider-web-panel");
   const [isPendingBookingsBreakdownOpen, setIsPendingBookingsBreakdownOpen] = useState(false);
-  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatus>("pending_approval");
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingDisplayStatus>("pending_approval");
   const [bookingNotice, setBookingNotice] = useState<ProviderBookingNotice | null>(null);
   const [messageNotice, setMessageNotice] = useState<ProviderMessageNotice | null>(null);
   const knownPendingBookingIdsRef = useRef<Set<string>>(new Set());
@@ -1672,7 +1676,7 @@ export function ProvidersWorkspace({
         });
 
         bookings
-          .filter((booking) => booking.status === "pending_approval")
+          .filter((booking) => getBookingDisplayStatus(booking) === "pending_approval")
           .forEach((booking) => {
             pendingBookings.push({
               booking,
@@ -1800,11 +1804,13 @@ export function ProvidersWorkspace({
       6: []
     }
   );
-  const pendingProviderBookings = providerBookings.filter((booking) => booking.status === "pending_approval");
-  const confirmedProviderBookings = providerBookings.filter((booking) => booking.status === "confirmed");
+  const pendingProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_approval");
+  const confirmedProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "confirmed");
+  const closureProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_closure");
+  const expiredProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "expired");
   const completedProviderBookings = providerBookings.filter((booking) => booking.status === "completed");
   const cancelledProviderBookings = providerBookings.filter((booking) => booking.status === "cancelled");
-  const filteredProviderBookings = providerBookings.filter((booking) => booking.status === bookingStatusFilter);
+  const filteredProviderBookings = providerBookings.filter((booking) => getBookingDisplayStatus(booking) === bookingStatusFilter);
   const selectedOrganizationHasBookings = providerBookings.length > 0;
   const hasPublishedService = selectedServices.some((service) => service.isPublic && service.isActive);
   const isMarketplaceVisible =
@@ -1869,7 +1875,7 @@ export function ProvidersWorkspace({
       setIsLoadingCapacitySlots(false);
     }
   };
-  const nextProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? providerBookings[0] ?? null;
+  const nextProviderBooking = pendingProviderBookings[0] ?? confirmedProviderBookings[0] ?? null;
   const completedMoneyIndicator = mergeMoneyIndicators(businessOverviews.map((overview) => overview.moneyIndicators.completed));
   const pendingServiceMoneyIndicator = mergeMoneyIndicators(businessOverviews.map((overview) => overview.moneyIndicators.pendingService));
   const providerCancelledMoneyIndicator = mergeMoneyIndicators(businessOverviews.map((overview) => overview.moneyIndicators.providerCancelled));
@@ -2009,7 +2015,7 @@ export function ProvidersWorkspace({
       overview.bookingCounts.pending_approval +
       overview.bookingCounts.confirmed +
       overview.bookingCounts.completed +
-      overview.bookingCounts.cancelled,
+      overview.bookingCounts.expired + overview.bookingCounts.pending_closure + overview.bookingCounts.cancelled,
     0
   );
   const totalMessageThreadCount = businessOverviews.reduce((total, overview) => total + overview.messageThreadCount, 0);
@@ -2027,7 +2033,7 @@ export function ProvidersWorkspace({
         overview.bookingCounts.pending_approval +
         overview.bookingCounts.confirmed +
         overview.bookingCounts.completed +
-        overview.bookingCounts.cancelled
+        overview.bookingCounts.expired + overview.bookingCounts.pending_closure + overview.bookingCounts.cancelled
     )
   );
   const globalServiceRanking = mergeServiceRankingItems(businessOverviews.flatMap((overview) => overview.serviceRanking));
@@ -2499,7 +2505,7 @@ export function ProvidersWorkspace({
                           overview.bookingCounts.pending_approval +
                           overview.bookingCounts.confirmed +
                           overview.bookingCounts.completed +
-                          overview.bookingCounts.cancelled;
+                          overview.bookingCounts.expired + overview.bookingCounts.pending_closure + overview.bookingCounts.cancelled;
                         const barWidth = `${Math.max(8, Math.round((totalBookings / maxOverviewBookings) * 100))}%`;
 
                         return (
@@ -4009,6 +4015,8 @@ export function ProvidersWorkspace({
                       {[
                         { status: "pending_approval" as const, label: "Pendientes por aprobar", count: pendingProviderBookings.length, tone: "warning" as const },
                         { status: "confirmed" as const, label: "Confirmadas", count: confirmedProviderBookings.length, tone: "success" as const },
+                        { status: "pending_closure" as const, label: "Pendientes de cierre", count: closureProviderBookings.length, tone: "warning" as const },
+                        { status: "expired" as const, label: "Expiradas", count: expiredProviderBookings.length, tone: "neutral" as const },
                         { status: "completed" as const, label: "Completadas", count: completedProviderBookings.length, tone: "success" as const },
                         { status: "cancelled" as const, label: "Canceladas", count: cancelledProviderBookings.length, tone: "neutral" as const }
                       ].map((filter) => {
@@ -4130,7 +4138,7 @@ export function ProvidersWorkspace({
                                       textTransform: "uppercase"
                                     }}
                                   >
-                                    {bookingStatusLabels[booking.status]}
+                                    {bookingDisplayStatusLabels[getBookingDisplayStatus(booking)]}
                                   </span>
                                 </div>
                                 <span style={{ color: "#57534e", fontSize: "7px", lineHeight: 1.35 }}>
@@ -4204,10 +4212,12 @@ export function ProvidersWorkspace({
                                               letterSpacing: "0.06em",
                                               padding: "4px 7px",
                                               textTransform: "uppercase",
-                                              whiteSpace: "nowrap"
+                                              whiteSpace: "normal",
+                                              maxWidth: "100%",
+                                              overflowWrap: "anywhere"
                                             }}
                                           >
-                                            {operationTimeline ? bookingOperationalStateLabels[operationTimeline.operationalState] : "Cargando"}
+                                            {operationTimeline ? getBookingDisplayStatus(booking) === "pending_closure" ? getBookingClosureLabel(operationTimeline) : bookingOperationalStateLabels[operationTimeline.operationalState] : "Cargando"}
                                           </span>
                                         </div>
 
@@ -4390,7 +4400,7 @@ export function ProvidersWorkspace({
                                     >
                                       {isBookingChatOpen ? "Chat abierto" : "Chatear"}
                                     </ProviderActionButton>
-                                    {booking.status === "pending_approval" ? (
+                                    {getBookingDisplayStatus(booking) === "pending_approval" ? (
                                       <>
                                         <Button disabled={isSubmitting} onClick={() => void approveProviderBooking(booking.id)}>
                                           Aprobar
@@ -4506,7 +4516,7 @@ export function ProvidersWorkspace({
                           >
                             <strong style={{ color: "#1c1917", fontSize: "11px" }}>Sin reservas en este filtro</strong>
                             <span style={{ fontSize: "10px" }}>
-                              No hay reservas con estado {bookingStatusLabels[bookingStatusFilter].toLowerCase()} para este negocio.
+                              No hay reservas con estado {bookingDisplayStatusLabels[bookingStatusFilter].toLowerCase()} para este negocio.
                             </span>
                           </div>
                         )}

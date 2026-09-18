@@ -230,3 +230,8 @@ Trigger privado: la API existente sigue usando UPDATE bajo RLS, sin nuevos DTOs 
 ## Corrección web H07 — presentación adaptable
 
 El panel y el selector de negocio respetan el ancho disponible. Las tarjetas de detalle pasan a una columna en móvil web; la tabla semanal de capacidad se desplaza dentro de una región identificada y enfocable. Los avisos de mensajes incluyen padding/borde dentro del ancho calculado para no quedar cortados por la izquierda. No cambia capacidad, reservas ni mensajería. Pruebas locales de producción con datos cargados y negocio QA en 360/390/414/1440 px; despliegue pendiente.
+
+
+## Bandeja de cierre de reservas - 2026-09-18
+
+Provider web/mobile separa Pendientes de cierre y Expiradas. Una confirmada despues del fin sigue permitiendo cierre explicito, no se marca automaticamente completada o no-show. Vencidas no aparecen para aprobar. Ver docs/delivery/BOOKING_LIFECYCLE.md.

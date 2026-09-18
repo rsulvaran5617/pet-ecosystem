@@ -1,0 +1,101 @@
+{
+  "executedAt": "2026-09-18T15:38:51.388Z",
+  "checks": [
+    {
+      "name": "provider opens bookings",
+      "passed": true
+    },
+    {
+      "name": "provider filter pending_closure",
+      "passed": true
+    },
+    {
+      "name": "provider pending_closure fits 1440",
+      "passed": true
+    },
+    {
+      "name": "provider pending_closure fits 390",
+      "passed": true
+    },
+    {
+      "name": "provider filter expired",
+      "passed": true
+    },
+    {
+      "name": "provider expired fits 1440",
+      "passed": true
+    },
+    {
+      "name": "provider expired fits 390",
+      "passed": true
+    },
+    {
+      "name": "Expired filter has no Approve action",
+      "passed": true
+    },
+    {
+      "name": "provider no runtime exceptions",
+      "passed": true
+    },
+    {
+      "name": "owner opens bookings",
+      "passed": true
+    },
+    {
+      "name": "Owner opens booking history",
+      "passed": true
+    },
+    {
+      "name": "owner filter pending_closure",
+      "passed": true
+    },
+    {
+      "name": "owner pending_closure fits 1440",
+      "passed": true
+    },
+    {
+      "name": "owner pending_closure fits 390",
+      "passed": true
+    },
+    {
+      "name": "owner filter expired",
+      "passed": true
+    },
+    {
+      "name": "owner expired fits 1440",
+      "passed": true
+    },
+    {
+      "name": "owner expired fits 390",
+      "passed": true
+    },
+    {
+      "name": "owner no runtime exceptions",
+      "passed": true
+    }
+  ],
+  "sampleCounts": [
+    {
+      "role": "provider",
+      "filter": "pending_closure",
+      "count": 0
+    },
+    {
+      "role": "provider",
+      "filter": "expired",
+      "count": 0
+    },
+    {
+      "role": "owner",
+      "filter": "pending_closure",
+      "count": 1
+    },
+    {
+      "role": "owner",
+      "filter": "expired",
+      "count": 0
+    }
+  ],
+  "scope": "Local production web, existing QA accounts; login, reads, filters, logout only. No mutations or screenshots of personal data. Filter counts may be zero; SQL/time regressions test transitions separately.",
+  "passed": true
+}

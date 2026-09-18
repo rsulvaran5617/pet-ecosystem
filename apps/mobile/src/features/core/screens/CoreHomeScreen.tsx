@@ -1,3 +1,5 @@
+import { useBookingClock } from "../../bookings/hooks/useBookingClock";
+import { isUpcomingBooking, getBookingDisplayStatus } from "@pet/config";
 import { coreRoleLabels, formatShortDateLabel, formatShortTimeLabel } from "@pet/config";
 import { colorTokens, visualTokens } from "@pet/ui";
 import { providerServiceCategoryLabels } from "@pet/config";
@@ -100,7 +102,7 @@ type AccountAccordionPanelId = AccountPanelId | "deletion" | "households" | "tas
 type AccountFocusSection = "petInvitations";
 type OwnerHomePet = Pick<PetSummary, "avatarUrl" | "birthDate" | "breed" | "id" | "name" | "species" | "status">;
 type OwnerHomeReminder = Pick<Reminder, "dueAt" | "id" | "petId" | "reminderType" | "status" | "title">;
-type OwnerHomeBooking = Pick<BookingSummary, "id" | "petId" | "petName" | "scheduledStartAt" | "serviceName" | "status">;
+type OwnerHomeBooking = Pick<BookingSummary, "id" | "petId" | "petName" | "scheduledStartAt" | "scheduledEndAt" | "serviceName" | "status">;
 type OwnerHomeServiceHighlight = Pick<MarketplaceCategoryHighlight, "category" | "providerCount" | "serviceCount">;
 type ActiveOwnerPetContext = { householdId: Uuid | null; petId: Uuid | null };
 type AppBadgeRole = "owner" | "provider" | "foster" | "signed-out";
@@ -185,7 +187,7 @@ function calculateAppBadgeCount({
   }
 
   if (activeRole === "provider") {
-    return providerBookings.filter((booking) => booking.status === "pending_approval").length;
+    return providerBookings.filter((booking) => getBookingDisplayStatus(booking) === "pending_approval").length;
   }
 
   if (activeRole === "foster") {
@@ -196,7 +198,7 @@ function calculateAppBadgeCount({
   }
 
   return (
-    bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed").length +
+    bookings.filter((booking) => isUpcomingBooking(booking)).length +
     countPendingOwnerReminders(reminders) +
     householdInvitationCount
   );
@@ -1051,10 +1053,10 @@ function OwnerHome({
   const visibleBookings = activePet?.id ? bookings.filter((booking) => booking.petId === activePet.id) : bookings;
   const nextBooking =
     visibleBookings
-      .filter((booking) => booking.status !== "cancelled" && new Date(booking.scheduledStartAt).getTime() >= now)
+      .filter((booking) => isUpcomingBooking(booking, now) && new Date(booking.scheduledStartAt).getTime() >= now)
       .sort((firstBooking, secondBooking) => new Date(firstBooking.scheduledStartAt).getTime() - new Date(secondBooking.scheduledStartAt).getTime())[0] ??
     visibleBookings
-      .filter((booking) => booking.status !== "cancelled")
+      .filter((booking) => isUpcomingBooking(booking, now))
       .sort((firstBooking, secondBooking) => new Date(secondBooking.scheduledStartAt).getTime() - new Date(firstBooking.scheduledStartAt).getTime())[0] ??
     null;
   const greetingName = ownerFirstName.trim();
@@ -1648,6 +1650,7 @@ function FosterHome({
 }
 
 export function CoreHomeScreen() {
+  useBookingClock();
   const {
     authState,
     snapshot,

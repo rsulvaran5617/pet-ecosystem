@@ -1,5 +1,7 @@
 ﻿"use client";
+import { useBookingClock } from "../../bookings/hooks/useBookingClock";
 
+import { isUpcomingBooking } from "@pet/config";
 import { coreMvpBoundaries, coreRoleLabels, coreSupportedPaymentMethodTypes } from "@pet/config";
 import { colorTokens, spacingTokens } from "@pet/ui";
 import type {
@@ -591,6 +593,7 @@ function OwnerDashboard({
   onNavigate: (sectionId: OwnerWebSectionId) => void;
   snapshot: CoreIdentitySnapshot;
 }) {
+  useBookingClock();
   const [dashboardData, setDashboardData] = useState<OwnerDashboardData>(emptyOwnerDashboardData);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -668,7 +671,7 @@ function OwnerDashboard({
 
   const now = new Date();
   const activePets = dashboardData.pets.filter((pet) => pet.status === "active");
-  const activeBookings = dashboardData.bookings.filter((booking) => booking.status === "pending_approval" || booking.status === "confirmed");
+  const activeBookings = dashboardData.bookings.filter((booking) => isUpcomingBooking(booking));
   const upcomingBookings = activeBookings
     .filter((booking) => new Date(booking.scheduledStartAt) >= now)
     .sort((left, right) => left.scheduledStartAt.localeCompare(right.scheduledStartAt));

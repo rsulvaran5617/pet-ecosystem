@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import {pathToFileURL,URL} from 'node:url';
+import process from 'node:process';
+import console from 'node:console';
+const {PGlite}=await import(pathToFileURL(process.env.PGLITE_MODULE_PATH??path.join(os.tmpdir(),'pet-clinical-regression/node_modules/@electric-sql/pglite/dist/index.js')).href);
+const db=new PGlite();
+const checks=[];
+const owner='00000000-0000-0000-0000-000000000001';
+const check=(name,condition)=>{assert.ok(condition,name);checks.push(name);};
+async function rejected(sql,pattern){try{await db.exec(sql);assert.fail('Expected rejection');}catch(e){assert.match(e.message,pattern);}}
+try{
+ await db.exec(`create role anon; create role authenticated; create role service_role;
+ create schema auth; create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ create table bookings(id uuid primary key default gen_random_uuid(),status text not null constraint bookings_status_check check(status in ('pending_approval','confirmed','completed','cancelled')),scheduled_start_at timestamptz not null,scheduled_end_at timestamptz not null,provider_organization_id uuid,updated_at timestamptz default now());
+ create table booking_status_history(booking_id uuid,from_status text constraint booking_status_history_from_status_check check(from_status in ('pending_approval','confirmed','completed','cancelled')),to_status text constraint booking_status_history_to_status_check check(to_status in ('pending_approval','confirmed','completed','cancelled')),changed_by_user_id uuid not null,change_reason text);
+ create table chat_threads(booking_id uuid,booking_status text constraint chat_threads_booking_status_check check(booking_status in ('pending_approval','confirmed','completed','cancelled')));
+ create table audit_logs(actor_user_id uuid not null,entity_type text,entity_id uuid,action text,context jsonb);
+ create function can_complete_booking(uuid,uuid) returns boolean language sql as $$select $2='${owner}'::uuid$$;
+ create function insert_audit_log(text,uuid,text,jsonb,uuid) returns void language sql as $$insert into audit_logs values($5,$1,$2,$3,$4)$$;
+ create function test_sync_chat() returns trigger language plpgsql as $$begin update chat_threads set booking_status=new.status where booking_id=new.id;return new;end;$$;
+ create trigger test_sync_chat after update on bookings for each row execute function test_sync_chat();`);
+ await db.exec(await fs.readFile(new URL('../migrations/20260918150000_booking_expiration.sql',import.meta.url),'utf8'));
+ const seed=async(status,start,end='1 hour')=>(await db.query(`insert into bookings(status,scheduled_start_at,scheduled_end_at) values($1,now()+$2::interval,now()+$3::interval) returning id`,[status,start,end])).rows[0].id;
+ const past=await seed('pending_approval','-1 hour');
+ const boundary=await seed('pending_approval','0 seconds');
+ const future=await seed('pending_approval','1 day','2 days');
+ const confirmed=await seed('confirmed','-2 days','-1 day');
+ const multiDay=await seed('confirmed','-1 day','1 day');
+ await seed('cancelled','-2 days','-1 day');await seed('completed','-2 days','-1 day');
+ await db.query('insert into chat_threads values($1,$2)',[past,'pending_approval']);
+ check('Only past and boundary unapproved expire',(await db.query('select expire_unapproved_bookings() as n')).rows[0].n===2);
+ check('Idempotent second sweep',(await db.query('select expire_unapproved_bookings() as n')).rows[0].n===0);
+ check('Confirmed overdue and multi-day bookings remain confirmed',(await db.query('select count(*)::int as n from bookings where status=$1',['confirmed'])).rows[0].n===2);
+ check('Chat accepts expired state',(await db.query('select booking_status from chat_threads')).rows[0].booking_status==='expired');
+ check('History uses system actor',(await db.query("select count(*)::int as n from booking_status_history where to_status='expired' and changed_by_user_id is null")).rows[0].n===2);
+ check('Audit uses system actor without blaming owner',(await db.query("select count(*)::int as n from audit_logs where actor_user_id is null and context->>'actor_type'='system'")).rows[0].n===2);
+ await rejected(`update bookings set status='confirmed' where id='${past}'`,/Expired bookings/);checks.push('Stale approval cannot revive expired booking');
+ await rejected(`update bookings set status='cancelled' where id='${boundary}'`,/Expired bookings/);checks.push('Expired history cannot be overwritten by cancellation');
+  await db.exec(`select set_config('request.jwt.claim.sub','${owner}',false);`);
+  await rejected(`select approve_booking('${past}')`,/Expired bookings/);checks.push('Expired approval RPC returns terminal error');
+ await db.query('select approve_booking($1)',[future]);
+ await db.query('select approve_booking($1)',[future]);
+ check('Approval retry is idempotent',(await db.query("select count(*)::int as n from booking_status_history where to_status='confirmed'")).rows[0].n===1);
+ const overdue=await seed('pending_approval','-1 second');
+ await rejected(`select approve_booking('${overdue}')`,/deadline has passed/);checks.push('Approval rejected before cron catches up');
+ await db.exec("select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false)");
+ const foreign=await seed('pending_approval','1 day','2 days');
+ await rejected(`select approve_booking('${foreign}')`,/ownership is required/);checks.push('Foreign provider cannot approve');
+ for(const role of ['anon','authenticated']){
+  await db.exec('set role '+role);
+  await rejected('select public.expire_unapproved_bookings()',/permission denied/);
+  await db.exec('reset role');checks.push(role+' cannot execute global sweep');
+ }
+ await db.exec('set role service_role');
+ check('Service role may execute sweep',(await db.query('select public.expire_unapproved_bookings() as n')).rows[0].n===1);
+ await db.exec('reset role');
+ await db.exec("insert into bookings(status,scheduled_start_at,scheduled_end_at) select 'pending_approval', now()-interval '2 hours',now()-interval '1 hour' from generate_series(1,501)");
+ check('Sweep bounded to 500 rows',(await db.query('select expire_unapproved_bookings() as n')).rows[0].n===500);
+ check('Next sweep drains backlog',(await db.query('select expire_unapproved_bookings() as n')).rows[0].n===1);
+ check('Confirmed past booking still available for explicit closure',(await db.query('select status from bookings where id=$1',[confirmed])).rows[0].status==='confirmed');
+ check('Future multi-day end does not cause expiration',(await db.query('select status from bookings where id=$1',[multiDay])).rows[0].status==='confirmed');
+ console.log(JSON.stringify({passed:true,checks,limits:'PGlite SQL regression; no pg_cron scheduler execution or multi-connection contention test.'},null,2));
+}finally{await db.close();}

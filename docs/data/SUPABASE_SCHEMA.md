@@ -613,3 +613,8 @@ clinical_retry_and_residual_revocation modifica finalize_clinical_encounter, pre
 ## Migración 20260918030000 — capacidad ocupada
 
 provider_capacity_occupied_guard agrega la función privada y trigger trg_provider_rule_capacity_guard antes de cambios de capacity en provider_availability_rules. Agrupa reservas por slot_start_at/slot_end_at, excluye franjas terminadas, usa booking_status_consumes_capacity y respeta el override por fecha de America/Panama. Registra cambios reales aceptados. Reemplaza create_booking_from_slot conservando firma y agregando FOR SHARE sobre la regla antes de calcular disponibilidad. No añade tablas, columnas ni contadores. Aplicada al servidor vinculado el 18/09/2026 UTC; pruebas y hash en docs/audit/2026-09-17/evidence/capacity-guard-*.json.
+
+
+## Booking expiration (migraciones locales 20260918150000/150100)
+
+bookings.status, booking_status_history.from_status/to_status y chat_threads.booking_status admiten expired. Actor nullable para historial/auditoria de sistema. Indice parcial bookings_pending_expiration_idx sobre scheduled_start_at,id con status=pending_approval. Funcion expire_unapproved_bookings sin argumentos, 500 filas por lote; cron cada minuto. Publicacion pendiente, ver docs/delivery/BOOKING_LIFECYCLE.md.

@@ -103,7 +103,7 @@ function matchesStatusFilter(thread: ChatThreadSummary, filter: MessageStatusFil
   return thread.bookingStatus === filter;
 }
 
-function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled") {
+function getStatusTone(status: "pending_approval" | "confirmed" | "completed" | "cancelled" | "expired") {
   if (status === "confirmed" || status === "completed") {
     return "active" as const;
   }
