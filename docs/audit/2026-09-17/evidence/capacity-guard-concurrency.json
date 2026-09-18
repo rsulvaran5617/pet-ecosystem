@@ -1,0 +1,59 @@
+{
+  "executedAt": "2026-09-18T02:20:59.256Z",
+  "checks": [
+    {
+      "name": "booking-first transaction holds rule lock",
+      "passed": true
+    },
+    {
+      "name": "capacity edit waits for in-flight booking",
+      "passed": true
+    },
+    {
+      "name": "booking commits before edit",
+      "passed": true
+    },
+    {
+      "name": "edit sees committed occupancy and rejects reduction",
+      "passed": true
+    },
+    {
+      "name": "edit-first transaction holds rule lock",
+      "passed": true
+    },
+    {
+      "name": "booking waits for in-flight capacity edit",
+      "passed": true
+    },
+    {
+      "name": "valid reduction commits first",
+      "passed": true
+    },
+    {
+      "name": "booking rechecks reduced capacity and rejects",
+      "passed": true
+    },
+    {
+      "name": "both races leave capacity at or above occupied slots",
+      "passed": true
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "QA bookings cancelled and rules disabled",
+      "passed": true
+    }
+  ],
+  "ruleIds": [
+    "862f1353-6d84-469a-b983-2472367fcd22",
+    "9cf6f9ec-ca9f-457e-846c-c0762907d728"
+  ],
+  "limits": "SQL/RPC concurrency at READ COMMITTED, two Management API connections. No browser/native or load test. Temporary publication reverted before each COMMIT.",
+  "finalState": {
+    "open_bookings": 0,
+    "rules_disabled": true,
+    "org_private": true,
+    "profile_private": true,
+    "service_private": true
+  }
+}

@@ -241,3 +241,9 @@ Riesgos:
 - el provider owner puede recibir, aprobar o rechazar reservas pendientes
 - el provider owner puede completar una reserva confirmada
 - el hogar puede cancelar dentro de la politica base
+
+## Corrección H06 — reserva frente a edición simultánea de capacidad
+
+20260918030000 conserva create_booking_from_slot y su contrato, incorporando FOR SHARE sobre la regla antes del advisory lock por slot y la lectura de disponibilidad. A READ COMMITTED, si una reserva confirma primero, la edición espera y ve su ocupación; si la capacidad se reduce primero, la reserva espera y valida contra el nuevo límite. Se probaron ambas secuencias con conexiones PostgreSQL separadas y espera por lock observada.
+
+Un trigger en provider_availability_rules impide que capacity quede por debajo de cupos ocupados de una franja futura/en curso, usando los estados de booking_status_consumes_capacity y overrides por fecha. No modifica bookings pasados ni el flujo legacy create_booking. Evidencia: docs/audit/2026-09-17/CORRECCION_CAPACIDAD.md.

@@ -1,5 +1,11 @@
 # API_CONTRACT.md
 
+## Correccion clinica H01-H03 (2026-09-17)
+
+Aplicada `20260918010000_clinical_write_authorization_revalidation.sql`: las firmas publicas se conservan. `finalize_clinical_encounter`, `create_clinical_entry_correction`, `prepare_clinical_document_upload` y `finalize_clinical_document_upload` revalidan permiso vigente mediante un guard transaccional interno. La policy de subida clinica usa el mismo control. Un grant revocado/vencido, un profesional suspendido/vencido o un cambio de hogar impiden nuevas escrituras; no borran historial. El helper `assert_clinical_write_authorization` no es una API cliente y no tiene EXECUTE para anon/authenticated.
+
+Los errores mantienen mensajes del contrato existente (`Clinical access is invalid or expired`, `Verified professional identity required`, `Clinical authorization is expired or revoked`). Esta correccion no resuelve el reintento idempotente H04 ni la revocacion residual H05, documentados en la auditoria.
+
 ## Nota de implementacion
 
 El baseline actual no expone un backend REST dedicado. El contrato canonicamente se modela como operaciones tipadas sobre Supabase consumidas desde `packages/api-client`.
@@ -394,3 +400,19 @@ Foster-2A API client local:
 - `list_pending_clinical_professionals_for_admin()` y `review_clinical_professional_profile(...)`: cola y decision manual exclusivas de Admin.
 - 2C: `request_clinical_write_access`, `get_my_clinical_write_request`, `list_pet_clinical_write_requests`, `review_clinical_write_request` y `revoke_clinical_write_authorization` gestionan consentimiento granular; no escriben contenido clinico.
 - 2D: `finalize_clinical_encounter(...)` crea de forma transaccional e idempotente una atencion final y sus entradas, validando profesional, consentimiento, scopes, vigencia y revocacion.
+
+## Clinical Access — reintentos y retiro residual (20260918020000)
+
+- finalize_clinical_encounter: misma firma. La clave del profesional identifica una operación de una autorización y un contenido inmutable (fecha, tipo, resumen y entradas originales normalizadas). Repetirla devuelve el UUID finalizado, sin nuevo evento; cambiar contenido u autorización se rechaza. Obtener ese comprobante propio no requiere restablecer el consentimiento retirado.
+- prepare_clinical_document_upload: misma clave/autor requiere mismo encounter y metadata; devuelve la misma preparación. Los permisos vigentes siguen siendo obligatorios.
+- finalize_clinical_document_upload: el autor puede repetir ready sin escrituras. Pending requiere guard vigente y objeto Storage válido. Un objeto ausente/inválido devuelve Clinical document validation failed; permanece pending.
+- uploadPreparedClinicalDocument: confirma primero para recuperar respuestas perdidas; si aún falta el objeto, sube sin upsert y confirma. Un rechazo de permiso no inicia subida.
+- revoke_clinical_write_authorization: acepta approved y completed, mueve solicitud a revoked, conserva historia; repetir revoked es éxito sin evento adicional. Sigue requiriendo can_edit_pet.
+
+Sin cambios de DTOs o firmas. Servidor aplicado; clientes requieren publicación. Especificación y resultados en docs/audit/2026-09-17/CORRECCION_REINTENTOS.md.
+
+## Capacidad de proveedor — H06 (20260918030000)
+
+updateProviderAvailabilityRule conserva firma y DTO y actualiza provider_availability_rules bajo RLS. Una capacidad inferior a la ocupación de una franja futura/en curso es rechazada por el servidor con «No puedes reducir la capacidad por debajo de las reservas existentes.». La actualización es atómica y no modifica la regla al fallar. Cupos se calculan por franja y estado, con excepción por fecha cuando existe; las reservas canceladas no consumen.
+
+create_booking_from_slot conserva firma, retorno y permisos. Bloquea compartidamente la regla antes de consultar cupos para coordinar creación y edición. No cambia la política de cancelación, pagos, precios ni mascotas activas. Servidor instalado; no requiere actualizar los clientes para el control H06.

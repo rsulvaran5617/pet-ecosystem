@@ -1,0 +1,21 @@
+{
+  "executedAt": "2026-09-18T02:25:31.260Z",
+  "checks": [
+    {
+      "name": "create_booking_from_slot",
+      "passed": true
+    },
+    {
+      "name": "guard_provider_rule_capacity",
+      "passed": true
+    }
+  ],
+  "state": {
+    "registered": true,
+    "trigger_enabled": true,
+    "idle_qa_transactions": 0
+  },
+  "typecheck": "7 workspaces passed",
+  "lint": "7 workspaces passed",
+  "builds": "Not repeated: no client code changes in H06; actual SQL compiled and executed remotely"
+}

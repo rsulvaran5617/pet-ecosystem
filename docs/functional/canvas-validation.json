@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "date": "2026-09-16",
+  "sourceCommit": "1352e4c272d1475520a0409ad32e336967c343b0",
+  "chapters": 15,
+  "features": 110,
+  "indexedFeatures": 110,
+  "tables": 12,
+  "words": 12104,
+  "bytes": {
+    "markdown": 85630,
+    "html": 289275
+  },
+  "countsByRole": {
+    "C": 10,
+    "O": 28,
+    "P": 15,
+    "F": 18,
+    "D": 8,
+    "T": 13,
+    "V": 8,
+    "A": 10
+  },
+  "browser": {
+    "structure": {
+      "title": "Pet Ecosystem · Canvas funcional",
+      "features": 110,
+      "chapters": 15,
+      "brokenLinks": [],
+      "overflow": false
+    },
+    "search": {
+      "status": "7 funciones encontradas",
+      "links": 7
+    },
+    "mobile": {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": false
+    },
+    "errors": []
+  },
+  "pdf": {
+    "bytes": 977901,
+    "pages": 44,
+    "mediaBoxes": [
+      "0 0 594.95996 841.91998",
+      "0 0 841.91998 594.95996"
+    ],
+    "tagged": true,
+    "outline": true
+  }
+}

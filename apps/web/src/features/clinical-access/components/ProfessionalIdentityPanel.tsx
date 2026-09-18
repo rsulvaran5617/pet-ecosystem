@@ -1,9 +1,11 @@
 "use client";
 
-import type { ClinicalDocumentType, ClinicalProfessionalContext, ClinicalProfessionalType, ClinicalTimelineEncounter, ClinicalWriteRequest, ClinicalWriteScope } from "@pet/types";
-import { useEffect, useState } from "react";
+import type { ClinicalDocumentType, ClinicalEncounterType, ClinicalEntryType, ClinicalProfessionalContext, ClinicalProfessionalType, ClinicalTimelineEncounter, ClinicalWriteRequest, ClinicalWriteScope } from "@pet/types";
+import { useEffect, useRef, useState } from "react";
 
 import { getBrowserClinicalAccessApiClient, getBrowserCoreApiClient } from "../../core/services/supabase-browser";
+import { submitClinicalEncounter } from "../services/clinical-encounter-submission";
+import type { ClinicalEncounterSubmission } from "../services/clinical-encounter-submission";
 import styles from "./PublicClinicalAccessPage.module.css";
 
 const emptyForm = {
@@ -53,6 +55,8 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [correctionTitle, setCorrectionTitle] = useState("");
   const [correctionDetails, setCorrectionDetails] = useState("");
   const [correctionReason, setCorrectionReason] = useState("");
+  const [submission, setSubmission] = useState<ClinicalEncounterSubmission | null>(null);
+  const submissionRunning = useRef(false);
 
   async function loadIdentity() {
     const auth = await getBrowserCoreApiClient().getAuthState();
@@ -141,26 +145,51 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
   }
 
   async function finalizeEncounter() {
-    if (!writeRequest || !encounter.summary.trim()) { setMessage("Describe brevemente la atencion."); return; }
+    if (submissionRunning.current) return;
+    if (!submission && (!writeRequest || !encounter.summary.trim())) { setMessage("Describe brevemente la atencion."); return; }
+    if (!submission && !Number.isFinite(new Date(encounter.attendedAt).getTime())) { setMessage("Indica una fecha y hora validas."); return; }
+    const attempt: ClinicalEncounterSubmission = submission ?? {
+      input: {
+        requestId: writeRequest!.id, idempotencyKey: crypto.randomUUID(),
+        attendedAt: new Date(encounter.attendedAt).toISOString(), encounterType: encounter.encounterType as ClinicalEncounterType,
+        summary: encounter.summary,
+        entries: encounter.entryTitle.trim() ? [{ type: encounter.entryType as ClinicalEntryType, title: encounter.entryTitle, details: encounter.entryDetails }] : []
+      },
+      attachment: documentFile ? { file: documentFile, title: documentTitle.trim(), documentType, idempotencyKey: crypto.randomUUID() } : null,
+      encounterId: null, prepared: null, documentComplete: false
+    };
+    submissionRunning.current = true;
+    setSubmission(attempt);
     setIsSubmitting(true); setMessage(null);
     try {
-      const encounterId = await getBrowserClinicalAccessApiClient().finalizeClinicalEncounter({ requestId: writeRequest.id, idempotencyKey: crypto.randomUUID(), attendedAt: new Date(encounter.attendedAt).toISOString(), encounterType: encounter.encounterType as "consultation", summary: encounter.summary, entries: encounter.entryTitle.trim() ? [{ type: encounter.entryType as "diagnosis", title: encounter.entryTitle, details: encounter.entryDetails }] : [] });
-      if (documentFile) {
-        const prepared = await getBrowserClinicalAccessApiClient().prepareClinicalDocumentUpload({ encounterId, idempotencyKey: crypto.randomUUID(), title: documentTitle.trim(), documentType, mimeType: documentFile.type as "application/pdf" | "image/jpeg" | "image/png", fileSizeBytes: documentFile.size });
-        await getBrowserClinicalAccessApiClient().uploadPreparedClinicalDocument(prepared, documentFile);
-      }
+      const encounterId = await submitClinicalEncounter(getBrowserClinicalAccessApiClient(), attempt);
       setWriteRequest(await getBrowserClinicalAccessApiClient().getMyClinicalWriteRequest(token));
       const encounters = await getBrowserClinicalAccessApiClient().listMyProfessionalEncounters();
-      setReceipt(encounters.find((item) => item.id === encounterId) ?? null);
+      const savedReceipt = encounters.find((item) => item.id === encounterId);
+      if (!savedReceipt) throw new Error("Receipt is not available yet");
+      setReceipt(savedReceipt);
+      setProfessionalEncounters(encounters);
+      setSubmission(null);
+      setDocumentFile(null);
       setIsReviewing(false);
       setMessage("Atencion incorporada al expediente. El owner ya puede consultarla.");
-    } catch { setMessage("No pudimos registrar la atencion. Revisa el alcance y la vigencia."); }
-    finally { setIsSubmitting(false); }
+    } catch {
+      setSubmission({ ...attempt });
+      if (attempt.encounterId) {
+        setWriteRequest((current) => current?.id === attempt.input.requestId && current.status === "approved" ? { ...current, status: "completed" } : current);
+        setMessage(attempt.attachment && !attempt.documentComplete
+          ? "La atencion esta guardada. El documento sigue pendiente; puedes reintentarlo si el permiso sigue vigente."
+          : "La atencion esta guardada. No pudimos actualizar el comprobante; vuelve a consultarlo.");
+      } else {
+        setMessage("No pudimos confirmar el resultado. Reintenta la misma operacion para recuperar la atencion sin duplicarla.");
+      }
+    } finally { submissionRunning.current = false; setIsSubmitting(false); }
   }
 
   function reviewEncounter() {
     if (!encounter.summary.trim()) { setMessage("Describe brevemente la atencion."); return; }
-    if (documentFile && (!documentTitle.trim() || !["application/pdf", "image/jpeg", "image/png"].includes(documentFile.type) || documentFile.size > 15 * 1024 * 1024)) { setMessage("El documento requiere titulo y debe ser PDF, JPEG o PNG de hasta 15 MB."); return; }
+    if (!Number.isFinite(new Date(encounter.attendedAt).getTime())) { setMessage("Indica una fecha y hora validas."); return; }
+    if (documentFile && (!documentTitle.trim() || !["application/pdf", "image/jpeg", "image/png"].includes(documentFile.type) || documentFile.size === 0 || documentFile.size > 15 * 1024 * 1024)) { setMessage("El documento requiere titulo y debe ser PDF, JPEG o PNG no vacio de hasta 15 MB."); return; }
     setMessage(null); setIsReviewing(true);
   }
 
@@ -208,12 +237,21 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
             </>
           ) : null}
           {profile?.verificationStatus === "verified" ? (
-            writeRequest ? <><div className={styles.verificationNotice}><strong>Solicitud: {writeRequest.status === "requested" ? "En espera" : writeRequest.status === "approved" ? "Aprobada" : writeRequest.status === "rejected" ? "No aprobada" : writeRequest.status === "revoked" ? "Revocada" : "Cerrada"}</strong></div>{writeRequest.status === "approved" ? <><div className={styles.writeRequest}><h3>{isReviewing ? "Revisar atencion" : "Registrar atencion autorizada"}</h3>{!isReviewing ? <><label>Fecha y hora<input onChange={(event) => setEncounter((current) => ({ ...current, attendedAt: event.target.value }))} type="datetime-local" value={encounter.attendedAt} /></label><label>Tipo<select onChange={(event) => setEncounter((current) => ({ ...current, encounterType: event.target.value }))} value={encounter.encounterType}><option value="consultation">Consulta</option><option value="vaccination">Vacunacion</option><option value="follow_up">Seguimiento</option><option value="emergency">Urgencia</option><option value="other">Otra</option></select></label><label>Resumen<textarea maxLength={2400} onChange={(event) => setEncounter((current) => ({ ...current, summary: event.target.value }))} required rows={4} value={encounter.summary} /></label><label>Entrada clinica opcional<select onChange={(event) => setEncounter((current) => ({ ...current, entryType: event.target.value }))} value={encounter.entryType}><option value="diagnosis">Diagnostico</option><option value="vaccine">Vacuna</option><option value="recommendation">Indicacion</option><option value="treatment">Tratamiento</option><option value="finding">Hallazgo</option></select></label><label>Titulo<input onChange={(event) => setEncounter((current) => ({ ...current, entryTitle: event.target.value }))} value={encounter.entryTitle} /></label><label>Detalle<textarea maxLength={4000} onChange={(event) => setEncounter((current) => ({ ...current, entryDetails: event.target.value }))} rows={3} value={encounter.entryDetails} /></label>{writeRequest.requestedScopes.includes("upload_clinical_document") ? <><label>Documento clinico opcional<input accept="application/pdf,image/jpeg,image/png" onChange={(event) => setDocumentFile(event.target.files?.[0] ?? null)} type="file" /></label>{documentFile ? <><label>Titulo del documento<input maxLength={200} onChange={(event) => setDocumentTitle(event.target.value)} value={documentTitle} /></label><label>Tipo de documento<select onChange={(event) => setDocumentType(event.target.value as ClinicalDocumentType)} value={documentType}><option value="prescription">Receta</option><option value="lab_result">Laboratorio</option><option value="imaging_report">Imagenologia</option><option value="clinical_report">Informe clinico</option><option value="other">Otro</option></select></label></> : null}</> : null}<button className={styles.primaryButton} disabled={isSubmitting} onClick={reviewEncounter} type="button">Revisar atencion</button></> : <><div className={styles.reviewSummary}><strong>{profile.professionalName}{profile.organizationName ? ` · ${profile.organizationName}` : ""}</strong><span>{new Date(encounter.attendedAt).toLocaleString("es-PA")}</span><p>{encounter.summary}</p>{encounter.entryTitle ? <span>{encounter.entryTitle} · {encounter.entryDetails || "Sin detalle adicional"}</span> : <span>Sin entradas estructuradas.</span>}{documentFile ? <span>Documento: {documentTitle} ({documentFile.name})</span> : <span>Sin documentos.</span>}<span>Autorizacion: {writeRequest.requestedScopes.length} permiso(s).</span></div><p className={styles.disclaimer}>Al confirmar, esta atencion quedara incorporada al expediente y no podra editarse directamente. Las correcciones se registraran como una nueva rectificacion.</p><div className={styles.formActions}><button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => setIsReviewing(false)} type="button">Volver</button><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void finalizeEncounter()} type="button">{isSubmitting ? "Confirmando..." : "Confirmar e incorporar"}</button></div></>}</div>{professionalEncounters.flatMap((item) => item.entries.filter((entry) => !entry.correctsEntryId)).length ? <div className={styles.writeRequest}><h3>Rectificar un registro propio</h3><p>El original permanecera visible junto con esta aclaracion.</p><label>Registro original<select onChange={(event) => setCorrectionEntryId(event.target.value)} value={correctionEntryId}><option value="">Seleccionar</option>{professionalEncounters.flatMap((item) => item.entries.filter((entry) => !entry.correctsEntryId).map((entry) => <option key={entry.id} value={entry.id}>{item.petName} · {entry.title}</option>))}</select></label><label>Contenido corregido<input maxLength={200} onChange={(event) => setCorrectionTitle(event.target.value)} value={correctionTitle} /></label><label>Detalle<textarea maxLength={4000} onChange={(event) => setCorrectionDetails(event.target.value)} rows={3} value={correctionDetails} /></label><label>Motivo obligatorio<textarea maxLength={800} onChange={(event) => setCorrectionReason(event.target.value)} rows={2} value={correctionReason} /></label><button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void createCorrection()} type="button">Registrar rectificacion</button></div> : null}</> : null}{receipt ? <div className={styles.writeRequest}><h3>Comprobante de atencion</h3><strong>{receipt.petName} · {receipt.professionalName}</strong><p>{receipt.summary}</p><span>{receipt.entries.length} registro(s) · {receipt.documents.length} documento(s)</span><p className={styles.disclaimer}>Atencion finalizada. No admite edicion directa.</p></div> : null}</> : <div className={styles.writeRequest}><h3>Solicitar permiso para registrar atencion</h3><p>El owner vera exactamente las acciones seleccionadas antes de decidir.</p>{scopeOptions.map((option) => <label className={styles.checkLabel} key={option.value}><input checked={requestedScopes.includes(option.value)} onChange={() => setRequestedScopes((current) => current.includes(option.value) ? current.filter((scope) => scope !== option.value) : [...current, option.value])} type="checkbox" />{option.label}</label>)}<label>Nota opcional<textarea maxLength={800} onChange={(event) => setRequestNote(event.target.value)} rows={3} value={requestNote} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestWriteAccess()} type="button">Enviar solicitud al owner</button></div>
+            writeRequest ? <><div className={styles.verificationNotice}><strong>Solicitud: {writeRequest.status === "requested" ? "En espera" : writeRequest.status === "approved" ? "Aprobada" : writeRequest.status === "rejected" ? "No aprobada" : writeRequest.status === "revoked" ? "Revocada" : "Cerrada"}</strong></div>{writeRequest.status === "approved" && !submission ? <><div className={styles.writeRequest}><h3>{isReviewing ? "Revisar atencion" : "Registrar atencion autorizada"}</h3>{!isReviewing ? <><label>Fecha y hora<input onChange={(event) => setEncounter((current) => ({ ...current, attendedAt: event.target.value }))} type="datetime-local" value={encounter.attendedAt} /></label><label>Tipo<select onChange={(event) => setEncounter((current) => ({ ...current, encounterType: event.target.value }))} value={encounter.encounterType}><option value="consultation">Consulta</option><option value="vaccination">Vacunacion</option><option value="follow_up">Seguimiento</option><option value="emergency">Urgencia</option><option value="other">Otra</option></select></label><label>Resumen<textarea maxLength={2400} onChange={(event) => setEncounter((current) => ({ ...current, summary: event.target.value }))} required rows={4} value={encounter.summary} /></label><label>Entrada clinica opcional<select onChange={(event) => setEncounter((current) => ({ ...current, entryType: event.target.value }))} value={encounter.entryType}><option value="diagnosis">Diagnostico</option><option value="vaccine">Vacuna</option><option value="recommendation">Indicacion</option><option value="treatment">Tratamiento</option><option value="finding">Hallazgo</option></select></label><label>Titulo<input onChange={(event) => setEncounter((current) => ({ ...current, entryTitle: event.target.value }))} value={encounter.entryTitle} /></label><label>Detalle<textarea maxLength={4000} onChange={(event) => setEncounter((current) => ({ ...current, entryDetails: event.target.value }))} rows={3} value={encounter.entryDetails} /></label>{writeRequest.requestedScopes.includes("upload_clinical_document") ? <><label>Documento clinico opcional<input accept="application/pdf,image/jpeg,image/png" onChange={(event) => setDocumentFile(event.target.files?.[0] ?? null)} type="file" /></label>{documentFile ? <><label>Titulo del documento<input maxLength={200} onChange={(event) => setDocumentTitle(event.target.value)} value={documentTitle} /></label><label>Tipo de documento<select onChange={(event) => setDocumentType(event.target.value as ClinicalDocumentType)} value={documentType}><option value="prescription">Receta</option><option value="lab_result">Laboratorio</option><option value="imaging_report">Imagenologia</option><option value="clinical_report">Informe clinico</option><option value="other">Otro</option></select></label></> : null}</> : null}<button className={styles.primaryButton} disabled={isSubmitting} onClick={reviewEncounter} type="button">Revisar atencion</button></> : <><div className={styles.reviewSummary}><strong>{profile.professionalName}{profile.organizationName ? ` · ${profile.organizationName}` : ""}</strong><span>{new Date(encounter.attendedAt).toLocaleString("es-PA")}</span><p>{encounter.summary}</p>{encounter.entryTitle ? <span>{encounter.entryTitle} · {encounter.entryDetails || "Sin detalle adicional"}</span> : <span>Sin entradas estructuradas.</span>}{documentFile ? <span>Documento: {documentTitle} ({documentFile.name})</span> : <span>Sin documentos.</span>}<span>Autorizacion: {writeRequest.requestedScopes.length} permiso(s).</span></div><p className={styles.disclaimer}>Al confirmar, esta atencion quedara incorporada al expediente y no podra editarse directamente. Las correcciones se registraran como una nueva rectificacion.</p><div className={styles.formActions}><button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => setIsReviewing(false)} type="button">Volver</button><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void finalizeEncounter()} type="button">{isSubmitting ? "Confirmando..." : "Confirmar e incorporar"}</button></div></>}</div>{professionalEncounters.flatMap((item) => item.entries.filter((entry) => !entry.correctsEntryId)).length ? <div className={styles.writeRequest}><h3>Rectificar un registro propio</h3><p>El original permanecera visible junto con esta aclaracion.</p><label>Registro original<select onChange={(event) => setCorrectionEntryId(event.target.value)} value={correctionEntryId}><option value="">Seleccionar</option>{professionalEncounters.flatMap((item) => item.entries.filter((entry) => !entry.correctsEntryId).map((entry) => <option key={entry.id} value={entry.id}>{item.petName} · {entry.title}</option>))}</select></label><label>Contenido corregido<input maxLength={200} onChange={(event) => setCorrectionTitle(event.target.value)} value={correctionTitle} /></label><label>Detalle<textarea maxLength={4000} onChange={(event) => setCorrectionDetails(event.target.value)} rows={3} value={correctionDetails} /></label><label>Motivo obligatorio<textarea maxLength={800} onChange={(event) => setCorrectionReason(event.target.value)} rows={2} value={correctionReason} /></label><button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void createCorrection()} type="button">Registrar rectificacion</button></div> : null}</> : null}{receipt ? <div className={styles.writeRequest}><h3>Comprobante de atencion</h3><strong>{receipt.petName} · {receipt.professionalName}</strong><p>{receipt.summary}</p><span>{receipt.entries.length} registro(s) · {receipt.documents.length} documento(s)</span><p className={styles.disclaimer}>Atencion finalizada. No admite edicion directa.</p></div> : null}</> : <div className={styles.writeRequest}><h3>Solicitar permiso para registrar atencion</h3><p>El owner vera exactamente las acciones seleccionadas antes de decidir.</p>{scopeOptions.map((option) => <label className={styles.checkLabel} key={option.value}><input checked={requestedScopes.includes(option.value)} onChange={() => setRequestedScopes((current) => current.includes(option.value) ? current.filter((scope) => scope !== option.value) : [...current, option.value])} type="checkbox" />{option.label}</label>)}<label>Nota opcional<textarea maxLength={800} onChange={(event) => setRequestNote(event.target.value)} rows={3} value={requestNote} /></label><button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestWriteAccess()} type="button">Enviar solicitud al owner</button></div>
           ) : null}
           <p className={styles.disclaimer}>La verificacion de plataforma no sustituye las acreditaciones exigidas por la autoridad competente. Este acceso sigue siendo solo de lectura.</p>
         </div>
       ) : null}
-      {message ? <p className={styles.panelMessage}>{message}</p> : null}
+      {submission ? <div className={styles.writeRequest}>
+        <h3>{submission.encounterId ? "Atencion guardada" : "Confirmacion pendiente"}</h3>
+        <p>{submission.encounterId && submission.attachment && !submission.documentComplete
+          ? "El archivo sigue pendiente. Reintentar conserva la atencion ya registrada y vuelve a validar el permiso."
+          : "Puedes recuperar el resultado de esta misma operacion sin crear otra atencion."}</p>
+        <button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void finalizeEncounter()} type="button">
+          {isSubmitting ? "Comprobando..." : !submission.encounterId ? "Recuperar confirmacion" : submission.attachment && !submission.documentComplete ? "Reintentar documento" : "Actualizar comprobante"}
+        </button>
+      </div> : null}
+      {message ? <p className={styles.panelMessage} role="status">{message}</p> : null}
     </section>
   );
 }

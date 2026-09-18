@@ -1,0 +1,72 @@
+[
+  {
+    "check": "Tipos",
+    "result": "Correcto",
+    "scope": "Siete workspaces; corepack pnpm typecheck"
+  },
+  {
+    "check": "Lint",
+    "result": "Correcto",
+    "scope": "Siete workspaces; corepack pnpm lint"
+  },
+  {
+    "check": "Android",
+    "result": "Correcto",
+    "scope": "Expo export; bundle Hermes, no ejecución en dispositivo"
+  },
+  {
+    "check": "iOS",
+    "result": "Correcto",
+    "scope": "Expo export; bundle Hermes, no ejecución en simulador/dispositivo"
+  },
+  {
+    "check": "Web",
+    "result": "Correcto",
+    "scope": "Next.js build de producción local"
+  },
+  {
+    "check": "Admin",
+    "result": "Correcto",
+    "scope": "Next.js build de producción local"
+  },
+  {
+    "check": "Pruebas nativas",
+    "result": "No ejecutadas",
+    "scope": "ADB sin dispositivos; no entorno iOS en este equipo"
+  },
+  {
+    "check": "Regresión clínica local",
+    "result": "36/36 correctas",
+    "scope": "H04/H05 más las 21 regresiones H01-H03; baseline reproduce ambos fallos"
+  },
+  {
+    "check": "Regresión clínica remota",
+    "result": "25/25 correctas antes y después",
+    "scope": "PostgreSQL real; fixtures revertidos; migración H04/H05 instalada"
+  },
+  {
+    "check": "Recuperación cliente/servicio",
+    "result": "9/9 correctas",
+    "scope": "Lógica real con respuestas de red simuladas"
+  },
+  {
+    "check": "Recuperación web y Storage",
+    "result": "7/7 correctas",
+    "scope": "Web local y PNG real; respuesta de subida perdida, reintento sin duplicación"
+  },
+  {
+    "check": "Publicación clientes H04/H05",
+    "result": "Pendiente",
+    "scope": "Build web y exports Android/iOS pasan; sin despliegue web ni distribución mobile"
+  },
+  {
+    "check": "Capacidad H06 remota",
+    "result": "16/16 antes y después",
+    "scope": "Trigger privado, reglas por slot, cancelación, historial, overrides, auditoría y RLS"
+  },
+  {
+    "check": "Concurrencia H06",
+    "result": "9/9 correctas",
+    "scope": "Dos carreras en conexiones PostgreSQL reales, READ COMMITTED y espera por lock observada"
+  }
+]

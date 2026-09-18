@@ -1,5 +1,9 @@
 # RLS_RULES.md
 
+## Revalidacion clinica H01-H03 — 2026-09-17
+
+La migracion `20260918010000_clinical_write_authorization_revalidation.sql`, aplicada remotamente, agrega un guard privado para escrituras clinicas. No concede DML directo ni nuevas capacidades de lectura. La policy de INSERT de `clinical-documents` conserva el helper aislado por bucket; rechaza otros buckets sin consultar metadata clinica y no permite usar `target_user_id` para suplantar al actor autenticado. Subida y finalizacion revalidan profesional, consentimiento, grant, scopes y hogar actual. El helper transaccional interno no tiene EXECUTE para public/anon/authenticated; solo lo invocan las funciones autorizadas SECURITY DEFINER.
+
 ## Objetivo
 Definir las reglas canonicas de acceso por fila para el baseline MVP en Supabase.
 
@@ -357,3 +361,15 @@ No implementar tablas sensibles sin definir su politica RLS.
 - `anon` no recibe permisos de ejecucion; `authenticated` solo supera la funcion cuando es platform admin.
 - La interfaz no actualiza tablas directamente ni permite enviar coordenadas publicas.
 - Auditoria registra actor, objetivo, accion, motivo y visibilidad, nunca coordenadas.
+
+## Clinical Access — comprobantes y revocación completed
+
+20260918020000 no amplía grants ni políticas de tablas. Las funciones SECURITY DEFINER conservan actor auth.uid() y search_path fijo. Un comprobante de atención requiere el autor profesional de la solicitud/autorización y la clave/contenido original; un comprobante documental ready requiere su autor. Son retornos sin mutación, admisibles después de retirar permisos. Nuevos datos y documentos pending mantienen el guard de 20260918010000.
+
+Revocar autorización completed requiere can_edit_pet, bloquea la solicitud y marca autorización/solicitud revocadas. Conserva historial. La regresión remota comprueba que el profesional no puede revocar por ser autor; la suite local usa un stub permisivo y no acredita ese aislamiento por sí sola.
+
+## Capacidad ocupada H06 — trigger privado
+
+20260918030000 agrega guard_provider_rule_capacity() como trigger SECURITY DEFINER con search_path public y EXECUTE revocado a public/anon/authenticated. Mantiene las políticas de UPDATE de reglas; el guard consulta reservas sin quedar limitado por la visibilidad del actor para no subestimar ocupación. Los cambios reales de capacity aceptados registran actor, regla, organización, servicio y capacidad anterior/nueva mediante insert_audit_log. No amplía lectura de hogares ni de reservas para proveedores.
+
+La RPC de reserva mantiene su ACL y toma FOR SHARE sobre la regla. Se comprobó el trigger con SET ROLE authenticated y el bloqueo de edición por usuario ajeno, además de dos secuencias concurrentes a READ COMMITTED.

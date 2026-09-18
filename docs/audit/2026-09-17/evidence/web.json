@@ -1,0 +1,655 @@
+{
+  "executedAt": "2026-09-18T01:17:47.882Z",
+  "origin": "http://localhost:3100",
+  "publicRoutes": [
+    {
+      "title": "Pet Ecosystem",
+      "path": "/",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Gestiona el cuidado de tus mascotas con un ecosistema confiable",
+        "Una plataforma pensada para operar con claridad",
+        "Una experiencia separada por necesidad",
+        "Aprender con usuarios reales antes de escalar"
+      ],
+      "buttons": [],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": [
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: There was an error while hydrating. Because the error happened outside of a Suspense boundary, the entire root will switch to client rendering."
+      ]
+    },
+    {
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Cuidado y servicios para tus mascotas",
+        "Crea tu cuenta"
+      ],
+      "buttons": [
+        "Crear cuenta",
+        "Iniciar sesion",
+        "Confirmar codigo",
+        "Crear cuenta"
+      ],
+      "emailFields": 1,
+      "passwordFields": 1,
+      "nextError": false,
+      "runtimeErrors": []
+    },
+    {
+      "title": "Pet Ecosystem",
+      "path": "/foster",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Centro de gestion para Familias Protectoras",
+        "Inicia sesion para abrir tu consola"
+      ],
+      "buttons": [
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": []
+    },
+    {
+      "title": "PET ALERT | Boletines de mascotas",
+      "path": "/pet-alert",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Boletines de mascotas",
+        "Extraviadas"
+      ],
+      "buttons": [
+        "Extraviadas\nMascotas registradas por sus familias",
+        "Mascotas vistas\nReportes compartidos por la comunidad",
+        "Encontradas\nReencuentros confirmados",
+        "Buscar",
+        "Filtros",
+        "Lista",
+        "Mapa"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": []
+    },
+    {
+      "title": "Centro de ayuda | Pet Ecosystem",
+      "path": "/ayuda",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Centro de ayuda y manual de usuario",
+        "Propietarios de mascotas",
+        "Proveedores de servicios",
+        "Familias protectoras",
+        "Adoptantes interesados",
+        "Privacidad, seguridad y alcance del piloto"
+      ],
+      "buttons": [],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": [
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: Text content does not match server-rendered HTML.",
+        "Error: There was an error while hydrating. Because the error happened outside of a Suspense boundary, the entire root will switch to client rendering."
+      ]
+    },
+    {
+      "title": "Expediente temporal | Pet Ecosystem",
+      "path": "/clinical-access/qa-invalid-token",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [],
+      "buttons": [],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": []
+    },
+    {
+      "title": "Invitacion de adopcion | Pet Ecosystem",
+      "path": "/adoption-invite/qa-invalid-token",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Invitacion no disponible"
+      ],
+      "buttons": [],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false,
+      "runtimeErrors": []
+    }
+  ],
+  "authenticated": [
+    {
+      "actor": "provider",
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "actor": "provider",
+      "viewport": "390px",
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 390,
+      "scrollWidth": 422,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "actor": "owner",
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Centro de cuidado de tus mascotas",
+        "Hola, Ramon Sulvaran OWNER"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "✓ Propietario de mascota",
+        "Proveedor",
+        "Panel\nCuenta y activacion",
+        "Hogar\nFamilia y permisos",
+        "Mascotas\nPerfiles y documentos",
+        "Salud\nVacunas y condiciones",
+        "Agenda\nRecordatorios",
+        "Buscar\nProveedores y servicios",
+        "Reservas\nHistorial y preview",
+        "Mensajes\nChat y soporte",
+        "Cuenta\nPerfil y pagos",
+        "Ver todas",
+        "Gestionar documentos",
+        "Buscar servicios",
+        "Reservar servicio",
+        "Gestionar mascotas",
+        "Abrir mensajes"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "actor": "owner",
+      "viewport": "390px",
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 390,
+      "scrollWidth": 412,
+      "headings": [
+        "Centro de cuidado de tus mascotas",
+        "Hola, Ramon Sulvaran OWNER"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "✓ Propietario de mascota",
+        "Proveedor",
+        "Panel\nCuenta y activacion",
+        "Hogar\nFamilia y permisos",
+        "Mascotas\nPerfiles y documentos",
+        "Salud\nVacunas y condiciones",
+        "Agenda\nRecordatorios",
+        "Buscar\nProveedores y servicios",
+        "Reservas\nHistorial y preview",
+        "Mensajes\nChat y soporte",
+        "Cuenta\nPerfil y pagos",
+        "Ver todas",
+        "Gestionar documentos",
+        "Buscar servicios",
+        "Reservar servicio",
+        "Gestionar mascotas",
+        "Abrir mensajes"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    }
+  ],
+  "limitations": [
+    "Web local en modo desarrollo; viewport estrecho no equivale a app nativa."
+  ],
+  "loginInitial": {
+    "title": "Pet Ecosystem",
+    "path": "/app",
+    "width": 1440,
+    "scrollWidth": 1425,
+    "headings": [
+      "Cuidado y servicios para tus mascotas",
+      "Crea tu cuenta"
+    ],
+    "buttons": [
+      "Crear cuenta",
+      "Iniciar sesion",
+      "Confirmar codigo",
+      "Crear cuenta"
+    ],
+    "emailFields": 1,
+    "passwordFields": 1,
+    "nextError": false
+  },
+  "loginOpened": {
+    "title": "Pet Ecosystem",
+    "path": "/app",
+    "width": 1440,
+    "scrollWidth": 1425,
+    "headings": [
+      "Cuidado y servicios para tus mascotas",
+      "Inicia sesion"
+    ],
+    "buttons": [
+      "Crear cuenta",
+      "Iniciar sesion",
+      "Confirmar codigo",
+      "Iniciar sesion",
+      "Olvidaste tu contrasena?"
+    ],
+    "emailFields": 1,
+    "passwordFields": 1,
+    "nextError": false
+  },
+  "providerSections": [
+    {
+      "label": "Negocios",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar",
+        "QA\nQA Auditoría 2026-09-17 — NO COMERCIAL\nAPROBADO\nPanama City",
+        "EDITAR",
+        "AP\nAmerican Pets local Sede\nAPROBADO\npanama",
+        "EDITAR",
+        "HUELLAS\nAPROBADO\nPanamá",
+        "EDITAR",
+        "BLACK DOG BRISAS\nAPROBADO\nPanama City",
+        "EDITAR",
+        "AMERICAN PETS\nAPROBADO\nPanama City",
+        "EDITAR",
+        "ND\nnegocio de prueba con horarios y cupos\nAPROBADO\nPanama City",
+        "EDITAR",
+        "PP\nPROVEEDOR PASEADOR DE MASCOTAS\nAPROBADO\nPanama City",
+        "EDITAR"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Servicios",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar",
+        "+ Servicio"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Reservas",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Agenda/Capacidad",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Publicacion",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar",
+        "Editar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Documentos",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar",
+        "Cerrar",
+        "Guardar negocio",
+        "Crear otra"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    },
+    {
+      "label": "Panel",
+      "clicked": true,
+      "title": "Pet Ecosystem",
+      "path": "/app",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "headings": [
+        "Consola de gestion para tu negocio pet",
+        "Centro de gestion de negocios",
+        "Panel de gestion multi-negocio"
+      ],
+      "buttons": [
+        "Actualizar",
+        "Cerrar sesion",
+        "Propietario de mascota",
+        "✓ Proveedor",
+        "Panel\nResumen ejecutivo",
+        "Negocios\nGestion multinegocio",
+        "Servicios\nCatalogo y precios",
+        "Reservas\nOperacion diaria",
+        "Agenda/Capacidad\nCapacidad y cupos",
+        "Publicacion\nReadiness marketplace",
+        "Documentos\nExpediente maestro",
+        "+ Negocio",
+        "+ Servicio",
+        "Actualizar"
+      ],
+      "emailFields": 0,
+      "passwordFields": 0,
+      "nextError": false
+    }
+  ],
+  "overflowElements": [
+    {
+      "tag": "HEADER",
+      "className": "",
+      "right": 421.515625,
+      "width": 397.515625
+    },
+    {
+      "tag": "P",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "H1",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "P",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "DIV",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "DIV",
+      "className": "",
+      "right": 399.515625,
+      "width": 353.515625
+    },
+    {
+      "tag": "DIV",
+      "className": "",
+      "right": 421.515625,
+      "width": 397.515625
+    },
+    {
+      "tag": "SECTION",
+      "className": "",
+      "right": 421.515625,
+      "width": 397.515625
+    },
+    {
+      "tag": "DIV",
+      "className": "",
+      "right": 402.515625,
+      "width": 359.515625
+    },
+    {
+      "tag": "STRONG",
+      "className": "",
+      "right": 402.515625,
+      "width": 359.515625
+    },
+    {
+      "tag": "SPAN",
+      "className": "",
+      "right": 402.515625,
+      "width": 359.515625
+    }
+  ],
+  "runtimeErrors": [
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: There was an error while hydrating. Because the error happened outside of a Suspense boundary, the entire root will switch to client rendering.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at updateHostRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:16571:57)\n    at beginWork$1 (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:18486:14)\n    at beginWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:26927:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25748:12)\n    at workLoopSync (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25464:5)\n    at renderRootSync (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25419:7)\n    at recoverFromConcurrentError (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24597:20)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24542:26)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: Text content does not match server-rendered HTML.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at checkForUnmatchedText (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:32797:11)\n    at diffHydratedProperties (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:35055:9)\n    at hydrateInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:36127:3)\n    at prepareToHydrateHostInstance (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:7246:3)\n    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:19769:13)\n    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25963:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25759:5)\n    at workLoopConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25734:5)\n    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25690:9)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24504:38)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)",
+    "Error: There was an error while hydrating. Because the error happened outside of a Suspense boundary, the entire root will switch to client rendering.\nSee more info here: https://nextjs.org/docs/messages/react-hydration-error\n    at updateHostRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:16571:57)\n    at beginWork$1 (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:18486:14)\n    at beginWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:26927:14)\n    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25748:12)\n    at workLoopSync (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25464:5)\n    at renderRootSync (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:25419:7)\n    at recoverFromConcurrentError (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24597:20)\n    at performConcurrentWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:24542:26)\n    at workLoop (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:256:34)\n    at flushWork (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:225:14)\n    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/.pnpm/next@14.2.35_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:534:21)"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "executedAt": "2026-09-18T02:03:15.073Z",
+  "limits": "Real client/service logic with simulated network responses; not browser or real file upload.",
+  "checks": [
+    {
+      "name": "attachment failure retries only pending phase with same key",
+      "passed": true
+    },
+    {
+      "name": "lost encounter response retains exact operation",
+      "passed": true
+    },
+    {
+      "name": "lost prepare response retains attachment key and saved encounter",
+      "passed": true
+    },
+    {
+      "name": "completed submission refresh does not write again",
+      "passed": true
+    },
+    {
+      "name": "API document recovery: normal",
+      "passed": true
+    },
+    {
+      "name": "API document recovery: lost-upload",
+      "passed": true
+    },
+    {
+      "name": "API document recovery: lost-finalize",
+      "passed": true
+    },
+    {
+      "name": "API document recovery: revoked",
+      "passed": true
+    },
+    {
+      "name": "API document recovery: duplicate",
+      "passed": true
+    }
+  ]
+}

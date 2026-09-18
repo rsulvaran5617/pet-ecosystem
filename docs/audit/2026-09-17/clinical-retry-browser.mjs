@@ -1,0 +1,70 @@
+// Dedicated QA only. Keeps tokens, passwords and browser diagnostics out of artifacts.
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {loadSmokeEnv} from '../../../packages/api-client/scripts/smoke/env.ts';
+import {createClinicalAccessApiClient} from '../../../packages/api-client/src/clinical-access.ts';
+import {query} from './clinical-migration-remote.mjs';
+import {startBrowser} from './browser-session.mjs';
+const require=createRequire(new URL('../../../packages/api-client/package.json',import.meta.url));
+const {createClient}=require('@supabase/supabase-js');
+const env=loadSmokeEnv(['owner','provider']);
+const clients=Object.fromEntries(['owner','provider'].map(role=>{const raw=createClient(env.supabaseUrl,env.supabaseAnonKey,{auth:{persistSession:false,autoRefreshToken:false}});return [role,{raw,api:createClinicalAccessApiClient(raw)}];}));
+const profileId='b4edf08b-f8bf-4e71-95c1-3f3dce21634b',petId='8905b844-09c7-4896-ae92-8fc0400b1f67';
+const report={executedAt:new Date().toISOString(),environment:'Local web at 3100, linked Supabase, dedicated synthetic QA',checks:[],cleanup:[]};
+let browser,grant,requestId,previous,stage='setup';
+const qaDir=await fs.mkdtemp(path.join(os.tmpdir(),'pet-clinical-upload-'));
+const file=path.join(qaDir,'qa-synthetic.png');
+await fs.writeFile(file,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN9sAAAAASUVORK5CYII=','base64'));
+const check=(name,passed)=>{report.checks.push({name,passed});assert.ok(passed,name);};
+const click=async text=>{await browser.evaluate(`(()=>{const el=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!el)throw Error('Missing button');el.click();})()`);};
+const fill=async(label,value)=>{await browser.evaluate(`(()=>{const label=[...document.querySelectorAll('label')].find(e=>e.childNodes[0]?.textContent.trim()===${JSON.stringify(label)});const el=label?.querySelector('input,textarea');if(!el)throw Error('Missing field');Object.getOwnPropertyDescriptor(el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(value)});el.dispatchEvent(new Event('input',{bubbles:true}));})()`);};
+try{
+ for(const[role,c]of Object.entries(clients)){const {error}=await c.raw.auth.signInWithPassword(env.actors[role]);if(error)throw Error('QA login failed');}
+ [previous]=await query(`select verification_status,verification_expires_at from clinical_professional_profiles where id='${profileId}' and professional_name='QA Auditoría — NO PROFESIONAL REAL'`);
+ assert.equal(previous?.verification_status,'suspended','QA profile baseline changed');
+ await query(`update clinical_professional_profiles set verification_status='verified',verification_expires_at=now()+interval '1 hour' where id='${profileId}' and verification_status='suspended'`);
+ const scopes=['create_encounter','upload_clinical_document'];
+ grant=await clients.owner.api.createPetClinicalAccess(petId,'1_hour');
+ requestId=await clients.provider.api.requestClinicalWriteAccess(grant.token,scopes,'QA recuperación de documento; no atención real');
+ await clients.owner.api.reviewClinicalWriteRequest(requestId,'approved',scopes,'QA sintético');
+ browser=await startBrowser();stage='load clinical page';
+ await browser.navigate('http://localhost:3100/clinical-access/'+grant.token);
+ await browser.wait(`document.body.innerText.includes('Identificarme como profesional')`);
+ await click('Identificarme como profesional');stage='professional login';
+ await fill('Correo',env.actors.provider.email);await fill('Contrasena',env.actors.provider.password);await click('Iniciar sesion');
+ await browser.wait(`document.body.innerText.includes('Registrar atencion autorizada')`);
+ stage='prepare form';await fill('Resumen','QA recuperación browser: atención sintética, sin diagnóstico real.');
+ const dom=await browser.call('DOM.getDocument');const {nodeId}=await browser.call('DOM.querySelector',{nodeId:dom.root.nodeId,selector:'input[type=file]'});
+ await browser.call('DOM.setFileInputFiles',{nodeId,files:[file]});
+ await browser.wait(`document.body.innerText.includes('Titulo del documento')`);await fill('Titulo del documento','QA archivo sintético');
+ await browser.evaluate(`(()=>{const original=window.fetch.bind(window);window.__qaCalls={encounter:0,prepare:0,upload:0,finalize:0,lost:false};window.fetch=async(input,options)=>{const url=typeof input==='string'?input:input.url;const c=window.__qaCalls;if(url.includes('/rpc/finalize_clinical_encounter'))c.encounter++;if(url.includes('/rpc/prepare_clinical_document_upload'))c.prepare++;if(url.includes('/rpc/finalize_clinical_document_upload'))c.finalize++;if(url.includes('/storage/v1/object/clinical-documents/')&&options?.method==='POST'){c.upload++;const response=await original(input,options);if(response.ok&&!c.lost){c.lost=true;throw new TypeError('QA simulated lost upload response');}return response;}return original(input,options);};})()`);
+ await click('Revisar atencion');await click('Confirmar e incorporar');stage='partial result';
+ await browser.wait(`document.body.innerText.includes('Reintentar documento') && ![...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='Reintentar documento')?.disabled`);
+ check('partial success clearly shown',await browser.evaluate(`document.body.innerText.includes('La atencion esta guardada. El documento sigue pendiente')`));
+ const first=await browser.evaluate('window.__qaCalls');check('upload reached server and response loss injected',first.lost&&first.encounter===1&&first.prepare===1&&first.upload===1);
+ await browser.screenshot(new URL('evidence/clinical-retry-partial.png',import.meta.url));
+ await click('Reintentar documento');stage='retry receipt';await browser.wait(`document.body.innerText.includes('Comprobante de atencion')`);
+ const counts=await browser.evaluate('window.__qaCalls');check('retry saves no duplicate attention or upload',counts.encounter===1&&counts.prepare===1&&counts.upload===1&&counts.finalize===2);
+ const timeline=await clients.owner.api.listPetClinicalTimeline(petId);const saved=timeline.filter(t=>t.summary==='QA recuperación browser: atención sintética, sin diagnóstico real.');
+ const latest=saved.find(t=>t.documents.some(d=>d.title==='QA archivo sintético'));
+ check('owner sees completed attachment',!!latest&&latest.documents.length===1);report.encounterId=latest.id;
+ await browser.screenshot(new URL('evidence/clinical-retry-complete.png',import.meta.url));
+ await clients.owner.api.revokeClinicalWriteAuthorization(requestId,'Fin de QA: retirar permisos pendientes');
+ check('owner can revoke completed request', (await clients.owner.api.listPetClinicalWriteRequests(petId)).find(r=>r.id===requestId)?.status==='revoked');
+ check('finalized clinical history remains readable',(await clients.owner.api.listPetClinicalTimeline(petId)).some(t=>t.id===latest.id));
+ check('no uncaught browser exceptions',browser.errors.length===0);
+}catch{report.failureStage=stage;process.exitCode=1;}
+finally{
+ const clean=async(name,run)=>{try{await run();report.cleanup.push({name,passed:true});}catch{report.cleanup.push({name,passed:false});process.exitCode=1;}};
+ if(requestId)await clean('write permission revoked',async()=>{const r=(await clients.owner.api.listPetClinicalWriteRequests(petId)).find(r=>r.id===requestId);if(r&&['approved','completed'].includes(r.status))await clients.owner.api.revokeClinicalWriteAuthorization(requestId,'Fin de QA');});
+ if(grant)await clean('read link revoked',()=>clients.owner.api.revokePetClinicalAccess(grant.id));
+ if(previous?.verification_status==='suspended')await clean('QA professional suspended again',()=>query(`update clinical_professional_profiles set verification_status='suspended',verification_expires_at=${previous.verification_expires_at?"'"+previous.verification_expires_at.replaceAll("'","''")+"'::timestamptz":'null'} where id='${profileId}'`));
+ if(browser)await browser.close();
+ await Promise.allSettled(Object.values(clients).map(c=>c.raw.auth.signOut()));
+ await fs.unlink(file);await fs.rmdir(qaDir);
+ await fs.writeFile(new URL('evidence/clinical-retry-browser.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
+}
+console.log(JSON.stringify(report,null,2));

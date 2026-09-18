@@ -1,5 +1,100 @@
 # HANDOFF.md
 
+# Handoff 2026-09-17 - H06 capacidad aplicada y probada en concurrencia
+
+- Continuación autorizada por usuario. Aplicada solo 20260918030000_provider_capacity_occupied_guard.sql tras baseline exacto y candidata en rollback; hash idéntico al probado. No commit/push ni deploy de clientes.
+- Trigger privado SECURITY DEFINER sobre cambios reales de capacity impide bajar de la ocupación por franja futura/en curso; respeta overrides, estados consumidores y audita cambios aceptados. Historial pasado no bloquea cambios futuros. RLS/DTO/UI sin cambios.
+- create_booking_from_slot conserva contrato y todas sus validaciones; agrega FOR SHARE sobre regla antes de advisory lock por slot y consulta. Evita carreras entre nuevas reservas y edición de capacidad.
+- Baseline reproduce H06; 16/16 candidata y 16/16 instalada. Concurrencia real por Management API: dos conexiones por carrera, reserva primero y edición primero, espera pg_stat_activity observada; 9/9 checks correctos. READ COMMITTED, no carga masiva.
+- Fixtures de regresión revertidos. Concurrencia retiene reglas QA 862f1353-6d84-469a-b983-2472367fcd22 y 9cf6f9ec-ca9f-457e-846c-c0762907d728 desactivadas; tres reservas canceladas. Organización/perfil/servicio QA siguen privados. Publicación transaccional se restauró antes del commit.
+- Documentación y evidencia: docs/audit/2026-09-17/CORRECCION_CAPACIDAD.md y evidence/capacity-guard-*.json. Runner remoto normal revierte; runner de concurrencia crea/cancela QA. No repetir --apply ni esperar que --baseline reproduzca después del fix.
+- Alcance: actualización capacity de reglas y RPC de reserva por slot. No se certifican edición directa de excepciones, cambios de horario/servicio ni legacy create_booking. No se modificaron apps, por lo que no se repitieron builds; typecheck y lint de siete workspaces pasaron, igual que git diff --check.
+- Siguiente: H07/H08 (overflow de consolas/hidratación), publicación de clientes H04/H05 y QA nativo. Auditoría mantiene 45/110 fichas con evidencia parcial y 65 sin ejecutar. Conservar archivos previos ajenos.
+
+
+# Handoff 2026-09-17 - H04/H05 servidor aplicado; clientes locales
+
+- Continuación autorizada. Aplicada solo 20260918020000_clinical_retry_and_residual_revocation.sql tras baseline exacto y candidata en rollback. H01-H03 siguen protegidos.
+- Reintento de atención devuelve comprobante original con misma autorización, autor, clave y contenido; rechaza cambios. Documentos preparados vinculan metadata; ready es idempotente; pending exige permiso vigente. Revocar completed funciona sin borrar historial.
+- Web guarda checkpoints/archivo/claves en memoria y separa atención guardada de adjunto pendiente. Nuevo servicio clinical-encounter-submission.ts; API recupera objeto ya subido antes de subir otra vez. Mobile agrega Revocar permisos pendientes en historial completed vigente. Sin nuevos DTOs.
+- 36 SQL locales, 9 cliente/servicio, 25 remotos antes/después y 7 navegador/Storage real pasaron. Navegador simuló pérdida de respuesta tras subida: 1 atención, 1 preparación y 1 subida. Owner revocó completed y conserva historia. No prueba de dos conexiones ni QA nativo.
+- Evidencia y reproducción: docs/audit/2026-09-17/CORRECCION_REINTENTOS.md y evidence/clinical-retry-*.json. Atención sintética 9601e6ff-8318-4775-bbf5-aa51c2f5c527 y PNG retenidos. Perfil QA suspendido de nuevo, expiración restaurada y grants/consentimientos revocados. Habilitación temporal fue gestión de fixture, no flujo administrativo de rehabilitación.
+- Validación técnica H04/H05: typecheck y lint de siete workspaces, lint de runners SQL/cliente, build web de producción y exports Android/iOS pasaron. El primer export simultáneo emitió ENOENT al observar .next durante el build web; se repitió después y terminó con exit 0. No se cambió configuración Metro.
+- Servidor aplicado; publicación web/mobile pendiente. No commit/push ni despliegue de clientes. Recargar página pierde checkpoint en memoria. No afirmar auditoría completa: 45/110 fichas parcialmente ejecutadas; 65 pendientes.
+- Próximo: publicar clientes y QA nativo, corregir H06 capacidad, luego H07/H08 web; ampliar cobertura funcional. Conservar app.json, docs/delivery/onlyoneaccess.txt y demás cambios previos ajenos.
+
+
+# Handoff 2026-09-17 - Corrección clínica H01-H03 aplicada
+
+- Usuario autorizó proceder con las correcciones. Se implementó y aplicó únicamente `20260918010000_clinical_write_authorization_revalidation.sql`, sin push global ni migraciones ajenas.
+- Guard interno privado con bloqueos en orden request -> authorization -> professional -> grant -> pet; documento después. Deriva actor de auth.uid(), revalida vigencia después de adquirir locks, estado profesional, consentimiento, scopes y hogar actual. Cinco entradas lo consumen: finalizar atención, rectificar, preparar/finalizar documento y policy de subida.
+- H01/H02/H03 corregidos en el servidor vinculado. Se verificó project-ref contra URL de app y cuerpos exactos de las cinco funciones remotas contra el baseline antes de aplicar. Registro de migración y hash en `docs/audit/2026-09-17/evidence/clinical-migration-remote.json`.
+- Typecheck y lint de los siete workspaces pasaron nuevamente; lint específico del runner SQL pasó. No se repitieron builds de apps sin cambios de cliente. PDF y matriz regenerados con el estado de corrección.
+- Regresión local `supabase/tests/clinical-write-authorization.test.mjs`: reproduce los tres fallos previos y pasa 21 casos con el parche, ejecutando PL/pgSQL en PGlite 0.3.14 instalado solo en `%TEMP%/pet-clinical-regression`. No hay nueva dependencia de producto.
+- Regresión SQL remota: 12 casos pasaron con migración candidata dentro de rollback y 12 tras instalación. Fixtures de estas regresiones revertidos; perfil QA sigue suspended y active grants = 0. Prueba SQL/metadata, no subida real de archivo ni concurrencia de conexiones.
+- Documentados límites y reproducción en `CORRECCION_CLINICA.md`. Informe PDF/HTML/CSV actualizado: evidencia histórica conservada y H01-H03 marcados corregidos, H04-H08 pendientes. Matriz mantiene 45/110 fichas con evidencia parcial; no es auditoría completa.
+- No se tocaron apps ni DTO; no requiere binario mobile nuevo para este control de servidor. Sin commit/push. Cambios previos ajenos conservados.
+- Siguiente bloque acotado: H04/H05 (idempotencia y capacidad documental residual tras completed), luego H06 capacidad y H07/H08 web. Repetir regresiones específicas y aún falta prueba de carrera real con dos conexiones.
+
+# Handoff 2026-09-17 - Auditoría ampliada y reporte descargable
+
+- Continuación autorizada por el usuario: capacidad simultánea, permisos del hogar, web, exports mobile y pruebas sintéticas clínicas/foster.
+- Informe fuente y resultados: `docs/audit/2026-09-17/INFORME_AUDITORIA.md`; formatos PDF/HTML/CSV y Markdown descargable en la misma carpeta. La matriz incluye 110 fichas, 45 con alguna evidencia parcial y 65 sin ejecución funcional. No declarar auditoría completa.
+- Capacidad/hogar: 21 de 22 aserciones correctas; 3 rondas de 4 solicitudes al último cupo, una aceptada por ronda. Falló reducir capacidad de 2 a 1 con 2 reservas. Miembro QA quedó view; regla desactivada; reservas de capacidad canceladas; negocio/perfil/servicio privados.
+- Transferencia sintética: 12 aserciones correctas, incluidos pérdida de acceso privado del emisor y bloqueo de doble aceptación. Protectora QA suspendida al terminar. Mascota ficticia conserva su destino en hogar receptor QA.
+- Clínica: confirmados escritura tras revocar grant de lectura, rectificación y finalización documental tras suspender profesional, fallo de idempotencia y bloqueo de revocación de autorización completed mientras persiste capacidad de adjuntar. Contrato `docs/modules/clinical_access.md`, secciones de validación transaccional y expiración/revocación. Ver H01-H05; no usar el archivo clinic.md erróneo como contrato de este subdominio.
+- Perfil clínico sintético `b4edf08b-f8bf-4e71-95c1-3f3dce21634b` suspendido; grants activos y autorizaciones aún approved revocados. Atenciones/documento QA conservados, con vencimiento temporal original de una hora. No se tocaron expedientes previos.
+- Navegador: login/logout de owner y provider, siete rutas públicas, navegación provider, PET ALERT vacío y enlaces inválidos. Desbordamiento a 390 px: provider 422 px, owner 412 px. Hidratación falla en `/` y `/ayuda` por discrepancia de estilos inline servidor/cliente, reproducida dos veces en dev. Ver H07/H08; no afirmar reproducción en despliegue productivo.
+- Builds web/admin y exports Expo Android/iOS pasaron. Typecheck/lint previos pasaron. ADB sin dispositivos; no ejecución nativa ni cámara/QR/notificaciones. Docker sin motor disponible. Servidor web de pruebas detenido antes del build; no hubo deploy.
+- Los runners API mutan fixtures y pueden salir 0 con `checks[].passed=false`; el README explica cómo interpretar la evidencia. No repetir clinical-probe sin preparar un nuevo contexto: protege perfiles existentes.
+- Ocho hallazgos con prioridades H01-H03 altas. Siguiente recomendado: corregir autorización clínica de forma transaccional, repetir regresiones, después capacidad/idempotencia/UI y cubrir las 65 fichas restantes. No se implementaron fixes de producto, migraciones, commit o push.
+
+# Handoff 2026-09-17 - Auditoría por roles y proveedor QA
+
+- Auditoría integral solicitada y autorizada, todavía en curso. El usuario autorizó activar un proveedor para las pruebas.
+- Creado y aprobado `QA Auditoría 2026-09-17 — NO COMERCIAL`, organización `716bfcd5-41f5-4a93-88b2-937980a54cf9`; servicio `0be97ab6-a83a-4dd8-94b0-cdbbd4fae5d4`. Se activó el modo provider en la cuenta QA configurada. No guardar credenciales en documentos.
+- Organización, perfil y servicio quedaron privados. Se publicaron temporalmente durante pruebas API; la ocultación final quedó verificada. No se tocaron negocios anteriores.
+- Pasaron aprobación administrativa, bloqueo de autoaprobación, consulta privada bloqueada a otro usuario, descubrimiento público temporal, creación/confirmación/finalización/cancelación de reservas, bloqueo de lectura y aprobación a usuario ajeno, e hilo automático. No se enviaron mensajes ni se probaron pantallas web/mobile.
+- Fixtures, evidencia y scripts: `docs/audit/2026-09-17/`. Leer `AVANCE_AUDITORIA.md` para IDs, resultados, límites y próximos pasos. Los scripts mutan el backend; el de reservas crea nuevas reservas si se repite.
+- `corepack pnpm typecheck` y `corepack pnpm lint` pasaron. Los scripts test de apps/api-client son placeholders; no certifican cobertura funcional. No se corrió build de producción.
+- Candidatos clínicos pendientes de reproducción: revocación frente a autorizaciones de escritura existentes, revalidación en finalización de documentos/rectificaciones, y recuperación de guardado parcial ante fallo de adjunto. No presentarlos como exploits remotos confirmados.
+- Siguiente: capacidad concurrente, permisos granulares del hogar, recorridos visuales, fixtures para foster/adoptante/profesional, matriz completa de 110 funciones y reporte final descargable.
+- No hubo cambios en código de producto, migraciones, despliegue, commit o push. Se conservan los archivos previos ajenos a la tarea.
+
+# Handoff 2026-09-16 - Canvas funcional integral Mobile/Web/Admin
+
+- A solicitud del usuario se genero un documento funcional descargable, agrupado por roles y funciones, basado en documentacion, rutas, componentes y tipos del proyecto actual.
+- Corte de referencia: rama local `master`, commit `1352e4c272d1475520a0409ad32e336967c343b0`. El documento tiene 15 capitulos, 110 fichas funcionales y 44 paginas PDF.
+- Cubre cuenta, propietario/miembros del hogar, proveedores, familias protectoras, adoptantes, comunidad PET ALERT, profesionales de salud animal y Admin. Incluye canvas general, navegacion/rutas, matriz por canal, recorridos, estados, permisos, pendientes y fuentes.
+- Distingue implementacion en codigo, condiciones operativas y funciones futuras. No certifica despliegue productivo, version de los binarios ni estado remoto de migraciones. Los pagos siguen siendo referenciales, sin cobro real.
+
+## Entregables y apertura
+
+- Carpeta: `docs/functional/`.
+- `PET_ECOSYSTEM_CANVAS_FUNCIONAL.pdf`: documento de lectura/impresion con indice enlazado y marcadores; matriz de canales en paginas horizontales 32-34.
+- `PET_ECOSYSTEM_CANVAS_FUNCIONAL.html`: canvas navegable sin conexion, con indice por capitulos, busqueda de funciones e impresion. Conservar el PDF en la misma carpeta para usar su boton de descarga.
+- `PET_ECOSYSTEM_CANVAS_FUNCIONAL.md`: fuente editable de contenido; el HTML tambien permite descargarla sin depender de otro archivo.
+- `Pet-Ecosystem-Canvas-Funcional.zip`: paquete con PDF, HTML y Markdown.
+- Se explico al usuario que puede abrir los enlaces locales o entrar a `C:\Users\Ramon Sulvaran\pet-ecosystem\docs\functional` y hacer doble clic en PDF/HTML. Lectura recomendada: capitulo 02, canvas general, y luego el rol de interes.
+
+## Regeneracion y validaciones
+
+- `docs/functional/README.md` explica formatos y mantenimiento.
+- Desde la raiz: `node docs/functional/build-canvas.mjs`, seguido de `node docs/functional/render-canvas.mjs`. El segundo usa Chrome/Edge headless con perfil temporal independiente; no modifica la aplicacion.
+- Si cambia el contenido, regenerar HTML/PDF y volver a empaquetar el ZIP; los scripts no actualizan automaticamente el ZIP ni la validacion PDF adicional.
+- Validacion HTML: 110 funciones indexadas, 15 capitulos, enlaces internos sin destinos faltantes, busqueda funcional, sin errores JavaScript ni desbordamiento horizontal a 1440 y 390 px.
+- Validacion PDF adicional con PyMuPDF: 44 paginas, los 110 IDs funcionales presentes, 152 entradas de marcadores y ningun bloque de texto fuera de pagina. Revision visual de portada, canvas, fichas y matriz realizada sobre rasterizaciones del PDF.
+- Evidencia: `canvas-validation.json`, `canvas-pdf-validation.json` y capturas `canvas-*-preview.png` / `canvas-pdf-page-*.png`. Son capturas del documento, no de pantallas reales de la app; algunas rasterizaciones intermedias permanecen en la carpeta, y `canvas-pdf-validation.json` identifica las paginas revisadas de la exportacion final.
+- PyMuPDF se instalo solo como herramienta temporal de QA en `%TEMP%/pet-canvas-qa-20260916`; no se agregaron dependencias al monorepo. La validacion PDF adicional fue puntual, no forma parte de los scripts Node.
+- `git diff --check` paso. No se ejecutaron builds/lint de las apps ni QA contra produccion: el cambio fue documental y de generacion de artefactos.
+
+## Estado y siguiente paso
+
+- No se modificaron codigo funcional de apps, APIs, Supabase, migraciones, RLS ni datos remotos. No se hizo commit, push ni despliegue.
+- `docs/functional/` permanece sin rastrear al cierre de la generacion; esta actualizacion modifica `docs/HANDOFF.md`. Los archivos previos `app.json` y `docs/delivery/onlyoneaccess.txt` siguen sin rastrear y ajenos a este trabajo.
+- Correccion de contexto respecto de notas historicas: MAP-8 ya esta incluido en el commit local `1352e4c`; MAP-7 aparece en `fd072c6` y MAP-6 en `4bc6a16`. Esto no prueba push, despliegue ni aplicacion remota de MAP-7, que sigue sin verificarse en esta sesion.
+- Siguiente paso pequeno: recibir observaciones del usuario por capitulo/ID funcional y corregir el Markdown; regenerar y validar formatos antes de versionar o distribuir una nueva revision.
+
 # Handoff 2026-09-04 - PET ALERT MAP-8 local
 
 - El mapa publico queda endurecido contra respuestas asincronas obsoletas y coordenadas fuera de rango.

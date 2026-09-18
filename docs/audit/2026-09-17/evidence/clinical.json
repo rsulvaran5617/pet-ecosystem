@@ -1,0 +1,66 @@
+{
+  "executedAt": "2026-09-18T01:16:37.168Z",
+  "checks": [
+    {
+      "id": "CLIN-PROFILE",
+      "passed": true
+    },
+    {
+      "id": "CLIN-IDEMPOTENCY",
+      "passed": false,
+      "details": "Active clinical authorization required"
+    },
+    {
+      "id": "CLIN-COMPLETED-AUTH-REVOCABLE",
+      "passed": false,
+      "details": "Clinical write authorization is not active"
+    },
+    {
+      "id": "CLIN-SUSPENDED-ENCOUNTER",
+      "passed": true,
+      "details": "Verified professional identity required"
+    },
+    {
+      "id": "CLIN-SUSPENDED-CORRECTION",
+      "passed": false,
+      "details": "Operación aceptada"
+    },
+    {
+      "id": "CLIN-SUSPENDED-DOCUMENT-FINALIZE",
+      "passed": false,
+      "details": "Operación aceptada"
+    }
+  ],
+  "observations": [
+    {
+      "id": "CLIN-LINK-REVOCATION",
+      "writeAcceptedAfterReadLinkRevocation": true,
+      "encounterId": "a30030ef-ef36-4da2-902b-5e53b81bede7"
+    }
+  ],
+  "fixtures": {
+    "petId": "8905b844-09c7-4896-ae92-8fc0400b1f67",
+    "profileId": "b4edf08b-f8bf-4e71-95c1-3f3dce21634b",
+    "encounterIds": [
+      "a30030ef-ef36-4da2-902b-5e53b81bede7",
+      "9ee8d0c4-6e25-4822-804b-99e804e1aff7"
+    ],
+    "documentId": "195c7b40-4428-4464-98e1-5dbec6dd8247",
+    "requestIds": [
+      "97c1b687-7172-4f1e-869e-315d30f4399d",
+      "5102be53-55bc-4a3e-9d74-b0a9c1189101",
+      "157f4fe4-6f89-4ec2-adca-7e21eabce59e"
+    ]
+  },
+  "cleanup": [
+    {
+      "name": "Revoke active QA write authorization",
+      "ok": true
+    },
+    {
+      "name": "Revoke QA access link",
+      "ok": true
+    }
+  ],
+  "finalProfessionalStatus": "suspended"
+}

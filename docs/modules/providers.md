@@ -220,3 +220,9 @@ Modelo recomendado CAP-0:
 - consulta su estado de aprobacion
 - queda listo para revision administrativa y publicacion en marketplace
 - recibe y opera reservas dentro del subset minimo del MVP
+
+## Corrección H06 — capacidad ocupada (20260918030000)
+
+Aplicada al servidor vinculado. Cambiar capacity en provider_availability_rules comprueba por franja futura/en curso la ocupación de pending_approval, confirmed y completed. Rechaza un valor inferior, respeta capacity_override por fecha y conserva historia pasada. Cambios aceptados quedan auditados; rechazos no cambian el valor anterior. Desactivar sigue permitido sin cancelar reservas, pero una regla inactiva también valida sus cambios de capacidad.
+
+Trigger privado: la API existente sigue usando UPDATE bajo RLS, sin nuevos DTOs ni cambios de UI. La creación de reservas toma FOR SHARE sobre la regla para coordinarse con el UPDATE. Regresión de 16 casos antes/después y dos carreras de conexiones reales (9 comprobaciones) pasaron. Alcance: cambios de capacidad de reglas; editar excepciones y cambiar horarios/servicios son casos distintos pendientes de auditoría. Detalle en docs/audit/2026-09-17/CORRECCION_CAPACIDAD.md.

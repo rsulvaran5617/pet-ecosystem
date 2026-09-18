@@ -1,0 +1,25 @@
+{
+  "executedAt": "2026-09-18T02:04:53.211Z",
+  "projectMatchesApp": true,
+  "comparisons": [
+    {
+      "name": "finalize_clinical_encounter",
+      "unchanged": true
+    },
+    {
+      "name": "prepare_clinical_document_upload",
+      "unchanged": true
+    },
+    {
+      "name": "finalize_clinical_document_upload",
+      "unchanged": true
+    },
+    {
+      "name": "revoke_clinical_write_authorization",
+      "unchanged": true
+    }
+  ],
+  "alreadyApplied": false,
+  "sha256": "d0fd057eb5f2c3c164322bdcdf99bf132c5410b4b3ced5155f08ccf48d7fb557",
+  "applied": true
+}

@@ -1,0 +1,133 @@
+{
+  "executedAt": "2026-09-18T02:04:55.136Z",
+  "mode": "installed SQL",
+  "fixtureMutations": "rolled back",
+  "limits": "Real PostgreSQL functions and owner checks. Storage metadata only; no file bytes or simultaneous connections.",
+  "checks": [
+    {
+      "name": "valid encounter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "valid storage permission",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "valid correction",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "H01 revoked grant",
+      "passed": true,
+      "detail": "Clinical access is invalid or expired"
+    },
+    {
+      "name": "revoked grant blocks storage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "H02 suspension correction",
+      "passed": true,
+      "detail": "Verified professional identity required"
+    },
+    {
+      "name": "H03 suspension document finalize",
+      "passed": true,
+      "detail": "Verified professional identity required"
+    },
+    {
+      "name": "suspension blocks storage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "revoked consent document finalize",
+      "passed": true,
+      "detail": "Clinical authorization is expired or revoked"
+    },
+    {
+      "name": "valid document finalize",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "guard ACL",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unrelated storage bucket",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "H04 retry returns same attention",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retry creates no duplicate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "changed payload denied",
+      "passed": true,
+      "detail": "Idempotency payload mismatch"
+    },
+    {
+      "name": "non-owner cannot revoke",
+      "passed": true,
+      "detail": "Clinical write authorization not found"
+    },
+    {
+      "name": "prepare retry returns same document",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "changed document payload denied",
+      "passed": true,
+      "detail": "Idempotency payload mismatch"
+    },
+    {
+      "name": "H05 completed request revoked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "receipt after revocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ready document receipt after revocation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "residual pending finalize blocked",
+      "passed": true,
+      "detail": "Active clinical authorization required"
+    },
+    {
+      "name": "residual preparation blocked",
+      "passed": true,
+      "detail": "Active document authorization required"
+    },
+    {
+      "name": "residual storage permission blocked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "history preserved",
+      "passed": true,
+      "detail": null
+    }
+  ]
+}

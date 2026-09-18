@@ -1,0 +1,21 @@
+{
+  "initial": {
+    "rows": 110,
+    "overflow": false,
+    "headings": 8
+  },
+  "search": {
+    "visible": 4,
+    "label": "4 funciones"
+  },
+  "narrow": {
+    "width": 390,
+    "scrollWidth": 375,
+    "overflow": false
+  },
+  "pdf": {
+    "bytes": 513989,
+    "pages": 12
+  },
+  "errors": []
+}

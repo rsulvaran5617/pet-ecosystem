@@ -1,5 +1,9 @@
 # SUPABASE_SCHEMA.md
 
+## Migracion correctiva clinica — 2026-09-17
+
+`20260918010000_clinical_write_authorization_revalidation.sql` aplicada al proyecto remoto vinculado y registrada en `supabase_migrations.schema_migrations`. No agrega tablas, columnas ni DTO. Agrega el helper interno `assert_clinical_write_authorization(uuid, uuid, text)` y reemplaza cinco funciones existentes para impedir escrituras despues de revocacion/suspension. Conserva firmas, grants de entrada, RLS e historial. Evidencia: `docs/audit/2026-09-17/evidence/clinical-migration-remote.json` y `clinical-remote-installed.json`.
+
 ## Objetivo
 Definir el modelo de datos canonico del baseline MVP sobre Supabase/PostgreSQL.
 
@@ -601,3 +605,11 @@ publicas generalizadas; no se crea una tabla publica duplicada.
 `20260904170000_pet_alert_map7_admin_geographic_moderation.sql` agrega dos RPC
 administrativas para listar y moderar ubicaciones. No crea tablas ni cambia RLS;
 reutiliza `audit_logs`, `is_platform_admin` y la generalizacion de MAP-2.
+
+## Migración 20260918020000 — recuperación clínica
+
+clinical_retry_and_residual_revocation modifica finalize_clinical_encounter, prepare_clinical_document_upload, finalize_clinical_document_upload y revoke_clinical_write_authorization. No añade tablas/columnas. Define reintentos inmutables con claves existentes, confirmación documental ready idempotente y transición completed → revoked para retirar capacidad residual. Atenciones y documentos finalizados permanecen. Aplicada y verificada en el proyecto vinculado el 18/09/2026 UTC; evidencia en docs/audit/2026-09-17/evidence/clinical-retry-deploy.json.
+
+## Migración 20260918030000 — capacidad ocupada
+
+provider_capacity_occupied_guard agrega la función privada y trigger trg_provider_rule_capacity_guard antes de cambios de capacity en provider_availability_rules. Agrupa reservas por slot_start_at/slot_end_at, excluye franjas terminadas, usa booking_status_consumes_capacity y respeta el override por fecha de America/Panama. Registra cambios reales aceptados. Reemplaza create_booking_from_slot conservando firma y agregando FOR SHARE sobre la regla antes de calcular disponibilidad. No añade tablas, columnas ni contadores. Aplicada al servidor vinculado el 18/09/2026 UTC; pruebas y hash en docs/audit/2026-09-17/evidence/capacity-guard-*.json.

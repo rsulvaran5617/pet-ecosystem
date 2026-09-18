@@ -1,0 +1,71 @@
+{
+  "executedAt": "2026-09-18T01:19:27.478Z",
+  "checks": [
+    {
+      "id": "FOSTER-UNAPPROVED-BLOCK",
+      "passed": true,
+      "details": "Solo una familia protectora aprobada puede iniciar transferencias privadas."
+    },
+    {
+      "id": "FOSTER-NO-SELF-APPROVAL",
+      "passed": true,
+      "details": "Platform admin role required to review protective household profile"
+    },
+    {
+      "id": "FOSTER-ADMIN-APPROVAL",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-PENDING",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-WRONG-RECIPIENT",
+      "passed": true,
+      "details": "Esta invitacion fue dirigida a otro usuario."
+    },
+    {
+      "id": "TRANSFER-WRONG-HOUSEHOLD",
+      "passed": true,
+      "details": "Solo un administrador del hogar receptor puede aceptar la transferencia."
+    },
+    {
+      "id": "TRANSFER-VISIBLE-TO-RECIPIENT",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-ACCEPT",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-TARGET-OWNS",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-SOURCE-LIST-REMOVED",
+      "passed": true
+    },
+    {
+      "id": "TRANSFER-SOURCE-PRIVATE-ACCESS-REMOVED",
+      "passed": true,
+      "details": "Pet not found or not accessible."
+    },
+    {
+      "id": "TRANSFER-NO-DOUBLE-ACCEPT",
+      "passed": true,
+      "details": "Esta invitacion ya no esta pendiente."
+    }
+  ],
+  "fixtures": {
+    "sourceHouseholdId": "a89ac60d-e79a-4b3c-a2be-9b3c43628619",
+    "targetHouseholdId": "18fb9344-7bc7-443c-954f-76dc5a4c728b",
+    "petId": "4a1e43bb-4fa1-4953-8941-e4ba8c3aeea3",
+    "transferId": "0a2b054e-82ad-4dbf-a5ab-4db67eacb386"
+  },
+  "cleanup": [
+    {
+      "name": "Suspend QA protective profile",
+      "ok": true
+    }
+  ]
+}

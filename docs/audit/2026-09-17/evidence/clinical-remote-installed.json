@@ -1,0 +1,67 @@
+{
+  "executedAt": "2026-09-18T01:43:16.297Z",
+  "mode": "installed migration",
+  "fixtureMutations": "rolled back",
+  "checks": [
+    {
+      "name": "valid encounter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "valid storage permission",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "valid correction",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "H01 revoked grant",
+      "passed": true,
+      "detail": "Clinical access is invalid or expired"
+    },
+    {
+      "name": "revoked grant blocks storage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "H02 suspension correction",
+      "passed": true,
+      "detail": "Verified professional identity required"
+    },
+    {
+      "name": "H03 suspension document finalize",
+      "passed": true,
+      "detail": "Verified professional identity required"
+    },
+    {
+      "name": "suspension blocks storage",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "revoked consent document finalize",
+      "passed": true,
+      "detail": "Clinical authorization is expired or revoked"
+    },
+    {
+      "name": "valid document finalize",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "guard ACL",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unrelated storage bucket",
+      "passed": true,
+      "detail": null
+    }
+  ]
+}

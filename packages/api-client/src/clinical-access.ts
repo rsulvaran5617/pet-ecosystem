@@ -155,8 +155,13 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
       return data as unknown as PreparedClinicalDocumentUpload;
     },
     async uploadPreparedClinicalDocument(prepared: PreparedClinicalDocumentUpload, file: Blob) {
+      // Recover a lost upload/finalization response before attempting another insert.
+      const { error: existingError } = await supabase.rpc("finalize_clinical_document_upload", { target_document_id: prepared.documentId });
+      if (!existingError) return;
+      if (existingError.message !== "Clinical document validation failed") fail(existingError, "No fue posible validar el permiso del documento.");
       const { error } = await supabase.storage.from(prepared.bucket).upload(prepared.path, file, { contentType: file.type, upsert: false });
-      if (error) fail(error, "No fue posible cargar el documento clinico.");
+      const duplicate = error && (error.message === "The resource already exists" || ("statusCode" in error && String(error.statusCode) === "409"));
+      if (error && !duplicate) fail(error, "No fue posible cargar el documento clinico.");
       const { error: finalizeError } = await supabase.rpc("finalize_clinical_document_upload", { target_document_id: prepared.documentId });
       if (finalizeError) fail(finalizeError, "El documento se cargo, pero no pudo confirmarse.");
     },

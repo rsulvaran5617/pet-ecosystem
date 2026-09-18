@@ -1,0 +1,49 @@
+{
+  "executedAt": "2026-09-18T02:07:02.132Z",
+  "environment": "Local web at 3100, linked Supabase, dedicated synthetic QA",
+  "checks": [
+    {
+      "name": "partial success clearly shown",
+      "passed": true
+    },
+    {
+      "name": "upload reached server and response loss injected",
+      "passed": true
+    },
+    {
+      "name": "retry saves no duplicate attention or upload",
+      "passed": true
+    },
+    {
+      "name": "owner sees completed attachment",
+      "passed": true
+    },
+    {
+      "name": "owner can revoke completed request",
+      "passed": true
+    },
+    {
+      "name": "finalized clinical history remains readable",
+      "passed": true
+    },
+    {
+      "name": "no uncaught browser exceptions",
+      "passed": true
+    }
+  ],
+  "cleanup": [
+    {
+      "name": "write permission revoked",
+      "passed": true
+    },
+    {
+      "name": "read link revoked",
+      "passed": true
+    },
+    {
+      "name": "QA professional suspended again",
+      "passed": true
+    }
+  ],
+  "encounterId": "9601e6ff-8318-4775-bbf5-aa51c2f5c527"
+}

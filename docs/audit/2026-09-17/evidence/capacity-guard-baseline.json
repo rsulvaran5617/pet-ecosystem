@@ -1,0 +1,12 @@
+{
+  "executedAt": "2026-09-18T02:18:27.042Z",
+  "mode": "baseline",
+  "sha256": "e87e59f3fa710dc5cbbb884ab36a82032520de9472dd7e1fbe7791b1e86d0fd8",
+  "fixtureMutations": "rolled back, including publication and bookings",
+  "checks": [
+    {
+      "name": "H06 cannot reduce below two bookings",
+      "passed": false
+    }
+  ]
+}

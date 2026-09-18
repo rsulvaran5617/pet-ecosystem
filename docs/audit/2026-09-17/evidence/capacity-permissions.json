@@ -1,0 +1,205 @@
+{
+  "executedAt": "2026-09-18T01:10:51.642Z",
+  "checks": [
+    {
+      "id": "CAP-TZ",
+      "passed": true,
+      "details": {
+        "start": "2026-09-26T14:00:00+00:00",
+        "end": "2026-09-26T14:30:00+00:00",
+        "zone": "America/Panama"
+      }
+    },
+    {
+      "id": "CAP-RACE-1",
+      "passed": true,
+      "details": {
+        "accepted": 1,
+        "rejected": 3,
+        "reserved": 1
+      }
+    },
+    {
+      "id": "CAP-RELEASE-1",
+      "passed": true
+    },
+    {
+      "id": "CAP-RACE-2",
+      "passed": true,
+      "details": {
+        "accepted": 1,
+        "rejected": 3,
+        "reserved": 1
+      }
+    },
+    {
+      "id": "CAP-RELEASE-2",
+      "passed": true
+    },
+    {
+      "id": "CAP-RACE-3",
+      "passed": true,
+      "details": {
+        "accepted": 1,
+        "rejected": 3,
+        "reserved": 1
+      }
+    },
+    {
+      "id": "CAP-RELEASE-3",
+      "passed": true
+    },
+    {
+      "id": "CAP-INVALID-RANGE",
+      "passed": true,
+      "details": "Selected slot range is invalid"
+    },
+    {
+      "id": "CAP-ZERO",
+      "passed": true,
+      "details": "new row for relation \"provider_availability_rules\" violates check constraint \"provider_availability_rules_capacity_check\""
+    },
+    {
+      "id": "CAP-REDUCE-OCCUPIED",
+      "passed": false,
+      "details": "Operación aceptada"
+    },
+    {
+      "id": "HH-VIEW",
+      "passed": true
+    },
+    {
+      "id": "HH-VIEW-NO-EDIT",
+      "passed": true,
+      "details": "Household edit permission required to update pets"
+    },
+    {
+      "id": "HH-VIEW-NO-BOOK",
+      "passed": true,
+      "details": "Book permission is required for the selected household"
+    },
+    {
+      "id": "HH-NO-SELF-ESCALATION",
+      "passed": true,
+      "details": "Household admin required to update member permissions"
+    },
+    {
+      "id": "HH-EDIT",
+      "passed": true
+    },
+    {
+      "id": "HH-EDIT-REVOKED",
+      "passed": true,
+      "details": "Household edit permission required to update pets"
+    },
+    {
+      "id": "HH-BOOK",
+      "passed": true
+    },
+    {
+      "id": "HH-BOOK-NO-PAY",
+      "passed": true,
+      "details": "Pay permission is required to attach a saved payment method"
+    },
+    {
+      "id": "HH-PAY-INVALID-METHOD",
+      "passed": true,
+      "details": "Selected payment method is not available"
+    },
+    {
+      "id": "HH-ADMIN-MANAGES",
+      "passed": true
+    },
+    {
+      "id": "HH-ADMIN-REVOKED",
+      "passed": true,
+      "details": "Household admin required to update member permissions"
+    },
+    {
+      "id": "HH-LAST-ADMIN",
+      "passed": true,
+      "details": "A household must keep at least one admin"
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "accepted": [
+        "8c6a4a3c-628c-49cd-b6b0-f828f41c130a"
+      ],
+      "rejected": [
+        "Selected slot is no longer available",
+        "Selected slot is no longer available",
+        "Selected slot is no longer available"
+      ]
+    },
+    {
+      "round": 2,
+      "accepted": [
+        "b53c1c34-98fc-42b7-adf2-9887dc1d90f3"
+      ],
+      "rejected": [
+        "Selected slot is no longer available",
+        "Selected slot is no longer available",
+        "Selected slot is no longer available"
+      ]
+    },
+    {
+      "round": 3,
+      "accepted": [
+        "34ae7758-c353-4f06-a959-3bf889cddcdb"
+      ],
+      "rejected": [
+        "Selected slot is no longer available",
+        "Selected slot is no longer available",
+        "Selected slot is no longer available"
+      ]
+    }
+  ],
+  "fixtures": {
+    "householdId": "07f6714d-2b98-4472-a512-bedc10a898a1",
+    "petId": "8905b844-09c7-4896-ae92-8fc0400b1f67",
+    "organizationId": "716bfcd5-41f5-4a93-88b2-937980a54cf9",
+    "bookingIds": [
+      "b12e53ef-4bd7-4bd4-a688-b622995ca3c6",
+      "997ccc2d-6346-4994-8aa9-9de2cfbcd6af"
+    ],
+    "ruleId": "c1fbca53-8f20-4e75-a67e-c393c629d36e",
+    "slotDate": "2026-09-26",
+    "memberId": "e62356e9-e0db-4606-a6ad-cf0bf1352d65"
+  },
+  "capacityAfterReductionAttempt": {
+    "availabilityRuleId": "c1fbca53-8f20-4e75-a67e-c393c629d36e",
+    "organizationId": "716bfcd5-41f5-4a93-88b2-937980a54cf9",
+    "serviceId": "0be97ab6-a83a-4dd8-94b0-cdbbd4fae5d4",
+    "slotDate": "2026-09-26",
+    "slotStartAt": "2026-09-26T14:00:00+00:00",
+    "slotEndAt": "2026-09-26T14:30:00+00:00",
+    "capacityTotal": 1,
+    "reservedCount": 2,
+    "availableCount": 0,
+    "status": "full"
+  },
+  "cleanup": [
+    {
+      "name": "member read-only",
+      "ok": true
+    },
+    {
+      "name": "disable capacity rule",
+      "ok": true
+    },
+    {
+      "name": "hide organization",
+      "ok": true
+    },
+    {
+      "name": "hide profile",
+      "ok": true
+    },
+    {
+      "name": "hide service",
+      "ok": true
+    }
+  ]
+}

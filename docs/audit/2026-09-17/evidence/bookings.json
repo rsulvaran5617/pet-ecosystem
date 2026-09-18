@@ -1,0 +1,51 @@
+{
+  "executedAt": "2026-09-18T00:56:11.997Z",
+  "checks": [
+    {
+      "name": "Visitante encuentra proveedor aprobado durante ventana de prueba",
+      "passed": true
+    },
+    {
+      "name": "Preview requiere aprobación del proveedor",
+      "passed": true
+    },
+    {
+      "name": "Owner crea reserva pendiente",
+      "passed": true
+    },
+    {
+      "name": "Usuario ajeno no puede leer reserva",
+      "passed": true
+    },
+    {
+      "name": "Usuario ajeno no puede aprobar reserva",
+      "passed": true
+    },
+    {
+      "name": "Proveedor confirma su reserva",
+      "passed": true
+    },
+    {
+      "name": "Reserva genera hilo de conversación",
+      "passed": true
+    },
+    {
+      "name": "Proveedor completa reserva confirmada",
+      "passed": true
+    },
+    {
+      "name": "Owner cancela reserva pendiente",
+      "passed": true
+    }
+  ],
+  "fixtures": {
+    "householdId": "07f6714d-2b98-4472-a512-bedc10a898a1",
+    "petId": "8905b844-09c7-4896-ae92-8fc0400b1f67",
+    "organizationId": "716bfcd5-41f5-4a93-88b2-937980a54cf9",
+    "bookingIds": [
+      "b12e53ef-4bd7-4bd4-a688-b622995ca3c6",
+      "997ccc2d-6346-4994-8aa9-9de2cfbcd6af"
+    ]
+  },
+  "hiddenAfterTest": true
+}

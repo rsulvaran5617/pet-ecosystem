@@ -1,0 +1,29 @@
+{
+  "executedAt": "2026-09-18T01:43:14.717Z",
+  "projectMatchesApp": true,
+  "comparisons": [
+    {
+      "name": "finalize_clinical_encounter",
+      "unchanged": true
+    },
+    {
+      "name": "prepare_clinical_document_upload",
+      "unchanged": true
+    },
+    {
+      "name": "finalize_clinical_document_upload",
+      "unchanged": true
+    },
+    {
+      "name": "create_clinical_entry_correction",
+      "unchanged": true
+    },
+    {
+      "name": "can_upload_clinical_document_object",
+      "unchanged": true
+    }
+  ],
+  "alreadyApplied": false,
+  "sha256": "6ebca539f317ec8d23f76eb6d09c9f4f811bdece721baeaf5355ebfd0367fa0c",
+  "applied": true
+}

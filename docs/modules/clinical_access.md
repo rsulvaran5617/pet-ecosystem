@@ -1,5 +1,13 @@
 # CLINICAL ACCESS-2
 
+## Correccion de auditoria H01-H03 — 2026-09-17
+
+La migracion `20260918010000_clinical_write_authorization_revalidation.sql` esta aplicada al proyecto remoto vinculado. Un guard interno, sin permiso de ejecucion para clientes, revalida actor, solicitud, consentimiento, scopes, profesional verificado, grant vigente y hogar actual de la mascota. Lo consumen finalizacion de atencion, rectificacion, preparacion/finalizacion documental y autorizacion de subida a Storage.
+
+Los bloqueos siguen el orden solicitud -> autorizacion -> profesional -> grant -> mascota -> documento cuando corresponda, y se mantienen hasta commit. La vigencia se vuelve a calcular con reloj del servidor despues de adquirirlos. Revocar el grant o suspender/vencer al profesional bloquea nuevas escrituras sin eliminar atenciones finalizadas. No se cambia el contrato publico ni el modelo de datos.
+
+Validacion: 21 casos SQL locales y 12 comprobaciones en PostgreSQL remoto antes/despues de aplicar; los fixtures remotos de regresion se revirtieron. H04 (idempotencia) y H05 (revocacion de capacidad documental residual en solicitudes completed) siguen pendientes. Los apartados historicos de slices se conservan como contexto.
+
 ## Estado del documento
 
 - Frente: `CLINICAL ACCESS-2 - Acceso profesional y escritura clinica autorizada`.
@@ -630,3 +638,11 @@ Entrega:
 8. Guia manual de QA.
 9. No hacer commit, push ni migracion remota.
 ```
+
+## Corrección auditada H04/H05 — 17/09/2026
+
+La migración 20260918020000 conserva un comprobante idempotente: repetir finalize_clinical_encounter con la misma autorización, autor, clave y contenido devuelve la atención original, incluso tras revocación, sin escribir. Reutilizar la clave con otro contenido u operación se rechaza. Preparar documentos también vincula la clave a la metadata original. Una confirmación documental ready es repetible; los pendientes revalidan permisos.
+
+El propietario puede revocar solicitudes approved o completed; ambas pasan a revoked y se retiran los permisos residuales sin borrar atenciones. Mobile ofrece Revocar permisos pendientes sobre completed vigente. Web separa atención guardada de archivo pendiente, y conserva claves/archivo/fases en memoria durante el reintento; recargar la página pierde ese contexto, sin persistencia clínica local.
+
+Servidor aplicado; cambios de clientes locales, publicación y QA nativo pendientes. Evidencia y límites en docs/audit/2026-09-17/CORRECCION_REINTENTOS.md. No amplía el alcance clínico de producto.

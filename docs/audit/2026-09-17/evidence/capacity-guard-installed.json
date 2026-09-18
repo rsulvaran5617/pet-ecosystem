@@ -1,0 +1,72 @@
+{
+  "executedAt": "2026-09-18T02:19:30.235Z",
+  "mode": "installed",
+  "sha256": "e87e59f3fa710dc5cbbb884ab36a82032520de9472dd7e1fbe7791b1e86d0fd8",
+  "fixtureMutations": "rolled back, including publication and bookings",
+  "checks": [
+    {
+      "name": "H06 cannot reduce below two bookings",
+      "passed": true
+    },
+    {
+      "name": "failed edit preserves capacity",
+      "passed": true
+    },
+    {
+      "name": "rejected change has no audit",
+      "passed": true
+    },
+    {
+      "name": "increase and exact occupancy allowed",
+      "passed": true
+    },
+    {
+      "name": "audit once per actual capacity change",
+      "passed": true
+    },
+    {
+      "name": "cancelled booking releases capacity",
+      "passed": true
+    },
+    {
+      "name": "reduced slot rejects another booking",
+      "passed": true
+    },
+    {
+      "name": "ongoing/future completed still consumes capacity",
+      "passed": true
+    },
+    {
+      "name": "past history does not prevent future reduction",
+      "passed": true
+    },
+    {
+      "name": "count is per slot rather than all dates",
+      "passed": true
+    },
+    {
+      "name": "date override is respected",
+      "passed": true
+    },
+    {
+      "name": "closing rule preserves existing bookings",
+      "passed": true
+    },
+    {
+      "name": "inactive rule cannot bypass capacity guard",
+      "passed": true
+    },
+    {
+      "name": "authenticated provider cannot bypass guard through RLS",
+      "passed": true
+    },
+    {
+      "name": "unrelated owner cannot edit provider rule",
+      "passed": true
+    },
+    {
+      "name": "trigger helper not callable by authenticated",
+      "passed": true
+    }
+  ]
+}

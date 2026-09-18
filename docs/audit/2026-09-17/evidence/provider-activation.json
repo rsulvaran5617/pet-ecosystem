@@ -1,0 +1,36 @@
+{
+  "executedAt": "2026-09-18T00:54:30.176Z",
+  "checks": [
+    {
+      "name": "El proveedor no puede aprobar su propio negocio",
+      "passed": true
+    },
+    {
+      "name": "Administrador aprueba el proveedor QA",
+      "passed": true
+    },
+    {
+      "name": "Otro usuario no obtiene el detalle privado del proveedor",
+      "passed": true
+    },
+    {
+      "name": "Proveedor QA privado no aparece en marketplace anónimo",
+      "passed": true
+    },
+    {
+      "name": "Rol proveedor activo en cuenta QA",
+      "passed": true
+    },
+    {
+      "name": "Visibilidad privada revalidada por organizationId",
+      "passed": true
+    }
+  ],
+  "organizationId": "716bfcd5-41f5-4a93-88b2-937980a54cf9",
+  "serviceId": "0be97ab6-a83a-4dd8-94b0-cdbbd4fae5d4",
+  "finalState": {
+    "name": "QA Auditoría 2026-09-17 — NO COMERCIAL",
+    "approvalStatus": "approved",
+    "isPublic": false
+  }
+}

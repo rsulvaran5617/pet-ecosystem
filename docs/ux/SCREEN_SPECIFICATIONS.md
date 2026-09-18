@@ -346,3 +346,11 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - Clinical Access-2E muestra `Historial profesional` en Owner Mobile/Web como acordeon de una sola atencion abierta, con atribucion, registros originales/rectificaciones, documentos y autorizacion. Admin muestra auditoria de eventos sin contenido clinico.
 - Admin incorpora `Profesionales` para revisar referencia de licencia, jurisdiccion y organizacion declarada; rechazo y suspension exigen justificacion.
 - 2C permite al profesional verificado seleccionar acciones y solicitar permiso; Owner Mobile > Salud muestra profesional, clinica, alcance, vencimiento y acciones Aprobar/Rechazar/Revocar.
+
+## Recuperación clínica y revocación residual — auditoría 17/09/2026
+
+Web /clinical-access/[token]: al confirmar una atención se congela la operación. Si no se conoce el resultado, mostrar Confirmación pendiente / Recuperar confirmación. Si la atención está guardada pero falta el documento, mostrar Atención guardada / Reintentar documento. Si solo falta cargar el comprobante, mostrar Actualizar comprobante. Deshabilitar doble envío mientras hay operación; reintentar conserva claves, contenido y archivo en memoria. No presentar el fallo de adjunto como pérdida de toda la atención. Recargar/cerrar pierde el contexto en memoria; no hay persistencia clínica local.
+
+Mobile Salud > Acceso clínico > Historial de autorizaciones: una solicitud completed aún vigente permite Revocar permisos pendientes; explicar que conserva la atención e impide completar documentos pendientes. Tras revocar se muestra Permiso revocado. El backend verifica can_edit_pet y el estado vigente.
+
+Web probada localmente con subida real y respuesta perdida simulada. Pantalla nativa pendiente de QA en dispositivo y ambos clientes pendientes de publicación.

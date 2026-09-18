@@ -1,0 +1,108 @@
+{
+  "engine": "PGlite 0.3.14 (PostgreSQL WASM)",
+  "executedAt": "2026-09-18T01:47:44.535Z",
+  "limits": "Single-connection SQL regression, not a Supabase integration or concurrent-lock test.",
+  "baseline": [
+    {
+      "name": "H01 revoked grant blocks encounter",
+      "passed": false,
+      "error": "Operation unexpectedly accepted"
+    },
+    {
+      "name": "H02 suspended professional blocks correction",
+      "passed": false,
+      "error": "Operation unexpectedly accepted"
+    },
+    {
+      "name": "H03 suspended professional blocks document finalize",
+      "passed": false,
+      "error": "Operation unexpectedly accepted"
+    }
+  ],
+  "patched": [
+    {
+      "name": "H01 revoked grant blocks encounter",
+      "passed": true
+    },
+    {
+      "name": "H02 suspended professional blocks correction",
+      "passed": true
+    },
+    {
+      "name": "H03 suspended professional blocks document finalize",
+      "passed": true
+    },
+    {
+      "name": "valid encounter succeeds",
+      "passed": true
+    },
+    {
+      "name": "valid correction preserves original",
+      "passed": true
+    },
+    {
+      "name": "valid completed request permits existing upload flow",
+      "passed": true
+    },
+    {
+      "name": "revoked grant blocks prepare and storage upload",
+      "passed": true
+    },
+    {
+      "name": "revoked consent blocks document finalize",
+      "passed": true
+    },
+    {
+      "name": "expired professional blocks correction",
+      "passed": true
+    },
+    {
+      "name": "expired grant blocks document finalize",
+      "passed": true
+    },
+    {
+      "name": "expired consent blocks document finalize",
+      "passed": true
+    },
+    {
+      "name": "scope required at document finalize",
+      "passed": true
+    },
+    {
+      "name": "another user cannot finalize document",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot finalize document",
+      "passed": true
+    },
+    {
+      "name": "transfer invalidates prior grant for writes",
+      "passed": true
+    },
+    {
+      "name": "unrelated storage bucket remains outside clinical authorization",
+      "passed": true
+    },
+    {
+      "name": "storage cannot impersonate professional",
+      "passed": true
+    },
+    {
+      "name": "private guard not callable by authenticated",
+      "passed": true
+    },
+    {
+      "name": "invalid object metadata cannot become ready",
+      "passed": true
+    },
+    {
+      "name": "revocation preserves finalized history",
+      "passed": true
+    },
+    {
+      "name": "suspension blocks new storage upload",
+      "passed": true
+    }
+  ]
+}
