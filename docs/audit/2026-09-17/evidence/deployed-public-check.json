@@ -1,0 +1,185 @@
+{
+  "executedAt": "2026-09-18T13:33:27.798Z",
+  "targetCommit": "a7b89d3",
+  "deployedCommitVerified": false,
+  "scope": "Public read-only browser checks; no account mutations or deployment.",
+  "pages": [
+    {
+      "route": "/",
+      "status": 200,
+      "htmlSha256": "2a7e1dbd2deff7bab7b4a573d9246dd9a4b2e5197818f4eeddaeebbc4319fcb8",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 420,
+          "overflow": true
+        }
+      ],
+      "runtimeErrors": [
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #418; visit https://react.dev/errors/418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #423; visit https://react.dev/errors/423 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrorCount": 0,
+      "staticStyleInline": true,
+      "title": "Pet Ecosystem"
+    },
+    {
+      "route": "/ayuda",
+      "status": 200,
+      "htmlSha256": "2589baaca622bb4e2dd6200fc1587dc473036b0c839f3546d9efbca6c2d50f03",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #425; visit https://react.dev/errors/425 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #418; visit https://react.dev/errors/418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+        "Error: Minified React error #423; visit https://react.dev/errors/423 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+      ],
+      "consoleErrorCount": 0,
+      "staticStyleInline": true,
+      "title": "Centro de ayuda | Pet Ecosystem"
+    },
+    {
+      "route": "/beta",
+      "status": 200,
+      "htmlSha256": "2102be309703200d4d44fb5e2435d68bb162e541a4dee7511e41282f857c31c5",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [],
+      "consoleErrorCount": 2,
+      "staticStyleInline": null,
+      "title": "Prueba la beta | Pet Ecosystem"
+    },
+    {
+      "route": "/account-deletion",
+      "status": 200,
+      "htmlSha256": "5745a39671de36902a44daf332a490b470b0e05a404f7646563ff48737a76c66",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [],
+      "consoleErrorCount": 0,
+      "staticStyleInline": null,
+      "title": "Eliminar cuenta | Pet Ecosystem"
+    },
+    {
+      "route": "/app",
+      "status": 200,
+      "htmlSha256": "ac28282c06badfdb122f4878104849cdffc567bda8d0010237f17e7dc996b6e6",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [],
+      "consoleErrorCount": 0,
+      "staticStyleInline": null,
+      "title": "Pet Ecosystem"
+    },
+    {
+      "route": "/foster",
+      "status": 200,
+      "htmlSha256": "a56c2fc9934a4e3aca495a1a4208fb392c1a23f5bf7217f34498921d83cd01a3",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1425,
+          "scrollWidth": 1425,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [],
+      "consoleErrorCount": 0,
+      "staticStyleInline": null,
+      "title": "Pet Ecosystem"
+    },
+    {
+      "route": "/pet-alert",
+      "status": 200,
+      "htmlSha256": "35de254b3880013caad646572cd18e113240b51e814e7b26cdca44647c6bcc05",
+      "layouts": [
+        {
+          "viewport": 1440,
+          "width": 1440,
+          "scrollWidth": 1440,
+          "overflow": false
+        },
+        {
+          "viewport": 390,
+          "width": 375,
+          "scrollWidth": 375,
+          "overflow": false
+        }
+      ],
+      "runtimeErrors": [],
+      "consoleErrorCount": 0,
+      "staticStyleInline": null,
+      "title": "PET ALERT | Boletines de mascotas"
+    }
+  ],
+  "passed": false
+}

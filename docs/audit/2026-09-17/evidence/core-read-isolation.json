@@ -1,0 +1,214 @@
+{
+  "executedAt": "2026-09-18T13:37:10.773Z",
+  "scope": "SELECT only plus QA login/logout; no business mutations. Native/UI and create/update/delete not covered.",
+  "checks": [
+    {
+      "name": "Three distinct QA users",
+      "passed": true
+    },
+    {
+      "name": "owner can query own profiles",
+      "passed": true
+    },
+    {
+      "name": "owner has one own profile",
+      "passed": true
+    },
+    {
+      "name": "owner preference fields are booleans",
+      "passed": true
+    },
+    {
+      "name": "provider cannot read owner profiles",
+      "passed": true
+    },
+    {
+      "name": "member cannot read owner profiles",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read owner profiles",
+      "passed": true
+    },
+    {
+      "name": "provider can query own profiles",
+      "passed": true
+    },
+    {
+      "name": "provider has one own profile",
+      "passed": true
+    },
+    {
+      "name": "provider preference fields are booleans",
+      "passed": true
+    },
+    {
+      "name": "owner cannot read provider profiles",
+      "passed": true
+    },
+    {
+      "name": "member cannot read provider profiles",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read provider profiles",
+      "passed": true
+    },
+    {
+      "name": "member can query own profiles",
+      "passed": true
+    },
+    {
+      "name": "member has one own profile",
+      "passed": true
+    },
+    {
+      "name": "member preference fields are booleans",
+      "passed": true
+    },
+    {
+      "name": "owner cannot read member profiles",
+      "passed": true
+    },
+    {
+      "name": "provider cannot read member profiles",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read member profiles",
+      "passed": true
+    },
+    {
+      "name": "owner can query own user_addresses",
+      "passed": true
+    },
+    {
+      "name": "provider cannot read owner user_addresses",
+      "passed": true
+    },
+    {
+      "name": "member cannot read owner user_addresses",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read owner user_addresses",
+      "passed": true
+    },
+    {
+      "name": "provider can query own user_addresses",
+      "passed": true
+    },
+    {
+      "name": "owner cannot read provider user_addresses",
+      "passed": true
+    },
+    {
+      "name": "member cannot read provider user_addresses",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read provider user_addresses",
+      "passed": true
+    },
+    {
+      "name": "member can query own user_addresses",
+      "passed": true
+    },
+    {
+      "name": "owner can query own payment_methods",
+      "passed": true
+    },
+    {
+      "name": "provider cannot read owner payment_methods",
+      "passed": true
+    },
+    {
+      "name": "member cannot read owner payment_methods",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read owner payment_methods",
+      "passed": true
+    },
+    {
+      "name": "provider can query own payment_methods",
+      "passed": true
+    },
+    {
+      "name": "owner cannot read provider payment_methods",
+      "passed": true
+    },
+    {
+      "name": "member cannot read provider payment_methods",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot read provider payment_methods",
+      "passed": true
+    },
+    {
+      "name": "member can query own payment_methods",
+      "passed": true
+    },
+    {
+      "name": "owner session closed",
+      "passed": true
+    },
+    {
+      "name": "provider session closed",
+      "passed": true
+    },
+    {
+      "name": "member session closed",
+      "passed": true
+    }
+  ],
+  "fixtures": [
+    {
+      "role": "owner",
+      "table": "profiles",
+      "ownRows": 1
+    },
+    {
+      "role": "provider",
+      "table": "profiles",
+      "ownRows": 1
+    },
+    {
+      "role": "member",
+      "table": "profiles",
+      "ownRows": 1
+    },
+    {
+      "role": "owner",
+      "table": "user_addresses",
+      "ownRows": 4
+    },
+    {
+      "role": "provider",
+      "table": "user_addresses",
+      "ownRows": 2
+    },
+    {
+      "role": "member",
+      "table": "user_addresses",
+      "ownRows": 0
+    },
+    {
+      "role": "owner",
+      "table": "payment_methods",
+      "ownRows": 3
+    },
+    {
+      "role": "provider",
+      "table": "payment_methods",
+      "ownRows": 1
+    },
+    {
+      "role": "member",
+      "table": "payment_methods",
+      "ownRows": 0
+    }
+  ],
+  "passed": true
+}

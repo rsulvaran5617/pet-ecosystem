@@ -1,8 +1,8 @@
 {
   "features": 110,
-  "withApiEvidence": 37,
+  "withApiEvidence": 41,
   "withWebEvidence": 18,
-  "withAnyRuntimeEvidence": 45,
+  "withAnyRuntimeEvidence": 49,
   "mobileDeviceTested": 0,
   "withFindings": 15
 }

@@ -2,7 +2,9 @@
 
 Abrir `INFORME_AUDITORIA.pdf` para lectura, `INFORME_AUDITORIA.html` para filtrar la matriz o `MATRIZ_110_FUNCIONES.csv` en una hoja de cálculo.
 
-Resultado: ocho hallazgos; 45 de 110 fichas con alguna evidencia funcional parcial y 65 sin ejecución. No es una certificación completa. La aplicación mobile exporta para Android/iOS, pero no se probaron dispositivos.
+Resultado: ocho hallazgos; 49 de 110 fichas con alguna evidencia funcional parcial y 61 sin ejecución. No es una certificación completa. La aplicación mobile exporta para Android/iOS, pero no se probaron dispositivos.
+
+Seguimiento de publicación y nuevas pruebas Core: `PUBLICACION_Y_CORE.md`. La web publicada todavía reproduce errores de Inicio/Ayuda; SSH requiere autenticación disponible. Android solicitado en EAS desde a7b89d3; no equivale a distribución ni QA en dispositivo.
 
 Actualización: H01–H06 tienen correcciones aplicadas al servidor vinculado. Ver `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`. H04/H05 tienen clientes locales implementados y pruebas de recuperación web, con publicación y QA nativo pendientes; H06 pasó regresiones y dos carreras reales; H07/H08 están corregidos y validados en web local, pendientes de despliegue; ver `CORRECCION_WEB.md`. Ver `CORRECCION_CAPACIDAD.md`. Los scripts originales conservan reproducciones del baseline, no el estado posterior a la corrección.
 

@@ -1,0 +1,18 @@
+﻿{
+    "checkedAt":  "2026-09-18T13:41:23.7001335Z",
+    "webDeployed":  false,
+    "sshStatus":  "authentication_rejected",
+    "nativeDevices":  0,
+    "mobileTypecheck":  "passed",
+    "mobileLint":  "passed",
+    "androidBuild":  {
+                         "id":  "795bad45-4d7d-48c1-8d4f-2b889b5071df",
+                         "status":  "IN_QUEUE",
+                         "commit":  "a7b89d393dccc34d067066ce1521d6bffdb44593",
+                         "version":  "0.0.0",
+                         "createdAt":  "2026-09-18T13:39:10.023Z"
+                     },
+    "nativeValidated":  false,
+    "distributed":  false,
+    "iosBuildRequested":  false
+}

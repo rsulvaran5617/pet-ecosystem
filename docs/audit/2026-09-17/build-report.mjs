@@ -22,6 +22,11 @@ web.C10='Ayuda pública: hidratación y CSS sin JavaScript corregidos y verifica
 web.O01='Panel owner: sin overflow en 360/390/414/1440 px y texto largo; producción local con datos';
 web.P01='Panel provider: sin overflow en 360/390/414/1440 px y texto largo; producción local con datos';
 web.P14='Panel adaptable y scroll de capacidad verificados localmente; otras secciones no agotadas';
+api.C04='Lectura directa de perfil propio y bloqueo de perfil ajeno/anonimo en tres cuentas QA; edicion y pasos UI pendientes';
+api.C06='Lectura de preferencias booleanas y aislamiento del perfil en tres cuentas QA; cambios/persistencia pendientes';
+api.C07='Lectura propia y aislamiento de direcciones existentes owner/provider; miembro sin direcciones; CRUD/UI pendientes';
+api.C08='Lectura propia y aislamiento de metodos referenciales owner/provider; miembro sin metodos; CRUD/UI pendientes';
+web.C10+='; sitio publicado: Ayuda aun reproduce errores React y estilos inline el 18/09';
 const rows=features.map(f=>({id:f.id,role:roles[f.id[0]],function:f.name,api:api[f.id]?'Parcial: '+api[f.id]:'No ejecutada',web:web[f.id]?'Parcial: '+web[f.id]:'No ejecutada',mobile:'No ejecutada en dispositivo',findings:findingMap[f.id]??'',next:api[f.id]||web[f.id]?'Completar variantes y canales; repetir tras correcciones':'Ejecutar caso positivo, negativo de permisos y recorrido por canal'}));
 for(const row of rows) if(row.findings) row.findings=row.findings.split(' ').map(id=>id+(['H01','H02','H03','H06'].includes(id)?' (corregido en servidor)':['H04','H05'].includes(id)?' (servidor corregido; publicar cliente)':['H07','H08'].includes(id)?' (web local validada; publicar)':' (pendiente)')).join('; ');
 const columns=['ID','Rol','Función','API / servidor','Web','Mobile nativo','Hallazgos','Pendiente'];

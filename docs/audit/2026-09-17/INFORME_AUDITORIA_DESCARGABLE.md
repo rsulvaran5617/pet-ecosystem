@@ -1,5 +1,13 @@
 # Auditoría funcional por roles — resultados y plan de cierre
 
+## Actualización de publicación y aislamiento Core — 18/09/2026
+
+Se verificaron siete rutas públicas de https://petecosyst.com a 1440/390 px: todas devuelven HTTP 200. Inicio y Ayuda todavía sirven CSS inline y reproducen errores React; Inicio mide 420 px de documento a 390 px de viewport. Esto no valida H07/H08 como desplegados. La conexión SSH documentada fue rechazada por autenticación; no se modificó el servidor. Evidencia: `evidence/deployed-public-check.json`.
+
+Pasaron 40 comprobaciones de lectura/aislamiento Core con owner, provider, miembro y visitante: perfiles, preferencias, direcciones y métodos referenciales. Las direcciones y métodos existentes de owner/provider no son visibles a otras cuentas ni al visitante; el miembro no tiene filas propias en esas dos tablas y no se afirma aislamiento sobre fixtures inexistentes. Solo login/logout y SELECT; sin ediciones ni solicitudes de eliminación. Se añaden C04/C06/C07/C08 con cobertura parcial: **49/110 fichas con evidencia parcial, 61 sin ejecución**. UI, CRUD y pruebas nativas siguen pendientes. Evidencia: `evidence/core-read-isolation.json`.
+
+Preparación mobile desde copia aislada de a7b89d3: lint y typecheck pasan. ADB no detecta dispositivos. El estado del build/distribución se registra en `PUBLICACION_Y_CORE.md`; un APK compilado no equivale a una prueba nativa. Los apartados siguientes conservan el historial de cada fase.
+
 **Corte: 17 de septiembre de 2026, Panamá.** Código local `1352e4c272d1475520a0409ad32e336967c343b0`. Pruebas API ejecutadas contra el backend configurado del proyecto; navegador contra la aplicación local. Los JSON registran fecha UTC del 18 de septiembre.
 
 **Actualización posterior: H01, H02 y H03 corregidos y verificados en el servidor vinculado.** Migración `20260918010000_clinical_write_authorization_revalidation.sql`, aplicada el 18/09/2026 a las 01:43 UTC. Pasaron 21 regresiones SQL locales y 12 comprobaciones remotas antes y después de aplicar. Los ocho hallazgos y su evidencia original se conservan abajo; H04/H05 tienen además corrección de servidor aplicada y clientes locales implementados, con publicación pendiente; H06 corregido en servidor; H07/H08 corregidos localmente, publicación pendiente. Detalle en `CORRECCION_CLINICA.md` y `CORRECCION_REINTENTOS.md`.
@@ -219,4 +227,4 @@ H01–H06 tienen correcciones de servidor aplicadas y comprobadas; los pasos de 
 
 ## Resumen de cobertura de las 110 fichas
 
-45 fichas tienen alguna evidencia de ejecución parcial: 37 por API y 18 por web, con superposición entre canales. 65 fichas no tienen ejecución funcional en esta auditoría. Ninguna tiene recorrido nativo en dispositivo. No hay certificación de cobertura completa por ficha.
+49 fichas tienen alguna evidencia de ejecución parcial: 41 por API y 18 por web, con superposición entre canales. 61 fichas no tienen ejecución funcional en esta auditoría. Ninguna tiene recorrido nativo en dispositivo. No hay certificación de cobertura completa por ficha.

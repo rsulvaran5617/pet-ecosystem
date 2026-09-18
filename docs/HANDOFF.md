@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+# Handoff 2026-09-18 - Publicación bloqueada por SSH, Android en cola y Core ampliado
+
+- Usuario autorizó continuar publicación y auditoría. Commit a7b89d3 ya está en origin/master. Esta sesión no modificó producto ni DB.
+- SSH root@143.198.165.191 rechaza autenticación; solo hay known_hosts en ~/.ssh. Pregunta pendiente al usuario por alias/usuario/ruta de clave. No leer docs/delivery/onlyoneaccess.txt ni solicitar secretos en chat.
+- Sitio público verificado: siete rutas HTTP 200 a 1440/390; Inicio y Ayuda aún con CSS inline y errores React 425/418/423. Inicio desborda 420 px a viewport 390. No desplegado; commit remoto sin verificar. Beta registra dos avisos de consola no investigados.
+- Core SELECT-only con owner/provider/member y visitante: 40 comprobaciones correctas. Perfil, preferencias y aislamiento de direcciones/métodos existentes. No CRUD ni eliminación ni datos personales en evidencia. C04/C06/C07/C08 nuevas parciales: 49/110 con evidencia, 61 sin ejecutar. PDF/HTML/CSV actualizados.
+- Android EAS preview aceptado: 795bad45-4d7d-48c1-8d4f-2b889b5071df, a7b89d393dccc34d067066ce1521d6bffdb44593, observado IN_QUEUE. Incidencia parcial EAS/demoras Android; primer intento ECONNRESET sin ID, segundo aceptado. No lanzar duplicado.
+- Copia aislada %TEMP%/pet-audit-release-a7b89d3, lint/typecheck mobile pasan. Solo .easignore de empaquetado sin rastrear, docs excluidos, dos variables públicas mobile incluidas sin imprimir. EAS preview tiene variables Supabase configuradas. app.json raíz/onlyoneaccess no incluidos. Versión nativa EAS 0.0.0; config Expo 0.3.1, sin cambios de versión.
+- ADB sin dispositivos; sin APK descargado/distribuido, sin build iOS ni TestFlight. Próximo: consultar ID EAS, descargar/hash/instalar cuando termine, QA H05; acceso SSH y deploy web; continuar CRUD/UI Core y matriz. PUBLICACION_Y_CORE.md y evidence/release-followup.json contienen el estado de este corte.
+- Nuevos runners: deployed-public-check.mjs (root, esperado exit 1 mientras sitio falle) y core-read-isolation.mjs (desde packages/api-client con loader smoke). Los archivos ajenos iniciales siguen intactos.
+
 # Handoff 2026-09-18 - Commit/push previo y corrección web H07/H08
 
 - Usuario pidió commit/push de lo pendiente y continuar H07/H08. fcdb056 enviado a origin/master: canvas descargable, informe/auditoría, H01-H06, migraciones y regresiones. PDFs/ZIPs incluidos expresamente. app.json y docs/delivery/onlyoneaccess.txt siguen ajenos y sin rastrear; no leer ni publicar el segundo.
