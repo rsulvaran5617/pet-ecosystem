@@ -879,7 +879,7 @@ export function BookingsWorkspace({
               <Text style={[cardTitleStyle, { flex: 1 }]}>Seguimiento de reservas</Text>
               <StatusChip label={`${filteredBookings.length} visibles`} tone="neutral" />
             </View>
-            {nextActiveBooking && nextActiveBookingGuidance ? (
+            {bookingStatusFilter === "active" && nextActiveBooking && nextActiveBookingGuidance ? (
               <Pressable
                 accessibilityLabel={`Abrir siguiente paso de reserva ${nextActiveBooking.serviceName}`}
                 accessibilityRole="button"
@@ -919,12 +919,7 @@ export function BookingsWorkspace({
                   {nextActiveBookingGuidance.cta}
                 </Text>
               </Pressable>
-            ) : (
-              <View style={[inputStyle, { backgroundColor: "rgba(248,250,252,0.72)", borderColor: "rgba(226,232,240,0.86)" }]}>
-                <Text style={{ color: colorTokens.ink, fontSize: 12, fontWeight: "900", lineHeight: 16 }}>Sin reservas activas</Text>
-                <Text style={[bodyTextStyle, { marginTop: 4 }]}>Cuando tengas una reserva pendiente o confirmada, veras aqui el siguiente paso.</Text>
-              </View>
-            )}
+            ) : null}
             {activeSelection ? <Button label="Preparar reserva" onPress={() => showBookingView("servicio")} /> : null}
             {filteredBookings.length ? filteredBookings.map((booking) => (
               <BookingHistoryCard

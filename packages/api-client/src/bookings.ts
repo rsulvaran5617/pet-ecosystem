@@ -296,7 +296,7 @@ function buildBookingSummary(
     householdName: participantSummary?.household_name ?? householdNamesById.get(bookingRow.household_id) ?? "Hogar",
     customerDisplayName: participantSummary?.customer_display_name ?? customerNamesById.get(bookingRow.booked_by_user_id) ?? "Cliente",
     petName: participantSummary?.pet_name ?? petNamesById.get(bookingRow.pet_id) ?? "Mascota",
-    providerName: providerNamesById.get(bookingRow.provider_organization_id) ?? "Unknown provider",
+    providerName: providerNamesById.get(bookingRow.provider_organization_id)?.trim() || "Proveedor no disponible",
     serviceName: pricing.serviceName,
     currencyCode: pricing.currencyCode,
     totalPriceCents: pricing.totalPriceCents,
