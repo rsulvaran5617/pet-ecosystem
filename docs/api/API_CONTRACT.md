@@ -394,6 +394,24 @@ Foster-2A API client local:
   sus caminos existentes; ser gestor de una alerta no autoriza un reporte comunitario ajeno.
 - Diseno de contratos SOS futuros, NO implementados: `docs/pet-sos/README.md`.
 
+### Foundation-1B (local)
+
+`PetSosPublicMapEvent` agrega una union discriminada por eventType con los enums
+existentes. No sustituye PublicPetAlertMapPoint ni cambia respuestas RPC actuales.
+`PetSosFeatureFlags` y `PetSosDisplayState` son contratos de configuracion y UX,
+no permisos efectivos. No endpoint SOS nuevo. Matriz de acciones/precondiciones y
+brechas antes de implementar feed: `docs/pet-sos/FOUNDATION_1B.md`.
+
+### Foundation-1C.1 (migracion local pendiente)
+
+review_pet_alert_community_claim conserva firma. Aprobacion exige reporte activo,
+vigente y compartible bajo bloqueo; rechazo no reabre terminales/moderados ni
+rebaja owner_verified. moderate_pet_alert_content conserva firma y registra estado
+efectivo en target_status_at_action (campo interno, no nuevo DTO cliente).
+Restore obsoleto/legacy sin snapshot y close de terminales retornan
+PET_ALERT_MODERATION_STALE_STATE sin mutacion. Ambas RPC revocan EXECUTE anon.
+No hay feed SOS nuevo en esta correccion. Detalle: `docs/pet-sos/FOUNDATION_1C.md`.
+
 ## Clinical Access-2D/2E
 
 - `finalize_clinical_encounter`: finalizacion transaccional e idempotente.

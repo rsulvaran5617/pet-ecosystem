@@ -16,3 +16,4 @@ export * from "./messaging";
 export * from "./reviews";
 export * from "./support";
 export * from "./database";
+export * from "./pet-sos";

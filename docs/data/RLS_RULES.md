@@ -373,6 +373,14 @@ completa de RLS/Storage entre hogares antes del cierre de Foundation.
 - La interfaz no actualiza tablas directamente ni permite enviar coordenadas publicas.
 - Auditoria registra actor, objetivo, accion, motivo y visibilidad, nunca coordenadas.
 
+## SOS Foundation-1C.1 (local)
+
+Migracion 20260920190000 pendiente: mantiene RLS de tablas, refuerza guard del
+reportante/admin y revoca EXECUTE anon/PUBLIC en review_pet_alert_community_claim
+y moderate_pet_alert_content. Identidad NULL no supera guard admin. Columna de
+snapshot efectivo en casos de moderacion hereda permisos de esa entidad; no se
+proyecta al mapa publico. Pruebas locales no sustituyen RLS entre actores reales.
+
 ## Clinical Access — comprobantes y revocación completed
 
 20260918020000 no amplía grants ni políticas de tablas. Las funciones SECURITY DEFINER conservan actor auth.uid() y search_path fijo. Un comprobante de atención requiere el autor profesional de la solicitud/autorización y la clave/contenido original; un comprobante documental ready requiere su autor. Son retornos sin mutación, admisibles después de retirar permisos. Nuevos datos y documentos pending mantienen el guard de 20260918010000.

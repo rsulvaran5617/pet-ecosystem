@@ -22,3 +22,4 @@ export * from "./pets";
 export * from "./reminders";
 export * from "./support";
 export * from "./localization";
+export * from "./pet-sos";

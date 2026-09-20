@@ -1,5 +1,20 @@
 # HANDOFF.md
 
+# Handoff 2026-09-20 - SOS Foundation-1C.1 integridad y commit solicitado
+
+- Usuario pidio corregir 1C y commit/push. Incluye Foundation-1B pendiente, sin cambios ajenos de releases/MAP-7. No autorizacion nueva de migracion remota; preparacion local solamente.
+- Migracion nueva 20260920190000: review no aprueba sobre cerradas/recuperadas/flagged/vencidas/no compartibles; rechazo no reabre terminales. Moderacion registra target_status_at_action al actuar bajo bloqueo; restore rechaza casos obsoletos o legacy sin snapshot. No reconstruir estados antiguos por inferencia. Close no borra recuperaciones. Firma RPC conservada, EXECUTE anon revocado.
+- 42 checks PGlite de transiciones correctos; fixtures simplificados, sin concurrencia multiconexion ni certificacion RLS completa. Documentacion `docs/pet-sos/FOUNDATION_1C.md` especifica alcance 1C.1: feed geografico, EXIF y semantica de resguardo siguen pendientes.
+- Proximo: revisar/aplicar migracion autorizadamente y verificar con actores/fixtures controlados; continuar resto de 1C antes de UI SOS. Sin APK/IOS/despliegue web ni cron de reservas.
+
+# Handoff 2026-09-20 - SOS Foundation-1B local
+
+- Usuario pidio Foundation-1B (escrito 18). Implementados tipos aditivos en `packages/types/src/pet-sos.ts`, exports compartidos y `packages/config/src/pet-sos.ts`: semantica de presentacion y flags inmutables desactivados por defecto. No reemplazan autorizacion backend, no hay variables/adaptadores/UI conectados aun.
+- Matriz de permisos/transiciones y brechas contrastadas con SQL en `docs/pet-sos/FOUNDATION_1B.md`. No se renombraron estados existentes; resguardada y owner_verified no equivalen a recuperada. No cambios API wire, SQL ni RLS.
+- Hallazgo de integridad pendiente: review_pet_alert_community_claim puede actualizar estado del reporte sin exigir que siga activo; restauracion de moderacion usa snapshot del caso. Foundation-1C debe abordar estas precondiciones antes de ampliar el mapa. No afirmar maquina global segura/certificada por tests de presentacion.
+- Verificado: ocho tests SOS, regresion existente de reservas, lint y build (tsc) de config/types, typecheck API/mobile/web/admin, diff check. Runner de config deja de ser no-op; usa node:test y TypeScript existente para no exigir Node22 en esta suite. No build completo de apps ni QA nativa.
+- Sin commit/push, migracion remota, despliegue ni APK/IOS para 1B. Cambios anteriores preservados. Foundation-1A permanece aplicada; cron de reservas sigue separado y pendiente.
+
 # Handoff 2026-09-20 - SOS Foundation-1A publicada y migrada
 
 - Commit/push `4749804` a origin/master, exclusivamente SOS y sus secciones documentales. Cambios previos de release/MAP-7 y archivos ajenos permanecen fuera.

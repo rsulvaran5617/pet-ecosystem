@@ -212,8 +212,8 @@ sistema. El hallazgo alto bloquea declarar este frente listo para produccion.
 | Slice | Entrega | Dependencia / estado |
 | --- | --- | --- |
 | Foundation-1A | Cerrar hueco NULL/ACL con regresion local | Aplicado remoto; ACL y smoke JWT verificados |
-| Foundation-1B | Matriz completa de estados/permisos y contratos, flags | 1A; RLS real y compatibilidad |
-| Foundation-1C | Feed acotado PostGIS, privacidad y medios saneados | 1B; EXPLAIN y pruebas negativas |
+| Foundation-1B | Matriz de estados/permisos, contratos compartidos, flags | Base local implementada; brechas SQL y RLS integral documentadas |
+| Foundation-1C | Integridad, feed acotado PostGIS, privacidad y medios saneados | 1C.1 integridad preparada local; feed/medios pendientes |
 | Lost-2A | Mapa/lista mobile, filtros y detalle publico | Foundation; feature flag apagado |
 | Lost-2B | Reportar desde mascota, confirmar recuperacion | 2A; meta 30 s y QA fisico |
 | Found-3 | Vista/resguardada, fotos y reclamacion existente | Foundation; no nuevas reglas de propiedad |
@@ -286,3 +286,23 @@ PGLITE_MODULE_PATH; no se instalo ninguna dependencia nueva.
 Limitacion: auth, permisos de hogar, geometria y auditoria simplificados en fixture.
 Faltan RLS/Storage reales, actores con niveles view/edit, concurrencia, PostGIS y
 QA de dispositivos. No se declara Foundation completa ni certificacion de seguridad.
+
+## Resultado de Foundation-1B
+
+[Especificacion y matriz](FOUNDATION_1B.md). Tipos aditivos, semantica de estados
+para presentacion y resolver de flags compartido con defaults apagados. Sin
+consumidores UI ni habilitacion remota todavia. Ocho tests SOS correctos, regresion
+de reservas correcta, lint/build de config/types y typecheck mobile/web/admin/API
+correctos. Sin compilacion APK/IPA ni QA nativa en este slice.
+
+La revision detecta precondiciones incompletas del estado de reporte al revisar
+claims y restaurar moderacion. No se cambiaron reglas SQL: resolver integridad
+en Foundation-1C antes de conectar nuevas acciones SOS. No interpretar esta
+entrega como RLS integral certificado ni como rollout regional implementado.
+
+## Resultado de Foundation-1C.1
+
+[Correccion de integridad](FOUNDATION_1C.md) preparada en migracion nueva.
+Claims no reabren reportes terminales/moderados; restore usa estado efectivo del
+bloqueo con snapshot confiable. 42 checks locales. Sin aplicacion remota.
+El resto de Foundation-1C (feed/medios/concurrencia real) sigue pendiente.

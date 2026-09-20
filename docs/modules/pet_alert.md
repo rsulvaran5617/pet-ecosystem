@@ -2,6 +2,10 @@
 
 ## Evolucion SOS (2026-09-20)
 
+Foundation-1B local agrega contratos compartidos, semantica de estados y flags
+apagados. Matriz y limitaciones en `docs/pet-sos/FOUNDATION_1B.md`; ninguna pantalla
+o regla de negocio publicada cambia. Integridad de transiciones pendiente en 1C.
+
 Diseno A-J y fases en [Pet Ecosystem SOS](../pet-sos/README.md). SOS reutiliza
 este dominio y conserva URLs/estados existentes. Foundation-1A aplica remotamente
 la migracion `20260920160000_pet_sos_location_authorization.sql` para corregir

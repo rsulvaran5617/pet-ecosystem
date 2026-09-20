@@ -618,3 +618,9 @@ provider_capacity_occupied_guard agrega la función privada y trigger trg_provid
 ## Booking expiration (migraciones locales 20260918150000/150100)
 
 bookings.status, booking_status_history.from_status/to_status y chat_threads.booking_status admiten expired. Actor nullable para historial/auditoria de sistema. Indice parcial bookings_pending_expiration_idx sobre scheduled_start_at,id con status=pending_approval. Funcion expire_unapproved_bookings sin argumentos, 500 filas por lote; cron cada minuto. Publicacion pendiente, ver docs/delivery/BOOKING_LIFECYCLE.md.
+# SOS Foundation-1C.1 (local, 2026-09-20)
+
+Migracion pendiente `20260920190000_pet_sos_transition_integrity.sql`: agrega
+`pet_alert_moderation_cases.target_status_at_action text` nullable para conservar
+estado efectivo bajo bloqueo al moderar. NULL en acciones legacy, sin backfill.
+No altera tablas de mascotas ni ownership. Especificacion: `docs/pet-sos/FOUNDATION_1C.md`.
