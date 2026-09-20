@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+# Handoff 2026-09-20 - SOS: diseno A-J y Foundation-1A local
+
+- Prompt aplicado: evolucion map-first de Pet Alert, no modulo de datos paralelo. Primera entrega en `docs/pet-sos/README.md`: arquitectura, brechas, modelo, seguridad, UX, decisiones, riesgos, fases y criterios verificables. Fases 2-6, flags, feed SOS y mapa nativo NO implementados todavia.
+- Inspeccion remota de solo lectura confirmo EXECUTE anon y guards nullable en `set_pet_alert_lost_pet_sighting_location` y `set_pet_alert_community_sighting_location`. Reproduccion con fixtures sinteticos PGlite: caller sin uid atravesaba el guard. No se probaron mutaciones contra datos reales.
+- Preparada migracion NUEVA `20260920160000_pet_sos_location_authorization.sql`: guard `IS NOT TRUE`, variable `jwt_role` no ambigua con CURRENT_ROLE y REVOKE explicito PUBLIC/anon. Conserva firmas, gestores autorizados y service_role. NO aplicada remotamente: hallazgo alto sigue pendiente de remediacion en produccion.
+- Regresion local `node supabase/tests/pet-sos-location-authorization.test.mjs`: 27 comprobaciones correctas (incluye dos reproducciones del baseline). ESLint del test, node --check y git diff --check correctos. Auth/permisos de hogar/geometria/auditoria son stubs; no acredita RLS real, PostGIS, concurrencia ni QA nativa. No hubo cambios UI/TypeScript ni builds de apps.
+- Proximo: revisar/aplicar correccion de seguridad de forma controlada y verificar ACL/actores; luego Foundation-1B permisos/transiciones/contratos/flags y 1C feed geografico/saneamiento de medios. No lanzar SOS mientras haya hallazgos altos abiertos.
+- Sin commit/push ni builds APK/IOS. Mantener cambios anteriores de releases/migraciones y exclusiones. Cron de reservas sigue separado y pendiente de confirmar adopcion del piloto.
+
 # Handoff 2026-09-18 - Ciclo temporal de reservas, primer bloque local
 
 - Usuario solicitó implementar la propuesta para citas vencidas. Primer bloque: expired para pending_approval al inicio, categoría visual pending_closure para confirmed después del fin, bandejas/filtros/contadores owner/provider web y mobile; historial conservado, sin cierre automático de confirmadas ni inferir ausencias.

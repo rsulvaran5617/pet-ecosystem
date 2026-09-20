@@ -382,6 +382,18 @@ Foster-2A API client local:
 
 # Clinical Access-1 - expediente temporal
 
+## SOS Foundation-1A (local, 2026-09-20)
+
+- `set_pet_alert_lost_pet_sighting_location` y
+  `set_pet_alert_community_sighting_location` mantienen parametros, defaults y DTO.
+- Migracion `20260920160000_pet_sos_location_authorization.sql` pendiente de aplicar:
+  anon pierde EXECUTE; authenticated sin identidad/permiso recibe
+  `PET_ALERT_UNAUTHORIZED`, sin mutacion. No cambiar el cliente para depender del
+  texto de error de privilegios de PostgreSQL.
+- Reportante autorizado, gestor del alert vinculado y servicio confiable conservan
+  sus caminos existentes; ser gestor de una alerta no autoriza un reporte comunitario ajeno.
+- Diseno de contratos SOS futuros, NO implementados: `docs/pet-sos/README.md`.
+
 ## Clinical Access-2D/2E
 
 - `finalize_clinical_encounter`: finalizacion transaccional e idempotente.

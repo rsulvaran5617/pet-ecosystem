@@ -1,5 +1,13 @@
 # Modulo PET ALERT
 
+## Evolucion SOS (2026-09-20)
+
+Diseno A-J y fases en [Pet Ecosystem SOS](../pet-sos/README.md). SOS reutiliza
+este dominio y conserva URLs/estados existentes. Foundation-1A prepara localmente
+la migracion `20260920160000_pet_sos_location_authorization.sql` para corregir
+autorizacion NULL/ACL anon en setters de ubicacion; no aplicada aun. 27 checks
+PGlite locales, no certificacion RLS remota ni funcionalidad map-first terminada.
+
 ## Estado
 
 `slice_7a_community_photos_applied`
