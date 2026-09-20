@@ -382,11 +382,11 @@ Foster-2A API client local:
 
 # Clinical Access-1 - expediente temporal
 
-## SOS Foundation-1A (local, 2026-09-20)
+## SOS Foundation-1A (aplicado remoto, 2026-09-20)
 
 - `set_pet_alert_lost_pet_sighting_location` y
   `set_pet_alert_community_sighting_location` mantienen parametros, defaults y DTO.
-- Migracion `20260920160000_pet_sos_location_authorization.sql` pendiente de aplicar:
+- Migracion `20260920160000_pet_sos_location_authorization.sql` aplicada y registrada:
   anon pierde EXECUTE; authenticated sin identidad/permiso recibe
   `PET_ALERT_UNAUTHORIZED`, sin mutacion. No cambiar el cliente para depender del
   texto de error de privilegios de PostgreSQL.

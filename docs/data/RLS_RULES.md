@@ -353,12 +353,13 @@ No implementar tablas sensibles sin definir su politica RLS.
 Revision 2026-09-20: los puntos siguientes describen el contrato pretendido,
 no una garantia del estado remoto. Se confirmaron grants anon heredados y guards
 NULL en dos setters. `20260920160000_pet_sos_location_authorization.sql` corrige
-ambos LOCALMENTE, pendiente de aplicar: revoca PUBLIC/anon y exige condicion
+ambos, aplicada remoto el 2026-09-20: revoca PUBLIC/anon y exige condicion
 positivamente verdadera. Reportante o gestor autorizado del alert conserva acceso
 al sighting; reporte comunitario solo reportante o servicio confiable. La variable
 `jwt_role` evita ambiguedad con CURRENT_ROLE dentro de SECURITY DEFINER.
 Prueba aislada en `supabase/tests/pet-sos-location-authorization.test.mjs`;
-falta regresion de RLS/Storage con sesiones reales antes del cierre de Foundation.
+ACL y guard con JWT real/UUID inexistente verificados tras aplicar; falta regresion
+completa de RLS/Storage entre hogares antes del cierre de Foundation.
 
 - Las coordenadas privadas conservan las policies de ownership existentes y no tienen lectura anonima.
 - Las mutaciones geograficas se realizan por RPC `security definer` con autorizacion explicita.

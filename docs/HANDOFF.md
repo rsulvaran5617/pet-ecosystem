@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+# Handoff 2026-09-20 - SOS Foundation-1A publicada y migrada
+
+- Commit/push `4749804` a origin/master, exclusivamente SOS y sus secciones documentales. Cambios previos de release/MAP-7 y archivos ajenos permanecen fuera.
+- Despues del push se aplico `20260920160000_pet_sos_location_authorization.sql` atomicamente con registro en historial. Baseline remoto y proyecto vinculado verificados; cuerpos posteriores iguales al SQL versionado.
+- Ambos setters: anon sin EXECUTE; authenticated/service_role conservan EXECUTE y guard null-safe. Cinco checks HTTP reales correctos: anon rechazado en ambos, Owner contra UUID inexistente rechazado en ambos y mapa publico disponible. No se mutaron reportes reales. Casos de recursos existentes autorizados/ajenos probados solo en fixtures locales (27 checks); RLS completo/Storage y QA nativa siguen pendientes.
+- Evidencia `docs/pet-sos/foundation-1a-remote-results.json`. No builds mobile ni despliegue web requeridos para esta correccion DB. Cron `20260918150100` sigue pendiente de confirmacion del piloto, no activado.
+- Proximo slice Foundation-1B: matriz de permisos/transiciones, contratos y flags. SOS map-first aun no implementado. La seccion inferior describe el estado historico previo a aplicar.
+
 # Handoff 2026-09-20 - SOS: diseno A-J y Foundation-1A local
 
 - Prompt aplicado: evolucion map-first de Pet Alert, no modulo de datos paralelo. Primera entrega en `docs/pet-sos/README.md`: arquitectura, brechas, modelo, seguridad, UX, decisiones, riesgos, fases y criterios verificables. Fases 2-6, flags, feed SOS y mapa nativo NO implementados todavia.

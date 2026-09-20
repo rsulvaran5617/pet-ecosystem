@@ -3,10 +3,11 @@
 ## Evolucion SOS (2026-09-20)
 
 Diseno A-J y fases en [Pet Ecosystem SOS](../pet-sos/README.md). SOS reutiliza
-este dominio y conserva URLs/estados existentes. Foundation-1A prepara localmente
+este dominio y conserva URLs/estados existentes. Foundation-1A aplica remotamente
 la migracion `20260920160000_pet_sos_location_authorization.sql` para corregir
-autorizacion NULL/ACL anon en setters de ubicacion; no aplicada aun. 27 checks
-PGlite locales, no certificacion RLS remota ni funcionalidad map-first terminada.
+autorizacion NULL/ACL anon en setters de ubicacion el 2026-09-20 tras push `4749804`.
+27 checks PGlite y cinco smoke checks remotos correctos; no certificacion RLS
+completa ni funcionalidad map-first terminada. Evidencia en `docs/pet-sos/`.
 
 ## Estado
 

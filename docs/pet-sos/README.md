@@ -1,7 +1,8 @@
 # Pet Ecosystem SOS: evolucion de Pet Alert
 
 Fecha: 2026-09-20. Baseline: `7c9fabb` mas cambios locales documentados en HANDOFF.
-Estado: primera entrega de arquitectura; implementacion incremental, NO lanzamiento.
+Estado: primera entrega de arquitectura; Foundation-1A aplicada remoto el 2026-09-20.
+Implementacion incremental, NO lanzamiento de SOS.
 
 ## A. Arquitectura actual
 
@@ -210,7 +211,7 @@ sistema. El hallazgo alto bloquea declarar este frente listo para produccion.
 
 | Slice | Entrega | Dependencia / estado |
 | --- | --- | --- |
-| Foundation-1A | Cerrar hueco NULL/ACL con regresion local | Implementado localmente; aplicacion remota pendiente |
+| Foundation-1A | Cerrar hueco NULL/ACL con regresion local | Aplicado remoto; ACL y smoke JWT verificados |
 | Foundation-1B | Matriz completa de estados/permisos y contratos, flags | 1A; RLS real y compatibilidad |
 | Foundation-1C | Feed acotado PostGIS, privacidad y medios saneados | 1B; EXPLAIN y pruebas negativas |
 | Lost-2A | Mapa/lista mobile, filtros y detalle publico | Foundation; feature flag apagado |
@@ -269,7 +270,11 @@ SQL/API definitivas se actualizan en sus documentos existentes al implementar.
 Preparada `supabase/migrations/20260920160000_pet_sos_location_authorization.sql`,
 sin cambiar tablas ni firmas. Corrige ambos guards NULL y grants anon; renombra
 la variable a jwt_role para no confundirse con CURRENT_ROLE bajo SECURITY DEFINER.
-No aplicada a Supabase. El riesgo remoto permanece hasta desplegar y verificar.
+Aplicada a Supabase el 2026-09-20 tras commit/push `4749804`. Registro de migracion
+y cuerpos SQL verificados. Ambas funciones niegan EXECUTE a anon y mantienen
+authenticated/service_role. Smoke con JWT real verifica guard sobre UUID inexistente;
+lectura publica del mapa sigue disponible. No se mutaron reportes reales.
+Evidencia en `foundation-1a-remote-results.json`.
 
 27 checks en `supabase/tests/pet-sos-location-authorization.test.mjs`, incluidos
 dos que reproducen el baseline inseguro antes de aplicar la correccion local.

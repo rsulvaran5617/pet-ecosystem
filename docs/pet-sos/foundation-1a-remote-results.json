@@ -1,0 +1,59 @@
+{
+  "application": {
+    "appliedAt": "2026-09-20T18:20:53.818Z",
+    "commit": "4749804",
+    "migration": "20260920160000",
+    "projectMatchesApp": true,
+    "sha256": "4523f82da983a07e3aeecc643e089496c18bf840cacef71ac12d22563be4fcd6",
+    "recorded": true,
+    "functions": [
+      {
+        "proname": "set_pet_alert_community_sighting_location",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_execute": true,
+        "bodyMatches": true
+      },
+      {
+        "proname": "set_pet_alert_lost_pet_sighting_location",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_execute": true,
+        "bodyMatches": true
+      }
+    ],
+    "cronStillDeferred": true
+  },
+  "verification": {
+    "checkedAt": "2026-09-20T18:21:28.844Z",
+    "passed": true,
+    "checks": [
+      {
+        "name": "set_pet_alert_lost_pet_sighting_location anon denied",
+        "status": 401,
+        "passed": true
+      },
+      {
+        "name": "set_pet_alert_lost_pet_sighting_location authenticated guard active (absent resource)",
+        "status": 400,
+        "passed": true
+      },
+      {
+        "name": "set_pet_alert_community_sighting_location anon denied",
+        "status": 401,
+        "passed": true
+      },
+      {
+        "name": "set_pet_alert_community_sighting_location authenticated guard active (absent resource)",
+        "status": 400,
+        "passed": true
+      },
+      {
+        "name": "Public map read remains available",
+        "passed": true
+      }
+    ],
+    "reportMutationsPersisted": false,
+    "limits": "Missing-resource JWT checks and public read only. Authorized/foreign existing-row paths covered locally, not live RLS end-to-end."
+  }
+}
