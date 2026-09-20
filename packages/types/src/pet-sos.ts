@@ -14,3 +14,24 @@ export interface PetSosFeatureFlags {
   sightings: boolean;
   nearbyNotifications: boolean;
 }
+
+export interface PetSosMapCursor {
+  occurredAt: string;
+  eventType: "lost_pet" | "community_sighting";
+  publicSlug: string;
+}
+
+export interface PetSosMapFilters {
+  bounds: { minLatitude: number; minLongitude: number; maxLatitude: number; maxLongitude: number };
+  view?: "all" | "lost" | "seen" | "found";
+  species?: string | null;
+  occurredAfter?: string | null;
+  limit?: number;
+  cursor?: PetSosMapCursor | null;
+}
+
+export interface PetSosMapPage {
+  items: PetSosPublicMapEvent[];
+  nextCursor: PetSosMapCursor | null;
+  hasMore: boolean;
+}

@@ -1,5 +1,27 @@
 # HANDOFF.md
 
+# Handoff 2026-09-20 - Feed SOS migrado antes de Foundation-1C.3
+
+- Usuario autorizo migracion, commit/push y luego medios. Aplicada SOLO 20260920210000 a las 20:27 UTC. Registro/cuerpo/ACL correctos; cuatro smoke checks publicos correctos, muestra vacia. No se mutaron reportes ni se activo cron.
+- Evidencia docs/pet-sos/foundation-1c-map-remote.json. Mapa existente intacto y UI SOS desconectada. Candidata anterior con fixtures/PostGIS permanece evidencia historica de rollback.
+- Se versionan solo cambios SOS y sus actualizaciones documentales; releases/MAP-7 y archivos ajenos siguen fuera. Proximo Foundation-1C.3, pipeline seguro de fotografias; no desplegarlo automaticamente por la autorizacion de la migracion del feed.
+
+# Handoff 2026-09-20 - Foundation-1C.2 feed SOS local
+
+- Usuario pidio continuar el plan. Implementado siguiente bloque acotado: tipos PetSosMapFilters/Page/Cursor, metodo API listPublicPetSosMapEvents y migracion aditiva 20260920210000_pet_sos_bounded_map_feed.sql. Mapa existente y UI intactos; flags SOS no conectados.
+- Bounds obligatorio y finito <=30 grados/eje, antimeridiano, limite <=200 mas fila sentinel, cursor estable fecha/tipo/slug, filtros publicos y GiST. Sin descarga/firma masiva de fotos; detalle existente sigue separado. No usar este metodo antes de aplicar migracion.
+- Ocho tests cliente, quince checks PostGIS con fixtures temporales y transaccion revertida. Candidata compila contra esquema real; comportamiento redirigido a fixtures. EXPLAIN del predicado con 10k filas usa GiST sin forzarlo. No migracion registrada ni funcion persistida, no mutacion de datos reales. Docker no disponible. Evidencia y runner en docs/pet-sos/.
+- Lint/build types/API y typecheck mobile/web/admin/API correctos. No build UI/APK/IOS ni QA nativa. Sin commit/push en este bloque.
+- Auditoria confirma que no hay garantia de saneamiento EXIF servidor en las subidas revisadas; no se inspeccionaron fotos privadas. Siguiente Foundation-1C.3 pipeline de originales privados/derivados validados, antes de habilitar SOS. Pendientes resguardo, concurrencia real, radio y carga completa. No afirmar todo el plan terminado.
+
+# Handoff 2026-09-20 - Foundation-1C.1 migrada
+
+- Autorizacion explicita del usuario: aplicada SOLO 20260920190000_pet_sos_transition_integrity a las 20:10 UTC. SQL coincide con commit 780cbd7, baseline y proyecto verificados, transaccion con registro atomico. No repetir migracion ni reescribirla.
+- Columna target_status_at_action nullable creada; cuerpos y ACL posteriores correctos. Anon sin EXECUTE en las dos RPC; authenticated conserva guard por actor. Siete smoke checks remotos correctos con JWT Owner/Admin/anon: rechazo de acceso sobre UUID inexistente, cola Admin compatible, mapa publico disponible.
+- No se mutaron reportes ni historiales. Transiciones sobre fixtures probadas localmente (42 checks), no end-to-end real ni concurrencia multiconexion. Legacy flagged sin snapshot requiere revision controlada; no inventar estado anterior.
+- Evidencia en docs/pet-sos/foundation-1c-remote-results.json. Cron reservas 20260918150100 sigue pendiente, no activado. Sin build APK/IOS ni despliegue web. Documentacion actualizada localmente, sin nuevo commit/push en esta operacion.
+- Sigue pendiente resto de 1C: feed geografico acotado, medios/EXIF, semantica de resguardo y pruebas de concurrencia antes de UI SOS.
+
 # Handoff 2026-09-20 - SOS Foundation-1C.1 integridad y commit solicitado
 
 - Usuario pidio corregir 1C y commit/push. Incluye Foundation-1B pendiente, sin cambios ajenos de releases/MAP-7. No autorizacion nueva de migracion remota; preparacion local solamente.

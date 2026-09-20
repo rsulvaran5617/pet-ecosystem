@@ -17,7 +17,7 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('No tests configured for @pet/api-client yet.')\"",
+    "test": "node --test src/pet-sos.test.mjs",
     "smoke:mvp": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts full",
     "smoke:mvp:critical": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts critical",
     "smoke:mvp:admin": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts admin",

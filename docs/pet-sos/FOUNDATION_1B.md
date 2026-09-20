@@ -78,8 +78,8 @@ publicada o un scheduler. No implementar botones por la sola existencia de un en
 
 ## Brechas de transicion a resolver antes de conectar SOS
 
-Actualizacion: Foundation-1C.1 prepara correccion local de revision/restauracion;
-ver [alcance y limitaciones](FOUNDATION_1C.md). Migracion aun no aplicada remoto.
+Actualizacion: Foundation-1C.1 corrige revision/restauracion;
+ver [alcance y limitaciones](FOUNDATION_1C.md). Migracion aplicada remoto el 2026-09-20.
 
 1. review_pet_alert_community_claim valida claim pending pero no restringe estado
    actual del reporte al actualizarlo. Puede sobrescribir un cierre/moderacion

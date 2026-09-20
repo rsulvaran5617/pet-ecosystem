@@ -373,13 +373,20 @@ completa de RLS/Storage entre hogares antes del cierre de Foundation.
 - La interfaz no actualiza tablas directamente ni permite enviar coordenadas publicas.
 - Auditoria registra actor, objetivo, accion, motivo y visibilidad, nunca coordenadas.
 
-## SOS Foundation-1C.1 (local)
+## SOS Foundation-1C.1 (aplicada remoto, 2026-09-20)
 
-Migracion 20260920190000 pendiente: mantiene RLS de tablas, refuerza guard del
+Migracion 20260920190000 aplicada: mantiene RLS de tablas, refuerza guard del
 reportante/admin y revoca EXECUTE anon/PUBLIC en review_pet_alert_community_claim
 y moderate_pet_alert_content. Identidad NULL no supera guard admin. Columna de
 snapshot efectivo en casos de moderacion hereda permisos de esa entidad; no se
 proyecta al mapa publico. Pruebas locales no sustituyen RLS entre actores reales.
+
+## SOS Foundation-1C.2 (aplicada remoto, 2026-09-20)
+
+RPC publica aditiva con bounds y limites obligatorios, coordenadas publicas y
+filtros de sharing/estado/vigencia/visibilidad por rama. EXECUTE anon/authenticated,
+sin grants nuevos de tablas ni escritura. Pruebas sinteticas en rollback no
+acreditan RLS integral ni rate limiting. Ver FOUNDATION_1C_MAP.md y auditoria de medios.
 
 ## Clinical Access — comprobantes y revocación completed
 

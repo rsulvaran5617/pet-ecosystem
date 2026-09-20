@@ -1,6 +1,9 @@
 # Foundation-1C: integridad de transiciones
 
-2026-09-20. Correccion local, migracion remota pendiente.
+2026-09-20. Migracion aplicada remotamente a las 20:10 UTC desde commit 780cbd7.
+Registro, columna nullable, cuerpos SQL y ACL verificados. Siete checks con JWT
+reales y lecturas admin/publicas correctos, sin mutar reportes. Evidencia en
+`foundation-1c-remote-results.json`. No prueba multiconexion ni RLS integral.
 
 ## Alcance entregado (1C.1)
 

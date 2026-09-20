@@ -402,7 +402,7 @@ existentes. No sustituye PublicPetAlertMapPoint ni cambia respuestas RPC actuale
 no permisos efectivos. No endpoint SOS nuevo. Matriz de acciones/precondiciones y
 brechas antes de implementar feed: `docs/pet-sos/FOUNDATION_1B.md`.
 
-### Foundation-1C.1 (migracion local pendiente)
+### Foundation-1C.1 (aplicada remoto, 2026-09-20)
 
 review_pet_alert_community_claim conserva firma. Aprobacion exige reporte activo,
 vigente y compartible bajo bloqueo; rechazo no reabre terminales/moderados ni
@@ -411,6 +411,16 @@ efectivo en target_status_at_action (campo interno, no nuevo DTO cliente).
 Restore obsoleto/legacy sin snapshot y close de terminales retornan
 PET_ALERT_MODERATION_STALE_STATE sin mutacion. Ambas RPC revocan EXECUTE anon.
 No hay feed SOS nuevo en esta correccion. Detalle: `docs/pet-sos/FOUNDATION_1C.md`.
+
+### Foundation-1C.2 (DB aplicada remoto, 2026-09-20)
+
+`listPublicPetSosMapEvents(PetSosMapFilters): Promise<PetSosMapPage>` llama nueva
+RPC `list_public_pet_sos_map_events`. Bounds obligatorio <=30 grados/eje,
+limite 1..200, filtros all/lost/seen/found, especie, fecha y cursor compuesto.
+Solo proyeccion publica; sin medios originales. El punto adicional de RPC se
+convierte en hasMore/nextCursor. Contratos anteriores intactos. Migracion
+20260920210000 aplicada tras pruebas con rollback. Clientes/UI pendientes de despliegue. Especificacion:
+`docs/pet-sos/FOUNDATION_1C_MAP.md`.
 
 ## Clinical Access-2D/2E
 

@@ -1,0 +1,23 @@
+{
+  "application": {
+    "appliedAt": "2026-09-20T20:27:56.777Z",
+    "migration": "20260920210000",
+    "projectMatchesApp": true,
+    "sha256": "056d6fc5ea83550778040a5a5154ebc09fd3e8bfd968085f6485e1b1afbefe46",
+    "bodyMatches": true,
+    "anonExecute": true,
+    "authenticatedExecute": true,
+    "recorded": true
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      "Anonymous bounded read",
+      "Missing bounds rejected",
+      "Excessive limit rejected",
+      "Returned fields public only"
+    ],
+    "sampleCount": 0,
+    "privateDataLogged": false
+  }
+}

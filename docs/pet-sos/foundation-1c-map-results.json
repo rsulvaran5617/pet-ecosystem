@@ -1,0 +1,122 @@
+{
+  "checkedAt": "2026-09-20T20:21:36.000Z",
+  "rolledBack": true,
+  "result": [
+    {
+      "result": {
+        "plan": [
+          {
+            "Plan": {
+              "Alias": "sos_lost",
+              "Node Type": "Index Scan",
+              "Plan Rows": 1,
+              "Index Cond": "(public_geo_point && '0103000020E6100000010000000500000000000000004054C00000000000001C4000000000004054C0000000000000244000000000004053C0000000000000244000000000004053C00000000000001C4000000000004054C00000000000001C40'::geography)",
+              "Index Name": "sos_lost_geo",
+              "Plan Width": 9,
+              "Total Cost": 2.37,
+              "Actual Rows": 10,
+              "Actual Loops": 1,
+              "Startup Cost": 0.15,
+              "Async Capable": false,
+              "Relation Name": "sos_lost",
+              "Parallel Aware": false,
+              "Scan Direction": "Forward",
+              "Local Hit Blocks": 5,
+              "Temp Read Blocks": 0,
+              "Actual Total Time": 0.038,
+              "Local Read Blocks": 0,
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 0,
+              "Actual Startup Time": 0.032,
+              "Temp Written Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Rows Removed by Index Recheck": 0
+            },
+            "Planning": {
+              "Local Hit Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Local Read Blocks": 0,
+              "Shared Hit Blocks": 18,
+              "Shared Read Blocks": 0,
+              "Temp Written Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0
+            },
+            "Triggers": [],
+            "Planning Time": 0.146,
+            "Execution Time": 0.053
+          }
+        ],
+        "checks": [
+          {
+            "name": "Active/public/expiry/bounds filters",
+            "passed": true
+          },
+          {
+            "name": "Recovered distinct from sheltered",
+            "passed": true
+          },
+          {
+            "name": "Seen category",
+            "passed": true
+          },
+          {
+            "name": "Species filter",
+            "passed": true
+          },
+          {
+            "name": "Time filter",
+            "passed": true
+          },
+          {
+            "name": "Antimeridian",
+            "passed": true
+          },
+          {
+            "name": "Longitude endpoint normalization",
+            "passed": true
+          },
+          {
+            "name": "One additional row signals pagination",
+            "passed": true
+          },
+          {
+            "name": "Stable equal-timestamp cursor",
+            "passed": true
+          },
+          {
+            "name": "Missing bounds rejected in backend",
+            "passed": true
+          },
+          {
+            "name": "NaN rejected in backend",
+            "passed": true
+          },
+          {
+            "name": "Unbounded/global scan rejected",
+            "passed": true
+          },
+          {
+            "name": "Oversized result limit rejected",
+            "passed": true
+          },
+          {
+            "name": "Partial cursor rejected",
+            "passed": true
+          },
+          {
+            "name": "GiST used with 10k synthetic rows (no forced planner)",
+            "passed": true
+          }
+        ],
+        "anon_execute": true
+      }
+    }
+  ],
+  "limits": "Synthetic temp tables; production SQL compiled but fixture relation names substituted for behavioral tests. No customer mutation or persistent migration; no native QA or concurrent load."
+}

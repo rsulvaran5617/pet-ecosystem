@@ -1,0 +1,65 @@
+{
+  "application": {
+    "appliedAt": "2026-09-20T20:10:04.575Z",
+    "commit": "780cbd7",
+    "migration": "20260920190000",
+    "projectMatchesApp": true,
+    "sha256": "0c66fe4b8adfd27fbf134c8b2d3efb496e09def39810e6b8b0c99700e8cb1f41",
+    "state": {
+      "recorded": true,
+      "column_present": true,
+      "booking_cron_recorded": false
+    },
+    "functions": [
+      {
+        "proname": "moderate_pet_alert_content",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "bodyMatches": true
+      },
+      {
+        "proname": "review_pet_alert_community_claim",
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "bodyMatches": true
+      }
+    ],
+    "reportDataUpdated": false
+  },
+  "verification": {
+    "checkedAt": "2026-09-20T20:10:48.329Z",
+    "passed": true,
+    "checks": [
+      {
+        "name": "review_pet_alert_community_claim anon denied",
+        "passed": true
+      },
+      {
+        "name": "moderate_pet_alert_content anon denied",
+        "passed": true
+      },
+      {
+        "name": "review_pet_alert_community_claim PET_ALERT_UNAUTHORIZED",
+        "passed": true
+      },
+      {
+        "name": "moderate_pet_alert_content PET_ALERT_UNAUTHORIZED",
+        "passed": true
+      },
+      {
+        "name": "moderate_pet_alert_content PET_ALERT_NOT_FOUND",
+        "passed": true
+      },
+      {
+        "name": "Admin moderation queue compatible",
+        "passed": true
+      },
+      {
+        "name": "Public map available",
+        "passed": true
+      }
+    ],
+    "mutationsPersisted": false,
+    "limits": "Real JWT guard checks with absent resources, admin read and public read. Authorized transitions covered locally; no live report mutation, full RLS or multi-connection concurrency test."
+  }
+}

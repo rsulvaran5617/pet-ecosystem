@@ -37,6 +37,8 @@ import type {
   Uuid
 } from "@pet/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PetSosMapFilters, PetSosMapPage } from "@pet/types";
+import { listPublicPetSosMapEvents } from "./pet-sos";
 
 type PetAlertSupabaseClient = SupabaseClient;
 
@@ -319,6 +321,7 @@ export interface PetAlertApiClient {
     offset?: number;
   }): Promise<PublicPetAlertDirectoryPage>;
   listPublicPetAlertMapPoints(filters?: PublicPetAlertMapFilters): Promise<PublicPetAlertMapPoint[]>;
+  listPublicPetSosMapEvents(filters: PetSosMapFilters): Promise<PetSosMapPage>;
   listAdminPetAlertGeographicLocations(filters?: {
     targetType?: PetAlertGeographicTargetType | "all";
     locationState?: PetAlertGeographicLocationState;
@@ -992,6 +995,9 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
         });
       }
       return points;
+    },
+    async listPublicPetSosMapEvents(filters) {
+      return listPublicPetSosMapEvents(supabase, filters);
     },
     async listAdminPetAlertGeographicLocations(filters = {}) {
       const { data, error } = await supabase.rpc("list_admin_pet_alert_geographic_locations", {

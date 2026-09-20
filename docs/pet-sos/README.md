@@ -213,7 +213,7 @@ sistema. El hallazgo alto bloquea declarar este frente listo para produccion.
 | --- | --- | --- |
 | Foundation-1A | Cerrar hueco NULL/ACL con regresion local | Aplicado remoto; ACL y smoke JWT verificados |
 | Foundation-1B | Matriz de estados/permisos, contratos compartidos, flags | Base local implementada; brechas SQL y RLS integral documentadas |
-| Foundation-1C | Integridad, feed acotado PostGIS, privacidad y medios saneados | 1C.1 integridad preparada local; feed/medios pendientes |
+| Foundation-1C | Integridad, feed acotado PostGIS, privacidad y medios saneados | 1C.1 integridad aplicada remoto; feed/medios pendientes |
 | Lost-2A | Mapa/lista mobile, filtros y detalle publico | Foundation; feature flag apagado |
 | Lost-2B | Reportar desde mascota, confirmar recuperacion | 2A; meta 30 s y QA fisico |
 | Found-3 | Vista/resguardada, fotos y reclamacion existente | Foundation; no nuevas reglas de propiedad |
@@ -304,5 +304,16 @@ entrega como RLS integral certificado ni como rollout regional implementado.
 
 [Correccion de integridad](FOUNDATION_1C.md) preparada en migracion nueva.
 Claims no reabren reportes terminales/moderados; restore usa estado efectivo del
-bloqueo con snapshot confiable. 42 checks locales. Sin aplicacion remota.
+bloqueo con snapshot confiable. 42 checks locales. Aplicada remoto el 2026-09-20,
+registro/cuerpos/ACL verificados y siete smoke checks correctos sin mutar reportes.
 El resto de Foundation-1C (feed/medios/concurrencia real) sigue pendiente.
+
+## Resultado de Foundation-1C.2
+
+[Feed geografico](FOUNDATION_1C_MAP.md) preparado localmente: bounds obligatorios,
+paginacion por cursor, DTO publico y cliente compartido, sin reemplazar mapa actual.
+Ocho tests cliente y quince checks PostGIS sinteticos; transaccion revertida,
+migracion 20260920210000 posteriormente aplicada el 2026-09-20 con smoke publico. GiST utilizado en ensayo
+de predicado con 10.000 filas, no prueba de carga del sistema completo.
+[Auditoria de medios](MEDIA_PRIVACY_AUDIT.md): saneamiento servidor pendiente para
+1C.3. No se habilita SOS ni se afirma cierre de Foundation o de las fases siguientes.
