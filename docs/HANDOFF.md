@@ -1,5 +1,33 @@
 # HANDOFF.md
 
+# Handoff 2026-09-21 - Versionado autorizado de Foundation-1C.3a
+
+- Usuario solicito migracion, commit y push. Verificado: 1C.3a y el delta comunitario no agregan SQL ni requieren migracion. No ejecutar db push general ni activar cron de reservas pendiente.
+- Se prepara commit acotado con procesador/Edge, pruebas, asset generado ignorado y documentacion SOS/delta. Excluir cambios ajenos de releases, MAP-7, skills, archivos de acceso y app.json raiz.
+- Commit/push no despliega la Edge Function ni activa saneamiento en produccion. Se mantienen puertas de bundle WASM, runtime/carga y QA remoto descritas en FOUNDATION_1C_MEDIA.md; 1C.3b-d pendientes.
+
+# Handoff 2026-09-21 - Foundation-1C.3a codec y alta externa locales
+
+- Usuario pidio continuar 1C.3. Entregado subpaso acotado 1C.3a, NO todo Foundation: codec servidor compartido y saneamiento de alta externa. Canon docs/pet-sos/FOUNDATION_1C_MEDIA.md con siguientes 1C.3b-d y puertas de release.
+- _shared/pet-alert-media.ts usa @imagemagick/magick-wasm@0.0.43 fijado en deno.lock, whitelist decoder, 5 MiB/12 MP, orientacion, strip EXIF/XMP/IPTC/atributos, JPEG display1600/thumbnail480 sin recorte. Sin fallback original. No requiere pet/hogar; solo procesa bytes tras autorizacion del caller.
+- Edge index.ts ahora es entrypoint Deno.serve; handler.ts conserva flujo y verifica OTP antes de codec. Todas las fotos saneadas antes de crear alerta; solo display JPEG llega a Storage. Thumbnail no almacenado/conectado aun. Body acotado 64 KiB JSON/21 MiB multipart incluso streaming; logs genericos sin detalles del codec.
+- OTP se consume antes de decode: error de foto indica solicitar nuevo codigo. Reintento idempotente, cleanup robusto y control de revision admin concurrente siguen pendientes, no certificar atomicidad.
+- prepare-pet-alert-media.ts genera WASM local ignorado; config.toml static_files incluye asset. Ejecutar prepare con --frozen en checkout/CI antes de check/tests/bundle. SHA256 y comandos en canon. No dependencia mobile/web nueva.
+- Nueve escenarios codec y siete handler correctos con Deno 2.9.6: fixtures sinteticas, fetch simulado, sin fotos/credenciales reales ni red. Deno check/lint correctos; lint excluye solo no-import-prefix por convencion npm: existente. No prueba runtime alojado, CPU/memoria maxima, RLS/Storage real ni concurrencia. Debe ensayarse bundle WASM con runtime Supabase antes de deploy.
+- No se tocaron tablas, migraciones, RLS ni clientes; no nueva aplicacion remota, commit/push, APK/IOS o despliegue. UI actual no cambia en produccion. Siguen subidas comunitarias directas y proyecciones de avatar/legacy: NO saneamiento universal.
+- Siguiente 1C.3b: upload comunitario servidor autorizado e idempotente con cuota/finalizacion y clientes compatibles, luego avatar/variantes-ready/backfill. Preservar diff del delta comunitario y todos los cambios ajenos; no activar cron de reservas.
+
+# Handoff 2026-09-20 - Ampliacion SOS comunitario y delta Foundation
+
+- Nuevo prompt complementario leido: SOS abierto a externos, identidad progresiva, conversion opcional y futuro rescate organizacional. NO reiniciar Foundation ni implementar toda la vision. Canon: docs/pet-sos/FOUNDATION_DELTA_ASSESSMENT.md.
+- Migracion del feed y commit/push anteriores completados: 75cc669. Foundation-1C.3 estaba solo en investigacion; no hay procesador ni nueva dependencia de producto instalada. Se intercalo assessment antes de seguir medios.
+- Confirmado en codigo/fixtures: alerta externa con pet/hogar/autor NULL, comunidad con Auth sin perfil/Owner y multirrol existente. Gaps: source_check impide enlazar Pet conservando external_owner; can_manage solo usa hogar; token externo emitido sin gestion/recovery consumidor; bootstrap SQL/cliente asigna Owner por defecto. No confundir campos reservados con funcionalidad.
+- Nueve escenarios locales PGlite de caracterizacion correctos, incluidos tres KNOWN GAP esperados. No prueban RLS/Edge reales, concurrencia ni flujos completos. Runner supabase/tests/pet-sos-participation-baseline.test.mjs reutiliza harness existente/PGLITE_MODULE_PATH.
+- ESLint del runner, ocho tests existentes del cliente SOS y git diff --check correctos. No builds de producto porque el bloque solo agrega documentacion y caracterizacion.
+- Diseno conserva identidad auth.users, contacto externo pre-cuenta y households protective existentes; no external_users, sos_animals obligatoria ni otra ONG. RescueCase/estados privados/equipos y puente a acogida diferidos; rescate no prueba propiedad ni autoriza adopcion.
+- Siguiente: Foundation-1C.3 para medios por evento/actor, sin pet_id obligatorio. Luego Foundation-1D.1 gestion externa, 1D.2 Auth SOS ligero y 1D.3 conversion/enlace antes de rollout ampliado. No declarar historias A-D completas ni saltar a equipos de rescate.
+- Este bloque cambia docs y test de caracterizacion, no runtime, SQL productivo, RLS, dependencias ni UI. Sin migracion remota, commit/push, APK/IOS o despliegue adicional. Preservar cambios ajenos y no activar cron de reservas.
+
 # Handoff 2026-09-20 - Feed SOS migrado antes de Foundation-1C.3
 
 - Usuario autorizo migracion, commit/push y luego medios. Aplicada SOLO 20260920210000 a las 20:27 UTC. Registro/cuerpo/ACL correctos; cuatro smoke checks publicos correctos, muestra vacia. No se mutaron reportes ni se activo cron.

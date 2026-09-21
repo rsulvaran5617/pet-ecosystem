@@ -4,6 +4,20 @@ Fecha: 2026-09-20. Baseline: `7c9fabb` mas cambios locales documentados en HANDO
 Estado: primera entrega de arquitectura; Foundation-1A aplicada remoto el 2026-09-20.
 Implementacion incremental, NO lanzamiento de SOS.
 
+## Ampliacion comunitaria vigente (2026-09-20)
+
+[Foundation Delta Assessment](FOUNDATION_DELTA_ASSESSMENT.md) complementa este
+canon: SOS es un servicio comunitario abierto, no exclusivo de Owners existentes.
+HELP FIRST - ONBOARD LATER. Participacion externa sin Pet/hogar obligatorio,
+identidad comun progresiva, conversion opcional y operaciones de rescate privadas
+separadas de la alerta publica y de Foster. No se crea otro sistema de usuarios.
+
+La alta externa ya existe; gestion/recovery, vinculacion a Pet e identidad ligera
+requieren trabajo adicional. No presentar las historias externas como completas.
+RescueCase/equipos/mapa operacional quedan FUTURE / POST-MVP. Foundation-1C.3
+continua pendiente; el delta agrega puertas Foundation-1D antes del rollout
+ampliado, sin reiniciar ni descartar Foundation aplicada.
+
 ## A. Arquitectura actual
 
 SOS sera una experiencia de Pet Alert, no un dominio ni una base de datos paralelos.
@@ -134,7 +148,11 @@ de agregarlo. No usar reputacion o matching automatico para decidir propiedad.
 
 ## F. Flujos UX
 
-- Perdida: mascota existente -> confirmar lugar y hora -> publicar. Precargar
+- Perdida externa: datos minimos del animal -> zona/fotos -> contacto verificado
+  -> revision -> publicacion moderada. Sin hogar, pet ni onboarding Owner previo.
+  Gestion privada y conversion opcional requieren Foundation-1D; no fingir que
+  el token emitido ya tiene una pantalla funcional de recuperacion.
+- Perdida registrada: mascota existente -> confirmar lugar y hora -> publicar. Precargar
   ficha/foto; circunstancias adicionales opcionales segun validacion real. Meta
   menor de 30 s para usuario con sesion/datos listos, medir sin ocultar esperas GPS/red.
 - Encontrada: elegir "La vi" o "Esta bajo mi cuidado" -> foto/caracteristicas ->
@@ -213,14 +231,15 @@ sistema. El hallazgo alto bloquea declarar este frente listo para produccion.
 | --- | --- | --- |
 | Foundation-1A | Cerrar hueco NULL/ACL con regresion local | Aplicado remoto; ACL y smoke JWT verificados |
 | Foundation-1B | Matriz de estados/permisos, contratos compartidos, flags | Base local implementada; brechas SQL y RLS integral documentadas |
-| Foundation-1C | Integridad, feed acotado PostGIS, privacidad y medios saneados | 1C.1 integridad aplicada remoto; feed/medios pendientes |
+| Foundation-1C | Integridad, feed acotado PostGIS, privacidad y medios saneados | 1C.1/1C.2 remotas; 1C.3a local, resto medios pendiente |
+| Foundation-1D | Gestion externa, identidad SOS ligera y conversion opcional | Delta aprobado para desarrollo incremental; no implementado, ver assessment |
 | Lost-2A | Mapa/lista mobile, filtros y detalle publico | Foundation; feature flag apagado |
 | Lost-2B | Reportar desde mascota, confirmar recuperacion | 2A; meta 30 s y QA fisico |
 | Found-3 | Vista/resguardada, fotos y reclamacion existente | Foundation; no nuevas reglas de propiedad |
 | Sightings-4A | LO VI/timeline autorizados | 2/3; contrato de medios y consentimiento |
 | Sightings-4B | Borradores seguros, idempotencia, avisos owner | 4A; backend y prueba offline |
 | Community-5 | Zonas, push remoto, enlaces nativos | 4; consentimiento y pruebas de entrega |
-| Protector-6 | Derivacion aceptada y trazada a protectora | Politica de custodia aprobada; sin adopcion automatica |
+| Protector-6 | Caso de rescate privado y derivacion aceptada a protectora | FUTURE / POST-MVP; politica de custodia y permisos antes de implementar |
 
 Fases 2-6 NO implementadas por esta documentacion. Matching IA, heatmaps y
 prediccion quedan fuera. No activar cron de reservas pendiente por trabajar en SOS.
@@ -317,3 +336,12 @@ migracion 20260920210000 posteriormente aplicada el 2026-09-20 con smoke publico
 de predicado con 10.000 filas, no prueba de carga del sistema completo.
 [Auditoria de medios](MEDIA_PRIVACY_AUDIT.md): saneamiento servidor pendiente para
 1C.3. No se habilita SOS ni se afirma cierre de Foundation o de las fases siguientes.
+
+## Avance de Foundation-1C.3 (2026-09-21)
+
+[1C.3a: codec y alta externa](FOUNDATION_1C_MEDIA.md) implementados localmente.
+Valida/decodea JPG/PNG/WebP, orienta, elimina metadata y produce display/thumbnail.
+El alta externa sube solo display JPEG tras verificar OTP; limites de request y
+errores sin datos sensibles. Dieciseis escenarios locales correctos; sin despliegue.
+No sanea subidas comunitarias, avatares Owner ni fotos existentes. Resto 1C.3b-d y
+pruebas runtime/RLS pendientes; no cerrar Foundation ni activar nuevas galerias.

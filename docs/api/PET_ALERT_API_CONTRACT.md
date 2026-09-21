@@ -1,5 +1,28 @@
 # PET ALERT API Contract
 
+## Foundation-1C.3a local (2026-09-21)
+
+Edge externo conserva payload/response de alta y pending_review. Handler local
+acota request JSON a 64 KiB y multipart a 21 MiB (413 si excede); despues de OTP
+sanea todas las fotos antes de crear alerta. JPG/PNG/WebP, 5 MiB y 12 MP maximo,
+sin animacion; foto invalida devuelve 400 e indica pedir otro codigo, ya consumido.
+Sube solo JPEG saneado, no bytes originales. Thumbnail generado aun no persistido.
+Detalle y puertas de release: [Foundation-1C.3a](../pet-sos/FOUNDATION_1C_MEDIA.md).
+No desplegado; no cambia contrato comunitario, avatares, RPC ni RLS actual.
+
+## SOS comunitario: estado de contratos al 2026-09-20
+
+[Foundation Delta Assessment](../pet-sos/FOUNDATION_DELTA_ASSESSMENT.md) define
+extension incremental, no endpoints ya disponibles. Mantener createPetAlertLostPet
+para mascota registrada y Edge pet-alert-external-report para alta externa con
+verificacion/moderacion. Sightings usan alerta/reporte, no pet_id obligatorio.
+
+El Edge actual emite managementToken, pero no se encontro consumidor de gestion,
+recovery ni link_account implementado. linked_user_id no concede permiso por si
+solo. Estas operaciones requieren Foundation-1D con autorizacion por alerta,
+idempotencia y auditoria; no exponer tokens/roles de servicio en URLs o clientes.
+No hay endpoints RescueCase, conversion Owner ni equipos de rescate en esta entrega.
+
 ## Principios
 
 - Mutaciones criticas mediante RPCs `security definer` con `search_path` fijo, validacion de actor y auditoria.

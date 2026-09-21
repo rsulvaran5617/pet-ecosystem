@@ -4,14 +4,21 @@
 
 El modelo mantiene separados ownership conocido y reporte comunitario. No duplica `pets` ni agrega `lost` a `pets.status`. Las coordenadas precisas, contactos y evidencias permanecen en tablas protegidas; las consultas publicas usan RPCs que devuelven DTOs sanitizados.
 
+Revision SOS abierto 2026-09-20: [delta y decisiones de continuidad](../pet-sos/FOUNDATION_DELTA_ASSESSMENT.md).
+SosAnimal es un concepto descriptivo sobre eventos existentes, no una tabla nueva.
+La existencia de la alerta externa no depende de pets. Vinculacion posterior,
+identidad progresiva y RescueCase se especifican en el delta, NO estan implementados.
+
 ## Entidades
 
 ### `pet_alert_lost_pets`
 
 - `id uuid` PK
-- `pet_id uuid` FK `pets`
-- `household_id uuid` FK `households`
-- `created_by uuid` FK auth user/profile
+- `pet_id uuid` nullable FK `pets`
+- `household_id uuid` nullable FK `households`
+- `created_by_user_id uuid` nullable FK auth user
+- `source_type`: registered_pet | external_owner
+- `external_reporter_id uuid` nullable FK al contacto externo privado
 - `status text`
 - `alert_slug text unique`
 - `last_seen_at timestamptz`
@@ -30,6 +37,11 @@ El modelo mantiene separados ownership conocido y reporte comunitario. No duplic
 
 Constraint parcial: una fila con estado operativo (`active`, `sighting_received`, `possible_match`, `flagged`) por `pet_id`.
 
+Desde Slice 8B, source_check exige pet/hogar/autor para registered_pet; para
+external_owner exige los tres NULL y external_reporter_id presente. Esto permite
+alta externa pero bloquea enlace posterior conservando su origen: requiere
+migracion coordinada con autorizacion, NO eliminar el constraint sin reemplazo.
+
 ### `pet_alert_lost_pet_sightings`
 
 - `id uuid` PK
@@ -47,10 +59,9 @@ Estados: `new`, `reviewed`, `possible_lead`, `discarded`, `flagged`.
 
 - `id uuid` PK
 - `report_slug text unique`
-- `reporter_user_id uuid` nullable
-- `reporter_manage_token_hash text` nullable para gestion anonima
-- identidad/contacto privados y consentimiento
-- `anonymous boolean`
+- `reporter_user_id uuid` NOT NULL FK auth.users en la implementacion Slice 4
+- No existen reporter_manage_token_hash ni anonymous en esta tabla actual;
+  fueron conceptos preliminares, no un flujo anonimo implementado.
 - `status text`
 - especie, tamano, color, raza aparente, sexo aparente
 - collar, senas, comportamiento y situacion

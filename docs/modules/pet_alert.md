@@ -2,9 +2,21 @@
 
 ## Evolucion SOS (2026-09-20)
 
+2026-09-21: [Foundation-1C.3a](../pet-sos/FOUNDATION_1C_MEDIA.md) local incorpora
+procesador servidor y alta externa saneada. Sin despliegue ni cambios RLS; fotos
+comunitarias, avatares y legacy requieren siguientes subpasos. No declarar EXIF
+resuelto globalmente. Pruebas locales con fixtures, no fotos privadas reales.
+
+Ampliacion vigente: [Foundation Delta Assessment](../pet-sos/FOUNDATION_DELTA_ASSESSMENT.md).
+SOS es comunitario, con mascotas externas y alta sin hogar/Pet; incorporacion a
+Owner/Protector opcional. No nueva base de usuarios ni tablas por tipo de actor.
+Gestion externa, enlace historico a Pet e identidad ligera estan pendientes;
+RescueCase/equipos/mapa operativo son FUTURE / POST-MVP. La revision agrega
+pruebas de caracterizacion, no cambios productivos ni certificacion de esos flujos.
+
 Foundation-1B local agrega contratos compartidos, semantica de estados y flags
 apagados. Matriz y limitaciones en `docs/pet-sos/FOUNDATION_1B.md`; ninguna pantalla
-o regla de negocio publicada cambia. Integridad de transiciones pendiente en 1C.
+SOS se ha conectado. Integridad 1C.1 y feed 1C.2 aplicados; medios 1C.3 pendientes.
 
 Diseno A-J y fases en [Pet Ecosystem SOS](../pet-sos/README.md). SOS reutiliza
 este dominio y conserva URLs/estados existentes. Foundation-1A aplica remotamente

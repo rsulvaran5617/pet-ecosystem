@@ -2,6 +2,21 @@
 
 2026-09-20. Diagnostico de codigo; no inspeccion de fotos privadas de usuarios.
 
+Actualizacion 2026-09-21: [Foundation-1C.3a](FOUNDATION_1C_MEDIA.md) implementa
+localmente codec compartido y saneamiento previo al alta externa. No desplegado;
+comunidad/avatares/legacy y endurecimiento global de Storage siguen pendientes.
+Los hallazgos siguientes describen el baseline previo, no controles ya remotos.
+
+## Compatibilidad con SOS abierto
+
+El [delta comunitario](FOUNDATION_DELTA_ASSESSMENT.md) no elimina este control.
+Foundation-1C.3 debe resolver recursos por alerta/reporte y actor autorizado,
+sin exigir pet_id, household_id ni rol Owner para fotos externas/comunitarias.
+Conservar original privado/derivado saneado independientemente de una conversion
+posterior a Owner. Vincular Pet no reatribuye autorias ni publica originales.
+No ampliar privilegios del token externo para acceder al avatar o expediente.
+Saneamiento pendiente en los tres caminos, no solo el upload mobile registrado.
+
 ## Hallazgos
 
 | Camino actual | Observacion | Riesgo pendiente |
@@ -30,10 +45,10 @@ No hacer publicos buckets ni confiar en el picker del telefono como sanitizador.
 6. TTL/limpieza de huerfanos y originales definido, auditable, sin registrar paths
    privados/URLs firmadas en logs. Probar retirada y vigencia de URLs.
 
-Decision tecnica pendiente: motor de decodificacion mantenido compatible con
-runtime Edge o worker existente. No escribir parser binario casero ni prometer
-que quitar una etiqueta EXIF basta. Revisar dependencias/licencia/recursos antes
-de introducir codec. No se ha instalado ningun procesador nuevo en esta entrega.
+Decision tecnica local 1C.3a: Magick WASM 0.0.43 fijado con lockfile, Apache-2.0,
+sin parser binario propio. Pruebas Deno de decoder real correctas; falta validar
+bundle/CPU/memoria en runtime Supabase antes de desplegar. Quitar una etiqueta EXIF
+no basta: re-encodear y verificar variantes, permisos y proyecciones por camino.
 
 Pruebas requeridas: JPEG con GPS, PNG con texto, WebP con EXIF/XMP, orientacion,
 imagen corrupta, MIME falso, dimensiones extremas, timeout, reintento, autor ajeno,

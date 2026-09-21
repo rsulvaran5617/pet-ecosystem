@@ -15,6 +15,7 @@ web-build/
 apps/mobile/.codex-tmp/
 packages/api-client/.codex-tmp/
 supabase/.temp/
+supabase/functions/_shared/generated/
 
 .env
 .env.local
