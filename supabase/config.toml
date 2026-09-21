@@ -42,3 +42,13 @@ enabled = true
 [functions.pet-alert-external-report]
 verify_jwt = false
 static_files = ["./functions/_shared/generated/magick.wasm"]
+
+[functions.pet-alert-community-photo]
+# The handler verifies the caller using Auth.getUser.
+verify_jwt = false
+static_files = ["./functions/_shared/generated/magick.wasm"]
+
+[functions.pet-alert-owner-photo]
+# Auth.getUser in the handler verifies the JWT before resolving private avatars.
+verify_jwt = false
+static_files = ["./functions/_shared/generated/magick.wasm"]

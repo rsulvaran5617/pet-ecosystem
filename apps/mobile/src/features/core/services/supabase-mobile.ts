@@ -27,6 +27,7 @@ declare const process:
     env: {
       EXPO_PUBLIC_SUPABASE_URL?: string;
       EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
+      EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS?: string;
     };
   };
 
@@ -253,7 +254,9 @@ export function getMobileClinicalAccessApiClient() {
 
 export function getMobilePetAlertApiClient() {
   if (!mobilePetAlertApiClient) {
-    mobilePetAlertApiClient = createPetAlertApiClient(getMobileSupabaseClient());
+    mobilePetAlertApiClient = createPetAlertApiClient(getMobileSupabaseClient(), {
+      sanitizedCommunityPhotos: process.env.EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true"
+    });
   }
 
   return mobilePetAlertApiClient;

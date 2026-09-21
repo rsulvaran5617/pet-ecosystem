@@ -157,6 +157,27 @@ El estado efectivo puede derivarse al leer mientras no exista scheduler. Un job 
 - No contiene coordenadas ni cambia ownership o custodia. La posicion cero es portada.
 # Proyeccion publica Slice 7B
 
+## Foundation-1C.3c (migracion local sin aplicar)
+
+`pet_alert_owner_photo_derivatives` prepara dos variantes saneadas privadas por
+alerta registered_pet. Snapshot origen Storage/Pet, actor/consentimiento versionado,
+lease/intento/cuota, rutas display/thumbnail y estado processing/ready/failed.
+RLS sin grants cliente, RPCs solo service_role, namespace Storage restrictivo.
+No cambia proyeccion publica ni originales. [Canon](../pet-sos/FOUNDATION_1C_OWNER_MEDIA.md).
+
+## Foundation-1C.3b (migracion local pendiente de aplicar)
+
+`pet_alert_community_photo_uploads`: entidad tecnica privada, no otro reporte SOS.
+Relaciona reporte/actor/slot/hash de origen con estado uploading/ready/failed,
+intento UUID, lease y contador; timestamps, indices de cuota/reservas y RLS sin
+grants cliente. FK media_id SET NULL conserva tombstone al borrar una foto.
+Metadata comunitaria agrega processing_version legacy|sos-v1. La foto solo llega
+a la proyeccion existente tras finalizar upload autorizado. No se almacena origen.
+Auditoria de finalizacion no incluye hash, ruta privada ni coordenadas.
+Canon: [Foundation medios](../pet-sos/FOUNDATION_1C_MEDIA.md).
+
+## Directorio publico existente
+
 El centro comunitario no agrega una tabla duplicada. `list_public_pet_alert_directory` compone una proyeccion de solo lectura desde `pet_alert_lost_pets` y `pet_alert_community_sightings`, limitada a contenido compartible, vigente y no pausado. Los estados se agrupan en `active` y `found` exclusivamente para presentacion publica.
 # PET ALERT MAP-2
 

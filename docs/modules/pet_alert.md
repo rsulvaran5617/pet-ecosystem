@@ -1,5 +1,20 @@
 # Modulo PET ALERT
 
+## Foundation-1C.3c (2026-09-21, local)
+
+[Derivados privados Owner](../pet-sos/FOUNDATION_1C_OWNER_MEDIA.md) preparados por
+alerta con consentimiento, revalidacion de hogar/permisos y version del avatar.
+Endpoint apagado, migracion no aplicada, UI/proyeccion publica sin cambios. No
+modifica el avatar original ni los flujos externos/comunitarios. 1C.3d pendiente.
+
+## Foundation-1C.3b (2026-09-21, local)
+
+Upload comunitario saneado en servidor preparado tras flag, sin alterar el flujo
+de reporte ni exigir hogar/mascota a participantes. Migracion aditiva pendiente,
+cuotas, permisos, idempotencia y finalizacion auditada; clientes publicados
+mantienen legacy hasta rollout coordinado. No hay activacion remota ni saneamiento
+retroactivo. [Detalle y pruebas](../pet-sos/FOUNDATION_1C_MEDIA.md).
+
 ## Evolucion SOS (2026-09-20)
 
 2026-09-21: [Foundation-1C.3a](../pet-sos/FOUNDATION_1C_MEDIA.md) local incorpora

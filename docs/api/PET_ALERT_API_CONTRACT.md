@@ -205,6 +205,32 @@ RPC de creacion ni las proyecciones publicas.
 
 # PET ALERT MAP-7
 
+## Foundation-1C.3c (local, apagado)
+
+`pet-alert-owner-photo`: POST JSON `{alertId, photoConsent:true}` con JWT real.
+Devuelve solo `{status:'ready'}`: preparacion privada, NO publicacion. Rechaza
+actor, rutas o URLs del cliente. Metodo `preparePetAlertOwnerPhoto` compartido,
+sin conexion automatica a UI. RPCs prepare/finalize/abort_pet_alert_owner_photo
+solo service_role. [Contrato, errores y limites](../pet-sos/FOUNDATION_1C_OWNER_MEDIA.md).
+
+## Foundation-1C.3b (local, desactivado)
+
+`pet-alert-community-photo`: POST binario autenticado (JWT verificado con Auth),
+headers `Content-Type` JPEG/PNG/WebP, `x-pet-report-id` UUID y
+`x-pet-photo-order` entero 0..2; maximo 5 MiB. Devuelve `{ signedUrl }` (15 min)
+solo despues de finalizar metadata saneada. No acepta actor, slug ni ruta del cliente.
+Errores estables: UNAUTHORIZED 401/403; PHOTO_INVALID 400; PHOTO_BUSY,
+PHOTO_SLOT_TAKEN, PHOTO_STALE, PHOTO_REMOVED, REPORT_NOT_AVAILABLE 409;
+RATE_LIMITED 429; PHOTO_UNAVAILABLE 503 (todos con prefijo PET_ALERT_).
+Reintentar mismos bytes/reporte/slot es idempotente; sin fallback legacy automatico.
+
+RPCs internas `prepare_pet_alert_community_photo`,
+`finalize_pet_alert_community_photo`, `abort_pet_alert_community_photo`:
+EXECUTE solo service_role, nunca accesibles anon/authenticated. Edge deriva actor
+del JWT. [Contrato completo y rollout](../pet-sos/FOUNDATION_1C_MEDIA.md).
+
+## PET ALERT MAP-7: RPCs geograficas
+
 `list_admin_pet_alert_geographic_locations(filter_target_type,
 filter_location_state, result_limit)` requiere `is_platform_admin(auth.uid())`.
 Devuelve el par privado y publico, metadata de captura y estado de visibilidad

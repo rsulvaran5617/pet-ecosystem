@@ -1,7 +1,8 @@
 # Foundation-1C.3: saneamiento de fotografias
 
-2026-09-21. **Implementacion local parcial: 1C.3a**, procesador compartido y
-alta externa. No migracion, despliegue, backfill ni cierre de Foundation.
+2026-09-21. **Implementacion local: 1C.3a, 1C.3b y 1C.3c**, procesador compartido,
+alta externa, upload comunitario opt-in y derivados privados Owner. Migraciones 1C.3b/c preparadas,
+NO aplicada. Sin despliegue, backfill ni cierre de Foundation.
 Complementa [auditoria](MEDIA_PRIVACY_AUDIT.md) y
 [delta comunitario](FOUNDATION_DELTA_ASSESSMENT.md).
 
@@ -106,14 +107,73 @@ probar este codigo local de servidor.
 
 | Subpaso | Entrega pendiente |
 | --- | --- |
-| 1C.3b | Upload comunitario autorizado servidor, cuotas/idempotencia/finalizacion y pruebas de otro autor; preparar clientes compatibles antes de cerrar subida directa |
-| 1C.3c | Derivados de avatar Owner por alerta, preservando original privado y consentimiento; sin usar Pet como requisito del resto de medios |
+| 1C.3b | Implementado local y desactivado; falta QA real/rollout coordinado antes de cerrar subida directa |
+| 1C.3c | [Derivados privados Owner](FOUNDATION_1C_OWNER_MEDIA.md) implementados localmente, sin conexion UI/proyeccion publica ni activacion |
 | 1C.3d | Metadata de variantes/ready, proyecciones y Storage que nunca firmen original; backfill separado, TTL/huerfanos y revocacion verificada |
 | QA/release | RLS/JWT reales, fallo/reintento/concurrencia, carga en Edge y dispositivos; activar solo tras comprobar cobertura completa |
 
-No se ha modificado RLS, grants, RPCs ni tablas. Siguen existiendo caminos de
+1C.3a no modifico SQL; 1C.3b prepara cambios aditivos sin aplicarlos. Siguen existiendo caminos de
 subida directa y proyeccion legacy: **no afirmar saneamiento universal ni cerrar
 el riesgo EXIF global**. Cerrar esas puertas antes de habilitar SOS ampliado.
+
+## Foundation-1C.3b: upload comunitario controlado
+
+- Migracion local `20260921120000_pet_sos_community_photo_uploads.sql`.
+  Jobs privados sin grants cliente; RPCs prepare/finalize/abort solo service_role.
+  Edge verifica JWT mediante Auth.getUser; nunca acepta actor del request.
+  Reutiliza can_manage (autor o admin) sin exigir hogar/Pet/perfil Owner completo.
+- POST binario a `pet-alert-community-photo`, Content-Type JPG/PNG/WebP;
+  headers `x-pet-report-id` UUID y `x-pet-photo-order` 0..2. Maximo 5 MiB medido
+  sobre el stream. Origin web debe estar en PET_ALERT_ALLOWED_ORIGINS; native sin
+  Origin sigue necesitando JWT. Preflight no procesa fotos.
+- Idempotencia por reporte/actor/slot/SHA256 calculado en servidor. Preparar
+  bloquea cuota de actor y reporte; reserva 2 minutos, 9 jobs nuevos/hora/actor,
+  hasta 5 intentos/job y tres slots. No supone transaccion Storage+Postgres.
+- Cada intento usa ruta inmutable `report/sos-v1/attempt.jpg`. Solo display JPEG
+  saneado se sube; nunca original. Finalizar vuelve a comprobar autor, estado
+  operativo, expiracion, lease, intento y objeto existente, luego inserta metadata
+  y auditoria atomicamente. Metadata processing_version=legacy|sos-v1.
+- Repetir listo devuelve URL firmada (15 minutos) sin duplicar metadata/auditoria.
+  Abort solo autoriza borrar el intento aun pendiente; un commit incierto, ready
+  o intento antiguo NO permite borrar. Cleanup incierto deja objeto privado.
+- Trigger impide a clientes falsificar metadata sos-v1. Policies restrictivas
+  impiden escribir/actualizar/borrar objetos del namespace reservado y leerlos
+  antes de metadata publica. No convierte el bucket en publico.
+- Borrar metadata conserva tombstone (media_id null): repetir la misma foto en
+  el mismo slot no la resucita. Reinsertar deliberadamente esa foto exacta no se
+  ofrece en este slice. Huerfanos y TTL de intentos quedan para 1C.3d.
+- Cliente compartido opt-in `sanitizedCommunityPhotos`; factories mobile/web usan
+  `EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS` y `NEXT_PUBLIC_PET_ALERT_SANITIZED_UPLOADS`.
+  Solo literal true activa. Por defecto false; ninguna llamada fallida vuelve al
+  camino legacy. La UI no incorpora cola persistente ni nuevo boton de reintento:
+  idempotencia es del contrato de subida sobre el mismo reporte/slot/bytes.
+
+### Verificacion y activacion
+
+```powershell
+node supabase/tests/pet-sos-community-media.test.mjs
+deno check --frozen --config supabase/functions/pet-alert-community-photo/deno.json supabase/functions/pet-alert-community-photo/index.ts
+deno test --frozen --allow-read --allow-env --config supabase/functions/pet-alert-community-photo/deno.json supabase/functions/pet-alert-community-photo/handler.test.ts
+corepack pnpm --filter @pet/api-client test
+```
+
+Comparte lockfile fijado con alta externa y asset WASM generado por prepare.
+Validacion local 2026-09-21: migracion PGlite correcta; 25 pasos Deno (codec,
+alta externa y endpoint comunitario), 12 tests API (8 SOS y 4 de upload),
+lint/typecheck API/mobile/web, build web y export Android/iOS correctos.
+Sin APK/IPA, pruebas en dispositivo, publicacion ni deploy. git diff --check
+sin errores (avisos habituales de conversion LF/CRLF).
+PGlite ejecuta migracion real sobre fixtures de dependencias y policies
+deliberadamente permisivas para probar el bloqueo restrictivo. HTTP usa fetch
+simulado y codec real. No prueba politicas completas remotas, JWT reales,
+concurrencia multiconexion ni CPU/memoria alojada.
+
+Orden antes de activar: revisar/aplicar SOLO esta migracion autorizada, preparar
+WASM y desplegar endpoint, probar sesiones reales autor/tercero/anon y fallos,
+medir carga, despues compilar cliente piloto con flag true. No aplicar cron de
+reservas pendiente. Rollback cliente flag false conserva ruta legacy; no borrar
+metadata ni migracion. Legacy sigue abierto para binarios publicados y exige
+cierre coordinado posterior, no afirmar saneamiento universal.
 
 ## Referencias tecnicas
 

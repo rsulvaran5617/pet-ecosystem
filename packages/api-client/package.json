@@ -17,7 +17,7 @@
     "build": "tsc --noEmit",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/pet-sos.test.mjs",
+    "test": "node --test src/pet-sos.test.mjs src/pet-alert-community-photo.test.mjs src/pet-alert-owner-photo.test.mjs",
     "smoke:mvp": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts full",
     "smoke:mvp:critical": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts critical",
     "smoke:mvp:admin": "node --import ./scripts/smoke/register-ts-loader.mjs ./scripts/smoke/run-mvp.ts admin",

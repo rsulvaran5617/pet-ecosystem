@@ -1,5 +1,24 @@
 # HANDOFF.md
 
+# Handoff 2026-09-21 - Foundation-1C.3c local, NO activado
+
+- Canon: docs/pet-sos/FOUNDATION_1C_OWNER_MEDIA.md. Endpoint pet-alert-owner-photo y metodo API preparePetAlertOwnerPhoto preparan display/thumbnail saneados por alerta con consentimiento explicito. No UI conectada ni publicacion automatica.
+- Migracion 20260921140000_pet_sos_owner_avatar_derivatives.sql local, sin aplicar. Tabla privada y RPCs solo service_role; snapshot de avatar/objeto, permisos hogar+Pet, estado y expiracion revalidados. No exige Pet a externos/comunidad.
+- Namespace owner-sos-v1 bloqueado para anon/authenticated incluso ready; no original modificado/duplicado/firmado por nuevo endpoint. Proyecciones legacy siguen como antes: NO declarar original universalmente privado ni cierre EXIF.
+- PET_ALERT_OWNER_DERIVATIVES_ENABLED=false por defecto. Cambiar version de foto invalida intento; reintentos listos no duplican; abort incierto no borra ready. Huerfanos/TTL quedan para 1C.3d.
+- Validacion local: 26 checks SQL mas assertions, 12 escenarios HTTP Owner (37 acumulados medios), 14 tests API; Deno check/lint, ESLint types/API/runner, typecheck types/API/mobile/web/admin, builds types/API/web, export Android/iOS y diff --check correctos. Sin RLS/JWT reales, carga alojada o QA nativa.
+- Preservar todo 1C.3b y diffs ajenos. No commit/push, migracion remota, despliegue ni builds APK/IPA autorizados en este turno. Cron booking sigue diferido.
+- Siguiente: 1C.3d proyecciones ready, consentimiento UI/activacion coordinada, backfill y cierre legacy; QA real RLS/JWT/carga/concurrencia antes de activar.
+
+# Handoff 2026-09-21 - Foundation-1C.3b local, NO activado
+
+- Upload comunitario servidor implementado en `pet-alert-community-photo`, codec compartido, JWT real verificado por Auth, reserva/cupo/idempotencia y finalizacion auditada. No exige Pet ni hogar a reportero comunitario.
+- Migracion nueva `20260921120000_pet_sos_community_photo_uploads.sql` preparada, NO aplicada. Jobs privados, RPCs solo service_role y namespace sos-v1 protegido contra escrituras cliente y lectura antes de metadata publica.
+- API mobile/web opt-in con flags SANITIZED_UPLOADS false por defecto. No fallback inseguro al fallar endpoint. Reintento del mismo reporte/slot/bytes no duplica. UI no agrega cola persistente de reintentos.
+- Canon y comandos: docs/pet-sos/FOUNDATION_1C_MEDIA.md. Tests SQL aislados/codec/HTTP simulado/cliente; no acreditan RLS/JWT alojados, concurrencia real ni carga maxima. Aplicacion remota/despliegue/activacion requieren validar esas puertas.
+- Validaciones locales: PGlite correcto, Deno 25 pasos, API 12 tests; lint/tipos API-mobile-web y build web/export Android-iOS correctos. Deno check/lint y diff --check correctos. Export no equivale a QA nativa ni APK/IPA.
+- No commit/push, db push ni publicacion mobile en este turno. Preservar cambios ajenos y cron booking diferido. Siguiente subpaso: 1C.3c derivados de avatar Owner; 1C.3d variantes-ready/backfill/huerfanos y cierre legacy siguen pendientes.
+
 # Handoff 2026-09-21 - Versionado autorizado de Foundation-1C.3a
 
 - Usuario solicito migracion, commit y push. Verificado: 1C.3a y el delta comunitario no agregan SQL ni requieren migracion. No ejecutar db push general ni activar cron de reservas pendiente.

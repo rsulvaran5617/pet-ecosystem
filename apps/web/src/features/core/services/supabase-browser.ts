@@ -175,7 +175,9 @@ export function getBrowserFosterApiClient() {
 
 export function getBrowserPetAlertApiClient() {
   if (!browserPetAlertApiClient) {
-    browserPetAlertApiClient = createPetAlertApiClient(getBrowserSupabaseClient());
+    browserPetAlertApiClient = createPetAlertApiClient(getBrowserSupabaseClient(), {
+      sanitizedCommunityPhotos: process.env.NEXT_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true"
+    });
   }
 
   return browserPetAlertApiClient;

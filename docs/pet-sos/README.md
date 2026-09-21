@@ -343,5 +343,9 @@ de predicado con 10.000 filas, no prueba de carga del sistema completo.
 Valida/decodea JPG/PNG/WebP, orienta, elimina metadata y produce display/thumbnail.
 El alta externa sube solo display JPEG tras verificar OTP; limites de request y
 errores sin datos sensibles. Dieciseis escenarios locales correctos; sin despliegue.
-No sanea subidas comunitarias, avatares Owner ni fotos existentes. Resto 1C.3b-d y
-pruebas runtime/RLS pendientes; no cerrar Foundation ni activar nuevas galerias.
+1C.3b agrega localmente upload comunitario servidor opt-in, reserva idempotente,
+cuotas y finalizacion auditada. Migracion preparada, no aplicada; flags false.
+[1C.3c](FOUNDATION_1C_OWNER_MEDIA.md) prepara derivados privados de avatar Owner
+con consentimiento y snapshot de fuente, sin modificar originales. No conectado
+a UI/proyeccion publica ni desplegado. 1C.3d y pruebas runtime/RLS pendientes;
+no cerrar Foundation ni afirmar saneamiento de avatares publicos legacy.

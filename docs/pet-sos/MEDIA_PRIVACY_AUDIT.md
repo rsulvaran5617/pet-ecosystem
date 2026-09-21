@@ -4,7 +4,9 @@
 
 Actualizacion 2026-09-21: [Foundation-1C.3a](FOUNDATION_1C_MEDIA.md) implementa
 localmente codec compartido y saneamiento previo al alta externa. No desplegado;
-comunidad/avatares/legacy y endurecimiento global de Storage siguen pendientes.
+1C.3b prepara upload comunitario y [1C.3c](FOUNDATION_1C_OWNER_MEDIA.md) derivados
+privados Owner. Ambos locales/desactivados. Proyeccion legacy y endurecimiento
+global de Storage siguen pendientes de 1C.3d.
 Los hallazgos siguientes describen el baseline previo, no controles ya remotos.
 
 ## Compatibilidad con SOS abierto

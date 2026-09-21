@@ -1,5 +1,24 @@
 # ENVIRONMENT_VARIABLES.md
 
+## Derivados Owner SOS (Foundation-1C.3c)
+
+`PET_ALERT_OWNER_DERIVATIVES_ENABLED=false`: exclusivamente servidor Edge
+pet-alert-owner-photo. Solo true permite procesar tras JWT/consentimiento/permisos.
+No conectar UI ni activar en produccion antes de las puertas de
+[1C.3c/1C.3d](../pet-sos/FOUNDATION_1C_OWNER_MEDIA.md). Reutiliza secretos Supabase
+y PET_ALERT_ALLOWED_ORIGINS; no admite credenciales ni rutas desde clientes.
+
+## Upload comunitario SOS (Foundation-1C.3b)
+
+- `NEXT_PUBLIC_PET_ALERT_SANITIZED_UPLOADS=false`: web, compilacion.
+- `EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS=false`: mobile, compilacion Expo.
+- Solo literal `true` activa endpoint autenticado `pet-alert-community-photo`;
+  no fallback automatico a Storage directo. Mantener false hasta migracion,
+  despliegue WASM/Edge y QA real. Mobile requiere nuevo build para activarlo.
+- Servidor reutiliza `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` y
+  `PET_ALERT_ALLOWED_ORIGINS` (lista separada por comas). Ninguna credencial de
+  servicio se incorpora a clientes. [Rollout](../pet-sos/FOUNDATION_1C_MEDIA.md).
+
 ## Objetivo
 
 Centralizar las variables realmente usadas por el baseline actual del MVP.

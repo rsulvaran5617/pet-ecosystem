@@ -412,3 +412,12 @@ export interface PetAlertModerationHistoryEntry {
   changedByUserId: Uuid;
   createdAt: string;
 }
+
+export interface PreparePetAlertOwnerPhotoInput {
+  alertId: Uuid;
+  photoConsent: true;
+}
+
+export interface PetAlertOwnerPhotoPreparation {
+  status: "ready";
+}

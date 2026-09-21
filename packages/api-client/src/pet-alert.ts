@@ -1,5 +1,7 @@
 import type {
   CreatePetAlertLostPetInput,
+  PreparePetAlertOwnerPhotoInput,
+  PetAlertOwnerPhotoPreparation,
   CreatePetAlertLostPetSightingInput,
   CreatePetAlertCommunitySightingInput,
   CreatePetAlertCommunityClaimInput,
@@ -291,6 +293,7 @@ interface ExternalReportReviewRow {
 }
 
 export interface PetAlertApiClient {
+  preparePetAlertOwnerPhoto(input: PreparePetAlertOwnerPhotoInput): Promise<PetAlertOwnerPhotoPreparation>;
   createPetAlertLostPet(input: CreatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   setPetAlertLostPetLocation(alertId: Uuid, input: PetAlertLocationInput): Promise<PetAlertPrivateLocation>;
   getPetAlertLostPetBySlug(alertSlug: string): Promise<PublicPetAlertLostPet | null>;
@@ -670,8 +673,16 @@ function alertArgs(input: CreatePetAlertLostPetInput | UpdatePetAlertLostPetInpu
   };
 }
 
-export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAlertApiClient {
+export function createPetAlertApiClient(supabase: PetAlertSupabaseClient, options: { sanitizedCommunityPhotos?: boolean } = {}): PetAlertApiClient {
   return {
+    async preparePetAlertOwnerPhoto(input) {
+      if (input.photoConsent !== true) throw new Error("Autoriza el uso de la foto para esta alerta.");
+      const { data, error } = await supabase.functions.invoke("pet-alert-owner-photo", {
+        body: { alertId: input.alertId, photoConsent: true }
+      });
+      if (error || data?.status !== "ready") throw new Error("No fue posible preparar la foto de la alerta. Intenta nuevamente.");
+      return { status: "ready" };
+    },
     async createPetAlertLostPet(input) {
       const { data, error } = await supabase.rpc("create_pet_alert_lost_pet", {
         target_pet_id: input.petId,
@@ -832,8 +843,19 @@ export function createPetAlertApiClient(supabase: PetAlertSupabaseClient): PetAl
       return mapPrivateLocation(row);
     },
     async uploadPetAlertCommunityPhoto(input) {
-      if (input.displayOrder < 0 || input.displayOrder > 2) throw new Error("Solo puedes agregar hasta 3 fotos.");
+      if (!Number.isInteger(input.displayOrder) || input.displayOrder < 0 || input.displayOrder > 2) throw new Error("Solo puedes agregar hasta 3 fotos.");
       if (!input.fileBytes.byteLength) throw new Error("La foto esta vacia.");
+      if (options.sanitizedCommunityPhotos) {
+        if (input.fileBytes.byteLength > 5 * 1024 * 1024) throw new Error("La foto debe pesar hasta 5 MB.");
+        const { data, error } = await supabase.functions.invoke("pet-alert-community-photo", {
+          body: input.fileBytes,
+          headers: { "Content-Type": input.mimeType, "x-pet-report-id": input.reportId, "x-pet-photo-order": String(input.displayOrder) }
+        });
+        if (error || typeof data?.signedUrl !== "string" || !data.signedUrl) {
+          throw new Error("No fue posible guardar la foto. Intenta nuevamente en unos momentos.");
+        }
+        return data.signedUrl;
+      }
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) fail(authError, "Debes iniciar sesion para subir una foto.");
 
