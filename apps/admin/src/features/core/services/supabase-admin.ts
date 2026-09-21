@@ -70,7 +70,9 @@ export function getAdminProvidersApiClient() {
 
 export function getAdminPetAlertApiClient() {
   if (!adminPetAlertApiClient) {
-    adminPetAlertApiClient = createPetAlertApiClient(getAdminSupabaseClient());
+    adminPetAlertApiClient = createPetAlertApiClient(getAdminSupabaseClient(), {
+      publicMediaGatewayUrl: process.env.NEXT_PUBLIC_PET_ALERT_READY_MEDIA === "true" ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/pet-alert-public-photo` : undefined
+    });
   }
 
   return adminPetAlertApiClient;

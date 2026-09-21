@@ -1,5 +1,10 @@
 # Foundation-1C.3: saneamiento de fotografias
 
+Actualizacion 2026-09-21: [1C.3d](FOUNDATION_1C_READY_MEDIA.md) implementado local con
+proyecciones/gateway, variantes, consentimiento Owner y herramientas de conversion
+y limpieza tras confirmacion. Ejecucion remota y QA real pendientes; no cierre
+operativo de Foundation. Los bloques inferiores conservan el historial 1C.3a-c.
+
 2026-09-21. **Implementacion local: 1C.3a, 1C.3b y 1C.3c**, procesador compartido,
 alta externa, upload comunitario opt-in y derivados privados Owner. Migraciones 1C.3b/c preparadas,
 NO aplicada. Sin despliegue, backfill ni cierre de Foundation.
@@ -109,7 +114,7 @@ probar este codigo local de servidor.
 | --- | --- |
 | 1C.3b | Implementado local y desactivado; falta QA real/rollout coordinado antes de cerrar subida directa |
 | 1C.3c | [Derivados privados Owner](FOUNDATION_1C_OWNER_MEDIA.md) implementados localmente, sin conexion UI/proyeccion publica ni activacion |
-| 1C.3d | Metadata de variantes/ready, proyecciones y Storage que nunca firmen original; backfill separado, TTL/huerfanos y revocacion verificada |
+| 1C.3d | Implementado local: variantes/ready, gateway, consentimiento y mantenimiento opt-in. Pendientes ejecucion de backfill/limpieza y QA/rollout reales |
 | QA/release | RLS/JWT reales, fallo/reintento/concurrencia, carga en Edge y dispositivos; activar solo tras comprobar cobertura completa |
 
 1C.3a no modifico SQL; 1C.3b prepara cambios aditivos sin aplicarlos. Siguen existiendo caminos de

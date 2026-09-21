@@ -8,9 +8,9 @@ import type {
 } from "@pet/types";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, Share, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, Share, Switch, Text, TextInput, View } from "react-native";
 
-import { getMobilePetAlertApiClient } from "../../core/services/supabase-mobile";
+import { getMobilePetAlertApiClient, isPetAlertReadyMediaEnabled } from "../../core/services/supabase-mobile";
 
 type AlertStep = 1 | 2 | 3 | 4;
 
@@ -274,6 +274,8 @@ export function PetAlertLostPetPanel({
   const [step, setStep] = useState<AlertStep>(1);
   const [locationCandidate, setLocationCandidate] = useState<ConfirmedLocation | null>(null);
   const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
+  const [photoConsent, setPhotoConsent] = useState(false);
+  const readyMediaEnabled = isPetAlertReadyMediaEnabled();
 
   const currentAlert = useMemo(
     () => alerts.find((alert) => openStatuses.has(alert.status)) ?? null,
@@ -313,6 +315,8 @@ export function PetAlertLostPetPanel({
     setConfirmedLocation(null);
     void load();
   }, [petId]);
+
+  useEffect(() => { setPhotoConsent(false); }, [petId, avatarUrl]);
 
   async function captureCurrentLocation() {
     setIsLocating(true);
@@ -379,6 +383,8 @@ export function PetAlertLostPetPanel({
         });
       }
 
+      // Keep the saved ID when photo processing or publication needs a retry.
+      setAlerts((current) => [savedAlert, ...current.filter((alert) => alert.id !== savedAlert.id)]);
       if (confirmedLocation) {
         await getMobilePetAlertApiClient().setPetAlertLostPetLocation(savedAlert.id, {
           accuracyMeters: confirmedLocation.accuracyMeters,
@@ -390,7 +396,9 @@ export function PetAlertLostPetPanel({
         });
       }
       if (publish && savedAlert.status === "draft") {
-        savedAlert = await getMobilePetAlertApiClient().publishPetAlertLostPet(savedAlert.id);
+        savedAlert = readyMediaEnabled
+          ? await getMobilePetAlertApiClient().publishPetAlertLostPetSafely(savedAlert.id, !!avatarUrl && photoConsent)
+          : await getMobilePetAlertApiClient().publishPetAlertLostPet(savedAlert.id);
       }
       setAlerts((current) => [savedAlert, ...current.filter((alert) => alert.id !== savedAlert.id)]);
       setMessage(publish ? "PET ALERT publicada por 30 dias." : "Borrador guardado.");
@@ -417,6 +425,31 @@ export function PetAlertLostPetPanel({
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function updatePublishedPhoto(include: boolean) {
+    if (!currentAlert) return;
+    setIsSubmitting(true);
+    setMessage(null);
+    try {
+      await getMobilePetAlertApiClient().setPetAlertOwnerPhotoChoice(currentAlert.id, include);
+      setMessage(include ? "Foto actual autorizada para el boletin." : "Foto retirada del boletin. Tu foto de perfil se conserva.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "No fue posible actualizar la foto del boletin.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function confirmPublishedPhoto(include: boolean) {
+    Alert.alert(
+      include ? "Publicar foto actual" : "Retirar foto del boletin",
+      include ? "Autorizas mostrar publicamente la foto actual de perfil en esta alerta. Tu expediente no se comparte." : "La foto dejara de mostrarse en nuevas consultas al boletin. Las copias ya descargadas por otras personas no se pueden retirar.",
+      [
+        { style: "cancel", text: "Volver" },
+        { text: include ? "Autorizar foto" : "Retirar foto", onPress: () => void updatePublishedPhoto(include) }
+      ]
+    );
   }
 
   function confirmFound() {
@@ -538,6 +571,15 @@ export function PetAlertLostPetPanel({
             ) : (
               <Text style={{ color: "#64748b", fontSize: 11 }}>Aun no se ha recibido informacion.</Text>
             )}
+            {readyMediaEnabled && currentAlert.status !== "flagged" ? (
+              <View style={{ gap: 8 }}>
+                <Text style={{ color: "#334155", fontSize: 12, fontWeight: "800" }}>Foto del boletin</Text>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {avatarUrl ? <ActionButton disabled={isSubmitting} label="Publicar foto actual" onPress={() => confirmPublishedPhoto(true)} tone="secondary" /> : null}
+                  <ActionButton disabled={isSubmitting} label="Retirar foto" onPress={() => confirmPublishedPhoto(false)} tone="secondary" />
+                </View>
+              </View>
+            ) : null}
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               <ActionButton label="Compartir alerta" onPress={() => void shareAlert()} />
               <ActionButton label="Actualizar" onPress={() => void load()} tone="secondary" />
@@ -626,6 +668,12 @@ export function PetAlertLostPetPanel({
                 <Text style={{ color: "#334155", fontSize: 11, lineHeight: 16 }}>{form.publicDescription}</Text>
                 <Text style={{ color: "#9a3412", fontSize: 11, fontWeight: "800" }}>{form.city}{form.reference ? ` · ${form.reference}` : ""}</Text>
                 <Text style={{ color: "#64748b", fontSize: 10 }}>Contacto interno y ubicacion aproximada. Vigencia: 30 dias.</Text>
+                {readyMediaEnabled && avatarUrl ? (
+                  <View style={{ alignItems: "center", flexDirection: "row", gap: 12 }}>
+                    <Text style={{ color: colorTokens.ink, flex: 1, fontSize: 14, lineHeight: 20 }}>Publicar la foto de perfil de mi mascota</Text>
+                    <Switch accessibilityLabel="Publicar la foto de perfil de mi mascota" disabled={isSubmitting} onValueChange={setPhotoConsent} value={photoConsent} />
+                  </View>
+                ) : null}
                 <Text style={{ color: confirmedLocation ? "#0f766e" : "#64748b", fontSize: 10, fontWeight: "800" }}>
                   {confirmedLocation ? "Punto aproximado listo para publicar." : "Sin punto de mapa; la zona escrita seguira visible."}
                 </Text>

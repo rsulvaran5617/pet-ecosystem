@@ -1,5 +1,24 @@
 # PET ALERT Data Model
 
+## Foundation-1C.3d local
+
+Migracion 20260921160000 pendiente: pet_sos_media_rollout privado con ready_only=false;
+pet_alert_media.processing_version y thumbnail_path; thumbnail_path comunitario;
+pet_alert_lost_pets.owner_photo_choice legacy/include/exclude. Metadata saneada
+solo servidor; RPCs publicas proyectan variantes listas tras corte coordinado.
+No se convierten ni borran registros al instalar. [Canon](../pet-sos/FOUNDATION_1C_READY_MEDIA.md).
+
+Migracion 20260921180000 local pendiente: pet_sos_media_backfills (kind/media,
+snapshot privado de fuente/reporte/objeto/version, display/thumbnail inmutables,
+processing/ready/failed y lease) y pet_sos_media_tombstones (objeto/version/ruta
+retirada permanentemente, deleted_at confirmado). UUID PK, timestamps, indices y
+RLS sin acceso anon/authenticated. Snapshot puede contener informacion privada;
+no exponer a interfaces publicas, logs o exports de auditoria.
+RPCs service_role auditadas, triggers de referencias y advisory locks protegen
+el intervalo entre reserva de limpieza y borrado por API Storage. No DELETE SQL
+de storage.objects en operacion. Fuentes historicas y pet-avatars se conservan.
+La conversion reemplaza solo metadata de medios, nunca moderacion ni ownership.
+
 ## Enfoque
 
 El modelo mantiene separados ownership conocido y reporte comunitario. No duplica `pets` ni agrega `lost` a `pets.status`. Las coordenadas precisas, contactos y evidencias permanecen en tablas protegidas; las consultas publicas usan RPCs que devuelven DTOs sanitizados.

@@ -176,7 +176,8 @@ export function getBrowserFosterApiClient() {
 export function getBrowserPetAlertApiClient() {
   if (!browserPetAlertApiClient) {
     browserPetAlertApiClient = createPetAlertApiClient(getBrowserSupabaseClient(), {
-      sanitizedCommunityPhotos: process.env.NEXT_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true"
+      sanitizedCommunityPhotos: process.env.NEXT_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true",
+      publicMediaGatewayUrl: process.env.NEXT_PUBLIC_PET_ALERT_READY_MEDIA === "true" ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/pet-alert-public-photo` : undefined
     });
   }
 

@@ -157,7 +157,7 @@ Deno.test("external upload handler: only sanitized bytes reach storage", async (
         });
         assert.equal(
           calls.filter((url) => url.includes("/storage/")).length,
-          1,
+          2,
         );
       },
     );

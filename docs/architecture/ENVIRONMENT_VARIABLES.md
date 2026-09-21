@@ -1,5 +1,13 @@
 # ENVIRONMENT_VARIABLES.md
 
+## Lectura ready y consentimiento (Foundation-1C.3d)
+
+- EXPO_PUBLIC_PET_ALERT_READY_MEDIA=false: gateway y consentimiento Owner mobile.
+- NEXT_PUBLIC_PET_ALERT_READY_MEDIA=false: gateway de lectura web/admin.
+- PET_ALERT_PUBLIC_MEDIA_ENABLED=false: secreto servidor del gateway publico.
+- Ademas se requiere corte DB ready_only y endpoints variantes coordinados;
+  un flag no aplica migraciones ni convierte fotos. [Orden y riesgos](../pet-sos/FOUNDATION_1C_READY_MEDIA.md).
+
 ## Derivados Owner SOS (Foundation-1C.3c)
 
 `PET_ALERT_OWNER_DERIVATIVES_ENABLED=false`: exclusivamente servidor Edge

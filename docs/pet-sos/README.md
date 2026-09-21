@@ -1,5 +1,11 @@
 # Pet Ecosystem SOS: evolucion de Pet Alert
 
+Actualizacion 2026-09-21: 1C.3b/c publicados en `3bbef94`.
+[1C.3d](FOUNDATION_1C_READY_MEDIA.md) implementado local/desactivado: lectura segura,
+consentimiento Owner, herramientas de conversion y limpieza revisadas. Ejecucion
+real, QA y rollout pendientes; NO cierre operativo ni app independiente nueva.
+Nombre de producto: Pet Ecosystem SOS.
+
 Fecha: 2026-09-20. Baseline: `7c9fabb` mas cambios locales documentados en HANDOFF.
 Estado: primera entrega de arquitectura; Foundation-1A aplicada remoto el 2026-09-20.
 Implementacion incremental, NO lanzamiento de SOS.

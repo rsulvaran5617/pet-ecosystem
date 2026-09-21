@@ -1,5 +1,9 @@
 # Foundation-1C.3c: derivados privados del avatar Owner
 
+Continuidad: [1C.3d](FOUNDATION_1C_READY_MEDIA.md) agrega localmente la proyeccion
+controlada y consentimiento UI. Este documento conserva el alcance original 1C.3c;
+no se aplicaron migraciones ni se activo la nueva ruta.
+
 2026-09-21. Implementacion local, desactivada. No migracion remota, despliegue,
 publicacion mobile ni cambio de UI. Complementa [medios](FOUNDATION_1C_MEDIA.md).
 

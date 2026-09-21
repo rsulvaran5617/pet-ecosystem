@@ -1,5 +1,30 @@
 # PET ALERT API Contract
 
+## Foundation-1C.3d local
+
+- GET pet-alert-public-photo?path=... devuelve JPEG solo si resolver service_role
+  acredita derivado ready publico; revalida despues de descargar. 404 para privado,
+  no existente o error, no-store; sin firmas permanentes ni original como fallback.
+- Proyecciones conservan DTO legacy, filtran ready con modo estricto. Las firmas
+  directas publicas nuevas se bloquean en Storage al activar el corte.
+- publish_pet_alert_lost_pet_safe(alertId, include_profile_photo) requiere sesion,
+  permiso y modo estricto; choice persiste y se respeta en rollback. API compartida
+  publishPetAlertLostPetSafely prepara antes cuando se consiente, sin publicar si falla.
+- set_pet_sos_ready_media_only, inspect_pet_sos_media_rollout,
+  list_pet_sos_orphan_media_candidates y resolve_pet_sos_public_photo solo service_role.
+  Inventario no ejecuta backfill ni borrado. [Detalles](../pet-sos/FOUNDATION_1C_READY_MEDIA.md).
+- set_pet_sos_owner_photo_choice(target_alert, include_photo): authenticated,
+  solo alerta Owner operativa/compartible, permisos alerta+Pet, modo estricto.
+  Include requiere derivado vigente; exclude invalida preparacion y persiste para
+  rollback. Cliente setPetAlertOwnerPhotoChoice prepara solo con consentimiento true.
+- Mantenimiento service_role exclusivo: list_pet_sos_backfill_candidates(limit),
+  prepare_pet_sos_media_backfill(kind,media), finalize_pet_sos_media_backfill(job,size),
+  abort_pet_sos_media_backfill(job), claim_pet_sos_orphan(object,updated_at) y
+  finish_pet_sos_orphan_cleanup(tombstone). Sin ruta HTTP publica ni acceso en apps.
+  Kind solo community/external, IDs no rutas del caller; snapshots revalidados,
+  original conservado y estado administrativo intacto. Tombstone antes de DELETE
+  Storage; confirmacion exige ausencia real. Instalacion SQL no ejecuta operaciones.
+
 ## Foundation-1C.3a local (2026-09-21)
 
 Edge externo conserva payload/response de alta y pending_review. Handler local

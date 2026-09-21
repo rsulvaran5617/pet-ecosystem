@@ -300,6 +300,8 @@ export interface PetAlertApiClient {
   listPetAlertLostPetsForPet(petId: Uuid): Promise<PetAlertLostPet[]>;
   listActivePetAlertLostPetsForHousehold(householdId: Uuid): Promise<PetAlertLostPet[]>;
   publishPetAlertLostPet(alertId: Uuid): Promise<PetAlertLostPet>;
+  publishPetAlertLostPetSafely(alertId: Uuid, photoConsent: boolean): Promise<PetAlertLostPet>;
+  setPetAlertOwnerPhotoChoice(alertId: Uuid, photoConsent: boolean): Promise<void>;
   updatePetAlertLostPet(alertId: Uuid, input: UpdatePetAlertLostPetInput): Promise<PetAlertLostPet>;
   closePetAlertLostPet(alertId: Uuid, reason: PetAlertCloseReason): Promise<PetAlertLostPet>;
   markPetAlertLostPetFound(alertId: Uuid, source: "pet_alert" | "other"): Promise<PetAlertLostPet>;
@@ -561,9 +563,21 @@ function mapPublicDirectoryEvent(row: PublicDirectoryRow): PublicPetAlertDirecto
   };
 }
 
-async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | PublicPetAlertCommunitySighting>(
+async function publicPhotoUrl(supabase: PetAlertSupabaseClient, bucket: string, path: string, gatewayUrl?: string): Promise<string | null> {
+  if (gatewayUrl) {
+    if (bucket !== "pet-alert-media") return null;
+    const url = new URL(gatewayUrl);
+    url.searchParams.set("path", path);
+    return url.toString();
+  }
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 15);
+  return error || !data?.signedUrl ? null : data.signedUrl;
+}
+
+async function loadCommunityPhotos<T extends PetAlertCommunitySighting | PublicPetAlertCommunitySighting>(
   supabase: PetAlertSupabaseClient,
-  reports: T[]
+  reports: T[],
+  gatewayUrl?: string
 ): Promise<T[]> {
   const reportSlugs = reports.map((report) => report.reportSlug);
   if (!reportSlugs.length) return reports;
@@ -575,10 +589,8 @@ async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | Pu
 
   const urlsBySlug = new Map<string, string[]>();
   const signedMedia = await Promise.all(((data ?? []) as CommunityMediaRow[]).map(async (media) => {
-    const { data: signed, error: signedError } = await supabase.storage
-      .from(media.storage_bucket)
-      .createSignedUrl(media.storage_path, 60 * 15);
-    return signedError || !signed?.signedUrl ? null : { reportSlug: media.report_slug, url: signed.signedUrl };
+    const url = await publicPhotoUrl(supabase, media.storage_bucket, media.storage_path, gatewayUrl);
+    return url ? { reportSlug: media.report_slug, url } : null;
   }));
   signedMedia.forEach((media) => {
     if (media) urlsBySlug.set(media.reportSlug, [...(urlsBySlug.get(media.reportSlug) ?? []), media.url]);
@@ -587,9 +599,10 @@ async function attachCommunityPhotoUrls<T extends PetAlertCommunitySighting | Pu
   return reports.map((report) => ({ ...report, photoUrls: urlsBySlug.get(report.reportSlug) ?? [] }));
 }
 
-async function getPublicLostPetPhotoUrlMap(
+async function loadLostPetPhotoMap(
   supabase: PetAlertSupabaseClient,
-  alertSlugs: string[]
+  alertSlugs: string[],
+  gatewayUrl?: string
 ): Promise<Map<string, string>> {
   if (!alertSlugs.length) return new Map();
   const { data, error } = await supabase.rpc("list_public_pet_alert_lost_pet_media", {
@@ -598,10 +611,8 @@ async function getPublicLostPetPhotoUrlMap(
   if (error) fail(error, "No fue posible cargar las fotos de las mascotas extraviadas.");
 
   const signedRows = await Promise.all(((data ?? []) as PublicLostPetMediaRow[]).map(async (media) => {
-    const { data: signed, error: signedError } = await supabase.storage
-      .from(media.storage_bucket)
-      .createSignedUrl(media.storage_path, 60 * 15);
-    return signedError || !signed?.signedUrl ? null : [media.alert_slug, signed.signedUrl] as const;
+    const url = await publicPhotoUrl(supabase, media.storage_bucket, media.storage_path, gatewayUrl);
+    return url ? [media.alert_slug, url] as const : null;
   }));
   return new Map(signedRows.filter((entry): entry is readonly [string, string] => entry !== null));
 }
@@ -673,15 +684,35 @@ function alertArgs(input: CreatePetAlertLostPetInput | UpdatePetAlertLostPetInpu
   };
 }
 
-export function createPetAlertApiClient(supabase: PetAlertSupabaseClient, options: { sanitizedCommunityPhotos?: boolean } = {}): PetAlertApiClient {
-  return {
-    async preparePetAlertOwnerPhoto(input) {
+export function createPetAlertApiClient(supabase: PetAlertSupabaseClient, options: { sanitizedCommunityPhotos?: boolean; publicMediaGatewayUrl?: string } = {}): PetAlertApiClient {
+  const attachCommunityPhotoUrls = <T extends PetAlertCommunitySighting | PublicPetAlertCommunitySighting>(client: PetAlertSupabaseClient, reports: T[]) => loadCommunityPhotos(client, reports, options.publicMediaGatewayUrl);
+  const getPublicLostPetPhotoUrlMap = (client: PetAlertSupabaseClient, slugs: string[]) => loadLostPetPhotoMap(client, slugs, options.publicMediaGatewayUrl);
+  async function prepareOwnerPhoto(input: PreparePetAlertOwnerPhotoInput): Promise<PetAlertOwnerPhotoPreparation> {
       if (input.photoConsent !== true) throw new Error("Autoriza el uso de la foto para esta alerta.");
       const { data, error } = await supabase.functions.invoke("pet-alert-owner-photo", {
         body: { alertId: input.alertId, photoConsent: true }
       });
       if (error || data?.status !== "ready") throw new Error("No fue posible preparar la foto de la alerta. Intenta nuevamente.");
       return { status: "ready" };
+  }
+  return {
+    preparePetAlertOwnerPhoto: prepareOwnerPhoto,
+    async setPetAlertOwnerPhotoChoice(alertId, photoConsent) {
+      if (typeof photoConsent !== "boolean") throw new Error("Confirma si deseas publicar la foto de perfil.");
+      const { data: enabled, error: modeError } = await supabase.rpc("pet_sos_ready_media_only");
+      if (modeError || enabled !== true) throw new Error("La publicacion segura de fotos aun no esta habilitada.");
+      if (photoConsent) await prepareOwnerPhoto({ alertId, photoConsent: true });
+      const { error } = await supabase.rpc("set_pet_sos_owner_photo_choice", { target_alert: alertId, include_photo: photoConsent });
+      if (error) fail(error, "No fue posible actualizar la foto del boletin.");
+    },
+    async publishPetAlertLostPetSafely(alertId, photoConsent) {
+      if (typeof photoConsent !== "boolean") throw new Error("Confirma si deseas publicar la foto de perfil.");
+      const { data: enabled, error: modeError } = await supabase.rpc("pet_sos_ready_media_only");
+      if (modeError || enabled !== true) throw new Error("La publicacion segura de fotos aun no esta habilitada. Tu borrador se conserva.");
+      if (photoConsent) await prepareOwnerPhoto({ alertId, photoConsent: true });
+      const { data, error } = await supabase.rpc("publish_pet_alert_lost_pet_safe", { target_alert_id: alertId, include_profile_photo: photoConsent });
+      if (error || !data) fail(error, "No fue posible publicar la alerta. Tu borrador se conserva.");
+      return mapAlert(data as LostPetAlertRow);
     },
     async createPetAlertLostPet(input) {
       const { data, error } = await supabase.rpc("create_pet_alert_lost_pet", {

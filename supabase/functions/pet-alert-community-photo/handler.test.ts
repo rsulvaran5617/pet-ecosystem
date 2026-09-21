@@ -35,6 +35,9 @@ Deno.test("community upload authorization, sanitation and safe retries", async (
     const req = new Request(input, init);
     const url = new URL(req.url);
     calls.push(`${req.method} ${url.pathname}`);
+    if (url.pathname.endsWith("/pet_sos_ready_media_only")) {
+      return Response.json(mode === "strict");
+    }
     if (url.pathname === "/auth/v1/user") {
       return mode === "bad-jwt"
         ? Response.json({ message: "Invalid" }, { status: 401 })
@@ -94,6 +97,13 @@ Deno.test("community upload authorization, sanitation and safe retries", async (
       body: Uint8Array.from(body),
     });
   try {
+    await suite.step("strict mode never issues a signed storage URL", async () => {
+      mode = "strict"; calls.length = 0;
+      const response = await handleCommunityPhotoRequest(request());
+      assert.equal(response.status, 200);
+      assert.match((await response.json()).signedUrl, /functions\/v1\/pet-alert-public-photo/);
+      assert.ok(!calls.some((call) => call.includes("/object/sign/")));
+    });
     for (
       const testMode of [
         "bad-jwt",

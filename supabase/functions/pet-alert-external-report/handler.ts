@@ -257,11 +257,11 @@ async function submitReport(request: Request, origin: string) {
   if (consumeError || !reporterId) return json(origin, { ok: false, message: "El codigo no es valido o ya vencio." }, 400);
 
   // Verify the actor before expensive decoding; finish every photo before creating the alert.
-  const sanitizedPhotos: Uint8Array[] = [];
+  const sanitizedPhotos: Awaited<ReturnType<typeof sanitizePetAlertPhoto>>[] = [];
   try {
     for (const file of files) {
       const photo = await sanitizePetAlertPhoto(new Uint8Array(await file.arrayBuffer()), file.type);
-      sanitizedPhotos.push(photo.display);
+      sanitizedPhotos.push(photo);
     }
   } catch (error) {
     if (error instanceof PetAlertPhotoError) {
@@ -313,13 +313,19 @@ async function submitReport(request: Request, origin: string) {
   try {
     for (const [index, photo] of sanitizedPhotos.entries()) {
       const path = `external/${reporterId}/${alert.id}/${String(index + 1).padStart(2, "0")}-${crypto.randomUUID()}.jpg`;
-      const { error: uploadError } = await supabase.storage.from("pet-alert-media").upload(path, photo, { contentType: "image/jpeg", upsert: false });
+      const { error: uploadError } = await supabase.storage.from("pet-alert-media").upload(path, photo.display, { contentType: "image/jpeg", upsert: false });
       if (uploadError) throw uploadError;
       uploadedPaths.push(path);
+      const thumbnailPath = `${path}.thumb.jpg`;
+      const { error: thumbnailError } = await supabase.storage.from("pet-alert-media").upload(thumbnailPath, photo.thumbnail, { contentType: "image/jpeg", upsert: false });
+      if (thumbnailError) throw thumbnailError;
+      uploadedPaths.push(thumbnailPath);
       const { error: mediaError } = await supabase.from("pet_alert_media").insert({
         lost_pet_alert_id: alert.id,
         storage_bucket: "pet-alert-media",
         storage_path: path,
+        thumbnail_path: thumbnailPath,
+        processing_version: "sos-v1",
         media_type: "image/jpeg",
         visibility: "public",
         created_by_user_id: null

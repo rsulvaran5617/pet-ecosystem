@@ -1,5 +1,23 @@
 # HANDOFF.md
 
+# Handoff 2026-09-21 - 1C.3d implementacion local completada, operacion pendiente
+
+- Usuario pidio cerrar 1C.3d y confirmo que NO tiene Supabase de pruebas ni cuentas QA. No usar produccion como laboratorio ni marcar cierre operativo aprobado.
+- Agregados migracion local 20260921180000 y runner Deno supabase/scripts/pet-sos-media-maintenance.ts: backfill community/external con snapshot/lease/codec/finalizacion; conserva originales y moderacion. Owner excluido de conversion masiva.
+- Limpieza selectiva TTL 24h + ID/version + referencias + tombstone permanente + triggers/advisory lock; DELETE via API Storage, confirmacion posterior auditada. Sin apply por defecto, proyecto e ID revisados explicitos; nada ejecutado remoto. Conserva fuentes historicas y pet-avatars.
+- Owner mobile puede autorizar/retirar foto de alertas ya publicadas mediante confirmacion explicita y nueva RPC autorizada. Sigue tras flag apagado. Preparacion no crea otra alerta.
+- Canon y comandos: docs/pet-sos/FOUNDATION_1C_READY_MEDIA.md. Evidencia local: docs/audit/2026-09-21-sos-ready-media/VALIDATION.md. No declarar pruebas nativas, concurrencia real ni RLS alojada cubiertas por mocks/PGlite.
+- No commit/push, migraciones remotas, fotos reales, deploy, APK/IPA ni activacion. Preservar cambios ajenos y cron booking diferido. Siguiente: preparar entorno QA y aprobar rollout coordinado; no abrir otro slice como si el cierre operativo estuviera hecho.
+
+# Handoff 2026-09-21 - 1C.3b/c publicados; nucleo 1C.3d local
+
+- Usuario pidio commit/push y despues 1C.3d. Publicado `3bbef94` en origin/master, 30 archivos de 1C.3b/c. Git HEAD/origin sincronizados 0/0. Handoff y modulo tuvieron staging parcial para excluir cambios ajenos de releases/MAP-7.
+- Trabajo posterior 1C.3d SIN commit/push: canon docs/pet-sos/FOUNDATION_1C_READY_MEDIA.md. Migracion 20260921160000 local, ready_only=false. Lecturas ready, gateway publico revocable por consulta, variantes comunitarias/externas, consentimiento Owner mobile tras flag y publicacion segura conservando borrador.
+- Gateway no firma originales, revalida visibilidad antes/despues de download, no-store; modo estricto bloquea firmas directas Storage nuevas. URLs firmadas previas NO se invalidan por RLS; fotos descargadas no se recuperan. owner_photo_choice include/exclude impide exponer original al rollback.
+- Inventario/TTL candidatos mayores de 24h solo lectura; runner --dry-run no se ejecuto remoto. Backfill historico y limpieza efectiva siguen sin implementar/ejecutar: no marcar 1C.3d ni Foundation cerrados. Falta QA alojada/concurrencia/dispositivos y adopcion antes de activar.
+- No migracion remota, deploy, APK/IPA, distribucion ni cron. Preservar diffs ajenos y archivos excluidos; no versionar onlyoneaccess.txt ni app.json raiz.
+- Nombre de producto segun canon: Pet Ecosystem SOS, modulo/evolucion de PET ALERT dentro de Pet Ecosystem y web /pet-alert, NO otra app instalable. Entrada descriptiva propuesta: Mascotas perdidas y encontradas. No rebranding aplicado.
+
 # Handoff 2026-09-21 - Foundation-1C.3c local, NO activado
 
 - Canon: docs/pet-sos/FOUNDATION_1C_OWNER_MEDIA.md. Endpoint pet-alert-owner-photo y metodo API preparePetAlertOwnerPhoto preparan display/thumbnail saneados por alerta con consentimiento explicito. No UI conectada ni publicacion automatica.

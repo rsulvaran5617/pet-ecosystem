@@ -1,5 +1,15 @@
 # Modulo PET ALERT
 
+## Foundation-1C.3d (nucleo local, no activado)
+
+[Canon](../pet-sos/FOUNDATION_1C_READY_MEDIA.md): gateway publico de fotos listas,
+metadata de variantes, corte Storage controlado y consentimiento Owner mobile.
+Flags false, migraciones locales no aplicadas. Conversion/limpieza controladas ya
+implementadas con runner operativo opt-in, no ejecutadas en remoto; consentimiento
+Owner tambien disponible para alertas publicadas. Implementacion local completa;
+cierre operativo/QA real pendientes, sin entorno de pruebas disponible.
+No rebranding ni app separada.
+
 ## Foundation-1C.3c (2026-09-21, local)
 
 [Derivados privados Owner](../pet-sos/FOUNDATION_1C_OWNER_MEDIA.md) preparados por

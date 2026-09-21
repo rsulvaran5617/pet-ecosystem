@@ -12,6 +12,7 @@ const ERRORS: Record<string, number> = {
   PET_ALERT_PHOTO_BUSY: 409,
   PET_ALERT_PHOTO_SLOT_TAKEN: 409,
   PET_ALERT_PHOTO_STALE: 409,
+  PET_ALERT_PHOTO_NOT_READY: 409,
   PET_ALERT_PHOTO_REMOVED: 409,
   PET_ALERT_REPORT_NOT_AVAILABLE: 409,
   PET_ALERT_RATE_LIMITED: 429,
@@ -146,6 +147,12 @@ export async function handleCommunityPhotoRequest(
         { contentType: photo.mimeType, upsert: false },
       );
       if (uploadError) throw uploadError;
+      const { error: thumbnailError } = await bucket.upload(
+        `${job.storage_path}.thumb.jpg`,
+        photo.thumbnail,
+        { contentType: photo.mimeType, upsert: false },
+      );
+      if (thumbnailError) throw thumbnailError;
       const { error: finalizeError } = await client.rpc(
         "finalize_pet_alert_community_photo",
         {
@@ -156,6 +163,19 @@ export async function handleCommunityPhotoRequest(
         },
       );
       if (finalizeError) throw finalizeError;
+    }
+    const { data: strict, error: modeError } = await client.rpc(
+      "pet_sos_ready_media_only",
+    );
+    if (modeError || typeof strict !== "boolean") {
+      throw new Error("Media mode unavailable");
+    }
+    if (strict) {
+      const publicUrl = new URL(
+        `${url.replace(/\/$/, "")}/functions/v1/pet-alert-public-photo`,
+      );
+      publicUrl.searchParams.set("path", job.storage_path);
+      return respond({ signedUrl: publicUrl.toString() });
     }
     const { data: signed, error: signError } = await bucket.createSignedUrl(
       job.storage_path,
@@ -176,7 +196,10 @@ export async function handleCommunityPhotoRequest(
         );
         // An uncertain finalization/abort is not permission to delete a published image.
         if (!abortError && removable === job.storage_path) {
-          await client.storage.from("pet-alert-media").remove([removable]);
+          await client.storage.from("pet-alert-media").remove([
+            removable,
+            `${removable}.thumb.jpg`,
+          ]);
         }
       } catch {
         /* Reconcile private orphans in the subsequent cleanup slice. */

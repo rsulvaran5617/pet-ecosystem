@@ -28,10 +28,15 @@ declare const process:
       EXPO_PUBLIC_SUPABASE_URL?: string;
       EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
       EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS?: string;
+      EXPO_PUBLIC_PET_ALERT_READY_MEDIA?: string;
     };
   };
 
 let mobileSupabaseClient: ReturnType<typeof createClient<Database>> | null = null;
+
+export function isPetAlertReadyMediaEnabled() {
+  return process.env.EXPO_PUBLIC_PET_ALERT_READY_MEDIA === "true";
+}
 let mobileCoreApiClient: ReturnType<typeof createCoreApiClient> | null = null;
 let mobileFosterApiClient: ReturnType<typeof createFosterApiClient> | null = null;
 let mobileBookingsApiClient: ReturnType<typeof createBookingsApiClient> | null = null;
@@ -255,7 +260,8 @@ export function getMobileClinicalAccessApiClient() {
 export function getMobilePetAlertApiClient() {
   if (!mobilePetAlertApiClient) {
     mobilePetAlertApiClient = createPetAlertApiClient(getMobileSupabaseClient(), {
-      sanitizedCommunityPhotos: process.env.EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true"
+      sanitizedCommunityPhotos: process.env.EXPO_PUBLIC_PET_ALERT_SANITIZED_UPLOADS === "true",
+      publicMediaGatewayUrl: isPetAlertReadyMediaEnabled() ? `${getEnvValue("EXPO_PUBLIC_SUPABASE_URL")}/functions/v1/pet-alert-public-photo` : undefined
     });
   }
 

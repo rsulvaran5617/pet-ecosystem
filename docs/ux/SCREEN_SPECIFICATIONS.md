@@ -1,5 +1,20 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Owner PET ALERT: consentimiento de foto (1C.3d local)
+
+Tras EXPO_PUBLIC_PET_ALERT_READY_MEDIA, el paso Revisar muestra switch sin marcar
+"Publicar la foto de perfil de mi mascota" cuando existe avatar. Consentimiento
+se reinicia al cambiar mascota/foto. Publicar prepara la copia segura o publica sin
+foto segun decision; un fallo conserva el borrador y su ID para reintentar.
+El backend debe estar en modo estricto: no se vuelve al original ni a publicacion
+legacy si falla. Feature apagada; QA visual/nativa pendiente. [Canon](../pet-sos/FOUNDATION_1C_READY_MEDIA.md).
+
+En alertas publicadas operativas, el mismo flag habilita Foto del boletin:
+Publicar foto actual (con avatar) y Retirar foto. Ambas requieren confirmacion,
+se deshabilitan durante envio y no cambian el estado de la alerta. Retirada
+advierte que no puede recuperar copias ya descargadas. No infiere consentimiento
+de alertas antiguas ni cambia el avatar privado.
+
 ## Estado de productizacion UX
 
 La fase UX por rol queda `cerrada` sobre el MVP existente.
