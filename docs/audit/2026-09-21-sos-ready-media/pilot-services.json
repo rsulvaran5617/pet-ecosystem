@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-09-22T14:40:20.059Z",
+  "projectMatchesApp": true,
+  "secretNamesConfigured": [
+    "RESEND_API_KEY",
+    "PET_ALERT_FROM_EMAIL",
+    "PET_ALERT_TURNSTILE_SECRET_KEY",
+    "PET_ALERT_ALLOWED_ORIGINS",
+    "PET_ALERT_OTP_PEPPER"
+  ],
+  "allNamesPresent": true,
+  "existingOtpPepperPreserved": false,
+  "emailSent": false,
+  "photoRolloutActivated": false,
+  "webDeployed": false,
+  "turnstileProbe": "invalid-input-response, real browser verification pending",
+  "supabaseAuth": "Email enabled, Resend SMTP configured; user confirmed signup and login"
+}

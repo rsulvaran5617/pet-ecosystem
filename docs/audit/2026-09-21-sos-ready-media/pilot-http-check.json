@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-09-26T19:00:36.498Z",
+  "results": [
+    {
+      "id": "owner-disabled",
+      "expected": 503,
+      "observed": 503,
+      "passed": true
+    },
+    {
+      "id": "community-anonymous-denied",
+      "expected": 401,
+      "observed": 401,
+      "passed": true
+    },
+    {
+      "id": "external-foreign-origin-denied",
+      "expected": 403,
+      "observed": 403,
+      "passed": true
+    },
+    {
+      "id": "external-preflight",
+      "expected": 200,
+      "observed": 200,
+      "passed": true
+    },
+    {
+      "id": "external-invalid-input",
+      "expected": 400,
+      "observed": 400,
+      "passed": true
+    },
+    {
+      "id": "external-missing-captcha",
+      "expected": 400,
+      "observed": 400,
+      "passed": true
+    },
+    {
+      "id": "gateway-invalid-path",
+      "expected": 404,
+      "observed": 404,
+      "passed": true
+    }
+  ],
+  "allPassed": true,
+  "emailSent": false,
+  "reportCreated": false,
+  "imageProcessingTested": false,
+  "realCaptchaTested": false
+}

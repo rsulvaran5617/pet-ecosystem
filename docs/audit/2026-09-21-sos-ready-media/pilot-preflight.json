@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-09-26T18:59:51.432Z",
+  "projectMatchesApp": true,
+  "functions": [
+    {
+      "slug": "pet-alert-public-photo",
+      "version": 2,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    },
+    {
+      "slug": "pet-alert-owner-photo",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    },
+    {
+      "slug": "pet-alert-community-photo",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    },
+    {
+      "slug": "pet-alert-external-report",
+      "version": 1,
+      "status": "ACTIVE",
+      "verify_jwt": false
+    }
+  ],
+  "configuredSecretNames": [
+    "SUPABASE_DB_URL",
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_PUBLISHABLE_KEYS",
+    "SUPABASE_SECRET_KEYS",
+    "SUPABASE_JWKS",
+    "RESEND_API_KEY",
+    "PET_ALERT_FROM_EMAIL",
+    "PET_ALERT_TURNSTILE_SECRET_KEY",
+    "PET_ALERT_ALLOWED_ORIGINS",
+    "PET_ALERT_OTP_PEPPER"
+  ],
+  "managedBackupCount": 0,
+  "pitrEnabled": false,
+  "database": [
+    {
+      "ready_only": false,
+      "alerts": 1,
+      "community_reports": 0,
+      "photo_objects": 31
+    }
+  ],
+  "gateway": [
+    {
+      "method": "GET",
+      "status": 404,
+      "cacheControl": "no-store, max-age=0",
+      "bodyBytes": 0
+    },
+    {
+      "method": "POST",
+      "status": 405,
+      "cacheControl": "no-store, max-age=0",
+      "bodyBytes": 0
+    }
+  ]
+}

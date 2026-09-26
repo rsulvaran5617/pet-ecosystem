@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+## Handoff 2026-09-26 - Servicios SOS desplegados; activacion web bloqueada
+
+- Supersede el bloqueo de runtime del 21/09: Docker runtime v1.74.3 descargado; Owner, Community y External desplegados v1 ACTIVE con WASM. Gateway existente v2 conservado.
+- Resend/Turnstile configurados en secretos; usuario confirmo registro, codigo y login Auth. Esto no acredita OTP/CAPTCHA del reporte externo.
+- Pruebas Deno: 5 tests/44 pasos PASS. Checks HTTP alojados: 7/7 PASS, solo fronteras negativas; sin correos, reportes ni procesamiento remoto real de fotos.
+- Web candidata d646476 compilada en /var/www/pet-releases/sos-services-d646476, build nOz0xh6TKi0JVHOZnHY03, PM2 pet-sos-web-candidate puerto 3074. Seis rutas HTTP 200 y Site Key incluida. No secretos de servidor en cliente.
+- Activacion rechazada por politica de herramienta antes de ejecutar. Web/Admin siguen en /var/www/pet-releases/sync-7c9fabb; activation.json no existia en la inspeccion. No afirmar publicado. Candidata permanece online para retomarla; no duplicar procesos.
+- ready_only y flags nuevos de fotos false; una alerta activa y 31 fotos preservadas. Sin migracion, limpieza, nuevas betas ni commit/push.
+- Siguiente: activacion autorizada por operador, verificar HTTPS/build y guardar PM2; despues QA manual CAPTCHA, OTP y foto hacia moderacion. No activar corte global ni borrar originales.
+
 # Handoff 2026-09-21 - 1C.3d implementacion local completada, operacion pendiente
 
 - Usuario pidio cerrar 1C.3d y confirmo que NO tiene Supabase de pruebas ni cuentas QA. No usar produccion como laboratorio ni marcar cierre operativo aprobado.
