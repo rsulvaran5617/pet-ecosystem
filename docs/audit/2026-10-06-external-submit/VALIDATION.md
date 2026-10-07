@@ -1,5 +1,18 @@
 # Envío externo tras OTP — corrección 2026-10-06
 
+## Cierre posterior de la prueba y publicación Git
+
+Las notas de pendiente al final de este registro describen el momento del despliegue.
+Posteriormente el usuario mostró **Reporte recibido** y confirmó la publicación
+desde administración. Baykey se retiró con autorización explícita: estado closed,
+share_enabled=false, historial conservado y motivo de fin de prueba. La consulta
+pública de detalle devolvió cero filas. Ver [baykey-closure.json](baykey-closure.json).
+No se implementó un botón de retiro: sigue pendiente para alertas aprobadas sin caso
+de moderación. El cierre se hizo mediante transacción administrativa puntual.
+
+Correcciones y evidencia textual publicadas en origin/master, commit `2ea0d93`.
+Estado completo para continuar: [HANDOFF_NUEVO_HILO.md](../../HANDOFF_NUEVO_HILO.md).
+
 ## Incidente observado
 
 Usuario reportó retorno repetido al formulario sin recibo. Logs alojados:
