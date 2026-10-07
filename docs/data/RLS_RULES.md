@@ -1,5 +1,14 @@
 # RLS_RULES.md
 
+## Alta externa PET ALERT — correcciones 2026-10-06
+
+20261007021000 revoca PUBLIC/anon/authenticated de create_external_pet_alert_report;
+solo service_role conserva EXECUTE y el guard JWT rechaza NULL. Crypto se resuelve
+explícitamente en extensions sin ampliar search_path. 20261007021500 revoca anon
+del setter set_pet_alert_lost_pet_location; conserva authenticated/service_role y
+validación por recurso con jwt_role no ambiguo e IS NOT TRUE. Sin nuevas policies
+de tablas/Storage. Ver auditoría 2026-10-06-external-submit para pruebas y límites.
+
 ## Revalidacion clinica H01-H03 — 2026-09-17
 
 La migracion `20260918010000_clinical_write_authorization_revalidation.sql`, aplicada remotamente, agrega un guard privado para escrituras clinicas. No concede DML directo ni nuevas capacidades de lectura. La policy de INSERT de `clinical-documents` conserva el helper aislado por bucket; rechaza otros buckets sin consultar metadata clinica y no permite usar `target_user_id` para suplantar al actor autenticado. Subida y finalizacion revalidan profesional, consentimiento, grant, scopes y hogar actual. El helper transaccional interno no tiene EXECUTE para public/anon/authenticated; solo lo invocan las funciones autorizadas SECURITY DEFINER.

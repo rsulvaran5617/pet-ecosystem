@@ -1,5 +1,21 @@
 # SCREEN_SPECIFICATIONS.md
 
+## PET ALERT externo — errores de envío (2026-10-06)
+
+El paso Revisar muestra errores junto al botón de envío como alerta enfocada para
+evitar que queden fuera del viewport. OTP inválido/usado/vencido indica corregirlo
+o solicitar otro sin abandonar formulario. Éxito muestra Reporte recibido,
+referencia y código privado; mantiene estado pendiente de revisión, no publicación.
+
+## PET ALERT externo — reenvío OTP (2026-10-06)
+
+En `Revisar`, después de solicitar el código aparecen el campo OTP y `Solicitar
+otro código`. El reenvío conserva los datos/fotos y requiere CAPTCHA renovado.
+El vencimiento según expiresAt muestra aviso y deshabilita enviar reporte con ese
+código. Reenvío exitoso limpia OTP; rechazo/límite informa sin perder formulario.
+Cambiar correo reinicia el challenge; navegar atrás/adelante recrea CAPTCHA.
+No prometer entrega al buzón por aceptación del proveedor de correo.
+
 ## Owner PET ALERT: consentimiento de foto (1C.3d local)
 
 Tras EXPO_PUBLIC_PET_ALERT_READY_MEDIA, el paso Revisar muestra switch sin marcar

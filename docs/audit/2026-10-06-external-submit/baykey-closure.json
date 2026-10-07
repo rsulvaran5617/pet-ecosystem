@@ -1,0 +1,18 @@
+{
+  "executedAt": "2026-10-07T02:12:23.855Z",
+  "operation": "User-authorized test alert closure; no deletion, no user impersonation",
+  "result": [
+    {
+      "alert_slug": "baykey-aabb62669cd9",
+      "status": "closed",
+      "share_enabled": false,
+      "closed_at": "2026-10-07 02:12:20.874267+00",
+      "close_reason": "closed_not_found"
+    }
+  ],
+  "verification": [
+    {
+      "public_detail_rows": 0
+    }
+  ]
+}

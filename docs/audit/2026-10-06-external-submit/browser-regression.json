@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-07T01:59:11.648Z",
+  "checks": [
+    "Initial send requires CAPTCHA",
+    "Used CAPTCHA reset after send",
+    "Server expiry disables report submission",
+    "Resend renews challenge and preserves form/photo",
+    "Rate-limit response shows actionable message and resets CAPTCHA",
+    "Successful resend clears previous OTP",
+    "Back/forward remounts CAPTCHA with fresh verification",
+    "Email change clears old challenge",
+    "Consumed code error visible and focused in review, no automatic retry",
+    "Successful submission reaches receipt with reference and pending review"
+  ],
+  "remoteMutations": false,
+  "passed": true
+}

@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-10-07T02:00:11.973Z",
+  "buildId": "fdNaUPq3fT3KEH4MgdGuO",
+  "target": "/var/www/pet-releases/external-submit-20261007",
+  "rollback": "/var/www/pet-releases/otp-resend-20261007",
+  "publicKeyInClient": true,
+  "environmentUnchanged": true,
+  "checks": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/app",
+      "status": 200
+    },
+    {
+      "route": "/foster",
+      "status": 200
+    },
+    {
+      "route": "/ayuda",
+      "status": 200
+    },
+    {
+      "route": "/beta",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert/reportar-mi-mascota",
+      "status": 200
+    }
+  ],
+  "activated": true,
+  "activatedAt": "2026-10-07T02:00:16.863Z",
+  "httpsMatchesCandidate": true,
+  "adminUnchanged": true
+}

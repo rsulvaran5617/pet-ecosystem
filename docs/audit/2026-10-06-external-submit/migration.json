@@ -1,0 +1,17 @@
+{
+  "appliedAt": "2026-10-07T01:55:38.859Z",
+  "migration": "20261007021000",
+  "sha256": "19b8ab8671618aaf852289e35984024ad89957f8a4c85c56b16424a755df8a0a",
+  "candidateRolledBack": true,
+  "postApplyTransactionalFixture": "PASS",
+  "verification": [
+    {
+      "qualified_crypto": true,
+      "null_safe": true,
+      "anon_execute": false,
+      "authenticated_execute": false,
+      "service_execute": true
+    }
+  ],
+  "userAlertsMutated": false
+}

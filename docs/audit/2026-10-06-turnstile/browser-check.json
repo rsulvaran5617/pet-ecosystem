@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-07T01:21:38.360Z",
+  "emailSent": false,
+  "reportSubmitted": false,
+  "review": {
+    "missingConfiguration": false,
+    "turnstileLoaded": true,
+    "widgetContainers": 1,
+    "tokenFieldPresent": true,
+    "requestCodeEnabled": false
+  },
+  "challengeFramePresent": false,
+  "runtimeErrorCount": 0,
+  "consoleErrorCount": 0,
+  "passed": true
+}

@@ -1,5 +1,29 @@
 # PET ALERT 8 - Reporte externo de mascota extraviada
 
+## Corrección de envío después del OTP — 2026-10-06
+
+Aplicadas 20261007021000 y 20261007021500: creación usa extensions.gen_random_bytes;
+setter de ubicación usa jwt_role sin colisión SQL CURRENT_ROLE. Creación restringida
+a service_role; ubicación conserva authenticated autorizado y service_role, sin anon;
+ambos guards fallan cerrados ante rol nulo. Firmas y modelo conservados.
+Web muestra error en el paso Revisar con foco y explica que OTP puede estar usado.
+El OTP se consume antes del procesamiento: un fallo posterior requiere código nuevo;
+no se implementa aquí recuperación idempotente global del reporte.
+[Evidencia y límites](../audit/2026-10-06-external-submit/VALIDATION.md).
+
+## Corrección web OTP — 2026-10-06
+
+Paso 4 permite `Solicitar otro código` tras el primer envío, sin perder formulario,
+ubicación ni fotos. Usa el mismo endpoint y exige CAPTCHA vigente en cada intento;
+no amplía límites servidor ni invalida challenges antiguos globalmente. El cliente
+usa el challenge del último envío exitoso y limpia el código anterior. La vigencia
+se toma de `expiresAt`; vencida, se avisa y se bloquea enviar el reporte. El servidor
+sigue siendo autoridad de expiración. Una respuesta sin challenge no se presenta
+como envío exitoso y pide esperar; un fallo conserva el challenge/formulario previo.
+Cada intento de envío reinicia CAPTCHA, incluso ante error. Cambiar correo descarta
+el challenge anterior y volver de Contacto a Revisar recrea el widget correctamente.
+Sin cambio SQL, RLS, Edge ni contrato. [Validación](../audit/2026-10-06-otp-resend/VALIDATION.md).
+
 ## Estado de implementacion 8B
 
 Implementado localmente y pendiente de despliegue controlado. La implementacion adopta Resend para correo transaccional, Cloudflare Turnstile para antiabuso, Edge Function como unica puerta publica y moderacion admin obligatoria. No crea cuentas Auth y falla cerrada si falta configuracion de seguridad.

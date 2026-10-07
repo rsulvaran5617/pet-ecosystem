@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-10-07T01:21:26.851Z",
+  "buildId": "HEZ2MMH47ygGl7aedGRQp",
+  "target": "/var/www/pet-releases/turnstile-20261007",
+  "rollback": "/var/www/pet-ecosystem",
+  "publicKeyInClient": true,
+  "onlySiteKeyAdded": true,
+  "checks": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/app",
+      "status": 200
+    },
+    {
+      "route": "/foster",
+      "status": 200
+    },
+    {
+      "route": "/ayuda",
+      "status": 200
+    },
+    {
+      "route": "/beta",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert/reportar-mi-mascota",
+      "status": 200
+    }
+  ],
+  "activated": true,
+  "activatedAt": "2026-10-07T01:21:31.104Z",
+  "httpsMatchesCandidate": true,
+  "adminUnchanged": true
+}

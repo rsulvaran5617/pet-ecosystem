@@ -1,5 +1,14 @@
 # PET ALERT API Contract
 
+## Corrección operativa de alta externa — 2026-10-06
+
+Firmas/payloads conservados. create_external_pet_alert_report genera el slug con
+extensions.gen_random_bytes y acepta solo service_role; set_pet_alert_lost_pet_location
+distingue rol JWT del rol SQL interno. Migraciones 20261007021000/20261007021500
+aplicadas. Web muestra el error junto al envío y orienta ante OTP usado/vencido.
+Un error después de consumir OTP no vuelve a habilitarlo; solicitar otro por el
+endpoint existente. No implica idempotencia E2E nueva.
+
 ## Foundation-1C.3d local
 
 - GET pet-alert-public-photo?path=... devuelve JPEG solo si resolver service_role

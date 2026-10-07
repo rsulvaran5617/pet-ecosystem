@@ -11,6 +11,7 @@ declare global {
     turnstile?: {
       render: (element: HTMLElement, options: { sitekey: string; callback: (token: string) => void; "expired-callback": () => void; "error-callback": () => void }) => string;
       reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
     };
   }
 }
@@ -37,42 +38,62 @@ export function PublicExternalLostPetReportForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [challengeId, setChallengeId] = useState("");
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [codeExpired, setCodeExpired] = useState(false);
   const [code, setCode] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
-  const [widgetId, setWidgetId] = useState<string | null>(null);
+  const widgetId = useRef<string | null>(null);
+  const requestInFlight = useRef(false);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationCandidate, setLocationCandidate] = useState<ConfirmedLocation | null>(null);
   const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<{ reference: string; managementToken: string } | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   const previews = useMemo(() => photos.map((file) => ({ file, url: URL.createObjectURL(file) })), [photos]);
 
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+
   function update(name: keyof typeof initial, value: string) {
+    if (name === "email" && value.trim().toLowerCase() !== values.email.trim().toLowerCase()) {
+      setChallengeId(""); setCode(""); setExpiresAt(null); setCodeExpired(false);
+    }
     setValues((current) => ({ ...current, [name]: value }));
   }
 
-  function initTurnstile() {
-    if (!siteKey || !turnstileRef.current || !window.turnstile || widgetId) return;
-    const id = window.turnstile.render(turnstileRef.current, {
+  useEffect(() => {
+    if (step !== 3 || result || !turnstileReady || !siteKey || !turnstileRef.current || !window.turnstile) return;
+    const turnstile = window.turnstile;
+    widgetId.current = turnstile.render(turnstileRef.current, {
       sitekey: siteKey,
       callback: setTurnstileToken,
       "expired-callback": () => setTurnstileToken(""),
       "error-callback": () => setTurnstileToken("")
     });
-    setWidgetId(id);
-  }
+    return () => {
+      if (widgetId.current) turnstile.remove(widgetId.current);
+      widgetId.current = null;
+      setTurnstileToken("");
+    };
+  }, [step, turnstileReady, siteKey, result]);
 
   useEffect(() => {
-    if (step === 3 && turnstileReady) initTurnstile();
-  }, [step, turnstileReady, widgetId]);
+    if (expiresAt === null) return;
+    const refresh = () => setCodeExpired(Date.now() >= expiresAt);
+    refresh();
+    const timer = window.setInterval(refresh, 1000);
+    return () => window.clearInterval(timer);
+  }, [expiresAt]);
 
   function resetTurnstile() {
     setTurnstileToken("");
-    if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+    if (widgetId.current && window.turnstile) window.turnstile.reset(widgetId.current);
   }
 
   function selectPhotos(event: ChangeEvent<HTMLInputElement>) {
@@ -121,7 +142,9 @@ export function PublicExternalLostPetReportForm() {
   }
 
   async function requestCode() {
+    if (requestInFlight.current) return;
     if (!turnstileToken) return setError("Completa la validación de seguridad.");
+    requestInFlight.current = true;
     setBusy(true); setError(null);
     try {
       const response = await fetch(edgeUrl(), {
@@ -129,16 +152,23 @@ export function PublicExternalLostPetReportForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: values.email, contactName: values.contactName, acceptedTerms, acceptedPrivacy, turnstileToken })
       });
-      const body = await response.json() as { ok?: boolean; challengeId?: string; message?: string };
-      if (!response.ok || !body.ok || !body.challengeId) throw new Error(body.message ?? "No fue posible enviar el código.");
+      const body = await response.json() as { ok?: boolean; challengeId?: string; expiresAt?: string; message?: string };
+      if (!response.ok || !body.ok) throw new Error(body.message ?? "No fue posible enviar el código.");
+      if (!body.challengeId) throw new Error("No se emitió un código nuevo. Espera unos minutos antes de volver a solicitarlo.");
       setChallengeId(body.challengeId);
-      resetTurnstile();
+      setCode("");
+      const deadline = Date.parse(body.expiresAt ?? "");
+      setExpiresAt(Number.isFinite(deadline) ? deadline : null);
+      setCodeExpired(Number.isFinite(deadline) && Date.now() >= deadline);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "No fue posible enviar el código."); }
-    finally { setBusy(false); }
+    finally { resetTurnstile(); requestInFlight.current = false; setBusy(false); }
   }
 
   async function submit() {
+    if (requestInFlight.current) return;
+    if (expiresAt !== null && Date.now() >= expiresAt) return setError("El código venció. Solicita otro sin salir de esta pantalla.");
     if (!challengeId || !/^[0-9]{6}$/.test(code) || !turnstileToken) return setError("Indica el código recibido y completa la validación de seguridad.");
+    requestInFlight.current = true;
     setBusy(true); setError(null);
     try {
       const form = new FormData();
@@ -154,10 +184,15 @@ export function PublicExternalLostPetReportForm() {
       photos.forEach((photo) => form.append("photos", photo));
       const response = await fetch(edgeUrl(), { method: "POST", body: form });
       const body = await response.json() as { ok?: boolean; reference?: string; managementToken?: string; message?: string };
-      if (!response.ok || !body.ok || !body.reference || !body.managementToken) throw new Error(body.message ?? "No fue posible enviar el reporte.");
+      if (!response.ok || !body.ok || !body.reference || !body.managementToken) {
+        const message = body.message === "El codigo no es valido o ya vencio."
+          ? "El código no es válido, ya fue utilizado o venció. Corrígelo o solicita otro código sin salir de esta pantalla."
+          : body.message ?? "No fue posible enviar el reporte.";
+        throw new Error(message);
+      }
       setResult({ reference: body.reference, managementToken: body.managementToken });
     } catch (reason) { resetTurnstile(); setError(reason instanceof Error ? reason.message : "No fue posible enviar el reporte."); }
-    finally { setBusy(false); }
+    finally { requestInFlight.current = false; setBusy(false); }
   }
 
   if (result) return <main className={styles.page}><div className={styles.shell}><section className={styles.hero}><h1>Reporte recibido</h1><p>La alerta está en revisión y todavía no es pública.</p></section><section className={styles.success}><strong>Referencia: {result.reference}</strong><span>Guarda este código privado. No lo publiques ni lo compartas.</span><code className={styles.token}>{result.managementToken}</code><a href="/pet-alert">Volver a los boletines</a></section></div></main>;
@@ -165,7 +200,7 @@ export function PublicExternalLostPetReportForm() {
   return <main className={styles.page}><Script onReady={() => setTurnstileReady(true)} src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive"/><div className={styles.shell}>
     <header className={styles.hero}><a href="/pet-alert">Volver a PET ALERT</a><h1>Reportar mi mascota extraviada</h1><p>No necesitas una cuenta. Verificaremos tu correo y revisaremos la publicación antes de hacerla visible.</p></header>
     <nav className={styles.stepper}>{steps.map((label, index) => <span className={`${styles.step} ${index === step ? styles.active : ""}`} key={label}>{index + 1}. {label}</span>)}</nav>
-    {error ? <div className={styles.error}>{error}</div> : null}
+    {error && step !== 3 ? <div className={styles.error} ref={errorRef} role="alert" tabIndex={-1}>{error}</div> : null}
     <form className={styles.card} onSubmit={next}>
       {step === 0 ? <><h2>Cuéntanos sobre tu mascota</h2><div className={styles.grid}>
         <label className={styles.label}>Nombre<input maxLength={120} onChange={(e) => update("petName", e.target.value)} value={values.petName}/></label>
@@ -201,9 +236,18 @@ export function PublicExternalLostPetReportForm() {
         ) : (
           <div className={styles.turnstile} ref={turnstileRef} />
         )}
-        {!challengeId ? <button className={styles.button} disabled={busy || !turnstileToken} onClick={() => void requestCode()} type="button">{busy ? "Enviando..." : "Enviar código al correo"}</button> : <><label className={styles.label}>Código de 6 dígitos<input inputMode="numeric" maxLength={6} onChange={(e) => setCode(e.target.value.replace(/\D/g,""))} value={code}/></label><button className={styles.button} disabled={busy || code.length !== 6 || !turnstileToken} onClick={() => void submit()} type="button">{busy ? "Enviando..." : "Enviar reporte a revisión"}</button></>}
+        {error ? <div className={styles.error} ref={errorRef} role="alert" tabIndex={-1}>{error}</div> : null}
+        {!challengeId ? <button className={styles.button} disabled={busy || !turnstileToken} onClick={() => void requestCode()} type="button">{busy ? "Enviando..." : "Enviar código al correo"}</button> : <>
+          <p className={codeExpired ? styles.notice : styles.private} role="status">
+            {codeExpired ? "El código venció. Puedes solicitar otro sin perder los datos ni las fotos." : "Código solicitado. Revisa también Correo no deseado e introduce el código del último envío solicitado."}
+          </p>
+          <label className={styles.label}>Código de 6 dígitos<input autoComplete="one-time-code" disabled={busy || codeExpired} inputMode="numeric" maxLength={6} onChange={(e) => setCode(e.target.value.replace(/\D/g,""))} value={code}/></label>
+          <button className={styles.button} disabled={busy || codeExpired || code.length !== 6 || !turnstileToken} onClick={() => void submit()} type="button">{busy ? "Enviando..." : "Enviar reporte a revisión"}</button>
+          <button className={`${styles.button} ${styles.secondary}`} disabled={busy || !turnstileToken} onClick={() => void requestCode()} type="button">Solicitar otro código</button>
+          <p className={styles.help}>Si no llegó o ya venció, completa la verificación de seguridad y solicita otro. Los envíos están limitados; si debes esperar, conserva esta pantalla abierta.</p>
+        </>}
       </> : null}
-      <div className={styles.actions}>{step > 0 ? <button className={`${styles.button} ${styles.secondary}`} onClick={() => { setError(null); setStep((current) => current - 1); }} type="button">Atrás</button> : <span/>}{step < 3 ? <button className={styles.button} type="submit">Continuar</button> : null}</div>
+      <div className={styles.actions}>{step > 0 ? <button className={`${styles.button} ${styles.secondary}`} disabled={busy} onClick={() => { setError(null); setStep((current) => current - 1); }} type="button">Atrás</button> : <span/>}{step < 3 ? <button className={styles.button} type="submit">Continuar</button> : null}</div>
     </form>
   </div></main>;
 }
