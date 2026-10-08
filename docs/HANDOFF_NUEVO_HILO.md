@@ -1,5 +1,79 @@
 # Pet Ecosystem — contexto para continuar en un nuevo hilo
 
+## Punto de continuación — commit y push del 07/10/2026
+
+**Estado vigente; prevalece sobre las notas históricas inferiores.**
+
+- Código móvil y evidencia publicados en `origin/master`: **`7182daa`**, `feat(pet-alert): add owner mobile map and public directory`. Push normal verificado.
+- Web ya publicada: `/var/www/pet-releases/open-map-20261007`, build `g4Axw3SgcMZCkSCDiFs8w`. Mapa OpenFreeMap, punto Ginger y apertura del boletín verificados por navegador. Rollback web: android-link-20261007.
+- Android `/beta/android` apunta a Firebase `4vkg63dqtpkc8` (21/09). APK publicado sigue 0.0.0 (1), anterior al nuevo mapa móvil.
+- Apple desbloqueado tras aceptar acuerdo: iOS **0.3.1 (50)** válido, BetaTester interno/externo, enlace público habilitado y expiración 20/12/2026, comprobado por API. Usuario confirmó instalación y acceso; no confundir con QA de la nueva pantalla.
+- Cambio móvil nuevo: Inicio → PET ALERT · Mapa y boletines; Lista/Mapa, categorías y puntos públicos. Detalles se abren en navegador, no son fichas nativas. Conserva formulario comunitario; sin GPS ni mutaciones nuevas.
+- Tipos/lint/export Metro Android/iOS PASS. **No se han generado ni distribuido APK/IPA con `7182daa`.** QA nativa de gestos, selección, retorno del navegador, errores y accesibilidad pendiente.
+- Siguiente entrega concreta: preparar nuevas betas desde `7182daa` en checkout aislado, verificar identidad/configuración y distribuir por Firebase/TestFlight según autorización vigente. No activar flags SOS ni cambiar DB incidentalmente. Si cambia la release Firebase, actualizar también la URL Android web y recompilar.
+- Antes de enviar, consultar builds/submissions existentes para evitar duplicados; no usar `--latest` sin identificar el artefacto. Revisar documentación de release y skills.
+- Evidencia versionada: `docs/audit/2026-10-07-mobile-map/`, `2026-10-07-open-map/`, `2026-10-07-android-link/`, `2026-10-07-apple-agreements/`. Capturas PNG quedan locales.
+- Cambios históricos ajenos siguen locales, incluidos documentos y la migración MAP-7 ya aplicada. No ejecutar `git add .`, reset ni reaplicar migraciones por ver archivos modificados. Ningún archivo de entorno o credencial se incluyó.
+
+Este handoff se publica en un segundo commit documental posterior a `7182daa`;
+identificarlo con `git log -2`. Para continuar: leer AGENTS.md, esta sección,
+la evidencia mobile y las guías Firebase/TestFlight; las notas de «sin commit»
+inferiores describen momentos anteriores de la sesión.
+
+## Owner mobile: mapa y boletines implementados localmente — 07/10/2026
+
+Nuevo acceso Inicio → PET ALERT · Mapa y boletines. Directorio Lista/Mapa con
+categorías, paginación, mapa nativo OpenFreeMap y selección; Ver boletín en navegador
+abre ficha pública. Mantiene formulario comunitario. Componentes nuevos
+PetAlertDirectoryWorkspace y PetAlertPublicMap, CoreHomeScreen conecta navegación.
+Solo RPCs públicas existentes; sin permisos GPS ni cambios DB. Detalle no es nativo.
+Tipos y lint PASS; export Metro Android/iOS PASS, no equivalente a APK/IPA ni QA nativa.
+Pendiente generar/distribuir nuevas betas y probar mapa en dispositivos (gestos dentro
+del scroll, selección, atribución, retorno del navegador, red fallida y accesibilidad).
+No está incluido en las betas Android/iOS instaladas. Sin commit/push de este cambio.
+
+## Mapa público operativo — cierre 07/10/2026
+
+Supera el bloqueo descrito debajo: usuario inició candidata y se completaron
+prueba de navegador, activación y verificación pública. Web activa
+`/var/www/pet-releases/open-map-20261007`, build `g4Axw3SgcMZCkSCDiFs8w`.
+OpenFreeMap Liberty gratuito, sin cuenta/API key; atribución visible. Ginger aparece
+como punto y abre su boletín. Candidata y HTTPS sin errores de navegador.
+Rollback: android-link-20261007. Admin intacto, PM2 guardado, temporal retirado.
+Sin build móvil ni cambios de datos. [Evidencia](audit/2026-10-07-open-map/VALIDATION.md).
+
+## Mapa libre preparado, sin publicar — 07/10/2026
+
+Usuario pidió proveedor gratuito sin cuenta. OpenFreeMap Liberty seleccionado
+(software MIT, datos OSM ODbL). Candidata `/var/www/pet-releases/open-map-20261007`
+compilada con NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL; build/lint/tipos PASS.
+Arranque de candidata rechazado por revisión automática («blocked by policy»).
+Web activa sigue en android-link-20261007. Falta navegador/canvas/puntos y activación.
+[Estado y continuación](audit/2026-10-07-open-map/VALIDATION.md).
+
+## Apple desbloqueado ? 07/10/2026
+
+El usuario acept? el acuerdo. Consulta posterior de App Store Connect exitosa:
+iOS 0.3.1 (50), VALID, no expirado, IN_BETA_TESTING interno y externo,
+asociado a BetaTester con enlace p?blico habilitado. Expira el 20/12/2026.
+No requiere otra subida para esta beta. Sustituye las notas inferiores de bloqueo
+por acuerdos. Evidencia: [estado Apple](audit/2026-10-07-apple-agreements/status.json).
+Instalaci?n y QA en dispositivo siguen sin confirmarse.
+
+## Actualización 07/10/2026 — enlace Android publicado
+
+Web activa ahora en `/var/www/pet-releases/android-link-20261007`, build
+`fhFOiz_mPqCerxnC3otiM`. Sustituye la ruta/build web del cierre inferior.
+`/beta/android` redirige a Firebase `4vkg63dqtpkc8` (beta 21/09), confirmado por
+API Firebase y HTTPS; antes apuntaba a `1c16tgdrdjmb0` (19/09).
+Solo cambió NEXT_PUBLIC_ANDROID_BETA_URL; código y CAPTCHA preservados.
+Build/lint/tipos PASS, siete rutas HTTP200, Admin intacto, PM2 guardado.
+Rollback web: `/var/www/pet-releases/external-submit-20261007`.
+Sin nuevo binario mobile. Apple API continúa bloqueada por acuerdos obligatorios
+pendientes/vencidos; no afirmar revalidación actual de TestFlight.
+[Evidencia](audit/2026-10-07-android-link/VALIDATION.md). Esta actualización
+operativa queda en archivos locales; los commits del cierre anterior son históricos.
+
 ## Estado vigente al cierre — 6 de octubre de 2026 (Panamá)
 
 **Leer esta sección primero. Sustituye los pendientes históricos de activación web,
