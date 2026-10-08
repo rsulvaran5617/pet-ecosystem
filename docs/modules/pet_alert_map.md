@@ -1,5 +1,33 @@
 # PET ALERT MAP - Geolocalizacion segura y mapa publico
 
+## Acceso Owner Mobile — 2026-10-07, implementación local
+
+Inicio incorpora PET ALERT · Mapa y boletines y abre directorio nativo con Lista/Mapa
+y categorías Extraviadas, Mascotas vistas, Encontradas. Lista pagina de 20 en 20;
+mapa consulta RPC pública existente por área visible, máximo 500 puntos, con aviso
+para acercar si alcanza el límite. Selección desde punto o lista accesible muestra
+CTA explícito Ver boletín en navegador; detalle reutiliza ficha HTTPS pública.
+No es un nuevo detalle nativo. Vi una mascota perdida conserva formulario comunitario.
+
+Reutiliza MapLibre Native instalado y estilo OpenFreeMap Liberty sin cuenta ni key,
+con atribución. No pide GPS, no accede a coordenadas privadas ni modifica datos.
+Errores, vacío y reintento permiten continuar en Lista; módulo nativo se carga al
+entrar al mapa. Respuestas tardías de filtros descartadas, consultas de área con
+espera 250 ms. No implica clustering nativo ni selección de ubicación para reportes.
+
+Requiere nuevas betas y QA real Android/iOS: los builds distribuidos 0.0.0 (1) y
+0.3.1 (50) no incluyen esta navegación. No confundir export Metro con prueba nativa.
+
+## Mapa web publicado — 2026-10-07
+
+Proveedor OpenFreeMap Liberty configurado en web publicada. Gratuito, sin cuenta
+ni clave API; software MIT y datos OSM ODbL, no describir todo como copyleft.
+Atribución conservada en MapLibre. Navegador público verifica render, punto Ginger
+y apertura del boletín. Sin cambios de datos ni navegación mobile.
+URL de estilo: https://tiles.openfreemap.org/styles/liberty.
+Servicio público sin SLA; Lista conserva fallback.
+[Evidencia](../audit/2026-10-07-open-map/VALIDATION.md).
+
 ## Estado
 
 `map_8_qa_privacy_performance_hardening_implemented_local`

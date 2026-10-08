@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-10-08T00:24:52.030Z",
+  "buildId": "fhFOiz_mPqCerxnC3otiM",
+  "target": "/var/www/pet-releases/android-link-20261007",
+  "rollback": "/var/www/pet-releases/external-submit-20261007",
+  "publicKeyInClient": true,
+  "onlyAndroidBetaUrlChanged": true,
+  "checks": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/app",
+      "status": 200
+    },
+    {
+      "route": "/foster",
+      "status": 200
+    },
+    {
+      "route": "/ayuda",
+      "status": 200
+    },
+    {
+      "route": "/beta",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert",
+      "status": 200
+    },
+    {
+      "route": "/pet-alert/reportar-mi-mascota",
+      "status": 200
+    }
+  ],
+  "activated": true,
+  "activatedAt": "2026-10-08T00:24:56.330Z",
+  "httpsMatchesCandidate": true,
+  "adminUnchanged": true
+}

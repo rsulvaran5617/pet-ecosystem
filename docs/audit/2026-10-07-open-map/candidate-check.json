@@ -1,0 +1,57 @@
+{
+  "checkedAt": "2026-10-08T00:57:01.262Z",
+  "base": "http://127.0.0.1:3076",
+  "readOnly": true,
+  "map": {
+    "canvas": true,
+    "attribution": "MapLibre | OpenFreeMap © OpenMapTiles Data from OpenStreetMap",
+    "errors": [],
+    "resources": [
+      {
+        "path": "/styles/liberty",
+        "duration": 391
+      },
+      {
+        "path": "/planet",
+        "duration": 226.60000002384186
+      },
+      {
+        "path": "/sprites/ofm_f384/ofm.json",
+        "duration": 108.10000002384186
+      },
+      {
+        "path": "/sprites/ofm_f384/ofm.png",
+        "duration": 126.40000009536743
+      },
+      {
+        "path": "/natural_earth/ne2sr/6/17/30.png",
+        "duration": 862.5
+      },
+      {
+        "path": "/natural_earth/ne2sr/6/18/30.png",
+        "duration": 997.8000000715256
+      },
+      {
+        "path": "/natural_earth/ne2sr/6/16/30.png",
+        "duration": 361.8000000715256
+      },
+      {
+        "path": "/fonts/Noto%20Sans%20Italic/0-255.pbf",
+        "duration": 273
+      },
+      {
+        "path": "/fonts/Noto%20Sans%20Regular/0-255.pbf",
+        "duration": 279.10000002384186
+      },
+      {
+        "path": "/fonts/Noto%20Sans%20Bold/0-255.pbf",
+        "duration": 285.10000002384186
+      }
+    ]
+  },
+  "detailPath": "/pet-alert/mascota-perdida/pet-31eec84d947b45b5",
+  "detailOpened": true,
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "passed": true
+}

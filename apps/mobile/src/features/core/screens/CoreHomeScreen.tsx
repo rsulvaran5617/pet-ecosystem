@@ -55,7 +55,7 @@ import { useBookingsWorkspace } from "../../bookings/hooks/useBookingsWorkspace"
 import { MessagingWorkspace } from "../../messaging/components/MessagingWorkspace";
 import { ReviewsWorkspace } from "../../reviews/components/ReviewsWorkspace";
 import { SupportWorkspace } from "../../support/components/SupportWorkspace";
-import { PetAlertCommunityWorkspace } from "../../pet-alert/components/PetAlertCommunityWorkspace";
+import { PetAlertDirectoryWorkspace } from "../../pet-alert/components/PetAlertDirectoryWorkspace";
 
 type RegisterFormState = {
   email: string;
@@ -112,7 +112,7 @@ const ownerSections: Array<{ description: string; id: OwnerSectionId; label: str
   { id: "mascotas", label: "Mascotas", description: "HOGAR SULVARAN VELASCO" },
   { id: "buscar", label: "Buscar", description: "Explora proveedores aprobados y prepara la reserva desde el contexto de tu hogar." },
   { id: "adopcion", label: "Mascotas que buscan hogar", description: "Conoce mascotas publicadas por familias protectoras." },
-  { id: "pet-alert", label: "PET ALERT", description: "Reporta una mascota aparentemente perdida sin exponerte." },
+  { id: "pet-alert", label: "PET ALERT", description: "Consulta el mapa, los boletines y los reportes comunitarios." },
   { id: "reservas", label: "Reservas", description: "Historial, detalle, reseñas y soporte por reserva." },
   { id: "mensajes", label: "Mensajes", description: "Conversaciones vinculadas a tus reservas." },
   { id: "cuenta", label: "Cuenta", description: "Perfil, hogar, preferencias y metodos guardados." }
@@ -1210,7 +1210,7 @@ function OwnerHome({
         </View>
       </Pressable>
       <Pressable
-        accessibilityLabel="Reportar una mascota aparentemente perdida"
+        accessibilityLabel="Abrir PET ALERT: mapa y boletines"
         accessibilityRole="button"
         onPress={onOpenPetAlert}
         style={{
@@ -1229,11 +1229,11 @@ function OwnerHome({
           <OwnerLineIcon color="#c2410c" name="shield" size={19} />
         </View>
         <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
-          <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>Vi una mascota perdida</Text>
-          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>Crea un reporte comunitario seguro y aproximado.</Text>
+          <Text style={{ color: colorTokens.ink, fontSize: 13, fontWeight: "900" }}>PET ALERT · Mapa y boletines</Text>
+          <Text style={{ color: colorTokens.muted, fontSize: 10, lineHeight: 14 }}>Consulta mascotas extraviadas o reporta una mascota vista.</Text>
         </View>
         <View style={{ backgroundColor: "#c2410c", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 }}>
-          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Reportar</Text>
+          <Text style={{ color: "#ffffff", fontSize: 10, fontWeight: "900" }}>Explorar</Text>
         </View>
       </Pressable>
 
@@ -3432,7 +3432,7 @@ export function CoreHomeScreen() {
         !ownerNeedsProtectiveHouseholdSetup &&
         !ownerNeedsFirstPetSetup &&
         activeOwnerSection === "pet-alert" ? (
-          <PetAlertCommunityWorkspace onBack={() => setActiveOwnerSection("inicio")} />
+          <PetAlertDirectoryWorkspace onBack={() => setActiveOwnerSection("inicio")} />
         ) : null}
         {authState.isAuthenticated &&
         isOwnerMode &&

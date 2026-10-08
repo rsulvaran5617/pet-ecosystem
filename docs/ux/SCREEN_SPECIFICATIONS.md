@@ -1,5 +1,15 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Owner mobile — entrada PET ALERT (2026-10-07, local)
+
+Inicio muestra PET ALERT · Mapa y boletines / Explorar. El directorio tiene
+Extraviadas/Vistas/Encontradas, Lista/Mapa, Actualizar y acceso al formulario
+comunitario. La lista incluye foto, nombre, especie, ciudad, resumen y paginación.
+Mapa usa ubicación pública aproximada, selección y alternativa textual. No solicita
+permiso GPS al consultar. Ver boletín en navegador abre la ficha pública existente;
+no promete detalle nativo. Loading/error/vacío/reintento explícitos.
+Publicación en betas y validación táctil/accesibilidad en dispositivos pendientes.
+
 ## PET ALERT externo — errores de envío (2026-10-06)
 
 El paso Revisar muestra errores junto al botón de envío como alerta enfocada para

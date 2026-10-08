@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-08T00:25:28.664Z",
+  "checks": [
+    {
+      "path": "/beta/android",
+      "status": 307,
+      "location": "https://appdistribution.firebase.google.com/testerapps/1:1040291363922:android:f00d644d342e309b87f38b/releases/4vkg63dqtpkc8"
+    },
+    {
+      "path": "/beta/android?source=qa&utm_campaign=android-link",
+      "status": 307,
+      "location": "https://appdistribution.firebase.google.com/testerapps/1:1040291363922:android:f00d644d342e309b87f38b/releases/4vkg63dqtpkc8?source=qa&utm_campaign=android-link"
+    },
+    {
+      "path": "/beta/ios",
+      "status": 307,
+      "location": "https://testflight.apple.com/join/qUE2WKEm"
+    },
+    {
+      "path": "/app",
+      "status": 200,
+      "location": null
+    }
+  ]
+}

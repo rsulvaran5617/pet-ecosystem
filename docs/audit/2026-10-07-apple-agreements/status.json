@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-08T00:34:01.881Z",
+  "source": "App Store Connect API read-only",
+  "agreementsBlockResolved": true,
+  "appVersion": "0.3.1",
+  "build": "50",
+  "processingState": "VALID",
+  "expired": false,
+  "expirationDate": "2026-12-20T07:11:10-08:00",
+  "internalBuildState": "IN_BETA_TESTING",
+  "externalBuildState": "IN_BETA_TESTING",
+  "group": "BetaTester",
+  "inGroup": true,
+  "publicLinkEnabled": true,
+  "publicLink": "https://testflight.apple.com/join/qUE2WKEm",
+  "newBuildOrSubmission": false
+}
