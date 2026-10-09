@@ -301,7 +301,13 @@ function getInitials(value: string) {
 
 function getBookingGuidance(booking: BookingSummary) {
   const displayStatus = getBookingDisplayStatus(booking);
-  if (displayStatus === "expired") return { action: "Expirada sin aprobacion", cta: "Ver historial", detail: "La hora de inicio paso sin confirmacion del proveedor." };
+  if (displayStatus === "expired") return {
+    action: "Vencida",
+    cta: "Ver historial",
+    detail: booking.status === "pending_approval"
+      ? "La hora de inicio paso sin confirmacion del proveedor."
+      : "La reserva fue cerrada por vencimiento. Consulta el motivo en el historial."
+  };
   if (displayStatus === "pending_closure") return { action: "Pendiente de cierre", cta: "Ver atencion", detail: "El horario termino. Falta registrar el resultado; esto no indica inasistencia." };
   if (booking.status === "pending_approval") {
     return {

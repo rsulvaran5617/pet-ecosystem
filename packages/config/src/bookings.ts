@@ -10,7 +10,7 @@ export const bookingStatusLabels: Record<BookingStatus, string> = {
   confirmed: "Confirmada",
   completed: "Completada",
   cancelled: "Cancelada",
-  expired: "Expirada sin aprobacion"
+  expired: "Vencida"
 };
 
 export const bookingMvpBoundaries = {
