@@ -1,5 +1,24 @@
 # PET ALERT MAP - Geolocalizacion segura y mapa publico
 
+## Centrado cercano web — 2026-10-11, implementacion local
+
+Al abrir Mapa, un permiso de geolocalizacion ya concedido permite centrar la
+vista automaticamente. Sin permiso previo, `Usar mi ubicación` solicita una
+captura unica del navegador. Se encuadra un radio aproximado de 5 km (10 km de
+diametro); la forma de la pantalla puede mostrar mas area. No es un filtro
+circular estricto: se conserva la consulta existente por area visible.
+
+Rechazo, timeout, ubicacion no disponible o Permissions API incompatible
+permiten navegar manualmente y volver a Lista. La vista general de Panama
+permanece como fallback. Cambiar filtros no vuelve a centrar el mapa; el boton
+permite centrarlo de nuevo. No hay seguimiento continuo ni persistencia de la
+ubicacion del visitante; el area visible se envia a la RPC existente y el
+proveedor cartografico recibe solicitudes de mapas de esa zona.
+
+Solo web: componente PublicPetAlertMap y hook useNearbyMapLocation. Sin cambios
+de API, tipos compartidos, RLS, datos de mascotas ni builds mobile. Pendiente
+publicacion web y comprobacion de permisos en Safari/iOS real.
+
 ## Acceso Owner Mobile — 2026-10-07, implementación local
 
 Inicio incorpora PET ALERT · Mapa y boletines y abre directorio nativo con Lista/Mapa

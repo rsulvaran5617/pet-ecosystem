@@ -1,13 +1,14 @@
 "use client";
 
-import type { PetAlertPublicDirectoryView, PublicPetAlertMapPoint } from "@pet/types";
+import type { PetAlertPublicDirectoryView, PublicPetAlertMapFilters, PublicPetAlertMapPoint } from "@pet/types";
 import maplibregl, { type GeoJSONSource, type Map as MapLibreMap } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getBrowserPetAlertApiClient } from "../../core/services/supabase-browser";
+import { useNearbyMapLocation } from "../hooks/useNearbyMapLocation";
 import styles from "./PublicPetAlertMap.module.css";
 
-type Bounds = { minLatitude: number; minLongitude: number; maxLatitude: number; maxLongitude: number };
+type Bounds = NonNullable<PublicPetAlertMapFilters["bounds"]>;
 type MapFeatureProperties = { eventType: string; publicSlug: string; statusGroup: string; title: string };
 
 function statusLabel(point: PublicPetAlertMapPoint) {
@@ -60,8 +61,10 @@ export function PublicPetAlertMap({
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const styleUrl = process.env.NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL?.trim() ?? "";
   const usesDemoStyle = process.env.NODE_ENV === "production" && styleUrl.includes("demotiles.maplibre.org");
+  const { location, locating, message: locationMessage, locate } = useNearbyMapLocation(Boolean(styleUrl) && !usesDemoStyle);
   const selected = points.find((point) => point.publicSlug === selectedSlug) ?? null;
 
   const load = useCallback(async (nextBounds: Bounds | null) => {
@@ -90,6 +93,7 @@ export function PublicPetAlertMap({
   }, [city, query, species, view]);
 
   useEffect(() => {
+    if (!bounds) return;
     const timer = window.setTimeout(() => { void load(bounds); }, bounds ? 250 : 0);
     return () => window.clearTimeout(timer);
   }, [bounds, load]);
@@ -103,6 +107,12 @@ export function PublicPetAlertMap({
       zoom: 6.4
     });
     mapRef.current = map;
+    const updateBounds = () => {
+      const visible = map.getBounds();
+      const crossesDateLine = visible.getWest() < -180 || visible.getEast() > 180;
+      setBounds({ minLatitude: Math.max(-90, visible.getSouth()), minLongitude: crossesDateLine ? -180 : visible.getWest(), maxLatitude: Math.min(90, visible.getNorth()), maxLongitude: crossesDateLine ? 180 : visible.getEast() });
+    };
+    map.on("moveend", updateBounds);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
       map.addSource("pet-alert-points", { type: "geojson", data: toGeoJson(pointsRef.current), cluster: true, clusterMaxZoom: 13, clusterRadius: 48 });
@@ -123,14 +133,18 @@ export function PublicPetAlertMap({
       map.on("mouseenter", "pet-alert-point", () => { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "pet-alert-clusters", () => { map.getCanvas().style.cursor = ""; });
       map.on("mouseleave", "pet-alert-point", () => { map.getCanvas().style.cursor = ""; });
-      map.on("moveend", () => {
-        const visible = map.getBounds();
-        setBounds({ minLatitude: visible.getSouth(), minLongitude: visible.getWest(), maxLatitude: visible.getNorth(), maxLongitude: visible.getEast() });
-      });
+      updateBounds();
+      setMapReady(true);
     });
     map.on("error", () => setError("El proveedor cartografico no esta disponible. Puedes seguir usando la lista."));
-    return () => { map.remove(); mapRef.current = null; };
+    return () => { requestSequenceRef.current += 1; map.remove(); mapRef.current = null; };
   }, [styleUrl, usesDemoStyle]);
+
+  useEffect(() => {
+    if (!location || !mapReady || !mapRef.current) return;
+    const nearby = maplibregl.LngLatBounds.fromLngLat(new maplibregl.LngLat(location.longitude, location.latitude), 5_000);
+    mapRef.current.fitBounds(nearby, { padding: 32, duration: 0 });
+  }, [location, mapReady]);
 
   const geoJson = useMemo(() => toGeoJson(points), [points]);
   useEffect(() => {
@@ -143,6 +157,7 @@ export function PublicPetAlertMap({
   if (usesDemoStyle) return <div className={styles.state}><strong>Mapa temporalmente no disponible.</strong><span>El proveedor cartografico de demostracion no se utiliza en produccion.</span><a href="/pet-alert">Ver boletines en lista</a></div>;
 
   return <section className={styles.shell} aria-label="Mapa publico de PET ALERT">
+    <div className={styles.location}><button disabled={locating} onClick={locate} type="button">{locating ? "Obteniendo ubicación..." : "Usar mi ubicación"}</button><span aria-live="polite">{locationMessage}</span></div>
     <div className={styles.legend}><span><i className={`${styles.dot} ${styles.lost}`}/>Extraviada</span><span><i className={`${styles.dot} ${styles.seen}`}/>Vista</span><span><i className={`${styles.dot} ${styles.found}`}/>Encontrada</span></div>
     <div className={styles.mapFrame}><div aria-live="polite" className={styles.overlay}>{loading ? "Actualizando puntos visibles..." : `${points.length} puntos aproximados en esta vista`}</div><div aria-label="Mapa interactivo con ubicaciones aproximadas. Usa la lista de puntos para una navegacion accesible." className={styles.map} ref={containerRef}/></div>
     {error ? <div className={styles.state} role="alert"><strong>No pudimos cargar el mapa.</strong><span>{error}</span><div className={styles.stateActions}><button onClick={() => void load(bounds)} type="button">Reintentar</button><a href="/pet-alert">Usar vista Lista</a></div></div> : null}

@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "scenario": "granted",
+      "passed": true
+    },
+    {
+      "scenario": "prompt",
+      "passed": true
+    },
+    {
+      "scenario": "denied",
+      "passed": true
+    },
+    {
+      "scenario": "timeout",
+      "passed": true
+    },
+    {
+      "scenario": "unsupported",
+      "passed": true
+    },
+    {
+      "scenario": "late",
+      "passed": true
+    }
+  ],
+  "simulatedLocationAndMapData": true,
+  "remoteMutations": false
+}

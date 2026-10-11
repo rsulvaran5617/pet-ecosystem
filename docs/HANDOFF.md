@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Handoff 2026-10-11 — Mapa cercano web, local
+
+PET ALERT Mapa centra un radio aproximado de 5 km con permiso previo o boton
+`Usar mi ubicación`. Fallback manual para rechazo/error; sin tracking ni
+persistencia del visitante. Build/lint/tipos y seis escenarios Chrome simulados
+PASS. No publicado ni cambios mobile/backend. Evidencia y limites:
+`docs/audit/2026-10-11-nearby-map/VALIDATION.md`.
+
 ## Handoff 2026-09-26 - Servicios SOS desplegados; activacion web bloqueada
 
 - Supersede el bloqueo de runtime del 21/09: Docker runtime v1.74.3 descargado; Owner, Community y External desplegados v1 ACTIVE con WASM. Gateway existente v2 conservado.

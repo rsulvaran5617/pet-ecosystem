@@ -359,6 +359,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - El copy aclara que el claim no prueba propiedad ni transfiere custodia.
 # Web publica - PET ALERT Comunidad
 
+- Mapa web ofrece `Usar mi ubicación`: encuadra unos 5 km a la redonda. Reutiliza
+  permiso concedido al abrir; solicita permiso nuevo solo al pulsar el boton.
+  Fallos conservan navegacion manual/Lista; filtros no fuerzan recentrado.
+
 - PET ALERT MAP-6 agrega `Lista | Mapa` al directorio. Lista permanece seleccionada inicialmente. Mapa comparte filtros, agrupa marcadores, presenta leyenda y ficha compacta, y mantiene una lista accesible de puntos visibles. Sin estilo configurado o ante fallo del proveedor, ofrece volver a Lista sin perder resultados.
 
 - Ficha `mascota-vista/[slug]`: imagen completa con `contain`, galeria navegable, datos publicos jerarquizados y panel de contacto que conserva consentimiento y senales privadas.
