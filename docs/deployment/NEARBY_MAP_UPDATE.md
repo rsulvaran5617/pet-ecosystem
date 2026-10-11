@@ -29,14 +29,19 @@ node /tmp/pet-update-nearby-map.cjs "$COMMIT" --activate
 
 No modifica Nginx, certificados, admin, Supabase ni mobile. Sin `--activate`
 prepara/verifica una candidata y la apaga; si ya existe la carpeta de candidata,
-se detiene para permitir inspeccion antes de repetir. No borra releases previos.
+se detiene para permitir inspeccion antes de repetir. Tras inspeccion, `--resume`
+reutiliza el build verificando commit, base activa, archivos del mapa y entorno.
+Se puede combinar con `--activate`. No borra releases previos.
 La comprobacion web puede implicar un breve reinicio mientras cambia PM2.
 
 Rollback manual: consultar `previous` en el JSON de la nueva version y recrear
 solo `pet-ecosystem-web` con ese cwd y el comando de inicio registrado en el
 script; comprobar HTTPS y ejecutar `pm2 save`. Nunca restaurar todo el dump PM2.
 
-Validacion del script: sintaxis Node comprobada localmente; lectura remota
-confirma cwd, proceso y recursos. No ejecutado ni desplegado en esta entrega.
+Validacion posterior 2026-10-11: el usuario compilo la candidata ce33fdd y la
+validacion original fallo por el escape JavaScript `\\xf3` de la letra o con
+tilde. Corregido para aceptar texto literal y escapes equivalentes. Script
+corregido ejecutado con `--resume` SIN activar: rutas, HTML y configuracion
+compilada PASS; build `dHY_Xt5rL-nCqGHwjxw-i`. Web anterior sigue activa.
 Tras ejecutarlo, probar Mapa/Usar mi ubicacion en el telefono; el chequeo HTTP
 del script no sustituye permisos reales Safari/WhatsApp.

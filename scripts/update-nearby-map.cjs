@@ -41,7 +41,8 @@ async function main() {
   assert.equal(process.platform, 'linux', 'Run this script on the Droplet.');
   const commit = process.argv[2];
   assert.match(commit ?? '', /^[0-9a-f]{40}$/, 'Supply the exact full commit.');
-  assert(process.argv.slice(3).every(arg => arg === '--activate'), 'Unknown argument.');
+  assert(process.argv.slice(3).every(arg => ['--activate', '--resume'].includes(arg)), 'Unknown argument.');
+  const resume = process.argv.includes('--resume');
   assert.equal(run('git', ['-C', repo, 'rev-parse', `${commit}^{commit}`]).trim(), commit);
   const target = `/var/www/pet-releases/nearby-map-${commit.slice(0, 12)}`;
   const current = processes();
@@ -59,7 +60,7 @@ async function main() {
     return;
   }
   assert(!current.some(p => p.name === candidate), 'Candidate already exists; inspect before retrying.');
-  assert(!fs.existsSync(target), 'Release directory already exists; inspect before retrying.');
+  assert(resume ? fs.existsSync(target) : !fs.existsSync(target), 'Inspect the existing release and use --resume to reuse its build.');
   await new Promise((resolve, reject) => {
     const probe = net.createServer();
     probe.once('error', reject);
@@ -73,6 +74,17 @@ async function main() {
   }
   assert(!fs.existsSync(path.join(previous, files[2])), 'An existing location hook needs review.');
   const oldHash = await page('http://127.0.0.1:3000');
+  if (resume) {
+    const saved = JSON.parse(fs.readFileSync(path.join(target, 'nearby-map-release.json'), 'utf8'));
+    assert.equal(saved.commit, commit);
+    assert.equal(saved.previous, previous);
+    assert.equal(saved.target, target);
+    files.forEach((file, index) => assert.equal(normalized(fs.readFileSync(path.join(target, file))), normalized(replacements[index]), `Changed candidate: ${file}`));
+    for (const file of fs.readdirSync(path.join(previous, 'apps/web')).filter(file => /^\.env(?:\.|$)/.test(file))) {
+      assert.equal(digest(fs.readFileSync(path.join(previous, 'apps/web', file))), digest(fs.readFileSync(path.join(target, 'apps/web', file))), 'Candidate environment changed.');
+    }
+    assert(fs.existsSync(path.join(target, 'apps/web/.next/BUILD_ID')), 'Candidate build is incomplete.');
+  } else {
   fs.mkdirSync(target, { mode: 0o700 });
   const excluded = new Set(['node_modules', '.next', '.git', '.turbo']);
   for (const directory of ['apps/web', 'packages']) {
@@ -87,18 +99,21 @@ async function main() {
     fs.copyFileSync(path.join(previous, 'apps/web', file), path.join(target, 'apps/web', file));
     fs.chmodSync(path.join(target, 'apps/web', file), 0o600);
   }
+  }
   const env = parseEnv(fs.readFileSync(path.join(target, 'apps/web/.env.production'), 'utf8'));
   for (const key of ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL']) {
     assert(env[key], `Missing production setting: ${key}`);
   }
-  files.forEach((file, index) => {
+  if (!resume) files.forEach((file, index) => {
     fs.mkdirSync(path.dirname(path.join(target, file)), { recursive: true });
     fs.writeFileSync(path.join(target, file), replacements[index]);
   });
-  const report = { commit, target, previous, files, preparedAt: new Date().toISOString(), activated: false };
+  const report = resume ? JSON.parse(fs.readFileSync(path.join(target, 'nearby-map-release.json'), 'utf8')) : { commit, target, previous, files, preparedAt: new Date().toISOString(), activated: false };
   fs.writeFileSync(path.join(target, 'nearby-map-release.json'), JSON.stringify(report, null, 2));
+  if (!resume) {
   run('corepack', ['pnpm', 'install', '--frozen-lockfile'], { cwd: target, stdio: 'inherit' });
   run('corepack', ['pnpm', '--filter', '@pet/web', 'build'], { cwd: target, stdio: 'inherit' });
+  }
   report.buildId = fs.readFileSync(path.join(target, 'apps/web/.next/BUILD_ID'), 'utf8').trim();
   let candidateStarted = false;
   try {
@@ -116,9 +131,10 @@ async function main() {
     }
     const chunks = fs.readdirSync(path.join(target, 'apps/web/.next/static/chunks'), { recursive: true })
       .filter(file => file.endsWith('.js')).map(file => fs.readFileSync(path.join(target, 'apps/web/.next/static/chunks', file), 'utf8'));
-    for (const value of [env.NEXT_PUBLIC_TURNSTILE_SITE_KEY, env.NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL, 'Usar mi ubicación']) {
-      assert(chunks.some(chunk => chunk.includes(value)), 'Required client configuration or feature missing.');
+    for (const key of ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_PET_ALERT_MAP_STYLE_URL']) {
+      assert(chunks.some(chunk => chunk.includes(env[key])), `Missing compiled setting: ${key}`);
     }
+    assert(chunks.some(chunk => /Usar mi ubicaci(?:ó|\\xf3|\\u00f3)n/i.test(chunk)), 'Nearby location button missing from compiled client.');
     if (process.argv.includes('--activate')) {
       assert.equal(processes().find(p => p.name === name)?.pid, active.pid, 'Active release changed during preparation.');
       try {
