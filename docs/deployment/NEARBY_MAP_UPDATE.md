@@ -1,5 +1,9 @@
 # Actualizacion web del mapa cercano
 
+Para el commit de tooltips, agregar `--tooltip`: compara y superpone solo el
+componente del mapa y CSS, conservando el hook de ubicacion ya publicado.
+Usar el SHA del commit funcional, no el de un cierre documental posterior.
+
 Script: `scripts/update-nearby-map.cjs`. Ejecutar como root en la gota existente,
 con Node 22, PNPM/Corepack, Git y PM2 ya instalados. No usar el bootstrap
 `deploy-droplet.ps1` para esta actualizacion.

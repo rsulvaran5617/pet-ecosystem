@@ -1,5 +1,13 @@
 # PET ALERT MAP - Geolocalizacion segura y mapa publico
 
+## Tooltip web — 2026-10-11
+
+Hover o toque de un punto abre nombre, estado, especie, ciudad y Ver boletin,
+usando solo datos de la proyeccion publica existente. No incluye descripcion
+extendida ni datos privados. Los grupos muestran cantidad y permiten ampliar.
+La lista accesible abre la misma ficha. Escape, cerrar, mover mapa o cambiar
+filtros retiran el tooltip. El contenido se inserta como texto, nunca como HTML.
+
 ## Centrado cercano web — 2026-10-11, implementacion local
 
 Al abrir Mapa, un permiso de geolocalizacion ya concedido permite centrar la

@@ -10,7 +10,7 @@ const { parseEnv } = require('node:util');
 const repo = '/var/www/pet-ecosystem';
 const name = 'pet-ecosystem-web';
 const candidate = 'pet-nearby-map-candidate';
-const files = [
+let files = [
   'apps/web/src/features/pet-alert/components/PublicPetAlertMap.tsx',
   'apps/web/src/features/pet-alert/components/PublicPetAlertMap.module.css',
   'apps/web/src/features/pet-alert/hooks/useNearbyMapLocation.ts'
@@ -41,10 +41,12 @@ async function main() {
   assert.equal(process.platform, 'linux', 'Run this script on the Droplet.');
   const commit = process.argv[2];
   assert.match(commit ?? '', /^[0-9a-f]{40}$/, 'Supply the exact full commit.');
-  assert(process.argv.slice(3).every(arg => ['--activate', '--resume'].includes(arg)), 'Unknown argument.');
+  assert(process.argv.slice(3).every(arg => ['--activate', '--resume', '--tooltip'].includes(arg)), 'Unknown argument.');
+  const tooltip = process.argv.includes('--tooltip');
+  if (tooltip) files = files.slice(0, 2);
   const resume = process.argv.includes('--resume');
   assert.equal(run('git', ['-C', repo, 'rev-parse', `${commit}^{commit}`]).trim(), commit);
-  const target = `/var/www/pet-releases/nearby-map-${commit.slice(0, 12)}`;
+  const target = `/var/www/pet-releases/${tooltip ? 'map-tooltip' : 'nearby-map'}-${commit.slice(0, 12)}`;
   const current = processes();
   const active = current.find(p => p.name === name);
   const admin = current.find(p => p.name === 'pet-ecosystem-admin');
@@ -72,7 +74,7 @@ async function main() {
     assert.equal(normalized(fs.readFileSync(path.join(previous, file))),
       normalized(run('git', ['-C', repo, 'show', `${commit}^:${file}`])), `Unexpected active source: ${file}`);
   }
-  assert(!fs.existsSync(path.join(previous, files[2])), 'An existing location hook needs review.');
+  if (!tooltip) assert(!fs.existsSync(path.join(previous, files[2])), 'An existing location hook needs review.');
   const oldHash = await page('http://127.0.0.1:3000');
   if (resume) {
     const saved = JSON.parse(fs.readFileSync(path.join(target, 'nearby-map-release.json'), 'utf8'));
@@ -135,6 +137,7 @@ async function main() {
       assert(chunks.some(chunk => chunk.includes(env[key])), `Missing compiled setting: ${key}`);
     }
     assert(chunks.some(chunk => /Usar mi ubicaci(?:ó|\\xf3|\\u00f3)n/i.test(chunk)), 'Nearby location button missing from compiled client.');
+    if (tooltip) assert(chunks.some(chunk => chunk.includes('mascotas. Pulsa para ampliar el mapa.')), 'Map tooltip missing from compiled client.');
     if (process.argv.includes('--activate')) {
       assert.equal(processes().find(p => p.name === name)?.pid, active.pid, 'Active release changed during preparation.');
       try {

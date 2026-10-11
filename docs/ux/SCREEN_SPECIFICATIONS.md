@@ -359,6 +359,10 @@ Ese cierre UX no agrego nuevas entidades, APIs, tablas, migraciones ni capacidad
 - El copy aclara que el claim no prueba propiedad ni transfiere custodia.
 # Web publica - PET ALERT Comunidad
 
+- Hover/toque de punto abre tooltip con nombre, estado, especie, ciudad y
+  `Ver boletín`; grupos muestran cantidad. Lista accesible ofrece la misma
+  ficha; Escape/cierre, movimiento o filtros la retiran.
+
 - Mapa web ofrece `Usar mi ubicación`: encuadra unos 5 km a la redonda. Reutiliza
   permiso concedido al abrir; solicita permiso nuevo solo al pulsar el boton.
   Fallos conservan navegacion manual/Lista; filtros no fuerzan recentrado.

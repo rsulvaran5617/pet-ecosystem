@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "hover, safe text and bulletin link",
+    "Escape closes",
+    "touch opens",
+    "accessible list opens",
+    "filter clears popup and cluster shows count"
+  ],
+  "fixtureData": true,
+  "remoteMutations": false
+}

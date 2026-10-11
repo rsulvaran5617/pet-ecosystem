@@ -55,6 +55,8 @@ export function PublicPetAlertMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const pointsRef = useRef<PublicPetAlertMapPoint[]>([]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const showPointRef = useRef<((slug: string) => void) | null>(null);
   const requestSequenceRef = useRef(0);
   const [bounds, setBounds] = useState<Bounds | null>(null);
   const [points, setPoints] = useState<PublicPetAlertMapPoint[]>([]);
@@ -107,6 +109,47 @@ export function PublicPetAlertMap({
       zoom: 6.4
     });
     mapRef.current = map;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    let pinned = false;
+    const cancelHide = () => { clearTimeout(hideTimer); };
+    const closePopup = () => { cancelHide(); popupRef.current?.remove(); popupRef.current = null; pinned = false; };
+    const scheduleHide = () => {
+      cancelHide();
+      if (!pinned) hideTimer = setTimeout(closePopup, 300);
+    };
+    const showPopup = (coordinates: [number, number], content: HTMLElement, pin: boolean) => {
+      closePopup();
+      pinned = pin;
+      const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: false, closeOnMove: true, offset: 14, maxWidth: "260px", focusAfterOpen: pin })
+        .setLngLat(coordinates).setDOMContent(content).addTo(map);
+      popupRef.current = popup;
+      popup.getElement().addEventListener("mouseenter", cancelHide);
+      popup.getElement().addEventListener("mouseleave", scheduleHide);
+      popup.getElement().addEventListener("focusin", cancelHide);
+      popup.getElement().addEventListener("focusout", scheduleHide);
+      popup.on("close", () => { if (popupRef.current === popup) { popupRef.current = null; pinned = false; } });
+    };
+    const showPoint = (slug: string, pin: boolean) => {
+      const point = pointsRef.current.find((item) => item.publicSlug === slug);
+      if (!point) return;
+      const content = document.createElement("div");
+      content.className = styles.tooltip;
+      const title = document.createElement("strong");
+      title.textContent = point.title;
+      const summary = document.createElement("span");
+      summary.textContent = `${statusLabel(point)} · ${point.species} · ${point.city}`;
+      content.append(title, summary);
+      if (/^\/pet-alert\/(?:mascota-perdida|mascota-vista)\/[^/]+$/.test(point.publicPath)) {
+        const link = document.createElement("a");
+        link.textContent = "Ver boletín";
+        link.href = point.publicPath;
+        content.append(link);
+      }
+      showPopup([point.publicLongitude, point.publicLatitude], content, pin);
+    };
+    showPointRef.current = (slug) => showPoint(slug, true);
+    const escapePopup = (event: KeyboardEvent) => { if (event.key === "Escape") closePopup(); };
+    document.addEventListener("keydown", escapePopup);
     const updateBounds = () => {
       const visible = map.getBounds();
       const crossesDateLine = visible.getWest() < -180 || visible.getEast() > 180;
@@ -127,17 +170,32 @@ export function PublicPetAlertMap({
       });
       map.on("click", "pet-alert-point", (event) => {
         const slug = event.features?.[0]?.properties?.publicSlug;
-        if (typeof slug === "string") setSelectedSlug(slug);
+        if (typeof slug === "string") { setSelectedSlug(slug); showPoint(slug, true); }
       });
-      map.on("mouseenter", "pet-alert-clusters", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseenter", "pet-alert-point", () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "pet-alert-clusters", () => { map.getCanvas().style.cursor = ""; });
-      map.on("mouseleave", "pet-alert-point", () => { map.getCanvas().style.cursor = ""; });
+      map.on("mouseenter", "pet-alert-clusters", (event) => {
+        map.getCanvas().style.cursor = "pointer";
+        const feature = event.features?.[0];
+        if (!feature || feature.geometry.type !== "Point") return;
+        const content = document.createElement("div");
+        content.className = styles.tooltip;
+        content.textContent = `${feature.properties?.point_count ?? 0} mascotas. Pulsa para ampliar el mapa.`;
+        showPopup(feature.geometry.coordinates as [number, number], content, false);
+      });
+      map.on("mouseenter", "pet-alert-point", (event) => {
+        map.getCanvas().style.cursor = "pointer";
+        const slug = event.features?.[0]?.properties?.publicSlug;
+        if (typeof slug === "string") showPoint(slug, false);
+      });
+      map.on("mouseleave", "pet-alert-clusters", () => { map.getCanvas().style.cursor = ""; scheduleHide(); });
+      map.on("mouseleave", "pet-alert-point", () => { map.getCanvas().style.cursor = ""; scheduleHide(); });
+      map.on("click", (event) => {
+        if (!map.queryRenderedFeatures(event.point, { layers: ["pet-alert-point", "pet-alert-clusters"] }).length) closePopup();
+      });
       updateBounds();
       setMapReady(true);
     });
     map.on("error", () => setError("El proveedor cartografico no esta disponible. Puedes seguir usando la lista."));
-    return () => { requestSequenceRef.current += 1; map.remove(); mapRef.current = null; };
+    return () => { requestSequenceRef.current += 1; closePopup(); showPointRef.current = null; document.removeEventListener("keydown", escapePopup); map.remove(); mapRef.current = null; };
   }, [styleUrl, usesDemoStyle]);
 
   useEffect(() => {
@@ -148,10 +206,13 @@ export function PublicPetAlertMap({
 
   const geoJson = useMemo(() => toGeoJson(points), [points]);
   useEffect(() => {
+    popupRef.current?.remove();
     pointsRef.current = points;
     const source = mapRef.current?.getSource("pet-alert-points") as GeoJSONSource | undefined;
     source?.setData(geoJson);
   }, [geoJson, points]);
+
+  useEffect(() => { popupRef.current?.remove(); }, [city, query, species, view]);
 
   if (!styleUrl) return <div className={styles.state}><strong>Mapa no configurado en este ambiente.</strong><span>Puedes consultar todos los boletines desde la vista Lista.</span></div>;
   if (usesDemoStyle) return <div className={styles.state}><strong>Mapa temporalmente no disponible.</strong><span>El proveedor cartografico de demostracion no se utiliza en produccion.</span><a href="/pet-alert">Ver boletines en lista</a></div>;
@@ -162,6 +223,6 @@ export function PublicPetAlertMap({
     <div className={styles.mapFrame}><div aria-live="polite" className={styles.overlay}>{loading ? "Actualizando puntos visibles..." : `${points.length} puntos aproximados en esta vista`}</div><div aria-label="Mapa interactivo con ubicaciones aproximadas. Usa la lista de puntos para una navegacion accesible." className={styles.map} ref={containerRef}/></div>
     {error ? <div className={styles.state} role="alert"><strong>No pudimos cargar el mapa.</strong><span>{error}</span><div className={styles.stateActions}><button onClick={() => void load(bounds)} type="button">Reintentar</button><a href="/pet-alert">Usar vista Lista</a></div></div> : null}
     {selected ? <article className={styles.selected}>{selected.photoUrl ? <img alt={selected.title} src={selected.photoUrl}/> : <span className={styles.placeholder}>Sin foto</span>}<div className={styles.selectedCopy}><small>{statusLabel(selected)}</small><strong>{selected.title}</strong><span>{selected.species} - {selected.city}</span></div><a href={selected.publicPath}>Ver boletin</a></article> : null}
-    {points.length ? <div className={styles.accessible}><h3>Puntos visibles</h3><div className={styles.pointList}>{points.slice(0, 12).map((point) => <button aria-pressed={point.publicSlug === selectedSlug} className={styles.point} key={`${point.eventType}-${point.publicSlug}`} onClick={() => setSelectedSlug(point.publicSlug)} type="button">{statusLabel(point)}: {point.title}</button>)}</div><ul className={styles.screenReaderPoints}>{points.map((point) => <li key={`accessible-${point.eventType}-${point.publicSlug}`}><a href={point.publicPath}>{statusLabel(point)}: {point.title}, {point.species}, {point.city}</a></li>)}</ul></div> : !loading && !error ? <div className={styles.state}><strong>No hay ubicaciones confirmadas en esta zona.</strong><span>Los boletines sin coordenadas permanecen disponibles en Lista.</span></div> : null}
+    {points.length ? <div className={styles.accessible}><h3>Puntos visibles</h3><div className={styles.pointList}>{points.slice(0, 12).map((point) => <button aria-pressed={point.publicSlug === selectedSlug} className={styles.point} key={`${point.eventType}-${point.publicSlug}`} onClick={() => { setSelectedSlug(point.publicSlug); showPointRef.current?.(point.publicSlug); }} type="button">{statusLabel(point)}: {point.title}</button>)}</div><ul className={styles.screenReaderPoints}>{points.map((point) => <li key={`accessible-${point.eventType}-${point.publicSlug}`}><a href={point.publicPath}>{statusLabel(point)}: {point.title}, {point.species}, {point.city}</a></li>)}</ul></div> : !loading && !error ? <div className={styles.state}><strong>No hay ubicaciones confirmadas en esta zona.</strong><span>Los boletines sin coordenadas permanecen disponibles en Lista.</span></div> : null}
   </section>;
 }
