@@ -1,5 +1,15 @@
 # DigitalOcean Droplet deployment
 
+## Tooltips PET ALERT — 2026-10-11
+
+Web activa `/var/www/pet-releases/map-tooltip-b5a37677dcc8`, build
+`CoxNoye67nt7I4OODYf3c`. Superpuestos componente y CSS del commit `b5a3767`
+sobre copia de la web activa; conserva entorno, geolocalizacion y formulario.
+Build/lint/tipos, candidata, cwd y coincidencia HTML HTTPS verificados; PM2
+guardado y candidato retirado. Admin, Nginx y Supabase sin cambios.
+Rollback web: `/var/www/pet-releases/nearby-map-ce33fddc0b26`.
+Evidencia: `docs/audit/2026-10-11-map-tooltip/`.
+
 ## Objetivo
 
 Publicar Pet Ecosystem en una gota de DigitalOcean usando Nginx como reverse proxy, PM2 como process manager y Certbot para HTTPS.

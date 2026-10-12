@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+## Handoff 2026-10-11 — Tooltips de PET ALERT publicados
+
+Commit funcional b5a3767 publicado y aplicado a web. Hover/toque de puntos abre
+nombre, estado, especie, ciudad y enlace al boletin; grupos muestran cantidad.
+Build remoto CoxNoye67nt7I4OODYf3c en /var/www/pet-releases/map-tooltip-b5a37677dcc8.
+Rollback web: /var/www/pet-releases/nearby-map-ce33fddc0b26. PM2 guardado;
+admin/backend/mobile intactos. Build/lint/tipos y regresion Chrome con hover,
+toque emulado, Escape, texto seguro, grupos y lista accesible PASS.
+Evidencia: docs/audit/2026-10-11-map-tooltip/. Pendiente QA en telefono fisico.
+
 ## Handoff 2026-10-11 — Mapa cercano web, local
 
 PET ALERT Mapa centra un radio aproximado de 5 km con permiso previo o boton
