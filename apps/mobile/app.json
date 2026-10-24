@@ -2,7 +2,7 @@
   "expo": {
     "name": "Pet Ecosystem",
     "slug": "pet-ecosystem",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "scheme": "petecosystem",
     "orientation": "portrait",
     "icon": "./assets/brand/pet-ecosystem-app-icon.png",
