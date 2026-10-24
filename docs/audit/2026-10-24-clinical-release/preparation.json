@@ -1,0 +1,19 @@
+{
+  "commit": "d5ead14f249d22b7b70fa00d6fa68095b48b10a9",
+  "version": "0.3.2",
+  "staging": "isolated Git worktree",
+  "publicConfigurationInjected": true,
+  "readyMedia": false,
+  "sanitizedUploads": false,
+  "destinations": [
+    "existing Firebase testers",
+    "existing TestFlight BetaTester group"
+  ],
+  "webDeployment": "User-run PowerShell script; not activated by agent",
+  "androidSourceCommit": "d5ead14f249d22b7b70fa00d6fa68095b48b10a9",
+  "iosSourceCommit": "e50f9039a8c860cbd15b6fd496f45d946b7c30ea",
+  "iosImage": "macos-tahoe-26.5-xcode-26.6",
+  "failedIosBuildNumber": "53",
+  "iosBuildNumber": "54",
+  "androidBuildNumber": "4"
+}

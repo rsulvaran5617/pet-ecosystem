@@ -1,0 +1,21 @@
+{
+  "checkedAt": "2026-10-24T23:51:38.962Z",
+  "build": {
+    "id": "aa2e8705-4102-427f-8561-1400ba5f8c11",
+    "version": "54",
+    "processingState": "VALID"
+  },
+  "betaDetail": {
+    "autoNotifyEnabled": true,
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "WAITING_FOR_BETA_REVIEW"
+  },
+  "group": {
+    "id": "e8fef3fd-cd0a-42ca-bb7c-786e4281afc5",
+    "name": "BetaTester",
+    "publicLink": "https://testflight.apple.com/join/qUE2WKEm"
+  },
+  "inGroup": true,
+  "reviewSubmittedThisRun": false,
+  "reviewSubmittedAt": "2026-10-24T23:50:55.013Z"
+}

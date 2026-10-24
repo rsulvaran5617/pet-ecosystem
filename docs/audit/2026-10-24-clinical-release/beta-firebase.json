@@ -1,0 +1,11 @@
+{
+  "operationName": "projects/1040291363922/apps/1:1040291363922:android:f00d644d342e309b87f38b/releases/-/operations/e4e1cdcacf0f7d8ff4c2bed90a7fc81da187a7d61b897ed9d97d02ece3c45194",
+  "releaseName": "projects/1040291363922/apps/1:1040291363922:android:f00d644d342e309b87f38b/releases/7lp5ahi4kk5m8",
+  "testingUri": "https://appdistribution.firebase.google.com/testerapps/1:1040291363922:android:f00d644d342e309b87f38b/releases/7lp5ahi4kk5m8?utm_source=firebase-tools",
+  "displayVersion": "0.3.2",
+  "buildVersion": "4",
+  "commit": "d5ead14f249d22b7b70fa00d6fa68095b48b10a9",
+  "sha256": "e4e1cdcacf0f7d8ff4c2bed90a7fc81da187a7d61b897ed9d97d02ece3c45194",
+  "distributedAt": "2026-10-24T23:45:56.814Z",
+  "testerCount": 1
+}

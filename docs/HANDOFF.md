@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+## Release clinico 2026-10-24
+
+Cambios funcionales d9d28ee enviados a origin/master. Android 0.3.2 (4),
+fuente d5ead14, distribuido a los testers existentes de Firebase.
+iOS 0.3.2 (54), fuente e50f903, procesado VALID y disponible internamente;
+asociado a BetaTester con revision externa WAITING_FOR_BETA_REVIEW.
+Web pendiente de ejecutar scripts/update-clinical-web.ps1 desde PowerShell.
+No se aplicaron migraciones. QA en dispositivos fisicos pendiente.
+Evidencia, IDs y limites: [release](audit/2026-10-24-clinical-release/VALIDATION.md).
+
 ## Handoff 2026-10-11 — Tooltips de PET ALERT publicados
 
 Commit funcional b5a3767 publicado y aplicado a web. Hover/toque de puntos abre

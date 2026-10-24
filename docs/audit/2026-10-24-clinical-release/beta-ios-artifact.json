@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-24T23:45:38.385595+00:00",
+  "commit": "e50f9039a8c860cbd15b6fd496f45d946b7c30ea",
+  "buildId": "32447579-f163-41f8-879f-55f0bfb37e42",
+  "artifact": "dist\\pilot\\ios\\pet-ecosystem-clinical-e50f903-build54.ipa",
+  "sha256": "9aaaf01e24e514ab94856c3c2069a67dce44a65e3784e631f873dc4830e52640",
+  "bytes": 16470937,
+  "nativeRuntimeTested": false,
+  "zipCrcValid": true,
+  "bundleIdentifier": "com.petecosyst.mobile",
+  "version": "0.3.2",
+  "buildNumber": "54",
+  "sdk": "iphoneos26.5",
+  "identityMatches": true,
+  "signaturePresent": true,
+  "cryptographicSignatureVerifiedLocally": false,
+  "publicConfigurationMatches": true,
+  "mobileMapPresent": true,
+  "clinicalRequestNoticePresent": true,
+  "sosSlicePresent": true,
+  "passed": true
+}

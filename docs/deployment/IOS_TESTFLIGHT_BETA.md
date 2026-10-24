@@ -1,5 +1,15 @@
 # IOS_TESTFLIGHT_BETA.md
 
+## Release clinico 2026-10-24
+
+Cambios funcionales d9d28ee enviados a origin/master. Android 0.3.2 (4),
+fuente d5ead14, distribuido a los testers existentes de Firebase.
+iOS 0.3.2 (54), fuente e50f903, procesado VALID y disponible internamente;
+asociado a BetaTester con revision externa WAITING_FOR_BETA_REVIEW.
+Web pendiente de ejecutar scripts/update-clinical-web.ps1 desde PowerShell.
+No se aplicaron migraciones. QA en dispositivos fisicos pendiente.
+Evidencia, IDs y limites: [release](../audit/2026-10-24-clinical-release/VALIDATION.md).
+
 ## Objetivo
 
 Preparar una beta privada iOS de Pet Ecosystem mediante EAS Build y TestFlight, sin abrir nuevas funcionalidades ni cambiar reglas de negocio.
@@ -14,12 +24,12 @@ Preparar una beta privada iOS de Pet Ecosystem mediante EAS Build y TestFlight, 
 ## Configuracion actual
 
 - Expo SDK: 51.
-- App version: `0.3.1`.
+- App version: `0.3.2`.
 - iOS bundle identifier: `com.petecosyst.mobile`.
 - iOS build number publicado mas reciente para TestFlight: `11`.
 - Scheme/deep link: `petecosystem`.
 - EAS project id configurado en `apps/mobile/app.json`.
-- Perfil EAS iOS `production` usa imagen `latest` para cumplir el requisito vigente de App Store Connect de compilar con iOS 26 SDK / Xcode 26 o superior.
+- Perfil EAS iOS `production` usa imagen fija `macos-tahoe-26.5-xcode-26.6` para cumplir el requisito vigente de App Store Connect de compilar con iOS 26 SDK / Xcode 26 o superior.
 - App Store Connect App ID para submit: `6776460841`.
 - Variables esperadas:
   - `EXPO_PUBLIC_SUPABASE_URL`

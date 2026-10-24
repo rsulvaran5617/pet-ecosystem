@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-24T23:37:58.958Z",
+  "platform": "ios",
+  "id": "efadcc86-0d46-4c9d-939d-9cacf05ab6ee",
+  "status": "ERRORED",
+  "queuePosition": null,
+  "estimatedWaitTimeLeftSeconds": null,
+  "appVersion": "0.3.2",
+  "appBuildVersion": "53",
+  "gitCommitHash": "d5ead14f249d22b7b70fa00d6fa68095b48b10a9",
+  "lastPhase": "FAIL_BUILD"
+}

@@ -1,0 +1,13 @@
+{
+  "failedBuildId": "efadcc86-0d46-4c9d-939d-9cacf05ab6ee",
+  "failedBuildNumber": "53",
+  "sourceCommit": "d5ead14f249d22b7b70fa00d6fa68095b48b10a9",
+  "cause": "latest resolved to Xcode 27.1; native dependency deployment targets below 15.0 were rejected",
+  "priorSuccessfulBuildId": "9c9f0c40-b5e6-49ed-a5f7-17ce7d119b1c",
+  "pinnedImage": "macos-tahoe-26.5-xcode-26.6",
+  "reference": "https://docs.expo.dev/build-reference/infrastructure/",
+  "retryBuildId": "32447579-f163-41f8-879f-55f0bfb37e42",
+  "retryBuildNumber": "54",
+  "retrySourceCommit": "e50f9039a8c860cbd15b6fd496f45d946b7c30ea",
+  "productCodeUnchanged": true
+}
