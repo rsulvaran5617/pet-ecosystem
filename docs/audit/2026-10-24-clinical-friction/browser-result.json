@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "checks": [
+    "Existing professional opens panel with all six permissions selected",
+    "No permissions selected prevents submission",
+    "Deselected diagnosis is excluded from submitted permissions",
+    "Approval opens form without reloading",
+    "Status refresh preserves encounter draft",
+    "Submit identity saves current form before requesting review",
+    "Owner gets global popup with pet and professional",
+    "Dismissed popup is not repeated and pending CTA remains",
+    "Review presents requested permissions before explicit approval",
+    "Owner approval uses exactly the requested permissions",
+    "Approved request leaves the pending queue",
+    "Background app does not open a new popup",
+    "Resuming app discovers a new pending request",
+    "Owner can explicitly reject instead of approve",
+    "No uncaught browser exceptions"
+  ],
+  "scope": "Real React components; fake APIs and React Native DOM adapters. No production mutations; does not certify native UI or push."
+}

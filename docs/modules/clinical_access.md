@@ -1,5 +1,31 @@
 # CLINICAL ACCESS-2
 
+## Solicitud y aprobacion con menos pasos — 2026-10-24
+
+- El profesional inicia la solicitud con los seis permisos seleccionados y puede
+  desmarcarlos antes de enviar. No equivale a consentimiento del owner ni habilita
+  escritura: se conserva la aprobacion explicita por mascota y profesional.
+- Enviar identidad a revision guarda primero los datos del formulario; guardar
+  borrador sigue siendo opcional. Una sesion profesional existente abre el panel.
+- La web consulta identidad y solicitud cada ocho segundos mientras esta visible
+  y al recuperar foco. Actualiza la aprobacion sin recargar ni borrar el formulario.
+- En mobile Owner, un aviso global consulta solicitudes vigentes de todos sus
+  hogares owner con permiso edit/admin cada quince segundos en primer plano y al
+  regresar a la app. No depende de tener Salud ni la mascota solicitada abierta.
+  Muestra profesional/mascota y CTA `Revisar solicitud`; abre la revision con
+  permisos, vencimiento y acciones explicitas Aprobar/Rechazar. Se conserva una
+  entrada visible a pendientes si se descarta el aviso; no se repite el mismo
+  aviso durante esa sesion del componente. Cambiar cuenta/modo limpia ese estado.
+- La tarjeta de Salud actualiza solicitudes cada ocho segundos, al regresar a
+  primer plano y con `Actualizar solicitudes`, conservando el QR generado.
+- Son avisos internos: no llegan con la app cerrada. Push remoto queda pendiente.
+  No se modifican RLS, RPCs ni Storage. Web Owner no incorpora aprobacion en este
+  cambio. La lectura de imagenes/archivos por QR sigue fuera de este alcance.
+
+Validacion funcional requerida: solicitud enviada mientras Owner esta en Inicio,
+CTA y aprobacion; aprobacion visible en profesional sin recarga; desmarcar scopes;
+no avisar por solicitudes vencidas ni hogares view; reanudar app y cambiar cuenta.
+
 ## Correccion Admin Profesionales — 2026-10-24
 
 El cliente compartido convierte las columnas snake_case de

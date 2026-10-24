@@ -42,7 +42,7 @@ export function PublicClinicalAccessPage({ token }: { token: string }) {
     <main className={styles.shell}>
       <header className={styles.header}>
         <div><span className={styles.eyebrow}>Pet Ecosystem · Consulta temporal</span><h1>Expediente de {record.pet.name}</h1><p>{record.pet.species}{record.pet.breed ? ` · ${record.pet.breed}` : ""}</p></div>
-        <div className={styles.access}><strong>Solo lectura</strong><span>Vence {formatExpiration(record.grant.expiresAt)}</span></div>
+        <div className={styles.access}><strong>Consulta temporal</strong><span>Vence {formatExpiration(record.grant.expiresAt)}</span></div>
       </header>
 
       <section className={styles.identity} aria-label="Identificacion de la mascota">
@@ -59,7 +59,7 @@ export function PublicClinicalAccessPage({ token }: { token: string }) {
         <section className={styles.section}><div className={styles.sectionTitle}><h2>Condiciones</h2><span>{record.conditions.length}</span></div>{record.conditions.length ? record.conditions.map((condition) => <article className={styles.item} key={`${condition.name}-${condition.diagnosedOn ?? "current"}`}><strong>{condition.name}</strong><p>Estado: {condition.status === "active" ? "Activa" : condition.status === "resolved" ? "Resuelta" : "En seguimiento"}</p><p>Diagnostico: {formatDate(condition.diagnosedOn)}</p>{condition.notes ? <p>{condition.notes}</p> : null}</article>) : <Empty>Sin condiciones registradas.</Empty>}</section>
         <section className={styles.section}><div className={styles.sectionTitle}><h2>Documentos registrados</h2><span>{record.documents.length}</span></div><p className={styles.helper}>Por privacidad, este acceso muestra referencias y vigencias, no archivos.</p>{record.documents.length ? record.documents.map((document) => <article className={styles.item} key={`${document.title}-${document.issuedAt ?? "document"}`}><strong>{document.title}</strong><p>Tipo: {document.documentType.replaceAll("_", " ")}</p><p>Vigencia: {formatDate(document.expiresAt)}</p></article>) : <Empty>Sin documentos registrados.</Empty>}</section>
       </div>
-      <footer className={styles.footer}>La familia autorizo esta consulta por tiempo limitado. Esta vista no permite modificar el expediente ni acredita identidad profesional.</footer>
+      <footer className={styles.footer}>La familia autorizo esta consulta por tiempo limitado. Para agregar una atencion, el profesional debe identificarse y obtener la aprobacion del responsable. Los registros anteriores se conservan.</footer>
     </main>
   );
 }

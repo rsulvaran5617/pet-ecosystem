@@ -1,6 +1,6 @@
 import type { ClinicalWriteRequest, ClinicalWriteScope, CreatedPetClinicalAccess, PetClinicalAccessDuration, PetClinicalAccessGrant } from "@pet/types";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, Share, Text, View } from "react-native";
+import { ActivityIndicator, AppState, Pressable, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 import { getMobileClinicalAccessApiClient } from "../../core/services/supabase-mobile";
@@ -17,7 +17,7 @@ function formatExpiration(value: string) {
   return new Intl.DateTimeFormat("es-PA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function ClinicalAccessCard({ petId, petName }: { petId: string; petName: string }) {
+export function ClinicalAccessCard({ petId, petName, requestsOnly = false }: { petId: string; petName: string; requestsOnly?: boolean }) {
   const [duration, setDuration] = useState<PetClinicalAccessDuration>("1_hour");
   const [createdAccess, setCreatedAccess] = useState<CreatedPetClinicalAccess | null>(null);
   const [activeGrant, setActiveGrant] = useState<PetClinicalAccessGrant | null>(null);
@@ -25,19 +25,43 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [writeRequests, setWriteRequests] = useState<ClinicalWriteRequest[]>([]);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const accessUrl = useMemo(() => createdAccess ? `${publicWebOrigin}/clinical-access/${createdAccess.token}` : null, [createdAccess]);
 
   useEffect(() => {
-    let active = true;
     setCreatedAccess(null);
+    setActiveGrant(null);
+    setWriteRequests([]);
     setIsLoading(true);
     setErrorMessage(null);
-    void Promise.all([getMobileClinicalAccessApiClient().listPetClinicalAccessGrants(petId), getMobileClinicalAccessApiClient().listPetClinicalWriteRequests(petId)])
-      .then(([grants, requests]) => { if (active) { setActiveGrant(grants.find((grant) => grant.status === "active") ?? null); setWriteRequests(requests); } })
-      .catch(() => { if (active) setErrorMessage("No pudimos consultar los accesos temporales."); })
-      .finally(() => { if (active) setIsLoading(false); });
-    return () => { active = false; };
   }, [petId]);
+
+  useEffect(() => {
+    if (isSubmitting) return;
+    let active = true;
+    let running = false;
+    async function refresh() {
+      if (running || AppState.currentState !== "active") return;
+      running = true;
+      try {
+        const [grants, requests] = await Promise.all([
+          getMobileClinicalAccessApiClient().listPetClinicalAccessGrants(petId),
+          getMobileClinicalAccessApiClient().listPetClinicalWriteRequests(petId)
+        ]);
+        if (active) {
+          setActiveGrant(grants.find((grant) => grant.status === "active" && Date.parse(grant.expiresAt) > Date.now()) ?? null);
+          setWriteRequests(requests);
+          setErrorMessage(null);
+        }
+      } catch {
+        if (active) setErrorMessage("No pudimos actualizar las solicitudes. Pulsa Actualizar para reintentar.");
+      } finally { running = false; if (active) setIsLoading(false); }
+    }
+    void refresh();
+    const interval = setInterval(() => void refresh(), 8000);
+    const subscription = AppState.addEventListener("change", (state) => { if (state === "active") void refresh(); });
+    return () => { active = false; clearInterval(interval); subscription.remove(); };
+  }, [petId, isSubmitting, refreshVersion]);
 
   async function createAccess() {
     setIsSubmitting(true);
@@ -87,12 +111,13 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
   return (
     <View style={{ borderRadius: 16, borderWidth: 1, borderColor: "rgba(15,118,110,0.2)", backgroundColor: "#f0fdfa", padding: 14, gap: 12 }}>
       <View style={{ gap: 3 }}>
-        <Text style={{ color: "#134e4a", fontSize: 15, fontWeight: "900" }}>Acceso temporal al expediente</Text>
-        <Text style={{ color: "#475569", fontSize: 12, lineHeight: 17 }}>Permite que un profesional consulte la salud de {petName} desde la web. El acceso es solo de lectura.</Text>
+        <Text style={{ color: "#134e4a", fontSize: 15, fontWeight: "900" }}>{requestsOnly ? `Permisos profesionales de ${petName}` : "Acceso temporal al expediente"}</Text>
+        <Text style={{ color: "#475569", fontSize: 12, lineHeight: 17 }}>El enlace permite consultar la salud de {petName}. Para agregar informacion, el profesional necesita tu aprobacion.</Text>
+        <Pressable accessibilityRole="button" disabled={isSubmitting} onPress={() => setRefreshVersion((value) => value + 1)}><Text style={{ color: "#0f766e", fontWeight: "800", paddingVertical: 8 }}>Actualizar solicitudes</Text></Pressable>
       </View>
       {isLoading ? <ActivityIndicator color="#0f766e" /> : null}
       {errorMessage ? <Text style={{ color: "#991b1b", fontSize: 12, fontWeight: "700" }}>{errorMessage}</Text> : null}
-      {!isLoading && !activeGrant ? (
+      {!requestsOnly && !isLoading && !activeGrant ? (
         <>
           <View accessibilityRole="radiogroup" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {durations.map((option) => {
@@ -103,7 +128,7 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
           <Pressable disabled={isSubmitting} onPress={() => void createAccess()} style={{ borderRadius: 999, backgroundColor: "#0f766e", padding: 12, opacity: isSubmitting ? 0.6 : 1 }}><Text style={{ color: "#ffffff", fontWeight: "800", textAlign: "center" }}>{isSubmitting ? "Generando..." : "Generar codigo QR"}</Text></Pressable>
         </>
       ) : null}
-      {activeGrant ? (
+      {!requestsOnly && activeGrant ? (
         <View style={{ alignItems: "center", gap: 10 }}>
           {accessUrl ? <View style={{ backgroundColor: "#ffffff", borderRadius: 12, padding: 12 }}><QRCode value={accessUrl} size={190} /></View> : null}
           <Text style={{ color: "#134e4a", fontSize: 12, fontWeight: "800", textAlign: "center" }}>Disponible hasta {formatExpiration(activeGrant.expiresAt)}</Text>
@@ -111,7 +136,8 @@ export function ClinicalAccessCard({ petId, petName }: { petId: string; petName:
           <Pressable disabled={isSubmitting} onPress={() => void revokeAccess()} style={{ borderRadius: 999, borderWidth: 1, borderColor: "#dc2626", paddingHorizontal: 16, paddingVertical: 10, opacity: isSubmitting ? 0.6 : 1 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>{isSubmitting ? "Cerrando..." : "Revocar acceso"}</Text></Pressable>
         </View>
       ) : null}
-      {writeRequests.filter((request) => request.status === "requested" || request.status === "approved").map((request) => (
+      {!isLoading && requestsOnly && !writeRequests.some((request) => request.status === "requested" && Date.parse(request.expiresAt) > Date.now()) ? <Text>No hay solicitudes pendientes vigentes.</Text> : null}
+      {writeRequests.filter((request) => (request.status === "requested" || request.status === "approved") && Date.parse(request.expiresAt) > Date.now()).map((request) => (
         <View key={request.id} style={{ borderRadius: 12, borderWidth: 1, borderColor: request.status === "requested" ? "#f59e0b" : "#0f766e", backgroundColor: "#ffffff", padding: 12, gap: 8 }}>
           <Text style={{ color: "#1c1917", fontWeight: "900" }}>{request.status === "requested" ? "Solicitud profesional" : "Autorizacion activa"}</Text>
           <Text style={{ color: "#334155", fontWeight: "700" }}>{request.professionalName}{request.organizationName ? ` - ${request.organizationName}` : ""}</Text>

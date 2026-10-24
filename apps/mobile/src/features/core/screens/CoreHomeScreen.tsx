@@ -43,6 +43,7 @@ import { HouseholdsWorkspace } from "../../households/components/HouseholdsWorks
 import { PetsWorkspace } from "../../pets/components/PetsWorkspace";
 import { usePetsWorkspace } from "../../pets/hooks/usePetsWorkspace";
 import { HealthWorkspace } from "../../health/components/HealthWorkspace";
+import { ClinicalRequestNotifications } from "../../health/components/ClinicalRequestNotifications";
 import { RemindersWorkspace } from "../../reminders/components/RemindersWorkspace";
 import { useRemindersWorkspace } from "../../reminders/hooks/useRemindersWorkspace";
 import { AdoptionDiscoveryWorkspace } from "../../foster/components/AdoptionDiscoveryWorkspace";
@@ -2047,6 +2048,7 @@ export function CoreHomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colorTokens.canvas }}>
       <StatusBar barStyle="dark-content" />
+      {isOwnerMode && authState.userId ? <ClinicalRequestNotifications key={authState.userId} /> : null}
       <ScrollView ref={mainScrollViewRef} contentContainerStyle={{ padding: visualTokens.mobile.screenPadding, gap: 20 }}>
         {authState.isAuthenticated && snapshot ? (
           isProviderMode ? (
