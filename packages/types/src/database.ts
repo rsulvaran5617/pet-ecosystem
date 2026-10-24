@@ -2482,7 +2482,18 @@ export interface Database {
       finalize_clinical_document_upload: { Args: { target_document_id: string }; Returns: undefined };
       get_clinical_document_access: { Args: { target_document_id: string }; Returns: Record<string, unknown> };
       create_clinical_entry_correction: { Args: { target_entry_id: string; target_request_id: string; next_title: string; next_details?: string | null; next_reason: string }; Returns: string };
-      list_clinical_audit_events_for_admin: { Args: Record<string, never>; Returns: Array<Record<string, unknown>> };
+      list_clinical_audit_events_for_admin: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          id: string;
+          event: string;
+          occurred_at: string;
+          professional_name: string | null;
+          organization_name: string | null;
+          pet_reference: string | null;
+          authorization_status: string | null;
+        }>;
+      };
       switch_active_user_role: {
         Args: {
           next_role: CoreRole;

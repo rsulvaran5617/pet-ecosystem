@@ -181,7 +181,15 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
     async listClinicalAuditEventsForAdmin() {
       const { data, error } = await supabase.rpc("list_clinical_audit_events_for_admin", {});
       if (error) fail(error, "No fue posible consultar la auditoria clinica.");
-      return (data ?? []) as unknown as ClinicalAuditEvent[];
+      return (data ?? []).map((row): ClinicalAuditEvent => ({
+        id: row.id,
+        event: row.event,
+        occurredAt: row.occurred_at,
+        professionalName: row.professional_name,
+        organizationName: row.organization_name,
+        petReference: row.pet_reference,
+        authorizationStatus: row.authorization_status
+      }));
     },
     async createPetClinicalAccess(petId: Uuid, durationCode: PetClinicalAccessDuration) {
       const { data, error } = await supabase.rpc("create_pet_clinical_access", {

@@ -1,5 +1,15 @@
 # CLINICAL ACCESS-2
 
+## Correccion Admin Profesionales — 2026-10-24
+
+El cliente compartido convierte las columnas snake_case de
+`list_clinical_audit_events_for_admin` al DTO `ClinicalAuditEvent`, incluida
+`occurred_at` -> `occurredAt`. Esto permite abrir Profesionales con eventos de
+auditoria y filtrar por profesional, organizacion o referencia sin provocar
+`RangeError: Invalid time value`. El tipo RPC declara sus columnas y nulabilidad.
+La regresion cubre fechas renderizables, filtros, resultados vacios y errores de
+acceso. No cambia SQL, permisos ni contenido clinico expuesto.
+
 ## Correccion de auditoria H01-H03 — 2026-09-17
 
 La migracion `20260918010000_clinical_write_authorization_revalidation.sql` esta aplicada al proyecto remoto vinculado. Un guard interno, sin permiso de ejecucion para clientes, revalida actor, solicitud, consentimiento, scopes, profesional verificado, grant vigente y hogar actual de la mascota. Lo consumen finalizacion de atencion, rectificacion, preparacion/finalizacion documental y autorizacion de subida a Storage.
