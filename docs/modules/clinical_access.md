@@ -1,5 +1,19 @@
 # CLINICAL ACCESS-2
 
+## Historial de autorizaciones a demanda - 2026-10-25
+
+Mobile: el historial de autorizaciones se muestra en un acordeon cerrado por
+defecto, con Mostrar/Ocultar y estado accesible expandido. Al cambiar de mascota
+se cierra. Las solicitudes pendientes y autorizaciones activas siguen visibles.
+No cambia el consentimiento ni el acceso temporal del QR.
+
+Revision del flujo: get_public_pet_clinical_access admite anon/authenticated con
+un token activo y vigente; devuelve salud basica y metadata de documentos, no
+archivos. La escritura y los archivos requieren identidad verificada y permiso
+Owner vigente. Revocar una autorizacion profesional no revoca el grant de lectura
+del QR; Revocar acceso cierra este ultimo. Decision confirmada por el usuario: mantener lectura basica por QR vigente y
+aprobacion para escritura y archivos; no se cambia el backend.
+
 ## Visor profesional de solo lectura - 2026-10-25 (local)
 
 PDF se renderiza dentro de la web con PDF.js 6.4.299 (build legacy), sin depender

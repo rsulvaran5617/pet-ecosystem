@@ -25,10 +25,12 @@ export function ClinicalAccessCard({ petId, petName, requestsOnly = false }: { p
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [writeRequests, setWriteRequests] = useState<ClinicalWriteRequest[]>([]);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const accessUrl = useMemo(() => createdAccess ? `${publicWebOrigin}/clinical-access/${createdAccess.token}` : null, [createdAccess]);
 
   useEffect(() => {
+    setHistoryExpanded(false);
     setCreatedAccess(null);
     setActiveGrant(null);
     setWriteRequests([]);
@@ -148,12 +150,12 @@ export function ClinicalAccessCard({ petId, petName, requestsOnly = false }: { p
           {request.status === "requested" ? <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}><Pressable disabled={isSubmitting} onPress={() => void reviewRequest(request, "approved")} style={{ borderRadius: 999, backgroundColor: "#0f766e", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#fff", fontWeight: "800" }}>Aprobar</Text></Pressable><Pressable disabled={isSubmitting} onPress={() => void reviewRequest(request, "rejected")} style={{ borderRadius: 999, borderWidth: 1, borderColor: "#b91c1c", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>Rechazar</Text></Pressable></View> : <Pressable disabled={isSubmitting} onPress={() => void revokeWriteRequest(request)} style={{ alignSelf: "flex-start", borderRadius: 999, borderWidth: 1, borderColor: "#b91c1c", paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: "#b91c1c", fontWeight: "800" }}>Revocar permiso</Text></Pressable>}
         </View>
       ))}
-      {writeRequests.some((request) => !["requested", "approved"].includes(request.status)) ? <View style={{ gap: 7 }}><Text style={{ color: "#134e4a", fontSize: 13, fontWeight: "900" }}>Historial de autorizaciones</Text>{writeRequests.filter((request) => !["requested", "approved"].includes(request.status)).map((request) => <View key={request.id} style={{ borderTopWidth: 1, borderTopColor: "#dbe7e4", paddingTop: 8, gap: 2 }}><Text style={{ color: "#334155", fontSize: 12, fontWeight: "800" }}>{request.professionalName}{request.organizationName ? ` · ${request.organizationName}` : ""}</Text><Text style={{ color: "#64748b", fontSize: 11 }}>{request.status === "completed" ? "Atencion completada" : request.status === "rejected" ? "Solicitud rechazada" : request.status === "revoked" ? "Permiso revocado" : "Permiso vencido"} · vence {formatExpiration(request.expiresAt)}</Text>{request.status === "completed" && new Date(request.expiresAt).getTime() > Date.now() ? <>
+      {writeRequests.some((request) => !["requested", "approved"].includes(request.status)) ? <View style={{ gap: 7 }}><Pressable accessibilityRole="button" accessibilityState={{ expanded: historyExpanded }} onPress={() => setHistoryExpanded((expanded) => !expanded)} style={{ paddingVertical: 10 }}><Text style={{ color: "#134e4a", fontSize: 13, fontWeight: "900" }}>Historial de autorizaciones - {historyExpanded ? "Ocultar" : "Mostrar"}</Text></Pressable>{historyExpanded ? writeRequests.filter((request) => !["requested", "approved"].includes(request.status)).map((request) => <View key={request.id} style={{ borderTopWidth: 1, borderTopColor: "#dbe7e4", paddingTop: 8, gap: 2 }}><Text style={{ color: "#334155", fontSize: 12, fontWeight: "800" }}>{request.professionalName}{request.organizationName ? ` · ${request.organizationName}` : ""}</Text><Text style={{ color: "#64748b", fontSize: 11 }}>{request.status === "completed" ? "Atencion completada" : request.status === "rejected" ? "Solicitud rechazada" : request.status === "revoked" ? "Permiso revocado" : "Permiso vencido"} · vence {formatExpiration(request.expiresAt)}</Text>{request.status === "completed" && new Date(request.expiresAt).getTime() > Date.now() ? <>
         <Text style={{ color: "#64748b", fontSize: 11 }}>La atencion se conserva. Puedes retirar el acceso a los archivos del expediente y los permisos pendientes para adjuntar documentos.</Text>
         <Pressable disabled={isSubmitting} onPress={() => void revokeWriteRequest(request)} style={{ alignSelf: "flex-start", borderRadius: 999, borderWidth: 1, borderColor: "#b91c1c", paddingHorizontal: 14, paddingVertical: 9 }}>
           <Text style={{ color: "#b91c1c", fontWeight: "800" }}>Revocar permisos pendientes</Text>
         </Pressable>
-      </> : null}</View>)}</View> : null}
+      </> : null}</View>) : null}</View> : null}
     </View>
   );
 }

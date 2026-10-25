@@ -1,5 +1,12 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Historial de autorizaciones a demanda - 2026-10-25
+
+Mobile: el historial de autorizaciones se muestra en un acordeon cerrado por
+defecto, con Mostrar/Ocultar y estado accesible expandido. Al cambiar de mascota
+se cierra. Las solicitudes pendientes y autorizaciones activas siguen visibles.
+No cambia el consentimiento ni el acceso temporal del QR.
+
 ## Visor PDF profesional sin descarga - 2026-10-25 (local)
 
 Documentos del expediente indica Solo lectura. Volver a consultar vuelve a leer
