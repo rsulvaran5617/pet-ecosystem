@@ -25,7 +25,7 @@ Node >=22.13 requerido por dependencia; gota verificada con Node v22.22.2.
 - La ausencia de herramientas de descarga no impide capturas, extraccion de
   bytes por herramientas del navegador o almacenamiento fuera de la app.
 - PDF con clave/formato no compatible muestra error; no se implementa desbloqueo.
-- Safari/iOS y Android fisicos pendientes. Sin deploy, commit ni push nuevos.
+- Safari/iOS y Android fisicos pendientes. Sin deploy. Fuente del visor: 75f33298a0f7ff820a3222fab6c50cb71b43c8a6.
 
 ## Publicacion
 
@@ -35,3 +35,11 @@ y scripts/copy-pdf-assets.mjs. Compilar genera public/pdfjs. Conservar Node
 compatible. El script anterior update-clinical-documents.ps1 fija 44262b4 y no
 publica esta nueva correccion. Hacer deploy con candidata y verificaciones de
 worker/font assets; conservar la web anterior para rollback.
+
+Script PowerShell: `scripts/update-clinical-viewer.ps1`. Fija la fuente anterior,
+compila una candidata, valida hashes del worker/fuente y restaura la web anterior
+si falla tras el cambio. No modifica backend ni mobile. `-CheckOnly` valida Bash
+sin desplegar.
+
+Preflight: Bash remoto -CheckOnly PASS; Node v22.22.2. Web activa inspeccionada:
+/var/www/pet-releases/clinical-documents-44262b4-1792890083. No se desplego.

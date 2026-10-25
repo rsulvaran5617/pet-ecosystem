@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+## Publicacion preparada: visor PDF de solo lectura
+
+Fuente 75f3329. Script `scripts/update-clinical-viewer.ps1` para PowerShell,
+solo web con candidata y rollback. Sintaxis Bash verificada con -CheckOnly.
+Build, tipos, lint y 16 casos del visor pasaron. Despliegue pendiente del usuario.
+
+
 ## Visor profesional PDF - 2026-10-25 (local)
 
 PDF.js renderiza las paginas sin plugin del navegador. Sin herramientas de
