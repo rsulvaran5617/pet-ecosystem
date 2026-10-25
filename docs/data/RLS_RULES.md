@@ -429,3 +429,7 @@ La RPC de reserva mantiene su ACL y toma FOR SHARE sobre la regla. Se comprobó 
 ## Expiracion de reservas - 2026-09-18
 
 No se amplian policies de lectura/escritura. expire_unapproved_bookings() solo se concede a service_role (y propietario de la funcion/cron); public, anon y authenticated no tienen EXECUTE. El sistema registra actor null; la lectura de auditoria sigue limitada por la policy existente a admin o actor, por lo que eventos de sistema son visibles al admin. Owner/provider consultan su historial por las policies de booking existentes.
+
+### Consentimiento clinico: circuitos cerrados
+
+La migracion `20261025020000_clinical_authorization_cycle_closure.sql` mantiene RLS y Storage privados. Cerrar un QR revoca los permisos residuales; una nueva solicitud cierra los anteriores del mismo profesional y mascota sin transferir consentimiento. Helpers SECURITY DEFINER internos sin EXECUTE de clientes. La autorizacion efectiva exige todas las vigencias y ausencia de revocacion; no depende de cron ni de estados visibles del frontend. Lectura b?sica por QR conserva su alcance existente.

@@ -1,0 +1,40 @@
+{
+  "checkedAt": "2026-10-25T18:16:04.631Z",
+  "comparisons": [
+    {
+      "name": "create_pet_clinical_access",
+      "matches": true
+    },
+    {
+      "name": "get_my_clinical_write_request",
+      "matches": true
+    },
+    {
+      "name": "list_pet_clinical_write_requests",
+      "matches": true
+    },
+    {
+      "name": "request_clinical_write_access",
+      "matches": true
+    },
+    {
+      "name": "review_clinical_write_request",
+      "matches": true
+    },
+    {
+      "name": "revoke_pet_clinical_access",
+      "matches": true
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20260918010000"
+    },
+    {
+      "version": "20260918020000"
+    },
+    {
+      "version": "20261025010000"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+﻿{
+  "engine": "PGlite",
+  "limits": "Single connection; no live Supabase RLS sessions or contention test. Crypto helpers are test-only.",
+  "results": [
+    {
+      "name": "exact deadline denies access and closes effective status",
+      "passed": true
+    },
+    {
+      "name": "revocation before deadline blocks document permission",
+      "passed": true
+    },
+    {
+      "name": "new request cannot revive expired verification",
+      "passed": true
+    },
+    {
+      "name": "owner can revoke completed residual rights",
+      "passed": true
+    },
+    {
+      "name": "new request closes approved circuit",
+      "passed": true
+    },
+    {
+      "name": "completed circuit residual rights close",
+      "passed": true
+    },
+    {
+      "name": "pending duplicate is idempotent",
+      "passed": true
+    },
+    {
+      "name": "changed pending submission closes old request",
+      "passed": true
+    },
+    {
+      "name": "QR revocation closes whole circuit",
+      "passed": true
+    },
+    {
+      "name": "QR replacement closes old circuit",
+      "passed": true
+    },
+    {
+      "name": "new QR never inherits authorization",
+      "passed": true
+    },
+    {
+      "name": "expired completed request displays closed",
+      "passed": true
+    },
+    {
+      "name": "professional deadline caps request",
+      "passed": true
+    },
+    {
+      "name": "approval rejects revoked parent",
+      "passed": true
+    },
+    {
+      "name": "approval rejects expired professional",
+      "passed": true
+    },
+    {
+      "name": "new circuit needs new owner approval",
+      "passed": true
+    },
+    {
+      "name": "vet cannot approve own request",
+      "passed": true
+    },
+    {
+      "name": "other household cannot revoke QR",
+      "passed": true
+    },
+    {
+      "name": "anonymous cannot request",
+      "passed": true
+    },
+    {
+      "name": "invalid replacement preserves old circuit",
+      "passed": true
+    },
+    {
+      "name": "public RPCs require authenticated role",
+      "passed": true
+    },
+    {
+      "name": "closure helpers inaccessible to authenticated and anon",
+      "passed": true
+    },
+    {
+      "name": "owner history reports expired residual rights",
+      "passed": true
+    },
+    {
+      "name": "other household cannot list history",
+      "passed": true
+    }
+  ]
+}

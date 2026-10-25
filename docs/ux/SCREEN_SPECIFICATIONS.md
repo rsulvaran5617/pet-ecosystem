@@ -456,3 +456,7 @@ Inicio y Ayuda conservan CSS importado y presentación sin JavaScript, con hidra
 ## Bookings: vencidas y pendientes de cierre - 2026-09-18
 
 Owner/provider web y mobile incorporan filtros Expiradas y Pendientes de cierre. No se ofrecen aprobaciones despues del inicio ni cancelacion de una expirada. Confirmadas despues de su hora final salen de proximas; se conserva acceso a detalle, soporte e historial y cierre explicito provider. Operaciones distingue sin llegada registrada, cierre de atencion pendiente y finalizacion pendiente, sin inferir inasistencia. Contadores e icono mobile excluyen expiradas y confirmadas pasadas de proximas/activas. Clasificacion refrescada cada 15 segundos aun sin eventos DB.
+
+### Acceso profesional: nueva autorizacion
+
+En el enlace clinico, una solicitud ya resuelta permite Solicitar una nueva autorizacion. Antes de enviar se advierte que se cerraran los permisos anteriores para esa mascota y se necesitara otra aprobacion. Abrir el formulario no revoca: el cierre y la nueva solicitud ocurren juntos al enviar. La repeticion identica de una solicitud pendiente no duplica el circuito. El historial muestra vencidos/revocados tambien cuando ya hubo una atencion registrada.

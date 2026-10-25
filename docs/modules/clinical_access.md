@@ -768,3 +768,11 @@ La migración 20260918020000 conserva un comprobante idempotente: repetir finali
 El propietario puede revocar solicitudes approved o completed; ambas pasan a revoked y se retiran los permisos residuales sin borrar atenciones. Mobile ofrece Revocar permisos pendientes sobre completed vigente. Web separa atención guardada de archivo pendiente, y conserva claves/archivo/fases en memoria durante el reintento; recargar la página pierde ese contexto, sin persistencia clínica local.
 
 Servidor aplicado; cambios de clientes locales, publicación y QA nativo pendientes. Evidencia y límites en docs/audit/2026-09-17/CORRECCION_REINTENTOS.md. No amplía el alcance clínico de producto.
+
+## Cierre de circuitos de autorizacion (2026-10-25)
+
+Cada circuito de consentimiento corresponde a un profesional y una mascota. Termina al llegar al menor vencimiento del QR, solicitud, autorizacion o verificacion profesional, o antes por revocacion. Registrar una atencion conserva acceso residual a archivos solamente mientras ese circuito siga vigente.
+
+Enviar una solicitud nueva cierra atomicamente todas las solicitudes abiertas y permisos residuales anteriores del mismo profesional y mascota; requiere nueva aprobacion del responsable. Reenviar una solicitud pendiente con los mismos permisos y nota es un reintento idempotente. Reemplazar o revocar el QR cierra todos sus circuitos. Las atenciones y documentos historicos se conservan. La verificacion profesional es independiente y nunca se renueva al generar un QR.
+
+La denegacion al vencer ocurre en cada operacion del backend, sin depender de cron. Las consultas de historial calculan el estado efectivo, incluidos circuitos con atencion completada; el estado almacenado puede conservar su valor previo hasta una transicion posterior. No equivale a una autorizacion utilizable.

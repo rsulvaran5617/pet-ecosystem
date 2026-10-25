@@ -480,3 +480,9 @@ create_booking_from_slot conserva firma, retorno y permisos. Bloquea compartidam
 ## Bookings: vencimiento temporal - 2026-09-18
 
 BookingStatus agrega expired. BookingStatusChange.changedByUserId puede ser null para eventos del sistema. Las respuestas de reservas, chat y resenas comparten el tipo ampliado. approve_booking bloquea la fila antes de leer y rechaza transiciones despues del inicio con Booking approval deadline has passed; expired es terminal. La funcion expire_unapproved_bookings() retorna el numero de filas procesadas, no es RPC invocable por clientes anon/authenticated. confirmed pasada sigue confirmed en la API: las apps derivan pending_closure por scheduledEndAt. No nuevos endpoints cliente. Migraciones y publicacion pendientes.
+
+### Cierre de autorizaciones clinicas (2026-10-25)
+
+Sin cambios de firma ni DTO: `request_clinical_write_access` cierra el circuito previo del mismo profesional/mascota antes de crear otro; un reintento identico pendiente devuelve su UUID. El vencimiento nuevo no supera el del QR ni el de la verificacion profesional. `create_pet_clinical_access` y `revoke_pet_clinical_access` cierran los consentimientos asociados antes de cambiar el QR. `review_clinical_write_request` revalida QR, identidad y vigencia antes de aprobar.
+
+`get_my_clinical_write_request` y `list_pet_clinical_write_requests` informan estado efectivo tambien para `completed` con permisos residuales. El vencimiento se exige en backend aunque no haya actualizacion fisica programada. Helpers de cierre/estado son internos, sin EXECUTE para anon/authenticated. Operaciones de ciclo serializadas por mascota; bloqueos de solicitudes/autorizaciones preceden al bloqueo del QR.
