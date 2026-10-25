@@ -7,6 +7,7 @@ export default tseslint.config(
     ignores: [
       "**/node_modules/**",
       "**/.next/**",
+      "**/public/pdfjs/**",
       "**/.turbo/**",
       "**/.expo/**",
       "**/dist/**",

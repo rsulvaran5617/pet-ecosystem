@@ -43,7 +43,15 @@
 .textLink { color: #0f766e; font-size: 13px; font-weight: 700; }
 .documentPreview { display: grid; gap: 12px; margin-top: 16px; padding: 16px; border: 1px solid #cfe0dc; border-radius: 8px; }
 .documentPreview img { max-width: 100%; max-height: 70vh; object-fit: contain; }
-.documentPreview object { width: 100%; height: 65vh; border: 0; }
+.pdfViewer { min-width: 0; }
+.pdfControls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.pdfControls label { display: flex; align-items: center; gap: 8px; }
+.pdfControls select { min-height: 42px; font: inherit; }
+.pdfCanvasViewport { max-width: 100%; max-height: 75vh; overflow: auto; background: #e8eeec; }
+.pdfCanvasViewport canvas { display: block; margin: 0 auto; }
+.pdfCanvasViewport canvas[hidden] { display: none; }
+.pdfText { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pdfViewer details { margin-top: 12px; }
 .documentPreview a { color: #0f766e; font-weight: 700; }
 .writeRequest { display: grid; gap: 10px; padding: 15px; border: 1px solid #cfe0dc; border-radius: 8px; background: #f8fffd; }
 .writeRequest h3, .writeRequest p { margin: 0; }

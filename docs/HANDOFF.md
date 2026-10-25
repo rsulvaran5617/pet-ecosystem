@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Visor profesional PDF - 2026-10-25 (local)
+
+PDF.js renderiza las paginas sin plugin del navegador. Sin herramientas de
+descarga/impresion/edicion en la interfaz; Volver a consultar es lectura.
+Dependencia/assets locales y controles temporales conservados. Sin publicacion
+ni cambios backend/mobile. Evidencia y limites: [validacion](audit/2026-10-25-clinical-viewer/VALIDATION.md).
+
+
 ## Publicacion preparada: archivos clinicos (2026-10-24)
 
 Fuente funcional 44262b4. Ejecutar desde PowerShell

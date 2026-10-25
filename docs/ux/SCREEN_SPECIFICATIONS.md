@@ -1,10 +1,21 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Visor PDF profesional sin descarga - 2026-10-25 (local)
+
+Documentos del expediente indica Solo lectura. Volver a consultar vuelve a leer
+el listado; no actualiza registros. Ver documento / foto abre imagen o PDF en
+canvas propio, con paginas/ampliacion/texto accesible y Cerrar archivo. No hay
+botones de descargar/imprimir/editar/reemplazar ni controles PDF del navegador.
+PDF corrupto/protegido permite reintentar; formato incompatible informa solicitar
+una imagen/PDF legible. No ofrece descarga como solucion alternativa. Se conserva
+cierre por expiracion/logout y revocacion detectada en el polling de permisos.
+El contenido visible no tiene proteccion contra capturas/extraccion tecnica.
+
 ## Expediente profesional: archivos temporales (2026-10-24, local)
 
 Despues del resumen se muestra Documentos del expediente. Sin permiso, informa
 que se requiere sesion, verificacion y aprobacion vigente. Con permiso, lista
-archivos y ofrece Ver documento / foto, estado Abriendo, preview, descarga y
+archivos y ofrece Ver documento / foto, estado Abriendo, preview y
 Cerrar archivo; contempla vacio, error y Actualizar documentos. Revocacion,
 logout o vencimiento cierran el preview (revocacion detectada por polling de 8s
 visible/reanudar; servidor valida cada apertura). Imagenes privadas permanecen

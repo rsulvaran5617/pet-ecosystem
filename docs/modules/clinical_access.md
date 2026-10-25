@@ -1,5 +1,29 @@
 # CLINICAL ACCESS-2
 
+## Visor profesional de solo lectura - 2026-10-25 (local)
+
+PDF se renderiza dentro de la web con PDF.js 6.4.299 (build legacy), sin depender
+del plugin PDF del navegador. Ofrece pagina anterior/siguiente, ampliacion y
+texto de pagina accesible. No incluye herramientas para descargar, imprimir,
+editar, adjuntar o reemplazar documentos Owner. Imagenes tampoco ofrecen enlace
+de descarga. Formatos no compatibles informan solicitar imagen/PDF legible, sin
+fallback de descarga. `Volver a consultar` solo recarga el listado mediante RPC
+de lectura; no modifica metadata ni contenido. La tarjeta indica Solo lectura.
+
+Worker, fuentes, CMaps, ICC y WASM se sirven localmente desde assets versionados
+copiados desde la dependencia fijada antes de dev/build; no se envian archivos
+clinicos a servicios externos/CDN. Canvas limitado a cuatro millones de pixeles;
+se cancela el render y destruye worker al cerrar, vencer, revocar o cambiar sesion.
+PDF permanece en memoria y no crea enlace Blob navegable; imagen conserva Blob
+privado con limpieza existente. Texto adicional no es un formulario editable.
+
+Este cambio elimina acciones de descarga de la UI, no es DRM: el navegador
+recibe contenido para mostrarlo, y no puede impedir capturas o extraccion tecnica.
+Autorizacion backend, expiracion y revocacion no cambian. No requiere migraciones
+ni nuevos builds mobile. Requiere publicar web con package.json, lockfile y script
+de assets; el script previo fijado a 44262b4 no incluye este visor.
+Evidencia: [validacion](../audit/2026-10-25-clinical-viewer/VALIDATION.md).
+
 ## Lectura temporal de archivos Owner - 2026-10-24 (implementacion local)
 
 El profesional autenticado y verificado puede abrir documentos de `pet_documents`
@@ -17,8 +41,8 @@ archivos de otras mascotas de la misma clinica/hogar. El QR anonimo conserva su
 proyeccion de metadata, sin archivos.
 
 La web agrega `Documentos del expediente`, `Ver documento / foto`, preview de
-PNG/JPEG/GIF/WebP y PDF, descarga y cierre. Otros formatos se descargan como
-binario sin contenido activo embebido. Incluye stickers/cartillas cargados en
+PNG/JPEG/GIF/WebP y PDF y cierre. Desde el ajuste 2026-10-25, la UI no ofrece
+descarga ni apertura de formatos no compatibles. Incluye stickers/cartillas cargados en
 `pet_documents`; alergias y condiciones no tienen relacion documental directa,
 por lo que sus soportes se consultan en el listado comun. No cambia los archivos
 profesionales de `clinical_documents` ni agrega imagenes nuevas.

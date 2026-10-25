@@ -3,6 +3,7 @@ node_modules/
 .turbo/
 
 .next/
+apps/web/public/pdfjs/
 out/
 dist/
 build/

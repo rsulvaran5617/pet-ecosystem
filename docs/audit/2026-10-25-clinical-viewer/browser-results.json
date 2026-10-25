@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "name": "Unauthorized view has no file buttons",
+      "passed": true
+    },
+    {
+      "name": "Read-only language and unambiguous refresh",
+      "passed": true
+    },
+    {
+      "name": "Image preview decodes without download UI",
+      "passed": true
+    },
+    {
+      "name": "Closing image releases URL",
+      "passed": true
+    },
+    {
+      "name": "PDF renders through real PDF.js without browser plugin",
+      "passed": true
+    },
+    {
+      "name": "PDF has visible rendered pixels",
+      "passed": true
+    },
+    {
+      "name": "Multiple pages navigate correctly",
+      "passed": true
+    },
+    {
+      "name": "Zoom renders without controls for saving or editing",
+      "passed": true
+    },
+    {
+      "name": "Canvas can scroll on narrow screens",
+      "passed": true
+    },
+    {
+      "name": "Revocation removes PDF and private file list",
+      "passed": true
+    },
+    {
+      "name": "Expiry tears down PDF viewer",
+      "passed": true
+    },
+    {
+      "name": "Logout clears PDF",
+      "passed": true
+    },
+    {
+      "name": "Invalid PDF offers retry without download fallback",
+      "passed": true
+    },
+    {
+      "name": "Late response cannot reopen after logout",
+      "passed": true
+    },
+    {
+      "name": "Worker and fonts served locally",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "passed": true
+    }
+  ],
+  "scope": "Real React, real PDF.js worker and valid two-page synthetic PDF in Chrome; mocked clinical APIs. No live authorization or native-device certification."
+}
