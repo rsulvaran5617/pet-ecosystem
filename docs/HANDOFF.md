@@ -1,5 +1,17 @@
 # HANDOFF.md
 
+## Release historial clinico - 2026-10-25
+
+Mobile 302a3d9: historial de autorizaciones en acordeon. Lectura basica por QR
+conservada por decision Owner; escritura/archivos con aprobacion. Android
+0.3.2 (5) distribuido en Firebase 5phib3mfoc2go; iOS 0.3.2 (55) procesado VALID,
+pruebas internas y grupo BetaTester. Revision externa bloqueada por build 54
+WAITING_FOR_BETA_REVIEW (ANOTHER_BUILD_IN_REVIEW). Reintentar envio de 55 tras
+resolver la revision anterior, sin recompilar. Web actualizada con enlace Android,
+visor PDF y rollback verificados. QA fisica pendiente.
+Evidencia: [release](audit/2026-10-25-clinical-history-release/VALIDATION.md).
+
+
 ## Publicacion preparada: visor PDF de solo lectura
 
 Fuente 75f3329. Script `scripts/update-clinical-viewer.ps1` para PowerShell,

@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-25T14:28:47.986Z",
+  "platform": "android",
+  "id": "aa4a3171-4c94-4970-b926-7f42ba8d5108",
+  "status": "FINISHED",
+  "createdAt": "2026-10-25T14:20:11.553Z",
+  "updatedAt": "2026-10-25T14:27:27.771Z",
+  "completedAt": "2026-10-25T14:27:27.555Z",
+  "queuePosition": null,
+  "estimatedWaitTimeLeftSeconds": null,
+  "appVersion": "0.3.2",
+  "appBuildVersion": "5",
+  "gitCommitHash": "302a3d9a8547b019e949d25ae4cfa003764f0a88",
+  "lastPhase": "UPLOAD_BUILD_ARTIFACTS",
+  "artifact": "dist\\pilot\\android\\pet-ecosystem-clinical-302a3d9.apk"
+}

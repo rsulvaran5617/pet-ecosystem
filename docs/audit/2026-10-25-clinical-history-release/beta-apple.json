@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-25T14:30:54.680Z",
+  "build": {
+    "id": "d3dc33df-3f69-4190-99d9-1de0a0bb31c6",
+    "version": "55",
+    "processingState": "VALID"
+  },
+  "betaDetail": {
+    "autoNotifyEnabled": true,
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION"
+  },
+  "group": {
+    "id": "e8fef3fd-cd0a-42ca-bb7c-786e4281afc5",
+    "name": "BetaTester",
+    "publicLink": "https://testflight.apple.com/join/qUE2WKEm"
+  },
+  "inGroup": true,
+  "reviewSubmitted": false
+}

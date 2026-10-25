@@ -1,16 +1,22 @@
 param(
   [string]$SshTarget = "root@143.198.165.191",
   [string]$IdentityFile = "$env:USERPROFILE/.ssh/pet_ecosystem_deploy",
+  [string]$AndroidBetaUrl = "",
   [switch]$CheckOnly
 )
 
 $ErrorActionPreference = "Stop"
+if ($AndroidBetaUrl -and $AndroidBetaUrl -notmatch '^https://appdistribution\.firebase\.google\.com/testerapps/[A-Za-z0-9:/._%-]+$') {
+  throw "AndroidBetaUrl must be a Firebase tester URL."
+}
+$androidUrlBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($AndroidBetaUrl))
 $script = @'
 set -Eeuo pipefail
 umask 077
 REPO=/var/www/pet-ecosystem
 COMMIT=75f33298a0f7ff820a3222fab6c50cb71b43c8a6
 RELEASE="/var/www/pet-releases/clinical-viewer-${COMMIT:0:7}-$(date +%s)"
+export ANDROID_BETA_URL=$(printf '%s' '__ANDROID_URL__' | base64 --decode)
 APP=pet-ecosystem-web
 CANDIDATE="clinical-viewer-check-$$"
 
@@ -60,6 +66,17 @@ if (!value || new URL(value).hostname !== 'ivovbyxjwtvcavetewge.supabase.co') {
   throw new Error('Active web points to a different Supabase project; deployment stopped.');
 }
 NODE
+if [ -n "$ANDROID_BETA_URL" ]; then
+  node <<'NODE'
+const fs=require('fs');
+const name='apps/web/.env.production.local';
+const previous=fs.existsSync(name)?fs.readFileSync(name,'utf8'):'';
+const lines=previous.split(/\r?\n/).filter(l=>!/^\s*(?:export\s+)?NEXT_PUBLIC_ANDROID_BETA_URL\s*=/.test(l));
+lines.push('NEXT_PUBLIC_ANDROID_BETA_URL='+process.env.ANDROID_BETA_URL);
+fs.writeFileSync(name,lines.join('\n')+'\n',{mode:0o600});
+NODE
+  export NEXT_PUBLIC_ANDROID_BETA_URL="$ANDROID_BETA_URL"
+fi
 corepack pnpm install --frozen-lockfile
 corepack pnpm --filter @pet/web build
 printf '%s\n' "$COMMIT" > clinical-source-commit.txt
@@ -113,6 +130,10 @@ EXPECTED=$(cat apps/web/.next/BUILD_ID)
 curl -fsS --max-time 15 "https://petecosyst.com/_next/static/$EXPECTED/_buildManifest.js" >/dev/null
 ACTUAL=$(pm2 jlist | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>console.log(JSON.parse(s).find(p=>p.name==="pet-ecosystem-web").pm2_env.pm_cwd))')
 test "$ACTUAL" = "$RELEASE"
+if [ -n "$ANDROID_BETA_URL" ]; then
+  LOCATION=$(curl -sS --max-time 15 -o /dev/null -w '%{redirect_url}' https://petecosyst.com/beta/android)
+  test "$LOCATION" = "$ANDROID_BETA_URL"
+fi
 pm2 delete "$CANDIDATE"
 pm2 save
 trap - ERR EXIT
@@ -121,7 +142,7 @@ echo "Previous web preserved: $PREVIOUS"
 echo "Verify temporary image/PDF access, expiry and revocation with test accounts."
 '@
 
-$script = $script.Replace("`r`n", "`n") + "`n"
+$script = $script.Replace('__ANDROID_URL__', $androidUrlBase64).Replace("`r`n", "`n") + "`n"
 $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($script))
 $bashCommand = if ($CheckOnly) { "bash -n" } else { "bash" }
 ssh -i $IdentityFile -o IdentitiesOnly=yes $SshTarget "printf '%s' '$encoded' | base64 --decode | $bashCommand"

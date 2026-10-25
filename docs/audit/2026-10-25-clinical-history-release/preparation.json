@@ -1,0 +1,13 @@
+{
+  "commit": "302a3d9a8547b019e949d25ae4cfa003764f0a88",
+  "version": "0.3.2",
+  "isolatedStaging": true,
+  "publicConfigurationOnly": true,
+  "priorChecks": [
+    "mobile typecheck PASS",
+    "mobile lint PASS",
+    "4 existing tests PASS",
+    "Android/iOS Expo exports PASS"
+  ],
+  "nativeRuntimeTested": false
+}

@@ -1,5 +1,17 @@
 # DigitalOcean Droplet deployment
 
+## Release beta e historial - 2026-10-25
+
+Web activa /var/www/pet-releases/clinical-viewer-75f3329-1792938614,
+build 880cC92fHkj8VAVk83REf; fuente web 75f3329. Android /beta/android
+redirige a Firebase 5phib3mfoc2go (0.3.2 build 5, mobile 302a3d9).
+Build, candidata, PDF assets, HTTPS, manifest y cwd PASS; PM2 guardado.
+Rollback: /var/www/pet-releases/clinical-viewer-75f3329-1792891859.
+Admin/backend sin cambios. Script update-clinical-viewer.ps1 acepta
+-AndroidBetaUrl para actualizar destino. Evidencia en
+[release](../audit/2026-10-25-clinical-history-release/VALIDATION.md).
+
+
 ## Tooltips PET ALERT — 2026-10-11
 
 Web activa `/var/www/pet-releases/map-tooltip-b5a37677dcc8`, build

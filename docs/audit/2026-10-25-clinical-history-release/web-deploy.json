@@ -1,0 +1,21 @@
+﻿{
+  "checkedAt": "2026-10-25T14:33:58.539Z",
+  "web": {
+    "status": "online",
+    "cwd": "/var/www/pet-releases/clinical-viewer-75f3329-1792938614",
+    "buildId": "880cC92fHkj8VAVk83REf",
+    "sourceCommit": "75f33298a0f7ff820a3222fab6c50cb71b43c8a6",
+    "previous": "/var/www/pet-releases/clinical-viewer-75f3329-1792891859"
+  },
+  "androidRedirect": {
+    "status": 307,
+    "location": "https://appdistribution.firebase.google.com/testerapps/1:1040291363922:android:f00d644d342e309b87f38b/releases/5phib3mfoc2go"
+  },
+  "workerStatus": 200,
+  "manifestStatus": 200,
+  "admin": {
+    "status": "online",
+    "cwd": "/var/www/pet-releases/admin-bc7eb81-1792856680"
+  },
+  "candidateRemaining": false
+}

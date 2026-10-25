@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-25T14:26:49.254Z",
+  "platform": "ios",
+  "id": "1032111d-4ca1-406f-ad1a-64268ccd256a",
+  "status": "FINISHED",
+  "createdAt": "2026-10-25T14:20:51.709Z",
+  "updatedAt": "2026-10-25T14:26:08.290Z",
+  "completedAt": "2026-10-25T14:26:08.092Z",
+  "queuePosition": null,
+  "estimatedWaitTimeLeftSeconds": null,
+  "appVersion": "0.3.2",
+  "appBuildVersion": "55",
+  "gitCommitHash": "302a3d9a8547b019e949d25ae4cfa003764f0a88",
+  "lastPhase": null,
+  "artifact": "dist\\pilot\\ios\\pet-ecosystem-clinical-302a3d9-build55.ipa"
+}

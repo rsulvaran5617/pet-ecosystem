@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-10-25T14:31:05.975Z",
+  "targetBuild": "55",
+  "targetAppleBuildId": "d3dc33df-3f69-4190-99d9-1de0a0bb31c6",
+  "groupAssigned": true,
+  "internalState": "IN_BETA_TESTING",
+  "externalState": "READY_FOR_BETA_SUBMISSION",
+  "submissionError": "ENTITY_UNPROCESSABLE.ANOTHER_BUILD_IN_REVIEW",
+  "blockingBuild": "54",
+  "blockingAppleBuildId": "aa2e8705-4102-427f-8561-1400ba5f8c11",
+  "blockingState": "WAITING_FOR_BETA_REVIEW",
+  "nextAction": "After previous beta review completes, rerun beta-apple.mjs 55 --distribute; no new binary required."
+}

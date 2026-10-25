@@ -1,5 +1,18 @@
 # IOS_TESTFLIGHT_BETA.md
 
+## Historial de autorizaciones - 2026-10-25
+
+Fuente 302a3d9, version 0.3.2 (55). EAS
+1032111d-4ca1-406f-ad1a-64268ccd256a FINISHED; submission
+7600d5fa-8728-4934-b513-aa1cd750e1f1 FINISHED. Apple VALID, estado interno
+IN_BETA_TESTING, asociado a BetaTester. No disponible externamente aun:
+Apple rechazo revision de 55 con ANOTHER_BUILD_IN_REVIEW porque 54 sigue
+WAITING_FOR_BETA_REVIEW. Tras resolverla, ejecutar
+node docs/audit/2026-10-25-clinical-history-release/beta-apple.mjs 55 --distribute.
+No generar otro binario. IPA verificado estaticamente; QA fisica pendiente.
+[Estado y evidencia](../audit/2026-10-25-clinical-history-release/VALIDATION.md).
+
+
 ## Release clinico 2026-10-24
 
 Cambios funcionales d9d28ee enviados a origin/master. Android 0.3.2 (4),

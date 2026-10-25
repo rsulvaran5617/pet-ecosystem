@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-25T14:28:59.691055+00:00",
+  "commit": "302a3d9a8547b019e949d25ae4cfa003764f0a88",
+  "buildId": "aa4a3171-4c94-4970-b926-7f42ba8d5108",
+  "artifact": "dist\\pilot\\android\\pet-ecosystem-clinical-302a3d9.apk",
+  "sha256": "d3b3e3cacf4b130f083baf7d1855f32f60f1a752eea53bc4e94660360a5aff52",
+  "bytes": 129581401,
+  "nativeRuntimeTested": false,
+  "zipCrcValid": true,
+  "publicConfigurationMatches": true,
+  "mobileMapPresent": true,
+  "clinicalRequestNoticePresent": true,
+  "authorizationAccordionPresent": true,
+  "sosSlicePresent": true,
+  "package": "com.petecosystem.mobile",
+  "versionCode": "5",
+  "versionName": "0.3.2",
+  "identityMatches": true,
+  "signaturePresent": true,
+  "cryptographicSignatureVerifiedLocally": true,
+  "signerMatchesPreviousBeta": true,
+  "passed": true
+}
