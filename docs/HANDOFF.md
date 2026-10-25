@@ -1,5 +1,13 @@
 # HANDOFF.md
 
+## Publicacion preparada: archivos clinicos (2026-10-24)
+
+Fuente funcional 44262b4. Ejecutar desde PowerShell
+`scripts/update-clinical-documents.ps1 -PrepareBackend`: prepara exclusivamente
+backend documental y actualiza web mediante candidata y rollback. CheckOnly y
+bundle Edge remoto validados; no se activo backend ni se desplego web durante
+la preparacion. Detalles: [validacion](audit/2026-10-24-clinical-documents/VALIDATION.md).
+
 ## Archivos clinicos temporales - 2026-10-24 (local)
 
 Lectura de documentos/fotos Owner para profesional verificado y aprobado, con

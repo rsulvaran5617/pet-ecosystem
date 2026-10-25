@@ -2,8 +2,8 @@
 
 ## Estado
 
-Implementacion local completa; sin commit/push ni despliegue de esta correccion.
-Baseline Git 7a6dec3. Se preservan cambios ajenos preexistentes en el workspace.
+Implementacion en commit 44262b4; despliegue pendiente de ejecutar el script.
+Baseline previo Git 7a6dec3. Se preservan cambios ajenos preexistentes en el workspace.
 Migracion 20261025010000 preparada, ejecutada en PostgreSQL vinculado dentro de
 BEGIN/ROLLBACK y no persistida. Edge Function y web aun no publicadas.
 
@@ -56,7 +56,7 @@ pendiente. Limite de descarga 10 MiB, igual al bucket existente.
 
 ## Orden de publicacion y QA pendiente
 
-1. Revisar/cerrar commit con solo esta correccion y push. Verificar proyecto
+1. Ejecutar `scripts/update-clinical-documents.ps1 -PrepareBackend`. Verifica proyecto
    Supabase vinculado e historial antes de aplicar exclusivamente la migracion
    20261025010000; no ejecutar indiscriminadamente todas las migraciones pendientes.
 2. Configurar CLINICAL_DOCUMENT_ALLOWED_ORIGINS con origenes web usados, publicar
@@ -72,3 +72,22 @@ pendiente. Limite de descarga 10 MiB, igual al bucket existente.
 
 Rollback: restaurar web previa; retirar Edge Function o revocar EXECUTE de las
 nuevas RPCs si se necesita deshabilitar lectura. No tocar objetos ni historial.
+
+## Preparacion del script (2026-10-24)
+
+- `scripts/update-clinical-documents.ps1` fija fuente 44262b4. `-PrepareBackend`
+  aplica exclusivamente esta migracion, configura CORS y publica esta funcion;
+  despues compila candidata y cambia web. Sin flag exige backend ya disponible.
+- `-CheckOnly` consulta estado backend y verifica Bash remoto sin desplegar.
+- Helper Node lee credenciales existentes del entorno/.env.local sin imprimirlas,
+  comprueba proyecto y baseline del guard; rechaza migracion divergente o
+  funciones sin historial. No aplica migraciones ajenas. Ante error, detiene
+  antes de actualizar web; una migracion completada es aditiva y se conserva.
+- `--validate-bundle` del helper valido el paquete Edge en Supabase con
+  `bundleOnly=1`; se confirmo que no aparecio una funcion activa.
+- PM2 inspeccionado: web online en clinical-web-d9d28ee-1792885932; Admin online
+  en admin-bc7eb81-1792856680. El script descubre el cwd al ejecutar, no depende
+  de estos nombres historicos. Preserva configuracion y otras funcionalidades.
+- No se ejecuto `-PrepareBackend` ni se cambio la web durante esta preparacion.
+- Referencia del empaquetado:
+  [Supabase Management API](https://supabase.com/changelog/33720-deploy-and-update-edge-functions-using-the-management-api).
