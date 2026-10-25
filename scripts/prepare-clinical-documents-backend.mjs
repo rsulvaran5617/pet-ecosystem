@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readManagementResponse } from './lib/management-response.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const commit = '44262b4a5c6eab12e76604bb3e41bc23b27da5ac';
@@ -36,8 +37,7 @@ async function management(path, method = 'GET', body) {
   });
   // Never print server SQL, private config or response bodies on failure.
   if (!response.ok) throw new Error(`Supabase ${path.split('?')[0]}: HTTP ${response.status}. Revisa el estado antes de reintentar.`);
-  if (response.status === 204) return null;
-  return response.json();
+  return readManagementResponse(response, { allowEmpty: path === 'secrets' && method === 'POST' });
 }
 const query = (sql) => management('database/query', 'POST', { query: sql });
 function functionForm() {

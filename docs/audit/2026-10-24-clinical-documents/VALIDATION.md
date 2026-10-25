@@ -1,5 +1,17 @@
 # Archivos temporales del expediente - 2026-10-24
 
+## Correccion del script tras intento de despliegue
+
+Estado remoto comprobado tras el reporte: migracion 20261025010000 aplicada con
+contenido esperado; funcion clinical-shared-document ausente. El script se detuvo
+antes de ejecutar el despliegue web. POST secrets puede responder exitosamente
+sin cuerpo con estado 200/201, ademas de 204. Se corrige su lectura para aceptar
+vacio solo en esa operacion; consultas/despliegues siguen requiriendo JSON valido.
+Dos pruebas de regresion PASS cubren esos estados y respuestas invalidas sin
+exponer contenido privado. Reejecutar update-clinical-documents.ps1
+-PrepareBackend conserva la migracion existente y continua con funcion/web.
+Los apartados siguientes conservan el estado historico de preparacion.
+
 ## Estado
 
 Implementacion en commit 44262b4; despliegue pendiente de ejecutar el script.
