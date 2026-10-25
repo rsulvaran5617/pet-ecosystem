@@ -1,5 +1,41 @@
 # CLINICAL ACCESS-2
 
+## Lectura temporal de archivos Owner - 2026-10-24 (implementacion local)
+
+El profesional autenticado y verificado puede abrir documentos de `pet_documents`
+de la mascota del QR cuando conserva una aprobacion Owner vigente. La lectura
+acompa?a cualquiera de las acciones clinicas aprobadas; no exige el scope de
+subida documental ni permite editar archivos. Solicitudes `approved` y
+`completed` conservan lectura hasta revocacion o vencimiento. La UI Owner aclara
+este alcance antes de aprobar y al revocar permisos residuales.
+
+El guard existente revalida actor, perfil, solicitud, autorizacion, QR y hogar
+actual. El vencimiento efectivo es el minimo de esas vigencias. Listado y
+apertura fallan para anonimos, pendientes, otro profesional, otra mascota,
+identidad suspendida/vencida o consentimiento revocado. No concede acceso a los
+archivos de otras mascotas de la misma clinica/hogar. El QR anonimo conserva su
+proyeccion de metadata, sin archivos.
+
+La web agrega `Documentos del expediente`, `Ver documento / foto`, preview de
+PNG/JPEG/GIF/WebP y PDF, descarga y cierre. Otros formatos se descargan como
+binario sin contenido activo embebido. Incluye stickers/cartillas cargados en
+`pet_documents`; alergias y condiciones no tienen relacion documental directa,
+por lo que sus soportes se consultan en el listado comun. No cambia los archivos
+profesionales de `clinical_documents` ni agrega imagenes nuevas.
+
+Gateway POST autenticado `clinical-shared-document`: revalida permisos antes y
+despues de recuperar el objeto, no devuelve URLs firmadas ni rutas al navegador,
+y entrega bytes con `no-store`. La UI usa Blob URLs en memoria, las libera al
+cerrar/cambiar sesion/desmontar/vencer, y revalida cada 8 segundos visible y al
+recuperar foco. Una revocacion bloquea nuevas aperturas de servidor; la vista ya
+abierta se retira en el siguiente chequeo. Ningun sistema puede retirar copias
+descargadas previamente. CORS usa `CLINICAL_DOCUMENT_ALLOWED_ORIGINS`.
+
+Migracion: `20261025010000_clinical_shared_pet_documents.sql`, preparada y probada
+en transaccion remota revertida; no aplicada. Despliegue coordinado pendiente:
+migracion, Edge Function, web y texto de consentimiento en mobile. Evidencia:
+[validacion](../audit/2026-10-24-clinical-documents/VALIDATION.md).
+
 ## Solicitud y aprobacion con menos pasos — 2026-10-24
 
 - El profesional inicia la solicitud con los seis permisos seleccionados y puede

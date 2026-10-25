@@ -55,3 +55,7 @@ static_files = ["./functions/_shared/generated/magick.wasm"]
 
 [functions.pet-alert-public-photo]
 verify_jwt = false
+
+[functions.clinical-shared-document]
+# The handler verifies JWT via Auth.getUser; authorization RPC runs as caller.
+verify_jwt = false

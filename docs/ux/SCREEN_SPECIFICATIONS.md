@@ -1,5 +1,17 @@
 # SCREEN_SPECIFICATIONS.md
 
+## Expediente profesional: archivos temporales (2026-10-24, local)
+
+Despues del resumen se muestra Documentos del expediente. Sin permiso, informa
+que se requiere sesion, verificacion y aprobacion vigente. Con permiso, lista
+archivos y ofrece Ver documento / foto, estado Abriendo, preview, descarga y
+Cerrar archivo; contempla vacio, error y Actualizar documentos. Revocacion,
+logout o vencimiento cierran el preview (revocacion detectada por polling de 8s
+visible/reanudar; servidor valida cada apertura). Imagenes privadas permanecen
+en memoria; no pasan por optimizador/caches de Next. Owner ve que la aprobacion
+incluye consultar documentos/fotos temporalmente. Copias ya descargadas no se
+pueden retirar. Alcance y rollout: `docs/modules/clinical_access.md`.
+
 ## Owner mobile — entrada PET ALERT (2026-10-07, local)
 
 Inicio muestra PET ALERT · Mapa y boletines / Explorar. El directorio tiene

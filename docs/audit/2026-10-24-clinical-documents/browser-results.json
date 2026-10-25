@@ -1,0 +1,45 @@
+{
+  "checks": [
+    {
+      "name": "Unauthorized view has no file buttons",
+      "passed": true
+    },
+    {
+      "name": "Approval polling reveals documents",
+      "passed": true
+    },
+    {
+      "name": "Image preview decodes and uses in-memory blob",
+      "passed": true
+    },
+    {
+      "name": "Closing releases blob URL",
+      "passed": true
+    },
+    {
+      "name": "PDF preview and download link present",
+      "passed": true
+    },
+    {
+      "name": "Revocation hides preview and file list",
+      "passed": true
+    },
+    {
+      "name": "Expiry closes preview without polling",
+      "passed": true
+    },
+    {
+      "name": "Logout clears private files",
+      "passed": true
+    },
+    {
+      "name": "In-flight download cannot reopen after logout",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "passed": true
+    }
+  ],
+  "scope": "Real React component, fake APIs; Chrome headless. No native-device or live JWT certification."
+}

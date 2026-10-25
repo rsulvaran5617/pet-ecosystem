@@ -1,5 +1,12 @@
 # HANDOFF.md
 
+## Archivos clinicos temporales - 2026-10-24 (local)
+
+Lectura de documentos/fotos Owner para profesional verificado y aprobado, con
+QR/consentimiento vigentes. Migracion y gateway preparados, web con visor y
+mobile con aclaracion de alcance. Validacion SQL en rollback y pruebas UI/API
+aprobadas; no aplicado ni publicado. Pasos y limites: [evidencia](audit/2026-10-24-clinical-documents/VALIDATION.md).
+
 ## Release clinico 2026-10-24
 
 Cambios funcionales d9d28ee enviados a origin/master. Android 0.3.2 (4),

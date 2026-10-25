@@ -1,5 +1,16 @@
 # ENVIRONMENT_VARIABLES.md
 
+## Documentos clinicos compartidos (2026-10-24)
+
+- `CLINICAL_DOCUMENT_ALLOWED_ORIGINS`: lista separada por comas de origenes web
+  autorizados para la Edge Function `clinical-shared-document`; en produccion
+  incluir `https://petecosyst.com` y solo otros origenes efectivamente usados.
+  Si falta, los navegadores fallan cerrados.
+- Reutiliza variables Edge `SUPABASE_URL`, `SUPABASE_ANON_KEY` y
+  `SUPABASE_SERVICE_ROLE_KEY`. La clave de servicio permanece exclusivamente en
+  servidor; autoriza RPC con el JWT del usuario, no con service_role.
+- No requiere nuevas variables publicas ni secretos en web/mobile.
+
 ## Lectura ready y consentimiento (Foundation-1C.3d)
 
 - EXPO_PUBLIC_PET_ALERT_READY_MEDIA=false: gateway y consentimiento Owner mobile.

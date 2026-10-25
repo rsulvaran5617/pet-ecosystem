@@ -1,0 +1,10 @@
+﻿{
+  "compilerOptions": {
+    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
+    "strict": true, "noEmit": true, "skipLibCheck": true,
+    "allowImportingTsExtensions": true, "lib": ["ES2022", "DOM"],
+    "baseUrl": "../../..",
+    "paths": { "npm:@supabase/supabase-js@2": ["apps/web/node_modules/@supabase/supabase-js"] }
+  },
+  "files": ["deno-check.d.ts", "../../../supabase/functions/clinical-shared-document/index.ts", "../../../supabase/functions/clinical-shared-document/handler.ts"]
+}

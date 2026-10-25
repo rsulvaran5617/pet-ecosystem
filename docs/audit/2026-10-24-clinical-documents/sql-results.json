@@ -1,0 +1,107 @@
+{
+  "checkedAt": "2026-10-25T00:51:36.044Z",
+  "applied": false,
+  "environment": "Linked PostgreSQL; transaction rolled back; authenticated DB role/JWT subject, not HTTP sessions",
+  "results": [
+    {
+      "name": "approved professional lists owner files",
+      "passed": true
+    },
+    {
+      "name": "approved professional resolves own pet document",
+      "passed": true
+    },
+    {
+      "name": "direct private document table access denied",
+      "passed": true
+    },
+    {
+      "name": "direct private Storage access denied",
+      "passed": true
+    },
+    {
+      "name": "malformed token",
+      "passed": true
+    },
+    {
+      "name": "unknown token",
+      "passed": true
+    },
+    {
+      "name": "unknown document",
+      "passed": true
+    },
+    {
+      "name": "forged foreign Storage path",
+      "passed": true
+    },
+    {
+      "name": "Storage path traversal",
+      "passed": true
+    },
+    {
+      "name": "encoded Storage traversal",
+      "passed": true
+    },
+    {
+      "name": "foreign pet document",
+      "passed": true
+    },
+    {
+      "name": "different authenticated actor",
+      "passed": true
+    },
+    {
+      "name": "missing actor",
+      "passed": true
+    },
+    {
+      "name": "pending approval",
+      "passed": true
+    },
+    {
+      "name": "completed consultation retains temporary read",
+      "passed": true
+    },
+    {
+      "name": "revoked consent",
+      "passed": true
+    },
+    {
+      "name": "expired consent",
+      "passed": true
+    },
+    {
+      "name": "suspended professional",
+      "passed": true
+    },
+    {
+      "name": "expired professional verification",
+      "passed": true
+    },
+    {
+      "name": "revoked QR",
+      "passed": true
+    },
+    {
+      "name": "expired QR",
+      "passed": true
+    },
+    {
+      "name": "household changed",
+      "passed": true
+    },
+    {
+      "name": "anonymous RPC denied",
+      "passed": true
+    },
+    {
+      "name": "anonymous list denied",
+      "passed": true
+    },
+    {
+      "name": "internal guard inaccessible",
+      "passed": true
+    }
+  ]
+}

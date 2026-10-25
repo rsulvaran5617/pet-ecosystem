@@ -2427,6 +2427,14 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Record<string, unknown>;
       };
+      list_shared_pet_clinical_documents: {
+        Args: { raw_token: string };
+        Returns: Record<string, unknown>;
+      };
+      get_shared_pet_clinical_document: {
+        Args: { raw_token: string; target_document_id: string };
+        Returns: Record<string, unknown>;
+      };
       upsert_my_clinical_professional_profile: {
         Args: {
           next_professional_name: string;

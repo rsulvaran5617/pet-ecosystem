@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getBrowserClinicalAccessApiClient } from "../../core/services/supabase-browser";
 import styles from "./PublicClinicalAccessPage.module.css";
 import { ProfessionalIdentityPanel } from "./ProfessionalIdentityPanel";
+import { SharedClinicalDocuments } from "./SharedClinicalDocuments";
 
 function formatDate(value: string | null) {
   if (!value) return "No indicada";
@@ -57,9 +58,10 @@ export function PublicClinicalAccessPage({ token }: { token: string }) {
         <section className={styles.section}><div className={styles.sectionTitle}><h2>Alergias</h2><span>{record.allergies.length}</span></div>{record.allergies.length ? record.allergies.map((allergy) => <article className={styles.item} key={allergy.allergen}><strong>{allergy.allergen}</strong>{allergy.reaction ? <p>Reaccion: {allergy.reaction}</p> : null}{allergy.notes ? <p>{allergy.notes}</p> : null}</article>) : <Empty>Sin alergias registradas.</Empty>}</section>
         <section className={styles.section}><div className={styles.sectionTitle}><h2>Vacunas</h2><span>{record.vaccines.length}</span></div>{record.vaccines.length ? record.vaccines.map((vaccine) => <article className={styles.item} key={`${vaccine.name}-${vaccine.administeredOn}`}><strong>{vaccine.name}</strong><p>Aplicada: {formatDate(vaccine.administeredOn)}</p><p>Proxima dosis: {formatDate(vaccine.nextDueOn)}</p>{vaccine.notes ? <p>{vaccine.notes}</p> : null}</article>) : <Empty>Sin vacunas registradas.</Empty>}</section>
         <section className={styles.section}><div className={styles.sectionTitle}><h2>Condiciones</h2><span>{record.conditions.length}</span></div>{record.conditions.length ? record.conditions.map((condition) => <article className={styles.item} key={`${condition.name}-${condition.diagnosedOn ?? "current"}`}><strong>{condition.name}</strong><p>Estado: {condition.status === "active" ? "Activa" : condition.status === "resolved" ? "Resuelta" : "En seguimiento"}</p><p>Diagnostico: {formatDate(condition.diagnosedOn)}</p>{condition.notes ? <p>{condition.notes}</p> : null}</article>) : <Empty>Sin condiciones registradas.</Empty>}</section>
-        <section className={styles.section}><div className={styles.sectionTitle}><h2>Documentos registrados</h2><span>{record.documents.length}</span></div><p className={styles.helper}>Por privacidad, este acceso muestra referencias y vigencias, no archivos.</p>{record.documents.length ? record.documents.map((document) => <article className={styles.item} key={`${document.title}-${document.issuedAt ?? "document"}`}><strong>{document.title}</strong><p>Tipo: {document.documentType.replaceAll("_", " ")}</p><p>Vigencia: {formatDate(document.expiresAt)}</p></article>) : <Empty>Sin documentos registrados.</Empty>}</section>
+        <section className={styles.section}><div className={styles.sectionTitle}><h2>Documentos registrados</h2><span>{record.documents.length}</span></div><p className={styles.helper}>Resumen de referencias y vigencias. Los archivos estan disponibles mas abajo para el profesional autorizado.</p>{record.documents.length ? record.documents.map((document) => <article className={styles.item} key={`${document.title}-${document.issuedAt ?? "document"}`}><strong>{document.title}</strong><p>Tipo: {document.documentType.replaceAll("_", " ")}</p><p>Vigencia: {formatDate(document.expiresAt)}</p></article>) : <Empty>Sin documentos registrados.</Empty>}</section>
       </div>
-      <footer className={styles.footer}>La familia autorizo esta consulta por tiempo limitado. Para agregar una atencion, el profesional debe identificarse y obtener la aprobacion del responsable. Los registros anteriores se conservan.</footer>
+      <SharedClinicalDocuments key={token} token={token} />
+      <footer className={styles.footer}>La familia autorizo esta consulta por tiempo limitado. Para abrir archivos o agregar una atencion, el profesional debe identificarse y obtener la aprobacion del responsable. Los registros anteriores se conservan.</footer>
     </main>
   );
 }

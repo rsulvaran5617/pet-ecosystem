@@ -1,5 +1,24 @@
 # API_CONTRACT.md
 
+## Archivos Owner compartidos con profesional - 2026-10-24
+
+- `list_shared_pet_clinical_documents(raw_token)` / `listSharedPetClinicalDocuments`:
+  autenticado + profesional verificado + aprobacion Owner activa; devuelve
+  `{ expiresAt, documents: [{ id, title, documentType, mimeType, issuedAt, expiresAt }] }`.
+- `get_shared_pet_clinical_document(raw_token, target_document_id)`: mismo guard,
+  comprueba mascota/objeto y devuelve locator privado al gateway; audita
+  `clinical_owner_document_accessed`. No habilita lectura directa de Storage.
+- `POST /functions/v1/clinical-shared-document`, JWT + JSON `{ token, documentId }`:
+  devuelve bytes privados con `application/octet-stream`, MIME detectado en
+  `x-document-type`, `Cache-Control: private, no-store`. Revalida antes/despues
+  de recuperar el objeto; un reemplazo/revocacion durante descarga impide entrega.
+  No admite actor, petId, bucket, path ni URL suministrados por el cliente.
+- Cliente `downloadSharedPetClinicalDocument` convierte la respuesta en Blob;
+  no crea enlaces firmados. Errores sanitizados 400/401/403/404/405.
+- El QR anonimo y los contratos de escritura permanecen compatibles.
+  Nueva migracion y Edge Function pendientes de publicar; detalles en
+  `docs/modules/clinical_access.md`.
+
 ## Correccion clinica H01-H03 (2026-09-17)
 
 Aplicada `20260918010000_clinical_write_authorization_revalidation.sql`: las firmas publicas se conservan. `finalize_clinical_encounter`, `create_clinical_entry_correction`, `prepare_clinical_document_upload` y `finalize_clinical_document_upload` revalidan permiso vigente mediante un guard transaccional interno. La policy de subida clinica usa el mismo control. Un grant revocado/vencido, un profesional suspendido/vencido o un cambio de hogar impiden nuevas escrituras; no borran historial. El helper `assert_clinical_write_authorization` no es una API cliente y no tiene EXECUTE para anon/authenticated.

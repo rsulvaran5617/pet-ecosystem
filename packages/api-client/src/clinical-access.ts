@@ -14,6 +14,7 @@ import type {
   PetClinicalAccessDuration,
   PetClinicalAccessGrant,
   PublicPetClinicalAccess,
+  SharedPetClinicalDocuments,
   UpsertClinicalProfessionalProfileInput,
   Uuid
 } from "@pet/types";
@@ -51,6 +52,22 @@ function mapGrant(row: {
 
 export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
   return {
+    async listSharedPetClinicalDocuments(token: string) {
+      const { data, error } = await supabase.rpc("list_shared_pet_clinical_documents", { raw_token: token });
+      if (error || !data) throw new Error("Los archivos requieren identidad verificada y aprobacion vigente del responsable.");
+      return data as unknown as SharedPetClinicalDocuments;
+    },
+    async downloadSharedPetClinicalDocument(token: string, documentId: Uuid): Promise<Blob> {
+      const { data, error, response } = await supabase.functions.invoke("clinical-shared-document", {
+        body: { token, documentId }
+      });
+      if (error || !(data instanceof Blob) || !data.size) {
+        throw new Error("No fue posible abrir el archivo. Actualiza los documentos y comprueba que el permiso siga vigente.");
+      }
+      const mime = response?.headers.get("x-document-type") ?? "application/octet-stream";
+      const safeMime = ["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"].includes(mime) ? mime : "application/octet-stream";
+      return data.slice(0, data.size, safeMime);
+    },
     async getMyClinicalProfessionalContext() {
       const { data, error } = await supabase.rpc("get_my_clinical_professional_context", {});
       if (error || !data) fail(error, "No fue posible consultar la identidad profesional.");

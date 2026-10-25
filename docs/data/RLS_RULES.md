@@ -1,5 +1,21 @@
 # RLS_RULES.md
 
+## Lectura temporal profesional de archivos Owner (local, 2026-10-24)
+
+`20261025010000_clinical_shared_pet_documents.sql` agrega un guard privado y dos
+RPC con EXECUTE exclusivamente authenticated. Reutiliza el guard transaccional
+clinico: identidad verificada, aprobacion vigente del mismo actor/mascota/QR y
+hogar actual; permite approved/completed, nunca pending/revoked/expired.
+La lectura de soporte acompa?a cualquier accion aprobada. No agrega grants ni
+policies sobre `pet_documents` o `storage.objects`; anon no obtiene archivos.
+La Edge Function verifica JWT mediante Auth.getUser, llama RPC como usuario y
+solo recupera con service_role el objeto previamente autorizado. Revalida tras
+la descarga y entrega binario no cacheable, sin URL firmada reutilizable.
+Audita intento autorizado de acceso (dos comprobaciones por apertura), sin
+contenido, token o rutas en auditoria. Service_role no constituye la evidencia
+de aislamiento: hay 25 pruebas SQL con rol authenticated en rollback; falta
+integracion HTTP con JWT real tras despliegue.
+
 ## Alta externa PET ALERT — correcciones 2026-10-06
 
 20261007021000 revoca PUBLIC/anon/authenticated de create_external_pet_alert_report;

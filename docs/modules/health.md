@@ -1,5 +1,13 @@
 # health.md
 
+## Adjuntos compartidos con profesional (2026-10-24, local)
+
+La vista web autenticada puede abrir documentos/fotos Owner de `pet_documents`
+con identidad profesional verificada, QR y aprobacion vigentes. El resumen
+anonimo sigue sin archivos. Incluye cartillas/stickers; los soportes de alergias
+y condiciones se consultan en Documentos del expediente, sin inventar vinculos
+por nombre o notas. [Contrato y limites](clinical_access.md).
+
 ## Objetivo del modulo
 Gestionar la salud base de la mascota dentro del alcance MVP.
 

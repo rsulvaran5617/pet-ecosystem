@@ -162,6 +162,18 @@ export interface CreatedPetClinicalAccess extends PetClinicalAccessGrant {
   token: string;
 }
 
+export interface SharedPetClinicalDocuments {
+  expiresAt: string;
+  documents: Array<{
+    id: Uuid;
+    title: string;
+    documentType: string;
+    mimeType: string | null;
+    issuedAt: string | null;
+    expiresAt: string | null;
+  }>;
+}
+
 export interface PublicPetClinicalAccess {
   grant: { scope: "read_only"; expiresAt: string };
   pet: { name: string; species: string; breed: string | null; sex: string; birthDate: string | null };
