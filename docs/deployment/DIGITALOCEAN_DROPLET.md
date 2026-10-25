@@ -1,5 +1,16 @@
 # DigitalOcean Droplet deployment
 
+## Acceso profesional QR - 2026-10-25
+
+Fuente 19ed1a2; release /var/www/pet-releases/clinical-auth-19ed1a2-1792944415,
+build jVmyl74WXDweZdWxIw5SX. Script scripts/update-clinical-auth.ps1.
+Build, candidata, HTTPS, hashes PDF, manifest/cwd y formularios publicados PASS.
+PM2 guardado; candidata retirada. Rollback:
+/var/www/pet-releases/clinical-viewer-75f3329-1792938614.
+Admin/backend/mobile sin cambios; enlace Android conserva 5phib3mfoc2go.
+[Evidencia](../audit/2026-10-25-clinical-auth/VALIDATION.md).
+
+
 ## Release beta e historial - 2026-10-25
 
 Web activa /var/www/pet-releases/clinical-viewer-75f3329-1792938614,

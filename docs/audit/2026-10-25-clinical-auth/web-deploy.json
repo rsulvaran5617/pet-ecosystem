@@ -1,0 +1,12 @@
+﻿{
+  "checkedAt": "2026-10-25T16:10:43.809Z",
+  "cwd": "/var/www/pet-releases/clinical-auth-19ed1a2-1792944415",
+  "build": "jVmyl74WXDweZdWxIw5SX",
+  "commit": "19ed1a2c2efe2733a0d6dbaaf62acd76593ccb84",
+  "previous": "/var/www/pet-releases/clinical-viewer-75f3329-1792938614",
+  "status": "online",
+  "androidRedirect": "https://appdistribution.firebase.google.com/testerapps/1:1040291363922:android:f00d644d342e309b87f38b/releases/5phib3mfoc2go",
+  "manifestStatus": 200,
+  "candidateRemaining": false,
+  "adminCwd": "/var/www/pet-releases/admin-bc7eb81-1792856680"
+}

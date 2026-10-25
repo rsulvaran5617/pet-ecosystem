@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-25T16:12:42.070Z",
+  "checks": [
+    {
+      "name": "Deployed QR page shows both auth actions",
+      "passed": true
+    },
+    {
+      "name": "Blocked documents link to professional access",
+      "passed": true
+    },
+    {
+      "name": "Real Core login displays credentials and retains QR",
+      "passed": true
+    },
+    {
+      "name": "Real Core registration retains QR and return notice",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser exceptions",
+      "passed": true
+    }
+  ],
+  "scope": "Live production assets and actual Core forms in a clean Chrome browser, narrow viewport. Synthetic clinical read responses injected locally; no account creation, credentials, live grant or authorization test."
+}

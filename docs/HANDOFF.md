@@ -1,5 +1,14 @@
 # HANDOFF.md
 
+## Acceso profesional QR publicado - 2026-10-25
+
+Fuente 19ed1a2. Web con Iniciar sesion/Crear cuenta visibles, cuenta actual y
+retorno al mismo QR desde Core. Gota actualizada, build jVmyl74WXDweZdWxIw5SX.
+29 casos locales y 5 comprobaciones de navegador publicado PASS (APIs clinicas
+simuladas, sin OTP real). No requiere mobile/backend. Rollback conservado.
+[Evidencia](audit/2026-10-25-clinical-auth/VALIDATION.md).
+
+
 ## Release historial clinico - 2026-10-25
 
 Mobile 302a3d9: historial de autorizaciones en acordeon. Lectura basica por QR
