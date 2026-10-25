@@ -1,5 +1,15 @@
 # HANDOFF.md
 
+## Circuitos de autorizacion clinica publicados - 2026-10-25
+
+Fuente d4ebf7c enviada a origin/master. Migracion 20261025020000 aplicada y
+verificada: solicitud nueva cierra permisos anteriores del mismo profesional/mascota;
+revocar/reemplazar QR cierra sus circuitos. Verificacion profesional independiente.
+Web activa build r1Vac-sJBdv18SGRoCLi4; rollback conservado. 24 pruebas locales SQL,
+31 PostgreSQL con rol authenticated/QA en rollback, 7 UI simuladas y 5 comprobaciones
+de entrada publicadas PASS. Mobile sin cambios necesarios; contratos compatibles.
+[Evidencia](audit/2026-10-25-clinical-cycles/VALIDATION.md).
+
 ## Acceso profesional QR publicado - 2026-10-25
 
 Fuente 19ed1a2. Web con Iniciar sesion/Crear cuenta visibles, cuenta actual y

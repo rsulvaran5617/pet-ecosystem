@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-25T18:19:54.176Z",
+  "version": "20261025020000",
+  "applied": true,
+  "alreadyPresent": true,
+  "sha256": "257d70f552e115ed02a3490a849e4d5e663d73ee241c5d66d68a9d1c4cc7b6ed",
+  "checks": [
+    {
+      "name": "close_clinical_consent_cycles",
+      "matches": true
+    },
+    {
+      "name": "effective_clinical_request_status",
+      "matches": true
+    },
+    {
+      "name": "create_pet_clinical_access",
+      "matches": true
+    },
+    {
+      "name": "revoke_pet_clinical_access",
+      "matches": true
+    },
+    {
+      "name": "request_clinical_write_access",
+      "matches": true
+    },
+    {
+      "name": "review_clinical_write_request",
+      "matches": true
+    },
+    {
+      "name": "get_my_clinical_write_request",
+      "matches": true
+    },
+    {
+      "name": "list_pet_clinical_write_requests",
+      "matches": true
+    }
+  ]
+}

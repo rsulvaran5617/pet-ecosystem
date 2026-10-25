@@ -1,5 +1,14 @@
 # DigitalOcean Droplet deployment
 
+## Cierre de autorizaciones clinicas publicado - 2026-10-25
+
+Fuente d4ebf7c; migracion Supabase 20261025020000 aplicada. Web activa:
+/var/www/pet-releases/clinical-cycles-d4ebf7c-1792952254, build r1Vac-sJBdv18SGRoCLi4.
+Rollback web: /var/www/pet-releases/clinical-auth-19ed1a2-1792944415. PM2 guardado, candidata retirada,
+HTTPS/manifest/visor PDF/source hash verificados. Admin y binarios mobile sin cambios.
+Script PowerShell: scripts/update-clinical-cycles.ps1 (solo web; requiere la migracion
+ya aplicada). Evidencia: ../audit/2026-10-25-clinical-cycles/VALIDATION.md.
+
 ## Acceso profesional QR - 2026-10-25
 
 Fuente 19ed1a2; release /var/www/pet-releases/clinical-auth-19ed1a2-1792944415,

@@ -1,0 +1,131 @@
+{
+  "checkedAt": "2026-10-25T18:18:09.191Z",
+  "installedFunctions": true,
+  "environment": "Production PostgreSQL, QA-only fixtures, authenticated DB role with JWT subject; entire transaction rolled back. No HTTP session or browser coverage.",
+  "results": [
+    {
+      "name": "approved professional lists owner files",
+      "passed": true
+    },
+    {
+      "name": "approved professional resolves own pet document",
+      "passed": true
+    },
+    {
+      "name": "direct private document table access denied",
+      "passed": true
+    },
+    {
+      "name": "direct private Storage access denied",
+      "passed": true
+    },
+    {
+      "name": "malformed token",
+      "passed": true
+    },
+    {
+      "name": "unknown token",
+      "passed": true
+    },
+    {
+      "name": "unknown document",
+      "passed": true
+    },
+    {
+      "name": "forged foreign Storage path",
+      "passed": true
+    },
+    {
+      "name": "Storage path traversal",
+      "passed": true
+    },
+    {
+      "name": "encoded Storage traversal",
+      "passed": true
+    },
+    {
+      "name": "foreign pet document",
+      "passed": true
+    },
+    {
+      "name": "different authenticated actor",
+      "passed": true
+    },
+    {
+      "name": "missing actor",
+      "passed": true
+    },
+    {
+      "name": "pending approval",
+      "passed": true
+    },
+    {
+      "name": "completed consultation retains temporary read",
+      "passed": true
+    },
+    {
+      "name": "revoked consent",
+      "passed": true
+    },
+    {
+      "name": "expired consent",
+      "passed": true
+    },
+    {
+      "name": "suspended professional",
+      "passed": true
+    },
+    {
+      "name": "expired professional verification",
+      "passed": true
+    },
+    {
+      "name": "revoked QR",
+      "passed": true
+    },
+    {
+      "name": "expired QR",
+      "passed": true
+    },
+    {
+      "name": "household changed",
+      "passed": true
+    },
+    {
+      "name": "anonymous RPC denied",
+      "passed": true
+    },
+    {
+      "name": "anonymous list denied",
+      "passed": true
+    },
+    {
+      "name": "internal guard inaccessible",
+      "passed": true
+    },
+    {
+      "name": "retry returns same request",
+      "passed": true
+    },
+    {
+      "name": "new request closes prior completed circuit",
+      "passed": true
+    },
+    {
+      "name": "new circuit cannot read files before owner approval",
+      "passed": true
+    },
+    {
+      "name": "new approval restores temporary file access",
+      "passed": true
+    },
+    {
+      "name": "QR revocation persists new circuit closure",
+      "passed": true
+    },
+    {
+      "name": "revoked new QR cannot read files",
+      "passed": true
+    }
+  ]
+}

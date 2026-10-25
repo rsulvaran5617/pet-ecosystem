@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-10-25T18:18:39.880Z",
+  "checks": [
+    {
+      "name": "Completed circuit offers a new request",
+      "passed": true
+    },
+    {
+      "name": "Opening form does not submit or close permissions",
+      "passed": true
+    },
+    {
+      "name": "All scopes start selected",
+      "passed": true
+    },
+    {
+      "name": "Cancel preserves circuit",
+      "passed": true
+    },
+    {
+      "name": "Submission shows new pending request",
+      "passed": true
+    },
+    {
+      "name": "No write form before new approval",
+      "passed": true
+    },
+    {
+      "name": "No browser exceptions",
+      "passed": true
+    }
+  ],
+  "scope": "Local real React panel in headless Chrome; simulated authenticated identity and clinical APIs. No native or full live-session test."
+}
