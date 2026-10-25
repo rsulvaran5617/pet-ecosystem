@@ -3,7 +3,7 @@
 import type { ClinicalDocumentType, ClinicalEncounterType, ClinicalEntryType, ClinicalProfessionalContext, ClinicalProfessionalType, ClinicalTimelineEncounter, ClinicalWriteRequest, ClinicalWriteScope } from "@pet/types";
 import { useEffect, useRef, useState } from "react";
 
-import { getBrowserClinicalAccessApiClient, getBrowserCoreApiClient } from "../../core/services/supabase-browser";
+import { getBrowserClinicalAccessApiClient, getBrowserCoreApiClient, getBrowserSupabaseClient } from "../../core/services/supabase-browser";
 import { submitClinicalEncounter } from "../services/clinical-encounter-submission";
 import type { ClinicalEncounterSubmission } from "../services/clinical-encounter-submission";
 import styles from "./PublicClinicalAccessPage.module.css";
@@ -33,11 +33,10 @@ const scopeOptions: Array<{ value: ClinicalWriteScope; label: string }> = [
 
 export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [sessionVersion, setSessionVersion] = useState(0);
   const [context, setContext] = useState<ClinicalProfessionalContext | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState<string | null>(null);
@@ -57,19 +56,28 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
   const [correctionReason, setCorrectionReason] = useState("");
   const [submission, setSubmission] = useState<ClinicalEncounterSubmission | null>(null);
   const submissionRunning = useRef(false);
+  const identityGeneration = useRef(0);
+  const authUser = useRef<string | null>(null);
 
   async function loadIdentity() {
+    const attempt = ++identityGeneration.current;
     const auth = await getBrowserCoreApiClient().getAuthState();
+    if (attempt !== identityGeneration.current) return;
+    authUser.current = auth.userId ?? null;
     setIsAuthenticated(auth.isAuthenticated);
+    setSessionEmail(auth.email ?? null);
     if (!auth.isAuthenticated) {
       setContext(null);
+      setWriteRequest(null);
+      setProfessionalEncounters([]);
+      setForm(emptyForm);
       return;
     }
-    setIsOpen(true);
     await getBrowserClinicalAccessApiClient().getAuthenticatedClinicalAccessContext(token);
     const nextContext = await getBrowserClinicalAccessApiClient().getMyClinicalProfessionalContext();
     const nextRequest = await getBrowserClinicalAccessApiClient().getMyClinicalWriteRequest(token);
     const encounters = await getBrowserClinicalAccessApiClient().listMyProfessionalEncounters();
+    if (attempt !== identityGeneration.current) return;
     setContext(nextContext);
     setWriteRequest(nextRequest);
     setProfessionalEncounters(encounters);
@@ -87,10 +95,25 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
 
   useEffect(() => {
     void loadIdentity().catch(() => setMessage("No pudimos consultar la identidad profesional.")).finally(() => setIsLoading(false));
-  }, [token]);
+    return () => { identityGeneration.current += 1; };
+  }, [token, sessionVersion]);
 
   useEffect(() => {
-    if (!isAuthenticated || !isOpen || isSubmitting || submission) return;
+    const { data } = getBrowserSupabaseClient().auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || (event === "SIGNED_IN" && session?.user.id !== authUser.current)) {
+        identityGeneration.current += 1;
+        authUser.current = session?.user.id ?? null;
+        setContext(null); setWriteRequest(null); setReceipt(null); setSubmission(null);
+        setIsAuthenticated(false);
+        setSessionEmail(null);
+        setSessionVersion((version) => version + 1);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || isSubmitting || submission) return;
     let cancelled = false;
     let running = false;
     async function refreshStatus() {
@@ -116,20 +139,13 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
     };
-  }, [isAuthenticated, isOpen, isSubmitting, submission, token]);
+  }, [isAuthenticated, isSubmitting, submission, token]);
 
-  async function login() {
+  async function changeAccount() {
     setIsSubmitting(true);
-    setMessage(null);
-    try {
-      await getBrowserCoreApiClient().login({ email, password });
-      await loadIdentity();
-      setPassword("");
-    } catch {
-      setMessage("No pudimos iniciar sesion. Revisa tus datos e intenta nuevamente.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { await getBrowserCoreApiClient().logout(); }
+    catch { setMessage("No pudimos cerrar la sesion. Intenta nuevamente."); }
+    finally { setIsSubmitting(false); }
   }
 
   async function saveProfile() {
@@ -239,26 +255,29 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
     finally { setIsSubmitting(false); }
   }
 
-  if (isLoading) return null;
   const profile = context?.profile ?? null;
   const editable = !profile || profile.verificationStatus === "draft" || profile.verificationStatus === "rejected";
 
   return (
-    <section className={styles.professionalPanel}>
+    <section className={styles.professionalPanel} id="professional-access">
       <div className={styles.professionalHeading}>
-        <div><span className={styles.eyebrow}>Acceso profesional</span><h2>Identidad del profesional</h2><p>Identificarte no habilita cambios en el expediente.</p></div>
-        {!isOpen ? <button className={styles.secondaryButton} onClick={() => setIsOpen(true)} type="button">Identificarme como profesional</button> : null}
+        <div><span className={styles.eyebrow}>Acceso profesional</span><h2>Identidad del profesional</h2><p>Para abrir documentos o registrar una atencion, inicia sesion y solicita la aprobacion del responsable.</p></div>
       </div>
-      {isOpen && !isAuthenticated ? (
-        <form className={styles.identityForm} onSubmit={(event) => { event.preventDefault(); void login(); }}>
-          <label>Correo<input autoComplete="email" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} /></label>
-          <label>Contrasena<input autoComplete="current-password" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} /></label>
-          <button className={styles.primaryButton} disabled={isSubmitting} type="submit">{isSubmitting ? "Ingresando..." : "Iniciar sesion"}</button>
-          <a className={styles.textLink} href="/app">Crear una cuenta en Pet Ecosystem</a>
-        </form>
-      ) : null}
-      {isOpen && isAuthenticated ? (
+      {isLoading ? <p role="status">Comprobando tu sesion...</p> : null}
+      {!isAuthenticated ? (
         <div className={styles.identityForm}>
+          <p>Si ya tienes cuenta, ingresa con tu correo y contrasena. Si aun no tienes, crea una cuenta. Volveras a este expediente al completar el acceso.</p>
+          <div className={styles.formActions}>
+            <a className={styles.primaryButton} href={`/app?auth=login&clinicalReturn=${encodeURIComponent(token)}`}>Iniciar sesion</a>
+            <a className={styles.secondaryButton} href={`/app?auth=register&clinicalReturn=${encodeURIComponent(token)}`}>Crear cuenta</a>
+          </div>
+          <p className={styles.disclaimer}>Puedes seguir leyendo la informacion basica con este QR. Crear una cuenta no sustituye la verificacion profesional ni la aprobacion del responsable.</p>
+        </div>
+      ) : null}
+      {isAuthenticated ? (
+        <div className={styles.identityForm}>
+          <p>Sesion iniciada{sessionEmail ? `: ${sessionEmail}` : ""}</p>
+          <button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeAccount()} type="button">Cerrar sesion y usar otra cuenta</button>
           {profile ? <div className={`${styles.verificationNotice} ${profile.verificationStatus === "verified" ? styles.verified : ""}`}><strong>{profile.professionalName}</strong><span>{statusCopy[profile.verificationStatus]}</span>{profile.organizationName ? <span>{profile.organizationName}</span> : null}</div> : null}
           {editable ? (
             <>

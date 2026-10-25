@@ -1,5 +1,17 @@
 # CLINICAL ACCESS-2
 
+## Entrada profesional desde QR - 2026-10-25
+
+La pagina clinica muestra Iniciar sesion y Crear cuenta sin desplegar paneles.
+Se comprueba la sesion y, si existe, se carga la identidad profesional. Los
+archivos bloqueados enlazan a este panel. Login y registro reutilizan /app
+(incluida verificacion por codigo); clinicalReturn conserva el token del QR y
+regresa al expediente al autenticarse. Solo admite tokens hexadecimales de 64
+caracteres, nunca destinos arbitrarios. No se consulta si un correo existe.
+El usuario elige iniciar sesion o registrarse. La lectura basica sigue disponible;
+cuenta, verificacion profesional y aprobacion Owner son pasos diferentes.
+No cambia RPC, RLS, Storage ni los permisos temporales.
+
 ## Historial de autorizaciones a demanda - 2026-10-25
 
 Mobile: el historial de autorizaciones se muestra en un acordeon cerrado por

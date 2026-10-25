@@ -28,6 +28,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { CoreSection } from "../components/CoreSection";
 import { StatusPill } from "../components/StatusPill";
+import { useClinicalAuthReturn } from "../hooks/useClinicalAuthReturn";
 import { useCoreWorkspace } from "../hooks/useCoreWorkspace";
 import {
   getBrowserBookingsApiClient,
@@ -1187,6 +1188,7 @@ export function CoreExperienceScreen() {
   const [recoverForm, setRecoverForm] = useState(emptyRecoverForm);
   const [recoveryPasswordForm, setRecoveryPasswordForm] = useState(emptyRecoveryPasswordForm);
   const [authAccessPanel, setAuthAccessPanel] = useState<AuthAccessPanel>("register");
+  const clinicalReturn = useClinicalAuthReturn(authState.isAuthenticated, isRecoverySession, setAuthAccessPanel);
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
   const [preferenceForm, setPreferenceForm] = useState(emptyPreferenceForm);
   const [addressForm, setAddressForm] = useState(emptyAddressForm);
@@ -1293,6 +1295,7 @@ export function CoreExperienceScreen() {
           ) : null}
         </header>
 
+        {clinicalReturn ? <Notice message="Acceso profesional: al iniciar sesion o verificar tu cuenta volveras al expediente del codigo QR." tone="info" /> : null}
         {visibleConfigError ? <Notice message={visibleConfigError} tone="error" /> : null}
         {!visibleConfigError && visibleErrorMessage ? <Notice message={visibleErrorMessage} tone="error" /> : null}
         {!visibleConfigError && infoMessage ? <Notice message={infoMessage} tone="info" /> : null}

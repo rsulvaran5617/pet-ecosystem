@@ -1,0 +1,57 @@
+{
+  "checks": [
+    {
+      "name": "Anonymous sees both entry actions immediately",
+      "passed": true
+    },
+    {
+      "name": "Clinical panel is a visible anchor for blocked documents",
+      "passed": true
+    },
+    {
+      "name": "Narrow viewport has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "Registration preserves the exact QR",
+      "passed": true
+    },
+    {
+      "name": "Pending registration does not prematurely return",
+      "passed": true
+    },
+    {
+      "name": "Completing registration returns to the QR with authenticated identity",
+      "passed": true
+    },
+    {
+      "name": "Authenticated identity still requires owner permission",
+      "passed": true
+    },
+    {
+      "name": "Shows the current account",
+      "passed": true
+    },
+    {
+      "name": "Logout clears identity and restores sign-in actions",
+      "passed": true
+    },
+    {
+      "name": "Existing account opens login mode",
+      "passed": true
+    },
+    {
+      "name": "Reject arbitrary redirect destinations",
+      "passed": true
+    },
+    {
+      "name": "Login also returns to original record",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "scope": "Real React panel and return hook in Chrome, narrow viewport; simulated auth and clinical APIs. Existing Core registration/login forms reused, no live signup or native-device test."
+}

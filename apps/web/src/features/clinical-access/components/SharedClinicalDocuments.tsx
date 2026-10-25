@@ -93,7 +93,7 @@ export function SharedClinicalDocuments({ token }: { token: string }) {
     <div className={styles.sectionTitle}><h2>Documentos del expediente</h2><button type="button" className={styles.secondaryButton} onClick={() => setRefreshVersion((value) => value + 1)}>Volver a consultar</button></div>
     <p className={styles.helper}>Solo lectura. Puedes consultar las fotos, cartillas y soportes de la familia durante tu autorizacion temporal; no puedes modificarlos.</p>
     {loading ? <p role="status">Comprobando acceso a los archivos...</p> : null}
-    {message ? <p role="status" className={styles.panelMessage}>{message}</p> : null}
+    {message ? <div><p role="status" className={styles.panelMessage}>{message}</p><a className={styles.textLink} href="#professional-access">Ir al acceso profesional: sesion y permisos</a></div> : null}
     {record?.documents.length === 0 ? <p>No hay archivos cargados en el expediente.</p> : null}
     {record?.documents.map((document) => <article className={styles.item} key={document.id}>
       <strong>{document.title}</strong><p>{document.documentType.replaceAll("_", " ")}</p>
