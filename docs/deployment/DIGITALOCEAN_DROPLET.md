@@ -1,5 +1,17 @@
 # DigitalOcean Droplet deployment
 
+## Renovacion profesional publicada - 2026-10-26
+
+Fuente 71dc8b9; migracion 20261027010000 aplicada y verificada.
+Web: /var/www/pet-releases/clinical-renewal-71dc8b9-1793064065, build 1jTTorkAf_OufrGAJdwyr.
+Admin: /var/www/pet-releases/clinical-renewal-admin-71dc8b9-1793064272, build Va4itS3IAo5jyatJ5hJu4.
+Rollback web: /var/www/pet-releases/clinical-cycles-d4ebf7c-1792952254.
+Rollback admin: /var/www/pet-releases/admin-bc7eb81-1792856680.
+Scripts PowerShell: scripts/update-clinical-renewal-web.ps1 y
+scripts/update-clinical-renewal-admin.ps1; requieren migracion ya aplicada.
+Builds, candidatas, HTTPS, manifests, hashes de fuente y PM2 guardado PASS.
+Verificacion real en telefono y admin: ../audit/2026-10-26-clinical-renewal/VALIDATION.md.
+
 ## Cierre de autorizaciones clinicas publicado - 2026-10-25
 
 Fuente d4ebf7c; migracion Supabase 20261025020000 aplicada. Web activa:

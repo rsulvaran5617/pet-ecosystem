@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-10-27T01:20:28.932Z",
+  "applied": true,
+  "version": "20261027010000",
+  "checks": [
+    {
+      "name": "submit_my_clinical_professional_profile",
+      "matches": true
+    },
+    {
+      "name": "list_pending_clinical_professionals_for_admin",
+      "matches": true
+    }
+  ]
+}

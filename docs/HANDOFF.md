@@ -1,5 +1,16 @@
 # HANDOFF.md
 
+## Renovacion profesional publicada - 2026-10-26
+
+Fuente 71dc8b9 enviada a origin/master. Migracion 20261027010000 aplicada.
+Web build 1jTTorkAf_OufrGAJdwyr; admin build Va4itS3IAo5jyatJ5hJu4.
+Boton de renovacion comprobado en el Android conectado con sesion real; admin
+comprobado con sesion QA real. Luego se observo renovacion enviada y perfil
+verificado en el flujo del usuario; el agente no envio ni aprobo esa solicitud.
+Consentimientos anteriores no se reactivan. Sin nuevos binarios mobile.
+PM2 guardado, rollback de ambas superficies conservado.
+[Evidencia](audit/2026-10-26-clinical-renewal/VALIDATION.md).
+
 ## Circuitos de autorizacion clinica publicados - 2026-10-25
 
 Fuente d4ebf7c enviada a origin/master. Migracion 20261025020000 aplicada y

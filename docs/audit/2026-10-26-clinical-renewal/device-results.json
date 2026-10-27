@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-27T01:24:44.956Z",
+  "sourceCommit": "71dc8b9",
+  "scope": "Actual connected Android Chrome, live existing doctor session and QR; cache-bypassing reload. No renewal button clicked and no permissions changed.",
+  "checks": {
+    "renewalButtonVisible": true,
+    "signedIn": true,
+    "expiredIdentity": true,
+    "expiryShown": true,
+    "documentsExplainRenewal": true,
+    "ownerRequestNotYetOffered": true
+  },
+  "uncaughtErrors": 0
+}

@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-10-27T01:20:28.128Z",
+  "comparisons": [
+    {
+      "name": "submit_my_clinical_professional_profile",
+      "matches": true
+    },
+    {
+      "name": "list_pending_clinical_professionals_for_admin",
+      "matches": true
+    }
+  ],
+  "history": [
+    {
+      "version": "20261025020000"
+    }
+  ],
+  "scope": "Production PostgreSQL QA fixtures in complete rollback; authenticated DB role and JWT subject, not HTTP sessions.",
+  "results": [
+    {
+      "name": "professional requests renewal",
+      "passed": true
+    },
+    {
+      "name": "retry remains pending",
+      "passed": true
+    },
+    {
+      "name": "old request closed",
+      "passed": true
+    },
+    {
+      "name": "old file authorization revoked",
+      "passed": true
+    },
+    {
+      "name": "renewal recorded once",
+      "passed": true
+    },
+    {
+      "name": "admin sees pending renewal and expiry",
+      "passed": true
+    },
+    {
+      "name": "reviewed identity verified",
+      "passed": true
+    },
+    {
+      "name": "review does not revive consent",
+      "passed": true
+    }
+  ]
+}

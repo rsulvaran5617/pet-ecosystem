@@ -777,7 +777,7 @@ Enviar una solicitud nueva cierra atomicamente todas las solicitudes abiertas y 
 
 La denegacion al vencer ocurre en cada operacion del backend, sin depender de cron. Las consultas de historial calculan el estado efectivo, incluidos circuitos con atencion completada; el estado almacenado puede conservar su valor previo hasta una transicion posterior. No equivale a una autorizacion utilizable.
 
-## Renovacion de verificacion profesional (2026-10-26, preparada localmente)
+## Renovacion de verificacion profesional (publicada 2026-10-26)
 
 Un profesional autenticado con verificacion vencida puede pulsar Solicitar renovacion profesional desde el QR. Se reutiliza submit_my_clinical_professional_profile: draft y expired (incluido verified con fecha vencida) pasan a pending; repetir pending es idempotente. Suspended no puede eludir la suspension y rejected conserva el flujo de correccion del borrador. Se preservan identidad e historial.
 
