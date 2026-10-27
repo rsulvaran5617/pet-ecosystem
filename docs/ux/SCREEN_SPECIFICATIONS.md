@@ -460,3 +460,7 @@ Owner/provider web y mobile incorporan filtros Expiradas y Pendientes de cierre.
 ### Acceso profesional: nueva autorizacion
 
 En el enlace clinico, una solicitud ya resuelta permite Solicitar una nueva autorizacion. Antes de enviar se advierte que se cerraran los permisos anteriores para esa mascota y se necesitara otra aprobacion. Abrir el formulario no revoca: el cierre y la nueva solicitud ocurren juntos al enviar. La repeticion identica de una solicitud pendiente no duplica el circuito. El historial muestra vencidos/revocados tambien cuando ya hubo una atencion registrada.
+
+### Recuperacion de identidad profesional vencida
+
+El panel del veterinario muestra la ultima fecha de vigencia y Solicitar renovacion profesional. Al enviarla, pasa a revision administrativa; despues de ser verificado se ofrece solicitar permiso al responsable, sin reutilizar consentimientos anteriores. Admin distingue Vencida de Verificada, muestra hora de Panama y explica que la fecha administrativa no corresponde a la duracion del QR. Cambiar de perfil limpia la nueva fecha ingresada. Documentos ofrece orientacion especifica segun el estado profesional.

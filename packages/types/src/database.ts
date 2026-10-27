@@ -2467,6 +2467,7 @@ export interface Database {
           organization_name: string | null;
           verification_status: "draft" | "pending" | "verified" | "rejected" | "suspended" | "expired";
           submitted_at: string | null;
+          verification_expires_at: string | null;
         }>;
       };
       review_clinical_professional_profile: {

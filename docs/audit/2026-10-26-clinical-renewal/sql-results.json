@@ -1,0 +1,74 @@
+﻿{
+  "engine": "PGlite",
+  "scope": "Single-connection real PL/pgSQL; mocked admin membership; no live RLS session or concurrency claim.",
+  "results": [
+    {
+      "name": "expired verified identity can request review",
+      "passed": true
+    },
+    {
+      "name": "renewal does not approve identity",
+      "passed": true
+    },
+    {
+      "name": "stored expired identity can renew",
+      "passed": true
+    },
+    {
+      "name": "draft onboarding still submits",
+      "passed": true
+    },
+    {
+      "name": "double submit creates one verification event",
+      "passed": true
+    },
+    {
+      "name": "unexpired identity cannot renew",
+      "passed": true
+    },
+    {
+      "name": "suspended identity cannot self renew",
+      "passed": true
+    },
+    {
+      "name": "rejected identity must correct draft first",
+      "passed": true
+    },
+    {
+      "name": "anonymous renewal denied",
+      "passed": true
+    },
+    {
+      "name": "another user cannot renew profile",
+      "passed": true
+    },
+    {
+      "name": "renewal closes completed residual authorization",
+      "passed": true
+    },
+    {
+      "name": "new administrative verification cannot restore old consent",
+      "passed": true
+    },
+    {
+      "name": "professional cannot approve own renewal",
+      "passed": true
+    },
+    {
+      "name": "admin sees effective expiry and expiry date",
+      "passed": true
+    },
+    {
+      "name": "non-admin cannot list professionals",
+      "passed": true
+    },
+    {
+      "name": "renewal preserves historical clinical entries",
+      "passed": true
+    },
+    {
+      "name": "renewal RPC is authenticated-only",
+      "passed": true
+    }
+  ]
+}

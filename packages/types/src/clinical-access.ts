@@ -45,6 +45,7 @@ export interface AdminClinicalProfessionalSummary {
   organizationName: string | null;
   verificationStatus: ClinicalProfessionalVerificationStatus;
   submittedAt: string | null;
+  verificationExpiresAt?: string | null;
 }
 
 export interface UpsertClinicalProfessionalProfileInput {

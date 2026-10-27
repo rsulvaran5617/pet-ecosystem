@@ -776,3 +776,11 @@ Cada circuito de consentimiento corresponde a un profesional y una mascota. Term
 Enviar una solicitud nueva cierra atomicamente todas las solicitudes abiertas y permisos residuales anteriores del mismo profesional y mascota; requiere nueva aprobacion del responsable. Reenviar una solicitud pendiente con los mismos permisos y nota es un reintento idempotente. Reemplazar o revocar el QR cierra todos sus circuitos. Las atenciones y documentos historicos se conservan. La verificacion profesional es independiente y nunca se renueva al generar un QR.
 
 La denegacion al vencer ocurre en cada operacion del backend, sin depender de cron. Las consultas de historial calculan el estado efectivo, incluidos circuitos con atencion completada; el estado almacenado puede conservar su valor previo hasta una transicion posterior. No equivale a una autorizacion utilizable.
+
+## Renovacion de verificacion profesional (2026-10-26, preparada localmente)
+
+Un profesional autenticado con verificacion vencida puede pulsar Solicitar renovacion profesional desde el QR. Se reutiliza submit_my_clinical_professional_profile: draft y expired (incluido verified con fecha vencida) pasan a pending; repetir pending es idempotente. Suspended no puede eludir la suspension y rejected conserva el flujo de correccion del borrador. Se preservan identidad e historial.
+
+La renovacion cierra solicitudes y autorizaciones residuales anteriores antes de solicitar revision. Solo administracion puede verificar nuevamente. Ni renovar la identidad ni generar otro QR restablecen consentimiento: despues se requiere una solicitud y aprobacion nuevas del responsable. La lectura basica por QR mantiene su alcance.
+
+Admin muestra el estado efectivo Vencida, la fecha registrada en hora de Panama y explica como reenviar a revision. La vigencia elegida termina a las 23:59:59 UTC-5 del dia indicado; vacia conserva la opcion existente de no configurar vencimiento. El panel profesional muestra la ultima vigencia en hora local. Documentos distingue verificacion vencida, pendiente, suspendida y falta de consentimiento.

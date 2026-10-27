@@ -70,7 +70,7 @@ export function AdminClinicalProfessionalsWorkspace() {
       <div style={{ display: "grid", gridTemplateColumns: "minmax(260px,.75fr) minmax(0,1.25fr)", gap: "16px" }}>
         <div style={card}>
           <strong>{profiles.length} perfil(es)</strong>
-          {isLoading ? <p>Cargando...</p> : profiles.length ? profiles.map((profile) => <button key={profile.id} onClick={() => { setSelectedId(profile.id); setReason(""); }} type="button" style={{ ...input, textAlign: "left", background: selectedId === profile.id ? "#ecfdf5" : "#fff", cursor: "pointer" }}><strong>{profile.professionalName}</strong><span style={{ display: "block", marginTop: "4px", color: "#52615e" }}>{profile.verificationStatus === "pending" ? "Pendiente" : "Verificada"} · {typeLabel(profile.professionalType)}</span></button>) : <p style={{ color: "#52615e" }}>No hay identidades esperando revision.</p>}
+          {isLoading ? <p>Cargando...</p> : profiles.length ? profiles.map((profile) => <button key={profile.id} onClick={() => { setSelectedId(profile.id); setReason(""); setExpiresAt(""); }} type="button" style={{ ...input, textAlign: "left", background: selectedId === profile.id ? "#ecfdf5" : "#fff", cursor: "pointer" }}><strong>{profile.professionalName}</strong><span style={{ display: "block", marginTop: "4px", color: "#52615e" }}>{profile.verificationStatus === "pending" ? "Pendiente" : profile.verificationStatus === "expired" ? "Vencida" : "Verificada"} · {typeLabel(profile.professionalType)}</span></button>) : <p style={{ color: "#52615e" }}>No hay identidades esperando revision.</p>}
         </div>
         <div style={card}>
           {selected ? <>
@@ -80,10 +80,12 @@ export function AdminClinicalProfessionalsWorkspace() {
               <div style={input}><small>Jurisdiccion</small><strong style={{ display: "block", marginTop: "5px" }}>{selected.jurisdiction}, {selected.countryCode}</strong></div>
               <div style={input}><small>Organizacion</small><strong style={{ display: "block", marginTop: "5px" }}>{selected.organizationName ?? "Sin vinculacion"}</strong></div>
             </div>
-            <label style={{ display: "grid", gap: "6px", fontSize: "13px" }}>Vigencia opcional de la verificacion<input onChange={(event) => setExpiresAt(event.target.value)} style={input} type="date" value={expiresAt} /></label>
+            <p>Vigencia registrada: {selected.verificationExpiresAt ? new Intl.DateTimeFormat("es-PA", { dateStyle: "short", timeStyle: "short", timeZone: "America/Panama" }).format(new Date(selected.verificationExpiresAt)) : "Sin vencimiento configurado"} (hora de Panama).</p>
+            {selected.verificationStatus === "expired" ? <p>Verificacion vencida. El profesional debe pulsar Solicitar renovacion profesional desde el enlace del expediente. La solicitud aparecera aqui como Pendiente para una nueva revision.</p> : null}
+            <label style={{ display: "grid", gap: "6px", fontSize: "13px" }}>Nueva vigencia opcional de la verificacion<input onChange={(event) => setExpiresAt(event.target.value)} style={input} type="date" value={expiresAt} /></label><p>La fecha vence a las 11:59:59 p. m. de Panama (UTC-5). Dejar vacio significa sin vencimiento configurado. Esta vigencia no es la duracion del QR.</p>
             <label style={{ display: "grid", gap: "6px", fontSize: "13px" }}>Justificacion para rechazo o suspension<textarea onChange={(event) => setReason(event.target.value)} rows={4} style={input} value={reason} /></label>
             <div style={{ display: "flex", gap: "9px", flexWrap: "wrap" }}>
-              {selected.verificationStatus === "pending" ? <><button disabled={isSubmitting} onClick={() => void decide("verified")} type="button">Verificar identidad</button><button disabled={isSubmitting} onClick={() => void decide("rejected")} type="button">Rechazar</button></> : <button disabled={isSubmitting} onClick={() => void decide("suspended")} type="button">Suspender verificacion</button>}
+              {selected.verificationStatus === "pending" ? <><button disabled={isSubmitting} onClick={() => void decide("verified")} type="button">Verificar identidad</button><button disabled={isSubmitting} onClick={() => void decide("rejected")} type="button">Rechazar</button></> : selected.verificationStatus === "verified" ? <button disabled={isSubmitting} onClick={() => void decide("suspended")} type="button">Suspender verificacion</button> : null}
             </div>
           </> : <p style={{ color: "#52615e" }}>Selecciona un perfil para revisar sus datos declarados.</p>}
         </div>

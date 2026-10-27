@@ -433,3 +433,7 @@ No se amplian policies de lectura/escritura. expire_unapproved_bookings() solo s
 ### Consentimiento clinico: circuitos cerrados
 
 La migracion `20261025020000_clinical_authorization_cycle_closure.sql` mantiene RLS y Storage privados. Cerrar un QR revoca los permisos residuales; una nueva solicitud cierra los anteriores del mismo profesional y mascota sin transferir consentimiento. Helpers SECURITY DEFINER internos sin EXECUTE de clientes. La autorizacion efectiva exige todas las vigencias y ausencia de revocacion; no depende de cron ni de estados visibles del frontend. Lectura b?sica por QR conserva su alcance existente.
+
+### Renovacion profesional sin reactivar permisos
+
+20261027010000_clinical_professional_renewal.sql limita el reenvio a auth.uid(), admite solo draft/expired efectivo y serializa reintentos por usuario. Antes de cambiar el perfil bloquea por mascota y cierra sus circuitos; conserva orden solicitud/autorizacion antes de perfil para los guards clinicos. Una nueva revision administrativa no reabre permisos cerrados ni cambia el alcance de Storage. No permite renovar una suspension desde el cliente.

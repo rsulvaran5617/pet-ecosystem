@@ -486,3 +486,9 @@ BookingStatus agrega expired. BookingStatusChange.changedByUserId puede ser null
 Sin cambios de firma ni DTO: `request_clinical_write_access` cierra el circuito previo del mismo profesional/mascota antes de crear otro; un reintento identico pendiente devuelve su UUID. El vencimiento nuevo no supera el del QR ni el de la verificacion profesional. `create_pet_clinical_access` y `revoke_pet_clinical_access` cierran los consentimientos asociados antes de cambiar el QR. `review_clinical_write_request` revalida QR, identidad y vigencia antes de aprobar.
 
 `get_my_clinical_write_request` y `list_pet_clinical_write_requests` informan estado efectivo tambien para `completed` con permisos residuales. El vencimiento se exige en backend aunque no haya actualizacion fisica programada. Helpers de cierre/estado son internos, sin EXECUTE para anon/authenticated. Operaciones de ciclo serializadas por mascota; bloqueos de solicitudes/autorizaciones preceden al bloqueo del QR.
+
+### Renovacion profesional (2026-10-26)
+
+submit_my_clinical_professional_profile() conserva firma y respuesta: admite draft o verificacion efectivamente vencida; pending es idempotente. La renovacion cierra consentimientos anteriores y registra submitted con motivo Professional verification renewal. No admite suspended ni autoaprueba. review_clinical_professional_profile conserva la revision manual exclusiva de pending.
+
+list_pending_clinical_professionals_for_admin() mantiene columnas existentes, calcula verification_status efectivo e incorpora verification_expires_at nullable. AdminClinicalProfessionalSummary agrega verificationExpiresAt opcional/nullable; el mapper admite ausencia para compatibilidad de despliegue. La migracion recrea esta RPC sin CASCADE y restituye EXECUTE solo a authenticated; RLS y comprobacion de administrador se conservan. Desplegar migracion antes de web/admin.

@@ -624,3 +624,7 @@ Migracion aplicada `20260920190000_pet_sos_transition_integrity.sql`: agrega
 `pet_alert_moderation_cases.target_status_at_action text` nullable para conservar
 estado efectivo bajo bloqueo al moderar. NULL en acciones legacy, sin backfill.
 No altera tablas de mascotas ni ownership. Especificacion: `docs/pet-sos/FOUNDATION_1C.md`.
+
+### Renovacion profesional - 2026-10-26
+
+Sin tablas ni estados nuevos. submit_my_clinical_professional_profile permite vencida -> pending y audita submitted con motivo de renovacion; conserva los datos de la verificacion anterior mientras espera revision. list_pending_clinical_professionals_for_admin agrega verification_expires_at al resultado y devuelve expired cuando la vigencia de verified termino. Migracion: 20261027010000_clinical_professional_renewal.sql.

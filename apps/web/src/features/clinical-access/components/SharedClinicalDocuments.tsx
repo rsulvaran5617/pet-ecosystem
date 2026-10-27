@@ -45,7 +45,18 @@ export function SharedClinicalDocuments({ token }: { token: string }) {
       } catch {
         if (active) {
           setRecord(null); closePreview();
-          setMessage("Para abrir archivos, inicia sesion como profesional verificado y solicita la aprobacion del responsable. Si ya la tenias, comprueba que siga vigente.");
+          let guidance = "No pudimos comprobar el acceso. Revisa tu conexion y la vigencia del QR; consulta tu estado en Acceso profesional.";
+          try {
+            const identity = await getBrowserClinicalAccessApiClient().getMyClinicalProfessionalContext();
+            const status = identity?.profile?.verificationStatus;
+            guidance = status === "expired"
+              ? "Tu verificacion profesional vencio. Solicita su renovacion en Acceso profesional; despues necesitaras una nueva aprobacion del responsable."
+              : status === "pending" ? "Tu identidad profesional esta pendiente de revision por administracion. Despues podras solicitar la aprobacion del responsable."
+              : status === "suspended" ? "Tu verificacion profesional esta suspendida. Contacta a administracion para revisar tu estado."
+              : status === "verified" ? "Tu sesion esta iniciada. Comprueba la vigencia del QR y solicita una aprobacion vigente del responsable en Acceso profesional."
+              : "Para abrir archivos, inicia sesion y completa la verificacion de tu identidad en Acceso profesional.";
+          } catch { /* Keep the connection/QR guidance when identity cannot be checked. */ }
+          if (active) setMessage(guidance);
         }
       } finally { pending = false; if (active) setLoading(false); }
     };

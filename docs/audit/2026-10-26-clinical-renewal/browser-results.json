@@ -1,0 +1,49 @@
+{
+  "checks": [
+    {
+      "name": "Expired signed-in professional has renewal action",
+      "passed": true
+    },
+    {
+      "name": "Documents explain renewal rather than asking signed-in user to log in",
+      "passed": true
+    },
+    {
+      "name": "Expiry date visible",
+      "passed": true
+    },
+    {
+      "name": "No owner request before verification",
+      "passed": true
+    },
+    {
+      "name": "Renewal submits once and becomes pending",
+      "passed": true
+    },
+    {
+      "name": "Documents explain pending administrative review",
+      "passed": true
+    },
+    {
+      "name": "Administrative verification leads to a fresh owner request",
+      "passed": true
+    },
+    {
+      "name": "Admin sees effective expired state and Panama expiry",
+      "passed": true
+    },
+    {
+      "name": "Admin explains renewal instead of offering suspension",
+      "passed": true
+    },
+    {
+      "name": "Pending renewal can be reviewed by admin",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "scope": "Real React professional/admin panels in Chrome with simulated API and identity; not production-session or physical-device coverage."
+}

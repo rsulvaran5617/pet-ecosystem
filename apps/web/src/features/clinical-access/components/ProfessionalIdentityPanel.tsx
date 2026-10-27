@@ -184,6 +184,17 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
     }
   }
 
+  async function requestRenewal() {
+    setIsSubmitting(true); setMessage(null);
+    try {
+      setContext(await getBrowserClinicalAccessApiClient().submitMyClinicalProfessionalProfile());
+      setWriteRequest(null); setStartingNewRequest(false);
+      setMessage("Renovacion enviada a administracion. Despues de la verificacion, solicita una nueva aprobacion al responsable de la mascota.");
+    } catch {
+      setMessage("No pudimos enviar la renovacion. Vuelve a intentarlo.");
+    } finally { setIsSubmitting(false); }
+  }
+
   async function requestWriteAccess() {
     if (!requestedScopes.length) { setMessage("Selecciona al menos una accion."); return; }
     setIsSubmitting(true); setMessage(null);
@@ -288,6 +299,11 @@ export function ProfessionalIdentityPanel({ token }: { token: string }) {
           <p>Sesion iniciada{sessionEmail ? `: ${sessionEmail}` : ""}</p>
           <button className={styles.secondaryButton} disabled={isSubmitting} onClick={() => void changeAccount()} type="button">Cerrar sesion y usar otra cuenta</button>
           {profile ? <div className={`${styles.verificationNotice} ${profile.verificationStatus === "verified" ? styles.verified : ""}`}><strong>{profile.professionalName}</strong><span>{statusCopy[profile.verificationStatus]}</span>{profile.organizationName ? <span>{profile.organizationName}</span> : null}</div> : null}
+          {profile?.verificationExpiresAt ? <p>Ultima vigencia profesional: {new Date(profile.verificationExpiresAt).toLocaleString("es-PA")} (hora local).</p> : null}
+          {profile?.verificationStatus === "expired" ? <div className={styles.writeRequest}>
+            <p>Tu sesion esta iniciada, pero la verificacion de plataforma vencio. Un QR nuevo no la renueva. Envia tu identidad a administracion para una nueva revision; despues podras solicitar permiso al responsable.</p>
+            <button className={styles.primaryButton} disabled={isSubmitting} onClick={() => void requestRenewal()} type="button">{isSubmitting ? "Enviando..." : "Solicitar renovacion profesional"}</button>
+          </div> : null}
           {editable ? (
             <>
               <label>Nombre profesional<input onChange={(event) => setForm((current) => ({ ...current, professionalName: event.target.value }))} required value={form.professionalName} /></label>

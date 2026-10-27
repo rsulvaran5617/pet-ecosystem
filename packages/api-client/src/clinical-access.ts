@@ -108,7 +108,8 @@ export function createClinicalAccessApiClient(supabase: ClinicalAccessClient) {
         countryCode: row.country_code,
         organizationName: row.organization_name,
         verificationStatus: row.verification_status,
-        submittedAt: row.submitted_at
+        submittedAt: row.submitted_at,
+        verificationExpiresAt: row.verification_expires_at ?? null
       }));
     },
     async reviewClinicalProfessionalProfile(profileId: Uuid, decision: "verified" | "rejected" | "suspended", reason?: string | null, expiresAt?: string | null) {
