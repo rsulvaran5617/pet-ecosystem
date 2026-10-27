@@ -1,0 +1,54 @@
+﻿.workspace { display: grid; gap: 18px; color: #142b40; font-size: 15px; line-height: 1.5; }
+.workspace * { box-sizing: border-box; }
+.workspace h2, .workspace h3, .workspace h4, .workspace p { margin: 0; }
+.workspace h2 { font-size: 26px; letter-spacing: -.5px; }
+.workspace h3 { font-size: 19px; }
+.workspace p { color: #536573; }
+.header, .identity { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.eyebrow { color: #0f766e; font-size: 12px; font-weight: 700; }
+.header p { margin-top: 5px; }
+.overview { border-left: 4px solid #0f766e; padding: 14px 18px; background: #eaf7f4; border-radius: 10px; display: grid; gap: 3px; }
+.overview span, .help { font-size: 13px; color: #536573; }
+.columns { display: grid; grid-template-columns: minmax(240px, .7fr) minmax(0, 1.6fr); gap: 18px; align-items: start; }
+.card { background: white; border: 1px solid #dce3e8; border-radius: 16px; padding: 22px; display: grid; gap: 20px; min-width: 0; align-content: start; }
+.count { font-size: 13px; font-weight: 600; color: #536573; padding: 3px 9px; background: #f0f4f6; border-radius: 20px; }
+.profileList { display: grid; gap: 10px; max-height: 580px; overflow-y: auto; }
+.workspace button { font: inherit; cursor: pointer; border-radius: 10px; min-height: 44px; padding: 10px 16px; font-weight: 600; }
+.workspace button:disabled { opacity: .55; cursor: wait; }
+.workspace button:focus-visible, .workspace summary:focus-visible, .workspace input:focus-visible, .workspace textarea:focus-visible { outline: 3px solid #0284c7; outline-offset: 3px; }
+.profile { display: grid; justify-items: start; gap: 5px; text-align: left; border: 1px solid #dce3e8; background: white; color: #142b40; }
+.profile > span:not(.badge) { color: #536573; font-size: 13px; font-weight: 400; }
+.profile[aria-pressed="true"] { background: #effaf7; border-color: #0f766e; box-shadow: inset 3px 0 #0f766e; }
+.badge { display: inline-flex; width: fit-content; border-radius: 20px; padding: 4px 10px; background: #edf1f5; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.badge[data-status="verified"] { background: #dcf5eb; color: #126349; }
+.badge[data-status="pending"], .badge[data-status="expired"] { background: #fff1d6; color: #874900; }
+.badge[data-status="suspended"], .badge[data-status="rejected"] { background: #ffeded; color: #a12828; }
+.validity { display: grid; gap: 3px; background: #f3f7fa; border-radius: 12px; padding: 16px; }
+.validity > span, .validity small { color: #536573; font-size: 13px; }
+.validity strong { font-size: 19px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 16px; margin: 0; }
+.facts dt { color: #536573; font-size: 12px; }
+.facts dd { margin: 4px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.notice { display: grid; gap: 5px; font-size: 14px; }
+.review { display: grid; gap: 14px; }
+.review label { display: grid; gap: 6px; font-weight: 600; font-size: 14px; }
+.workspace input, .workspace textarea { width: 100%; min-width: 0; border: 1px solid #bccbd5; border-radius: 8px; padding: 11px 12px; font: inherit; color: #142b40; background: white; }
+.workspace textarea { resize: vertical; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.primary { background: #0f766e; color: white; border: 1px solid #0f766e; }
+.secondary { background: white; color: #0f625d; border: 1px solid #bdd4d1; }
+.danger { background: white; border: 1px solid #e1b5b5; color: #a12828; }
+.disclosure { border-top: 1px solid #e1e7eb; padding-top: 14px; }
+.disclosure summary { color: #a12828; font-weight: 600; cursor: pointer; padding: 5px 0; }
+.disclosure[open] .review { margin-top: 14px; }
+.audit { display: block; }
+.audit summary { cursor: pointer; font-size: 18px; font-weight: 700; }
+.audit summary > * { margin-right: 10px; }
+.audit summary small { font-size: 13px; font-weight: 400; color: #536573; }
+.audit[open] > .review { margin-top: 20px; }
+.events { display: grid; max-height: 480px; overflow-y: auto; }
+.event { display: flex; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid #e1e7eb; flex-wrap: wrap; }
+.event > div { display: grid; gap: 3px; }
+.event span, .event time { font-size: 13px; color: #536573; overflow-wrap: anywhere; }
+.message { padding: 14px 18px; border-radius: 10px; background: #eaf7f4; color: #0f625d; }
+@media (max-width: 800px) { .columns { grid-template-columns: minmax(0,1fr); } .profileList { max-height: 260px; } .card { padding: 18px; } .workspace h2 { font-size: 23px; } }

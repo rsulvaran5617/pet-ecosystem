@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Audit collapsed by default",
+    "Verified has no misleading date editor",
+    "Pending count and stored expiry visible",
+    "Compact profile cards",
+    "Suspension requires reason",
+    "Pending has approve and reject actions",
+    "Date conversion and verification preserved",
+    "Expired explains next action",
+    "Audit translated",
+    "No horizontal overflow at 390px",
+    "No browser exceptions"
+  ],
+  "scope": "Real React component and CSS; simulated APIs, no production mutations."
+}

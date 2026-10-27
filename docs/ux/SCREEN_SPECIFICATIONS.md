@@ -464,3 +464,7 @@ En el enlace clinico, una solicitud ya resuelta permite Solicitar una nueva auto
 ### Recuperacion de identidad profesional vencida
 
 El panel del veterinario muestra la ultima fecha de vigencia y Solicitar renovacion profesional. Al enviarla, pasa a revision administrativa; despues de ser verificado se ofrece solicitar permiso al responsable, sin reutilizar consentimientos anteriores. Admin distingue Vencida de Verificada, muestra hora de Panama y explica que la fecha administrativa no corresponde a la duracion del QR. Cambiar de perfil limpia la nueva fecha ingresada. Documentos ofrece orientacion especifica segun el estado profesional.
+
+### Profesionales admin: lectura en cinco segundos (2026-10-27)
+
+La cabecera resume las identidades pendientes. La lista compacta no se estira a la altura del detalle. La ficha destaca nombre, estado y vigencia guardada en hora de Panamá; diferencia la identidad del permiso Owner y del QR. Solo las solicitudes pendientes muestran fecha opcional y acciones de revisión. Los perfiles verificados muestran la suspensión en un desplegable con motivo obligatorio. Actividad clínica queda en un acordeón cerrado inicialmente, con búsqueda, etiquetas de eventos en español y estado sin resultados. Diseño adaptable a pantallas estrechas y controles accesibles por teclado. No cambia contratos, permisos ni persistencia.

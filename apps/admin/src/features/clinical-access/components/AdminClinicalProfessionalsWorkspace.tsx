@@ -5,8 +5,16 @@ import { useEffect, useState } from "react";
 
 import { getAdminClinicalAccessApiClient } from "../../core/services/supabase-admin";
 
-const card = { borderRadius: "16px", border: "1px solid rgba(15,23,42,.1)", background: "#fff", padding: "18px", display: "grid", gap: "12px" } as const;
-const input = { borderRadius: "8px", border: "1px solid rgba(15,23,42,.18)", padding: "10px 12px", fontSize: "13px" } as const;
+import styles from "./AdminClinicalProfessionalsWorkspace.module.css";
+
+const statusLabels: Record<string, string> = { pending: "Pendiente", verified: "Verificada", expired: "Vencida", suspended: "Suspendida", rejected: "Rechazada", draft: "Borrador" };
+const eventLabels: Record<string, string> = {
+  clinical_write_requested: "Permiso solicitado", clinical_write_approved: "Permiso aprobado",
+  clinical_write_revoked: "Permiso revocado", clinical_write_rejected: "Permiso rechazado",
+  clinical_encounter_finalized: "Atención registrada", clinical_entry_corrected: "Registro corregido",
+  clinical_document_added: "Documento agregado",
+};
+const formatDate = (value: string) => new Intl.DateTimeFormat("es-PA", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Panama" }).format(new Date(value));
 
 function typeLabel(value: AdminClinicalProfessionalSummary["professionalType"]) {
   if (value === "veterinarian") return "Veterinario";
@@ -63,41 +71,61 @@ export function AdminClinicalProfessionalsWorkspace() {
     }
   }
 
+  const pendingCount = profiles.filter((profile) => profile.verificationStatus === "pending").length;
+  const filteredEvents = auditEvents.filter((event) => [event.professionalName, event.organizationName, event.petReference, event.event, eventLabels[event.event]].some((value) => value?.toLowerCase().includes(auditFilter.toLowerCase())));
+
   return (
-    <section style={{ display: "grid", gap: "16px" }}>
-      <div style={card}><span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, textTransform: "uppercase" }}>Salud animal</span><h2 style={{ margin: 0 }}>Verificacion profesional</h2><p style={{ margin: 0, color: "#52615e" }}>Revision de identidad de plataforma. No concede escritura clinica ni sustituye a la autoridad competente.</p></div>
-      {message ? <div style={{ ...card, color: "#0f5f59" }}>{message}</div> : null}
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(260px,.75fr) minmax(0,1.25fr)", gap: "16px" }}>
-        <div style={card}>
-          <strong>{profiles.length} perfil(es)</strong>
-          {isLoading ? <p>Cargando...</p> : profiles.length ? profiles.map((profile) => <button key={profile.id} onClick={() => { setSelectedId(profile.id); setReason(""); setExpiresAt(""); }} type="button" style={{ ...input, textAlign: "left", background: selectedId === profile.id ? "#ecfdf5" : "#fff", cursor: "pointer" }}><strong>{profile.professionalName}</strong><span style={{ display: "block", marginTop: "4px", color: "#52615e" }}>{profile.verificationStatus === "pending" ? "Pendiente" : profile.verificationStatus === "expired" ? "Vencida" : "Verificada"} · {typeLabel(profile.professionalType)}</span></button>) : <p style={{ color: "#52615e" }}>No hay identidades esperando revision.</p>}
-        </div>
-        <div style={card}>
+    <section className={styles.workspace} aria-busy={isLoading}>
+      <header className={styles.header}>
+        <div><span className={styles.eyebrow}>Salud animal · Profesionales</span><h2>Verificación profesional</h2><p>Revisa la identidad y la vigencia de cada profesional.</p></div>
+        <button className={styles.secondary} disabled={isLoading || isSubmitting} onClick={() => void refresh()} type="button">{isLoading ? "Actualizando…" : "Actualizar lista"}</button>
+      </header>
+      <div className={styles.overview}>
+        <strong>{isLoading ? "Consultando perfiles…" : pendingCount ? `${pendingCount} ${pendingCount === 1 ? "identidad pendiente" : "identidades pendientes"} de revisión` : "Sin revisiones pendientes"}</strong>
+        <span>La verificación de identidad y el permiso del responsable son independientes.</span>
+      </div>
+      {message ? <div className={styles.message} role="status">{message}</div> : null}
+      <div className={styles.columns}>
+        <aside className={styles.card} aria-label="Lista de profesionales">
+          <h3>Profesionales <span className={styles.count}>{profiles.length}</span></h3>
+          <div className={styles.profileList}>
+            {isLoading ? <p>Cargando…</p> : profiles.length ? profiles.map((profile) => <button key={profile.id} disabled={isSubmitting} aria-pressed={selectedId === profile.id} onClick={() => { setSelectedId(profile.id); setReason(""); setExpiresAt(""); setMessage(null); }} type="button" className={styles.profile}><strong>{profile.professionalName}</strong><span>{typeLabel(profile.professionalType)}</span><span className={styles.badge} data-status={profile.verificationStatus}>{statusLabels[profile.verificationStatus] ?? profile.verificationStatus}</span></button>) : <p>No hay perfiles para revisar.</p>}
+          </div>
+        </aside>
+        <article className={styles.card}>
           {selected ? <>
-            <div><span style={{ color: "#52615e", fontSize: "12px" }}>Identidad declarada</span><h3 style={{ margin: "5px 0" }}>{selected.professionalName}</h3><p style={{ margin: 0 }}>{typeLabel(selected.professionalType)}</p></div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "10px" }}>
-              <div style={input}><small>Referencia de licencia</small><strong style={{ display: "block", marginTop: "5px" }}>{selected.licenseReference}</strong></div>
-              <div style={input}><small>Jurisdiccion</small><strong style={{ display: "block", marginTop: "5px" }}>{selected.jurisdiction}, {selected.countryCode}</strong></div>
-              <div style={input}><small>Organizacion</small><strong style={{ display: "block", marginTop: "5px" }}>{selected.organizationName ?? "Sin vinculacion"}</strong></div>
-            </div>
-            <p>Vigencia registrada: {selected.verificationExpiresAt ? new Intl.DateTimeFormat("es-PA", { dateStyle: "short", timeStyle: "short", timeZone: "America/Panama" }).format(new Date(selected.verificationExpiresAt)) : "Sin vencimiento configurado"} (hora de Panama).</p>
-            {selected.verificationStatus === "expired" ? <p>Verificacion vencida. El profesional debe pulsar Solicitar renovacion profesional desde el enlace del expediente. La solicitud aparecera aqui como Pendiente para una nueva revision.</p> : null}
-            <label style={{ display: "grid", gap: "6px", fontSize: "13px" }}>Nueva vigencia opcional de la verificacion<input onChange={(event) => setExpiresAt(event.target.value)} style={input} type="date" value={expiresAt} /></label><p>La fecha vence a las 11:59:59 p. m. de Panama (UTC-5). Dejar vacio significa sin vencimiento configurado. Esta vigencia no es la duracion del QR.</p>
-            <label style={{ display: "grid", gap: "6px", fontSize: "13px" }}>Justificacion para rechazo o suspension<textarea onChange={(event) => setReason(event.target.value)} rows={4} style={input} value={reason} /></label>
-            <div style={{ display: "flex", gap: "9px", flexWrap: "wrap" }}>
-              {selected.verificationStatus === "pending" ? <><button disabled={isSubmitting} onClick={() => void decide("verified")} type="button">Verificar identidad</button><button disabled={isSubmitting} onClick={() => void decide("rejected")} type="button">Rechazar</button></> : selected.verificationStatus === "verified" ? <button disabled={isSubmitting} onClick={() => void decide("suspended")} type="button">Suspender verificacion</button> : null}
-            </div>
-          </> : <p style={{ color: "#52615e" }}>Selecciona un perfil para revisar sus datos declarados.</p>}
-        </div>
+            <div className={styles.identity}><div><span className={styles.eyebrow}>Identidad declarada</span><h3>{selected.professionalName}</h3><p>{typeLabel(selected.professionalType)}</p></div><span className={styles.badge} data-status={selected.verificationStatus}>{statusLabels[selected.verificationStatus] ?? selected.verificationStatus}</span></div>
+            <div className={styles.validity}><span>Vigencia registrada</span><strong>{selected.verificationExpiresAt ? formatDate(selected.verificationExpiresAt) : "Sin vencimiento configurado"}</strong><small>Hora de Panamá · Independiente de la duración del QR.</small></div>
+            <dl className={styles.facts}>
+              <div><dt>Referencia de licencia</dt><dd>{selected.licenseReference}</dd></div>
+              <div><dt>Jurisdicción</dt><dd>{selected.jurisdiction}, {selected.countryCode}</dd></div>
+              <div><dt>Organización</dt><dd>{selected.organizationName ?? "Sin vinculación"}</dd></div>
+            </dl>
+            {selected.verificationStatus === "expired" ? <div className={styles.notice}><strong>Debe solicitar una renovación</strong><p>El profesional debe pulsar «Solicitar renovación profesional» desde el enlace del expediente. Después podrás revisar la nueva solicitud aquí.</p></div> : null}
+            {selected.verificationStatus === "verified" ? <div className={styles.notice}><strong>Identidad verificada. Sin acciones pendientes.</strong><p>Para consultar archivos o registrar una atención, necesita además el permiso vigente del responsable de la mascota.</p></div> : null}
+            {selected.verificationStatus === "pending" ? <div className={styles.review}>
+              <h4>Revisar solicitud</h4>
+              <label>Válida hasta (opcional)<input onChange={(event) => setExpiresAt(event.target.value)} disabled={isSubmitting} type="date" value={expiresAt} /></label>
+              <p className={styles.help}>Vence a las 11:59:59 p. m. de Panamá (UTC−5). Sin fecha, la verificación no tendrá vencimiento.</p>
+              <label>Motivo del rechazo<textarea onChange={(event) => setReason(event.target.value)} disabled={isSubmitting} rows={2} placeholder="Obligatorio solo si rechazas la solicitud" value={reason} /></label>
+              <div className={styles.actions}><button className={styles.primary} disabled={isSubmitting || isLoading} onClick={() => void decide("verified")} type="button">{isSubmitting ? "Guardando…" : "Verificar identidad"}</button><button className={styles.danger} disabled={isSubmitting || isLoading} onClick={() => void decide("rejected")} type="button">Rechazar solicitud</button></div>
+            </div> : null}
+            {selected.verificationStatus === "verified" ? <details className={styles.disclosure} key={selected.id}><summary>Suspender verificación</summary><div className={styles.review}><p>La suspensión bloquea el acceso profesional que requiere una identidad verificada.</p><label>Motivo de la suspensión<textarea disabled={isSubmitting} onChange={(event) => setReason(event.target.value)} rows={3} value={reason} /></label><div><button className={styles.danger} disabled={isSubmitting || isLoading} onClick={() => void decide("suspended")} type="button">{isSubmitting ? "Guardando…" : "Confirmar suspensión"}</button></div></div></details> : null}
+            <p className={styles.help}>Esta revisión de plataforma no sustituye las acreditaciones exigidas por la autoridad competente.</p>
+          </> : <p>Selecciona un profesional para revisar su identidad.</p>}
+        </article>
       </div>
-      <div style={card}>
-        <div><span style={{ color: "#0f766e", fontSize: "10px", fontWeight: 900, textTransform: "uppercase" }}>Auditoria</span><h2 style={{ margin: "5px 0" }}>Actividad clinica</h2><p style={{ margin: 0, color: "#52615e" }}>Eventos operativos sanitizados. Esta vista no expone contenido clinico ni documentos.</p></div>
-        <input aria-label="Filtrar auditoria clinica" onChange={(event) => setAuditFilter(event.target.value)} placeholder="Filtrar por profesional, organizacion o referencia" style={input} value={auditFilter} />
-        <div style={{ display: "grid", gap: "8px" }}>
-          {auditEvents.filter((event) => [event.professionalName, event.organizationName, event.petReference, event.event].some((value) => value?.toLowerCase().includes(auditFilter.toLowerCase()))).map((event) => <div key={event.id} style={{ ...input, display: "grid", gridTemplateColumns: "minmax(180px,1fr) repeat(3,minmax(120px,.7fr))", gap: "10px", alignItems: "center" }}><strong>{event.event.replaceAll("_", " ")}</strong><span>{event.professionalName ?? "Sin atribucion"}</span><span>{event.organizationName ?? "Independiente"}</span><span>{event.petReference ?? "Sin referencia"} · {new Intl.DateTimeFormat("es-PA", { dateStyle: "short", timeStyle: "short" }).format(new Date(event.occurredAt))}</span></div>)}
-          {!auditEvents.length ? <p style={{ color: "#52615e" }}>No hay eventos clinicos registrados.</p> : null}
+      <details className={`${styles.card} ${styles.audit}`}>
+        <summary><span>Actividad clínica</span><span className={styles.count}>{auditEvents.length} {auditEvents.length === 1 ? "evento" : "eventos"}</span><small>Consultar historial</small></summary>
+        <div className={styles.review}>
+          <p className={styles.help}>Registro de actividad sin contenido clínico ni archivos. Horarios de Panamá.</p>
+          <label>Buscar en la actividad<input onChange={(event) => setAuditFilter(event.target.value)} placeholder="Profesional, organización, referencia o actividad" value={auditFilter} /></label>
+          <div className={styles.events}>
+            {filteredEvents.map((event) => <div key={event.id} className={styles.event}><div><strong>{eventLabels[event.event] ?? event.event.replaceAll("_", " ")}</strong><span>{event.professionalName ?? "Sin atribución"} · {event.organizationName ?? "Independiente"}</span></div><div><span>{event.petReference ?? "Sin referencia"}</span><time dateTime={event.occurredAt}>{formatDate(event.occurredAt)}</time></div></div>)}
+            {!filteredEvents.length ? <p>{auditEvents.length ? "No hay resultados para esta búsqueda." : "No hay eventos clínicos registrados."}</p> : null}
+          </div>
         </div>
-      </div>
+      </details>
     </section>
   );
 }
