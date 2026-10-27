@@ -1,0 +1,6 @@
+﻿import {execFileSync} from 'node:child_process';
+import {writeFile} from 'node:fs/promises';
+const code=`const {execFileSync}=require('child_process');const fs=require('fs');const crypto=require('crypto');const rows=JSON.parse(execFileSync('pm2',['jlist'],{encoding:'utf8'}));const p=rows.find(p=>p.name==='pet-ecosystem-admin');const cwd=p.pm2_env.pm_cwd;console.log(JSON.stringify({cwd,status:p.pm2_env.status,build:fs.readFileSync(cwd+'/apps/admin/.next/BUILD_ID','utf8').trim(),source:fs.readFileSync(cwd+'/clinical-source-commit.txt','utf8').trim(),previous:fs.readFileSync(cwd+'/previous-admin-release.txt','utf8').trim(),files:['AdminClinicalProfessionalsWorkspace.tsx','AdminClinicalProfessionalsWorkspace.module.css'].map(name=>({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(cwd+'/apps/admin/src/features/clinical-access/components/'+name)).digest('hex')})),candidates:rows.filter(p=>p.name.includes('check-')).length}));`;
+const cmd='printf %s '+Buffer.from(code).toString('base64')+' | base64 --decode | node';
+const out=execFileSync('ssh',['-i',process.env.USERPROFILE+'/.ssh/pet_ecosystem_deploy','-o','IdentitiesOnly=yes','root@143.198.165.191',cmd],{encoding:'utf8'});
+await writeFile(new URL('./deployment.json',import.meta.url),JSON.stringify(JSON.parse(out),null,2)+'\n');console.log(out);

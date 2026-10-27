@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-27T19:42:10.456Z",
+  "scope": "Published admin in Chrome, real QA admin password session, read-only navigation; no profile decisions submitted.",
+  "serverVerificationStatus": "verified",
+  "checks": {
+    "serverStateDisplayed": true,
+    "expiryVisible": true,
+    "auditInitiallyCollapsed": true,
+    "timezoneExplained": true
+  },
+  "uncaughtErrors": 0
+}

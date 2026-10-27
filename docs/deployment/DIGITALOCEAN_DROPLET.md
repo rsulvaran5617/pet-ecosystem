@@ -1,5 +1,14 @@
 # DigitalOcean Droplet deployment
 
+## Profesionales admin publicados - 2026-10-27
+
+Fuente 61d650036ca946f4dfec31dadf3f3af96c5fbf79; admin /var/www/pet-releases/professional-presentation-admin-61d6500-1793129978, build iNYkWuk6Gx-VfbkwX2IJZ.
+Estado y vigencia destacados, lista compacta, revision contextual y auditoria en acordeon.
+Rollback: /var/www/pet-releases/clinical-renewal-admin-71dc8b9-1793064272. Build/candidata/HTTPS/manifest y sesion QA admin real verificados; PM2 guardado.
+Sin migraciones ni cambios mobile. Evidencia: docs/audit/2026-10-27-admin-professionals/.
+Script: scripts/update-professional-presentation-admin.ps1.
+
+
 ## Renovacion profesional publicada - 2026-10-26
 
 Fuente 71dc8b9; migracion 20261027010000 aplicada y verificada.

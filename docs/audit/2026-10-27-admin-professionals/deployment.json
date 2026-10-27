@@ -1,0 +1,18 @@
+{
+  "cwd": "/var/www/pet-releases/professional-presentation-admin-61d6500-1793129978",
+  "status": "online",
+  "build": "iNYkWuk6Gx-VfbkwX2IJZ",
+  "source": "61d650036ca946f4dfec31dadf3f3af96c5fbf79",
+  "previous": "/var/www/pet-releases/clinical-renewal-admin-71dc8b9-1793064272",
+  "files": [
+    {
+      "name": "AdminClinicalProfessionalsWorkspace.tsx",
+      "sha256": "d5dd30a7fa5b4e5d2b193395fe7a9ba7ccef805180acbc47d9d6945518741bdc"
+    },
+    {
+      "name": "AdminClinicalProfessionalsWorkspace.module.css",
+      "sha256": "91cf42822c26bfcdffa6ccc92477a818d98368904fe43d2225de761b04208b1d"
+    }
+  ],
+  "candidates": 0
+}
